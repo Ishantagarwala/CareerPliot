@@ -23,24 +23,24 @@
 - [ ] Finalize color palette, typography, and design tokens
 
 ### 1.2 Project Initialization
-- [ ] Initialize Next.js 15 project with TypeScript:
+- [x] Initialize Next.js 15 project with TypeScript:
   ```bash
   npx -y create-next-app@latest ./ --typescript --tailwind --eslint --app --src-dir=false --import-alias="@/*"
   ```
-- [ ] Install core dependencies:
+- [x] Install core dependencies:
   ```bash
   npm install mongoose next-auth@beta bcryptjs openai pdf-parse formidable
   npm install -D @types/bcryptjs @types/formidable
   ```
-- [ ] Initialize shadcn/ui:
+- [x] Initialize shadcn/ui:
   ```bash
   npx -y shadcn@latest init
   ```
-- [ ] Install essential shadcn/ui components:
+- [x] Install essential shadcn/ui components:
   ```bash
   npx -y shadcn@latest add button card input label form dialog sheet avatar badge progress tabs separator toast dropdown-menu
   ```
-- [ ] Setup project structure (create all directories):
+- [x] Setup project structure (create all directories):
   ```
   mkdir -p app/(auth)/login app/(auth)/register
   mkdir -p app/(dashboard)/career app/(dashboard)/roadmap app/(dashboard)/courses
@@ -56,7 +56,7 @@
   ```
 
 ### 1.3 Environment Configuration
-- [ ] Create `.env.local` with required variables:
+- [x] Create `.env.local` with required variables:
   ```env
   # MongoDB
   MONGODB_URI=mongodb+srv://<username>:<password>@<cluster>.mongodb.net/career-pilot?retryWrites=true&w=majority
@@ -68,8 +68,8 @@
   # OpenAI
   OPENAI_API_KEY=sk-...
   ```
-- [ ] Create `.env.example` (same keys, no values) and commit it
-- [ ] Update `.gitignore` to include `.env.local`
+- [x] Create `.env.example` (same keys, no values) and commit it
+- [x] Update `.gitignore` to include `.env.local`
 
 ### 1.4 MongoDB Atlas Setup
 - [ ] Create a free MongoDB Atlas account (https://www.mongodb.com/atlas)
@@ -80,37 +80,37 @@
 - [ ] Install MongoDB Compass for local database browsing
 
 ### 1.5 Database Connection & Models
-- [ ] Create `lib/db.ts` — MongoDB/Mongoose connection singleton:
+- [x] Create `lib/db.ts` — MongoDB/Mongoose connection singleton:
   ```typescript
   // Handles connection caching for serverless (Vercel) environment
   // Uses global mongoose cache to prevent connection leaks
   ```
-- [ ] Create all Mongoose models in `models/` directory:
-  - [ ] `models/User.ts` — User schema (name, email, password, provider)
-  - [ ] `models/UserProfile.ts` — Assessment data (interests, goals, subjects, skills)
-  - [ ] `models/CareerRecommendation.ts` — AI career suggestions with scores
-  - [ ] `models/Roadmap.ts` — Stage-wise learning path with milestones
-  - [ ] `models/Course.ts` — Course recommendations catalog
-  - [ ] `models/Document.ts` — Uploaded PDFs with summaries/questions
-  - [ ] `models/ChatHistory.ts` — AI tutor conversation history
-  - [ ] `models/UserProgress.ts` — Progress tracking metrics
+- [x] Create all Mongoose models in `models/` directory:
+  - [x] `models/User.ts` — User schema (name, email, password, provider)
+  - [x] `models/UserProfile.ts` — Assessment data (interests, goals, subjects, skills)
+  - [x] `models/CareerRecommendation.ts` — AI career suggestions with scores
+  - [x] `models/Roadmap.ts` — Stage-wise learning path with milestones
+  - [x] `models/Course.ts` — Course recommendations catalog
+  - [x] `models/Document.ts` — Uploaded PDFs with summaries/questions
+  - [x] `models/ChatHistory.ts` — AI tutor conversation history
+  - [x] `models/UserProgress.ts` — Progress tracking metrics
 - [ ] Test MongoDB connection by running `npm run dev` and hitting a test API route
 
 ### 1.6 Authentication Setup (NextAuth.js)
-- [ ] Create `lib/auth.ts` — NextAuth.js configuration:
-  - [ ] Configure Credentials provider (email/password login)
-  - [ ] Configure JWT session strategy
-  - [ ] Add custom `authorize` function that queries MongoDB
-  - [ ] Add session/JWT callbacks to include user ID
-- [ ] Create `app/api/auth/[...nextauth]/route.ts` — NextAuth catch-all
-- [ ] Create `app/api/auth/register/route.ts` — Custom registration endpoint:
-  - [ ] Validate input (name, email, password)
-  - [ ] Check if user already exists
-  - [ ] Hash password with bcryptjs
-  - [ ] Save user to MongoDB
-- [ ] Create `middleware.ts` — Route protection:
-  - [ ] Protect all `/dashboard/*` routes
-  - [ ] Redirect unauthenticated users to `/login`
+- [x] Create `lib/auth.ts` — NextAuth.js configuration:
+  - [x] Configure Credentials provider (email/password login)
+  - [x] Configure JWT session strategy
+  - [x] Add custom `authorize` function that queries MongoDB
+  - [x] Add session/JWT callbacks to include user ID
+- [x] Create `app/api/auth/[...nextauth]/route.ts` — NextAuth catch-all
+- [x] Create `app/api/auth/register/route.ts` — Custom registration endpoint:
+  - [x] Validate input (name, email, password)
+  - [x] Check if user already exists
+  - [x] Hash password with bcryptjs
+  - [x] Save user to MongoDB
+- [x] Create `proxy.ts` (instead of deprecated `middleware.ts`) — Route protection:
+  - [x] Protect all `/dashboard/*` routes (and `/career/*`, `/roadmap/*`, etc.)
+  - [x] Redirect unauthenticated users to `/login`
 
 ---
 
