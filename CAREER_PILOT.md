@@ -90,7 +90,7 @@ India produces over **1.5 million engineering graduates annually**, yet a signif
 ┌─────────────────────────────────────────────────────────────────┐
 │                        CLIENT (Browser)                         │
 │                                                                 │
-│   React.js + Bootstrap + React Router + Axios                   │
+│   Next.js 15 (App Router) + React Server Components             │
 │   ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌──────────────────┐  │
 │   │  Auth UI  │ │ Career   │ │ Roadmap  │ │ Course/PDF/Tutor │  │
 │   │  Module   │ │ Discovery│ │ Viewer   │ │    Modules       │  │
@@ -100,33 +100,35 @@ India produces over **1.5 million engineering graduates annually**, yet a signif
          │             │            │                 │
          ▼             ▼            ▼                 ▼
    ╔═══════════════════════════════════════════════════════════╗
-   ║                   REST API LAYER                          ║
-   ║              Node.js + Express.js Server                  ║
+   ║              NEXT.JS API ROUTES LAYER                     ║
+   ║         /app/api/* (Route Handlers + Server Actions)      ║
    ║                                                           ║
    ║  ┌─────────────┐  ┌─────────────┐  ┌─────────────────┐   ║
    ║  │ Auth Routes  │  │ Career API  │  │ AI Integration  │   ║
-   ║  │ (JWT+bcrypt) │  │   Routes    │  │   Controller    │   ║
+   ║  │ (NextAuth)   │  │   Routes    │  │    Service       │   ║
    ║  └──────┬──────┘  └──────┬──────┘  └────────┬────────┘   ║
    ║         │                │                   │            ║
    ╚═════════╪════════════════╪═══════════════════╪════════════╝
              │                │                   │
       ┌──────▼──────┐  ┌─────▼──────┐   ┌────────▼────────┐
-      │  PostgreSQL  │  │  PostgreSQL │   │   OpenAI API    │
+      │   MongoDB    │  │   MongoDB   │   │   OpenAI API    │
       │  (Users,     │  │  (Careers,  │   │  (GPT-4/3.5)    │
       │   Auth)      │  │  Roadmaps,  │   │                 │
-      │              │  │  Courses,   │   │  ┌────────────┐ │
+      │  [Mongoose]  │  │  Courses,   │   │  ┌────────────┐ │
       │              │  │  Progress)  │   │  │ pdf-parse  │ │
-      │              │  │             │   │  │ multer     │ │
+      │              │  │ [Mongoose]  │   │  │ formidable │ │
       └──────────────┘  └─────────────┘   │  └────────────┘ │
                                           └─────────────────┘
 ```
 
 ### Architecture Highlights
 
-- **Monolithic Backend (MVP-appropriate)**: Single Express.js server handles all routes — simple to develop, test, and deploy within hackathon timelines.
-- **Stateless API Design**: JWT-based authentication ensures no server-side sessions, enabling horizontal scaling later.
-- **AI Service Decoupling**: All OpenAI API calls go through a dedicated `AIController` — easy to swap providers or add rate limiting.
-- **File Processing Pipeline**: PDF uploads → `multer` (storage) → `pdf-parse` (text extraction) → OpenAI (analysis) — clean separation of concerns.
+- **Full-Stack Next.js (MVP-appropriate)**: Single Next.js application handles both frontend rendering and API routes — eliminates the need for a separate backend server, simplifying development and deployment.
+- **App Router with Server Components**: Leverages React Server Components for faster page loads, reduced client-side JavaScript, and seamless data fetching.
+- **NextAuth.js Integration**: Battle-tested authentication with support for credentials, OAuth providers, and session management — no custom JWT middleware needed.
+- **MongoDB + Mongoose ODM**: Flexible document-based storage ideal for evolving schemas during rapid hackathon development; Mongoose provides schema validation and query building.
+- **AI Service Decoupling**: All OpenAI API calls go through a dedicated service module — easy to swap providers or add rate limiting.
+- **File Processing Pipeline**: PDF uploads → `formidable` (parsing) → `pdf-parse` (text extraction) → OpenAI (analysis) — clean separation of concerns.
 
 ---
 
@@ -134,28 +136,27 @@ India produces over **1.5 million engineering graduates annually**, yet a signif
 
 | Layer | Technology | Justification |
 | :--- | :--- | :--- |
-| **Frontend** | React.js | Component-based, fast rendering, huge ecosystem |
-| **UI Framework** | Bootstrap 5 | Rapid prototyping, responsive out-of-box |
-| **Routing** | React Router v6 | Client-side routing with protected routes |
-| **HTTP Client** | Axios | Promise-based, interceptor support for auth tokens |
-| **Backend** | Node.js + Express.js | Non-blocking I/O, fast API development |
-| **Database** | PostgreSQL | ACID compliance, complex queries, relational data |
-| **Authentication** | JWT + bcrypt | Industry-standard stateless auth + secure hashing |
+| **Full-Stack Framework** | Next.js 15 (App Router) | Unified frontend + backend, Server Components, API routes, file-based routing |
+| **UI Library** | React 19 | Component-based, fast rendering, huge ecosystem |
+| **Styling** | Tailwind CSS 4 + shadcn/ui | Utility-first styling with accessible, pre-built component library |
+| **Database** | MongoDB (Atlas) | Flexible document-based storage, free cloud tier, fast iteration |
+| **ODM** | Mongoose 8 | Schema validation, middleware hooks, query building for MongoDB |
+| **Authentication** | NextAuth.js (Auth.js v5) | Built-in session management, credential + OAuth support, middleware-based route protection |
 | **AI Engine** | OpenAI API (GPT-4 / GPT-3.5-turbo) | State-of-the-art LLM for career analysis, tutoring |
-| **PDF Processing** | pdf-parse + multer | Text extraction from uploaded documents |
-| **Deployment (Frontend)** | Vercel | Zero-config React deployment, global CDN |
-| **Deployment (Backend)** | Render | Free tier, auto-deploy from Git |
-| **Deployment (Database)** | Supabase / Railway | Managed PostgreSQL with free tiers |
+| **PDF Processing** | pdf-parse + formidable | Text extraction from uploaded documents |
+| **Deployment** | Vercel | Zero-config Next.js deployment, serverless functions, global CDN |
+| **Database Hosting** | MongoDB Atlas | Free M0 tier, managed cloud database, built-in monitoring |
 
 ### Dev Tools & Environment
 
 | Tool | Purpose |
 | :--- | :--- |
-| VS Code | Primary IDE |
+| VS Code / Cursor | Primary IDE |
 | Figma / Excalidraw | Wireframing & UI Mockups |
-| Postman | API testing |
+| Thunder Client / Postman | API testing |
 | Git + GitHub | Version control & collaboration |
 | ESLint + Prettier | Code quality & formatting |
+| MongoDB Compass | Database GUI for development |
 
 ---
 
@@ -165,11 +166,12 @@ India produces over **1.5 million engineering graduates annually**, yet a signif
 
 | Feature | Implementation |
 | :--- | :--- |
-| User Registration | Name, email, password (hashed with bcrypt) |
-| User Login | Email/password → JWT token issued |
-| JWT Authentication | Token stored in localStorage, sent via `Authorization` header |
-| Protected Routes | Middleware validates JWT on all private endpoints |
-| Session Management | Auto-logout on token expiry, refresh flow |
+| User Registration | Name, email, password (hashed with bcrypt via NextAuth credentials provider) |
+| User Login | Email/password → NextAuth session created (JWT strategy) |
+| NextAuth.js Sessions | Secure HTTP-only cookies, automatic CSRF protection |
+| Protected Routes | NextAuth middleware protects routes at the edge; `useSession()` for client-side checks |
+| OAuth Support (Stretch) | One-click sign-in via Google/GitHub providers |
+| Session Management | Automatic refresh, server-side session validation |
 
 ---
 
@@ -254,14 +256,14 @@ An on-demand document intelligence system:
 
 | Capability | Description |
 | :--- | :--- |
-| **Document Upload** | PDF, PPT, Markdown via multer file handling |
+| **Document Upload** | PDF, PPT, Markdown via formidable (Next.js API route) |
 | **Auto-Summarization** | Multi-page documents → structured key takeaways |
 | **Question Generation** | Conceptual questions + MCQs + flashcards |
 | **Contextual Explainer** | Deep-dive explanations for complex formulas/concepts |
 
 **Processing Flow:**
 ```
-File Upload (multer) → Text Extraction (pdf-parse) → 
+File Upload (formidable in API route) → Text Extraction (pdf-parse) → 
 Prompt Engineering → OpenAI API → Structured Output 
 (Summary / Questions / Explanations)
 ```
@@ -337,159 +339,157 @@ flowchart TD
 
 ---
 
-## 🗄 Database Schema
+## 🗄 Database Schema (MongoDB + Mongoose)
 
-```sql
--- Users Table
-CREATE TABLE users (
-    id          SERIAL PRIMARY KEY,
-    name        VARCHAR(100) NOT NULL,
-    email       VARCHAR(255) UNIQUE NOT NULL,
-    password    VARCHAR(255) NOT NULL,  -- bcrypt hashed
-    created_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
+```javascript
+// ===== models/User.js =====
+const UserSchema = new mongoose.Schema({
+  name:       { type: String, required: true, maxlength: 100 },
+  email:      { type: String, required: true, unique: true },
+  password:   { type: String, required: true },  // bcrypt hashed
+  image:      { type: String },                   // OAuth profile image
+  provider:   { type: String, default: 'credentials' },
+}, { timestamps: true });
 
--- User Profiles (Assessment Data)
-CREATE TABLE user_profiles (
-    id              SERIAL PRIMARY KEY,
-    user_id         INTEGER REFERENCES users(id) ON DELETE CASCADE,
-    interests       JSONB,          -- Array of interest areas
-    goals           TEXT,           -- Long-term career goals
-    subjects        JSONB,          -- Favorite academic subjects
-    skills          JSONB,          -- Current skill levels
-    assessed_at     TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
+// ===== models/UserProfile.js =====
+const UserProfileSchema = new mongoose.Schema({
+  userId:     { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+  interests:  [{ type: String }],                 // Array of interest areas
+  goals:      { type: String },                   // Long-term career goals
+  subjects:   [{ type: String }],                 // Favorite academic subjects
+  skills:     [{
+    name:     { type: String },
+    level:    { type: String, enum: ['beginner', 'intermediate', 'advanced'] }
+  }],
+  assessedAt: { type: Date, default: Date.now },
+});
 
--- Career Recommendations
-CREATE TABLE career_recommendations (
-    id              SERIAL PRIMARY KEY,
-    user_id         INTEGER REFERENCES users(id) ON DELETE CASCADE,
-    career_path     VARCHAR(100) NOT NULL,
-    match_score     DECIMAL(5,2),   -- AI confidence score
-    reasoning       TEXT,           -- Why this career fits
-    selected        BOOLEAN DEFAULT FALSE,
-    created_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
+// ===== models/CareerRecommendation.js =====
+const CareerRecommendationSchema = new mongoose.Schema({
+  userId:      { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+  careerPath:  { type: String, required: true },
+  matchScore:  { type: Number },                  // AI confidence score (0-100)
+  reasoning:   { type: String },                  // Why this career fits
+  selected:    { type: Boolean, default: false },
+}, { timestamps: true });
 
--- Roadmaps
-CREATE TABLE roadmaps (
-    id              SERIAL PRIMARY KEY,
-    user_id         INTEGER REFERENCES users(id) ON DELETE CASCADE,
-    career_path     VARCHAR(100) NOT NULL,
-    stages          JSONB,          -- Beginner/Intermediate/Advanced milestones
-    current_stage   VARCHAR(20) DEFAULT 'beginner',
-    created_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
+// ===== models/Roadmap.js =====
+const RoadmapSchema = new mongoose.Schema({
+  userId:       { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+  careerPath:   { type: String, required: true },
+  stages: [{
+    name:       { type: String, enum: ['beginner', 'intermediate', 'advanced'] },
+    milestones: [{
+      title:      { type: String, required: true },
+      completed:  { type: Boolean, default: false },
+      completedAt:{ type: Date },
+    }],
+  }],
+  currentStage: { type: String, default: 'beginner' },
+}, { timestamps: true });
 
--- Roadmap Progress
-CREATE TABLE roadmap_progress (
-    id              SERIAL PRIMARY KEY,
-    roadmap_id      INTEGER REFERENCES roadmaps(id) ON DELETE CASCADE,
-    milestone       VARCHAR(255) NOT NULL,
-    stage           VARCHAR(20) NOT NULL,
-    completed       BOOLEAN DEFAULT FALSE,
-    completed_at    TIMESTAMP
-);
+// ===== models/Course.js =====
+const CourseSchema = new mongoose.Schema({
+  title:       { type: String, required: true },
+  platform:    { type: String, required: true },
+  url:         { type: String, required: true },
+  careerPath:  { type: String },
+  skillLevel:  { type: String, enum: ['beginner', 'intermediate', 'advanced'] },
+  isFree:      { type: Boolean, default: true },
+  rating:      { type: Number, min: 0, max: 5 },
+});
 
--- Course Recommendations
-CREATE TABLE courses (
-    id              SERIAL PRIMARY KEY,
-    title           VARCHAR(255) NOT NULL,
-    platform        VARCHAR(50) NOT NULL,
-    url             TEXT NOT NULL,
-    career_path     VARCHAR(100),
-    skill_level     VARCHAR(20),    -- beginner/intermediate/advanced
-    is_free         BOOLEAN DEFAULT TRUE,
-    rating          DECIMAL(3,2)
-);
+// ===== models/Document.js =====
+const DocumentSchema = new mongoose.Schema({
+  userId:     { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+  filename:   { type: String, required: true },
+  fileUrl:    { type: String, required: true },  // Cloud storage URL or local path
+  summary:    { type: String },
+  questions:  [{
+    question: { type: String },
+    options:  [{ type: String }],
+    answer:   { type: String },
+    type:     { type: String, enum: ['mcq', 'short', 'flashcard'] },
+  }],
+}, { timestamps: true });
 
--- PDF Documents
-CREATE TABLE documents (
-    id              SERIAL PRIMARY KEY,
-    user_id         INTEGER REFERENCES users(id) ON DELETE CASCADE,
-    filename        VARCHAR(255) NOT NULL,
-    file_path       TEXT NOT NULL,
-    summary         TEXT,
-    questions       JSONB,          -- Generated questions/MCQs
-    uploaded_at     TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
+// ===== models/ChatHistory.js =====
+const ChatHistorySchema = new mongoose.Schema({
+  userId:   { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+  messages: [{
+    role:    { type: String, enum: ['user', 'assistant'], required: true },
+    content: { type: String, required: true },
+    sentAt:  { type: Date, default: Date.now },
+  }],
+}, { timestamps: true });
 
--- Chat History (AI Tutor)
-CREATE TABLE chat_history (
-    id              SERIAL PRIMARY KEY,
-    user_id         INTEGER REFERENCES users(id) ON DELETE CASCADE,
-    role            VARCHAR(20) NOT NULL,  -- 'user' or 'assistant'
-    message         TEXT NOT NULL,
-    created_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-
--- User Progress Tracking
-CREATE TABLE user_progress (
-    id                  SERIAL PRIMARY KEY,
-    user_id             INTEGER REFERENCES users(id) ON DELETE CASCADE,
-    courses_completed   INTEGER DEFAULT 0,
-    pdfs_analyzed       INTEGER DEFAULT 0,
-    tutor_sessions      INTEGER DEFAULT 0,
-    streak_days         INTEGER DEFAULT 0,
-    last_active         TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
+// ===== models/UserProgress.js =====
+const UserProgressSchema = new mongoose.Schema({
+  userId:            { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true, unique: true },
+  coursesCompleted:  { type: Number, default: 0 },
+  pdfsAnalyzed:      { type: Number, default: 0 },
+  tutorSessions:     { type: Number, default: 0 },
+  streakDays:        { type: Number, default: 0 },
+  lastActive:        { type: Date, default: Date.now },
+});
 ```
 
 ---
 
-## 🌐 API Design
+## 🌐 API Design (Next.js Route Handlers)
 
-### Authentication Endpoints
+All API routes live under `/app/api/` using Next.js Route Handlers (`route.ts` files).
+
+### Authentication Endpoints (NextAuth.js)
 
 | Method | Endpoint | Description |
 | :--- | :--- | :--- |
-| `POST` | `/api/auth/register` | Create new user account |
-| `POST` | `/api/auth/login` | Authenticate & return JWT |
-| `GET` | `/api/auth/profile` | Get current user profile (Protected) |
+| `POST` | `/api/auth/register` | Create new user account (custom route handler) |
+| `*` | `/api/auth/[...nextauth]` | NextAuth.js catch-all (handles login, logout, sessions, OAuth) |
+| `GET` | `/api/auth/session` | Get current session (built-in NextAuth) |
 
 ### Career Discovery Endpoints
 
 | Method | Endpoint | Description |
 | :--- | :--- | :--- |
 | `POST` | `/api/career/assess` | Submit assessment data |
-| `GET` | `/api/career/recommendations/:userId` | Get AI career recommendations |
-| `PUT` | `/api/career/select/:recommendationId` | Select a career path |
+| `GET` | `/api/career/recommendations` | Get AI career recommendations (session-based, no userId in URL) |
+| `PUT` | `/api/career/select` | Select a career path (recommendation ID in body) |
 
 ### Roadmap Endpoints
 
 | Method | Endpoint | Description |
 | :--- | :--- | :--- |
-| `GET` | `/api/roadmap/:userId` | Get user's personalized roadmap |
-| `PUT` | `/api/roadmap/progress/:milestoneId` | Mark milestone as completed |
+| `GET` | `/api/roadmap` | Get current user's personalized roadmap |
+| `PUT` | `/api/roadmap/progress` | Mark milestone as completed (milestone ID in body) |
 
 ### Course Endpoints
 
 | Method | Endpoint | Description |
 | :--- | :--- | :--- |
-| `GET` | `/api/courses` | Get filtered course recommendations |
-| `GET` | `/api/courses/:careerPath` | Get courses for a specific career |
+| `GET` | `/api/courses` | Get filtered course recommendations (query params) |
+| `GET` | `/api/courses/[careerPath]` | Get courses for a specific career |
 
 ### PDF Assistant Endpoints
 
 | Method | Endpoint | Description |
 | :--- | :--- | :--- |
 | `POST` | `/api/pdf/upload` | Upload document for AI analysis |
-| `GET` | `/api/pdf/summary/:docId` | Get AI-generated summary |
-| `GET` | `/api/pdf/questions/:docId` | Get generated questions/MCQs |
+| `GET` | `/api/pdf/summary/[docId]` | Get AI-generated summary |
+| `GET` | `/api/pdf/questions/[docId]` | Get generated questions/MCQs |
 
 ### AI Tutor Endpoints
 
 | Method | Endpoint | Description |
 | :--- | :--- | :--- |
 | `POST` | `/api/tutor/chat` | Send message to AI tutor |
-| `GET` | `/api/tutor/history/:userId` | Get chat history |
+| `GET` | `/api/tutor/history` | Get chat history (session-based) |
 
 ### Progress Endpoints
 
 | Method | Endpoint | Description |
 | :--- | :--- | :--- |
-| `GET` | `/api/progress/:userId` | Get user progress dashboard data |
+| `GET` | `/api/progress` | Get current user's progress dashboard data |
 
 ---
 
@@ -501,16 +501,16 @@ CREATE TABLE user_progress (
 | :--- | :--- | :--- |
 | Requirement gathering & feature finalization | Feature List & User Flow | Full Team |
 | Design wireframes (all major screens) | UI Mockups (Figma/Excalidraw) | Frontend Lead |
-| Setup React project + Bootstrap + Router | Frontend Skeleton | Frontend Dev |
-| Setup Node.js + Express + folder structure | Working Backend Server | Backend Lead |
-| Design & create PostgreSQL schema | Database Schema | Backend Dev |
+| Initialize Next.js 15 project + Tailwind CSS + shadcn/ui | Frontend Skeleton + Design System | Full-Stack Dev |
+| Setup MongoDB Atlas cluster + Mongoose models | Database Connection & Schemas | Backend Dev |
+| Configure NextAuth.js (credentials + optional OAuth) | Working Auth System | Backend Dev |
 
 ### Phase 2 — Core Modules (Days 4–10)
 
 | Task | Deliverable | Priority |
 | :--- | :--- | :--- |
-| Authentication Module (Register, Login, JWT, Protected Routes) | Secure User Access | 🔴 Critical |
-| Career Discovery Module (Assessment Form + AI Matching) | Career Suggestions | 🔴 Critical |
+| Authentication Module (NextAuth.js, Register Page, Login Page, Middleware Protection) | Secure User Access | 🔴 Critical |
+| Career Discovery Module (Assessment Form + AI Matching via Server Action) | Career Suggestions | 🔴 Critical |
 | Roadmap Module (Store & Display Personalized Learning Path) | Personalized Roadmap | 🔴 Critical |
 | Course Recommendation Module (Filter by Career/Level/Budget) | Course Recommendations | 🟡 High |
 
@@ -527,11 +527,10 @@ CREATE TABLE user_progress (
 | Task | Deliverable |
 | :--- | :--- |
 | End-to-end testing of all modules | Bug-Free Application |
-| Test all API endpoints (Postman) | Verified API Layer |
-| Deploy Frontend (Vercel) | Live Frontend |
-| Deploy Backend (Render) | Live Backend |
-| Deploy Database (Supabase/Railway) | Live Database |
-| Setup environment variables & secrets | Secure Production Config |
+| Test all API route handlers (Thunder Client/Postman) | Verified API Layer |
+| Deploy to Vercel (single deployment — frontend + API) | Live Application |
+| Deploy Database (MongoDB Atlas — free M0 cluster) | Live Database |
+| Setup Vercel environment variables & secrets | Secure Production Config |
 | Prepare demo flow & presentation | Hackathon-Ready Demo |
 
 ---
@@ -542,12 +541,12 @@ CREATE TABLE user_progress (
 ✅ Phase 1 — Foundation
    ├── [ ] Requirements finalized
    ├── [ ] Wireframes designed
-   ├── [ ] Frontend skeleton ready
-   ├── [ ] Backend server running
-   └── [ ] Database schema created
+   ├── [ ] Next.js project initialized with Tailwind + shadcn/ui
+   ├── [ ] MongoDB Atlas cluster configured + Mongoose models defined
+   └── [ ] NextAuth.js setup complete
 
 🔧 Phase 2 — Core Modules
-   ├── [ ] Auth module working
+   ├── [ ] Auth module working (register + login + protected routes)
    ├── [ ] Career discovery engine ready
    ├── [ ] Roadmap generation working
    └── [ ] Course recommendations live
@@ -559,9 +558,8 @@ CREATE TABLE user_progress (
 
 🚀 Phase 4 — Ship It
    ├── [ ] All modules tested
-   ├── [ ] Frontend deployed (Vercel)
-   ├── [ ] Backend deployed (Render)
-   ├── [ ] Database deployed (Supabase)
+   ├── [ ] App deployed to Vercel (unified deployment)
+   ├── [ ] MongoDB Atlas production cluster ready
    └── [ ] Demo prepared
 ```
 
@@ -590,9 +588,9 @@ These features transform Career Pilot from a learning guide into a **full career
 | :--- | :--- | :--- | :--- |
 | **OpenAI API rate limits / costs** | Medium | High | Use GPT-3.5-turbo for non-critical calls; implement caching for repeated queries; set up usage quotas per user |
 | **Scope creep during hackathon** | High | High | Strictly prioritize MVP modules (Auth → Career → Roadmap → Courses); defer PDF/Tutor if behind schedule |
-| **Database performance issues** | Low | Medium | Index frequently queried columns; use connection pooling; JSONB for flexible schema |
+| **MongoDB connection limits (Atlas free tier)** | Low | Medium | Use a connection singleton (`lib/db.ts`); limit concurrent connections; leverage connection pooling |
 | **Team member unavailability** | Medium | Medium | Document everything; ensure no single-person dependencies; pair programming for critical modules |
-| **Deployment failures** | Medium | High | Test deployment early (Day 12); have fallback deployment options (Railway, Fly.io) |
+| **Deployment failures** | Low | Medium | Vercel deploys automatically from Git with preview deployments; test production build early (Day 12) |
 | **Poor AI response quality** | Medium | High | Invest time in prompt engineering; test with diverse inputs; add guardrails for inappropriate outputs |
 
 ---
@@ -627,11 +625,11 @@ These features transform Career Pilot from a learning guide into a **full career
 
 | Role | Responsibility | Key Skills Needed |
 | :--- | :--- | :--- |
-| **Frontend Lead** | React UI, routing, responsive design, API integration | React.js, Bootstrap, Axios |
-| **Backend Lead** | Express.js server, API routes, JWT auth, middleware | Node.js, Express, PostgreSQL |
-| **AI Engineer** | Prompt engineering, OpenAI integration, PDF processing | Python/JS, OpenAI API, NLP |
-| **Database & DevOps** | Schema design, deployment, CI/CD, environment setup | PostgreSQL, Vercel, Render |
-| **UI/UX & Presenter** | Wireframes, design system, demo preparation, pitch | Figma, presentation skills |
+| **Full-Stack Lead** | Next.js pages, Server Components, API routes, NextAuth.js | Next.js, React, TypeScript |
+| **Backend & Data Lead** | Mongoose models, API route handlers, data layer, server actions | Node.js, MongoDB, Mongoose |
+| **AI Engineer** | Prompt engineering, OpenAI integration, PDF processing | JavaScript, OpenAI API, NLP |
+| **Database & DevOps** | MongoDB Atlas setup, Vercel deployment, CI/CD, environment config | MongoDB, Vercel, GitHub Actions |
+| **UI/UX & Presenter** | Wireframes, Tailwind/shadcn design system, demo preparation, pitch | Figma, Tailwind CSS, presentation skills |
 
 ---
 
@@ -652,46 +650,82 @@ These features transform Career Pilot from a learning guide into a **full career
 
 ```
 career-pilot/
-├── client/                     # React Frontend
-│   ├── public/
-│   ├── src/
-│   │   ├── components/
-│   │   │   ├── Auth/           # Login, Register components
-│   │   │   ├── Career/         # Assessment form, Recommendations
-│   │   │   ├── Roadmap/        # Roadmap viewer, Progress markers
-│   │   │   ├── Courses/        # Course cards, Filters
-│   │   │   ├── PDF/            # Upload UI, Summary viewer
-│   │   │   ├── Tutor/          # Chat interface
-│   │   │   ├── Dashboard/      # Progress tracking
-│   │   │   └── Layout/         # Navbar, Sidebar, Footer
-│   │   ├── services/           # Axios API calls
-│   │   ├── context/            # Auth context, User state
-│   │   ├── utils/              # Helper functions
-│   │   ├── App.js
-│   │   └── index.js
-│   └── package.json
-├── server/                     # Node.js Backend
-│   ├── controllers/            # Business logic
-│   │   ├── authController.js
-│   │   ├── careerController.js
-│   │   ├── roadmapController.js
-│   │   ├── courseController.js
-│   │   ├── pdfController.js
-│   │   ├── tutorController.js
-│   │   └── progressController.js
-│   ├── models/                 # Database models
-│   ├── routes/                 # API route definitions
-│   ├── middleware/             # JWT verification, error handling
-│   ├── config/                 # DB connection, environment
-│   ├── uploads/                # Stored PDF files
-│   ├── server.js               # Entry point
-│   └── package.json
-├── database/
-│   └── schema.sql              # PostgreSQL schema
+├── app/                          # Next.js App Router (Pages + Layouts)
+│   ├── layout.tsx                # Root layout (fonts, providers, global UI)
+│   ├── page.tsx                  # Landing page
+│   ├── (auth)/                   # Auth route group
+│   │   ├── login/page.tsx
+│   │   └── register/page.tsx
+│   ├── (dashboard)/              # Protected route group
+│   │   ├── layout.tsx            # Dashboard layout (sidebar, navbar)
+│   │   ├── career/page.tsx       # Career discovery assessment
+│   │   ├── roadmap/page.tsx      # Personalized roadmap viewer
+│   │   ├── courses/page.tsx      # Course recommendations
+│   │   ├── pdf/page.tsx          # PDF upload & analysis
+│   │   ├── tutor/page.tsx        # AI tutor chat interface
+│   │   └── dashboard/page.tsx    # Progress tracking dashboard
+│   └── api/                      # API Route Handlers
+│       ├── auth/
+│       │   ├── [...nextauth]/route.ts  # NextAuth.js catch-all
+│       │   └── register/route.ts       # Custom registration
+│       ├── career/
+│       │   ├── assess/route.ts
+│       │   ├── recommendations/route.ts
+│       │   └── select/route.ts
+│       ├── roadmap/
+│       │   ├── route.ts
+│       │   └── progress/route.ts
+│       ├── courses/
+│       │   ├── route.ts
+│       │   └── [careerPath]/route.ts
+│       ├── pdf/
+│       │   ├── upload/route.ts
+│       │   ├── summary/[docId]/route.ts
+│       │   └── questions/[docId]/route.ts
+│       ├── tutor/
+│       │   ├── chat/route.ts
+│       │   └── history/route.ts
+│       └── progress/route.ts
+├── components/                   # Reusable UI Components
+│   ├── ui/                       # shadcn/ui primitives (Button, Card, Input, etc.)
+│   ├── auth/                     # LoginForm, RegisterForm
+│   ├── career/                   # AssessmentForm, RecommendationCard
+│   ├── roadmap/                  # RoadmapViewer, MilestoneCard
+│   ├── courses/                  # CourseCard, CourseFilters
+│   ├── pdf/                      # PdfUploader, SummaryViewer
+│   ├── tutor/                    # ChatInterface, MessageBubble
+│   ├── dashboard/                # ProgressChart, StatsCard
+│   └── layout/                   # Navbar, Sidebar, Footer
+├── lib/                          # Shared utilities & configuration
+│   ├── db.ts                     # MongoDB/Mongoose connection singleton
+│   ├── auth.ts                   # NextAuth.js configuration
+│   ├── openai.ts                 # OpenAI client setup
+│   └── utils.ts                  # Helper functions
+├── models/                       # Mongoose Models
+│   ├── User.ts
+│   ├── UserProfile.ts
+│   ├── CareerRecommendation.ts
+│   ├── Roadmap.ts
+│   ├── Course.ts
+│   ├── Document.ts
+│   ├── ChatHistory.ts
+│   └── UserProgress.ts
+├── hooks/                        # Custom React hooks
+│   ├── useSession.ts
+│   └── useCareer.ts
+├── types/                        # TypeScript type definitions
+│   └── index.ts
+├── public/                       # Static assets
 ├── docs/
-│   ├── wireframes/             # UI mockups
-│   └── api-docs.md             # API documentation
-├── .env.example                # Environment variable template
+│   ├── wireframes/               # UI mockups
+│   └── api-docs.md               # API documentation
+├── .env.local                    # Environment variables (local)
+├── .env.example                  # Environment variable template
+├── middleware.ts                 # NextAuth.js route protection middleware
+├── next.config.ts                # Next.js configuration
+├── tailwind.config.ts            # Tailwind CSS configuration
+├── tsconfig.json                 # TypeScript configuration
+├── package.json
 ├── .gitignore
 └── README.md
 ```
@@ -706,4 +740,5 @@ career-pilot/
 
 ---
 
-*Document Version: 1.0 | Last Updated: June 3, 2026 | Team FinessBaba*
+*Document Version: 2.0 | Last Updated: June 4, 2026 | Team FinessBaba*
+*Tech Stack Migration: React+Express+PostgreSQL → Next.js+MongoDB*
