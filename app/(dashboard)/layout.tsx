@@ -9,7 +9,7 @@ export default function DashboardLayout({
   return (
     <div className="flex min-h-screen flex-col bg-background">
       {/* Top Navigation */}
-      <Navbar />
+      <Navbar showLinks={false} />
 
       {/* Main Workspace */}
       <div className="flex flex-1">

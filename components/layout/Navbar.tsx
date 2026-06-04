@@ -18,7 +18,7 @@ import { Menu, X, Compass, Award, BookOpen, FileText, MessageSquare, LayoutDashb
 import { useTheme } from "next-themes";
 import { useEffect } from "react";
 
-export default function Navbar() {
+export default function Navbar({ showLinks = true }: { showLinks?: boolean }) {
   const { data: session, status } = useSession();
   const pathname = usePathname();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -57,7 +57,7 @@ export default function Navbar() {
           </div>
 
           {/* Desktop Nav Links */}
-          {isAuthenticated && (
+          {isAuthenticated && showLinks && (
             <div className="hidden md:flex md:space-x-4">
               {navigation.map((item) => {
                 const isActive = pathname.startsWith(item.href);
