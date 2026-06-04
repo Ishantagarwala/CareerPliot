@@ -16,7 +16,7 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Menu, X, Compass, Award, BookOpen, FileText, MessageSquare, LayoutDashboard, LogOut, Sun, Moon } from "lucide-react";
 import { useTheme } from "next-themes";
-import { useEffect } from "react";
+import { useEffect, useCallback } from "react";
 
 export default function Navbar({ showLinks = true }: { showLinks?: boolean }) {
   const { data: session, status } = useSession();
@@ -24,9 +24,16 @@ export default function Navbar({ showLinks = true }: { showLinks?: boolean }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
 
   useEffect(() => {
     setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    const handleScroll = () => setScrolled(window.scrollY > 10);
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
   const isAuthenticated = status === "authenticated";
@@ -43,7 +50,9 @@ export default function Navbar({ showLinks = true }: { showLinks?: boolean }) {
   ];
 
   return (
-    <nav className="sticky top-0 z-50 w-full border-b border-border bg-background/80 backdrop-blur-md">
+    <nav className={`sticky top-0 z-50 w-full border-b bg-background/80 backdrop-blur-md transition-all duration-300 ${scrolled ? "border-transparent shadow-sm" : "border-border"}`}>
+      {/* Dynamic gradient border on scroll */}
+      <div className={`absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-purple-500/50 to-transparent transition-opacity duration-300 ${scrolled ? "opacity-100" : "opacity-0"}`} />
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="flex h-16 justify-between items-center">
           {/* Logo */}
@@ -145,8 +154,7 @@ export default function Navbar({ showLinks = true }: { showLinks?: boolean }) {
       </div>
 
       {/* Mobile Menu */}
-      {mobileMenuOpen && (
-        <div className="border-b border-border bg-background px-4 py-3 md:hidden">
+      <div className={`border-b border-border bg-background px-4 md:hidden overflow-hidden transition-all duration-300 ease-in-out ${mobileMenuOpen ? "max-h-[600px] py-3 opacity-100" : "max-h-0 py-0 opacity-0 border-b-0"}`}>
           {isAuthenticated ? (
             <div className="space-y-1 pb-3">
               {navigation.map((item) => {
@@ -209,8 +217,7 @@ export default function Navbar({ showLinks = true }: { showLinks?: boolean }) {
               </Link>
             </div>
           )}
-        </div>
-      )}
+      </div>
     </nav>
   );
 }

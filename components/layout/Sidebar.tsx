@@ -67,13 +67,13 @@ export default function Sidebar({ className }: SidebarProps) {
               key={item.name}
               href={item.href}
               className={cn(
-                "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-all group relative",
+                "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-all duration-200 group relative",
                 isActive
-                  ? "bg-primary text-primary-foreground shadow-md"
+                  ? "bg-gradient-to-r from-indigo-500 to-purple-500 text-white shadow-md shadow-indigo-500/20"
                   : "text-muted-foreground hover:bg-muted hover:text-foreground"
               )}
             >
-              <item.icon className={cn("h-5 w-5 shrink-0 transition-transform group-hover:scale-105", isActive ? "text-primary-foreground" : "text-muted-foreground group-hover:text-foreground")} />
+              <item.icon className={cn("h-5 w-5 shrink-0 transition-transform duration-200 group-hover:scale-110", isActive ? "text-white" : "text-muted-foreground group-hover:text-foreground")} />
               
               {!collapsed && (
                 <span className="truncate">{item.name}</span>
@@ -81,7 +81,7 @@ export default function Sidebar({ className }: SidebarProps) {
 
               {/* Tooltip on hover when collapsed */}
               {collapsed && (
-                <div className="absolute left-16 z-50 rounded-md bg-zinc-950 px-2 py-1.5 text-xs font-medium text-white opacity-0 transition-opacity group-hover:opacity-100 whitespace-nowrap shadow-md pointer-events-none">
+                <div className="absolute left-16 z-50 rounded-md bg-popover text-popover-foreground px-2 py-1.5 text-xs font-medium opacity-0 transition-opacity group-hover:opacity-100 whitespace-nowrap shadow-md border border-border pointer-events-none">
                   {item.name}
                 </div>
               )}
