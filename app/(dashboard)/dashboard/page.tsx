@@ -7,7 +7,6 @@ import { buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import {
   Compass,
-  Award,
   BookOpen,
   ArrowRight,
   Sparkles,
@@ -15,14 +14,13 @@ import {
   CheckCircle2,
   FileText,
   MessageSquare,
-  Flame,
   Target,
-  Loader2,
 } from "lucide-react";
 import StatsCard from "@/components/dashboard/StatsCard";
 import ProgressChart from "@/components/dashboard/ProgressChart";
 import StreakTracker from "@/components/dashboard/StreakTracker";
 import { toast } from "sonner";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface CareerRecommendation {
   _id: string;
@@ -91,9 +89,77 @@ export default function DashboardHome() {
 
   if (loading) {
     return (
-      <div className="flex h-[60vh] flex-col items-center justify-center gap-4">
-        <Loader2 className="h-10 w-10 animate-spin text-primary" />
-        <p className="text-muted-foreground text-sm font-medium">Assembling your progress statistics...</p>
+      <div className="space-y-8">
+        {/* Welcome Header Skeleton */}
+        <div className="border-b border-border pb-5">
+          <Skeleton className="h-9 w-64 mb-2" />
+          <Skeleton className="h-4 w-96" />
+        </div>
+
+        {/* Top Cards grid skeleton */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          <div className="lg:col-span-2">
+            <div className="border border-border bg-card rounded-2xl p-6 h-full space-y-4">
+              <Skeleton className="h-5 w-32" />
+              <Skeleton className="h-8 w-64" />
+              <Skeleton className="h-4 w-full" />
+              <Skeleton className="h-4 w-3/4" />
+              <div className="border-t border-border pt-4 flex gap-3">
+                <Skeleton className="h-9 w-28" />
+                <Skeleton className="h-9 w-24" />
+              </div>
+            </div>
+          </div>
+          <div className="lg:col-span-1">
+            <div className="border border-border bg-card rounded-2xl p-6 h-full flex flex-col items-center justify-center space-y-4">
+              <Skeleton className="h-5 w-32" />
+              <Skeleton className="h-28 w-28 rounded-full" />
+              <Skeleton className="h-4 w-40" />
+            </div>
+          </div>
+        </div>
+
+        {/* Stats grid skeleton */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          {[1, 2, 3, 4].map((i) => (
+            <div key={i} className="border border-border bg-card rounded-2xl p-5 space-y-3">
+              <div className="flex justify-between items-center">
+                <Skeleton className="h-4 w-24" />
+                <Skeleton className="h-8 w-8 rounded-lg" />
+              </div>
+              <Skeleton className="h-7 w-16" />
+              <Skeleton className="h-3.5 w-32" />
+            </div>
+          ))}
+        </div>
+
+        {/* Charts/Heatmap grid skeleton */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          <div className="border border-border bg-card rounded-2xl p-6 space-y-4">
+            <Skeleton className="h-6 w-48 mb-6" />
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="space-y-2" style={{ contentVisibility: "auto" }}>
+                <div className="flex justify-between">
+                  <Skeleton className="h-4 w-32" />
+                  <Skeleton className="h-4 w-20" />
+                </div>
+                <Skeleton className="h-3 w-full rounded-full" />
+              </div>
+            ))}
+          </div>
+          <div className="border border-border bg-card rounded-2xl p-6 space-y-6">
+            <Skeleton className="h-6 w-48" />
+            <Skeleton className="h-14 w-full rounded-xl" />
+            <div className="space-y-2">
+              <Skeleton className="h-4 w-24" />
+              <div className="grid grid-cols-7 gap-2">
+                {[1, 2, 3, 4, 5, 6, 7].map((i) => (
+                  <Skeleton key={i} className="h-12 w-full rounded-xl" />
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     );
   }

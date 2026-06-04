@@ -11,7 +11,6 @@ import {
   BarChart3,
   ArrowRight,
   Sparkles,
-  CheckCircle,
 } from "lucide-react";
 
 export default function Home() {

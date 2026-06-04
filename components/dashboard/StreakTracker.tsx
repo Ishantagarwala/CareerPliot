@@ -2,7 +2,7 @@
 
 import React from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Flame, Sparkles, Trophy, Calendar } from "lucide-react";
+import { Flame, Calendar } from "lucide-react";
 
 interface StreakTrackerProps {
   streakDays: number;

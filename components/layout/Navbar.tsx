@@ -14,14 +14,24 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Menu, X, Compass, Award, BookOpen, FileText, MessageSquare, LayoutDashboard, LogOut } from "lucide-react";
+import { Menu, X, Compass, Award, BookOpen, FileText, MessageSquare, LayoutDashboard, LogOut, Sun, Moon } from "lucide-react";
+import { useTheme } from "next-themes";
+import { useEffect } from "react";
 
 export default function Navbar() {
   const { data: session, status } = useSession();
   const pathname = usePathname();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const { theme, setTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const isAuthenticated = status === "authenticated";
+
+
 
   const navigation = [
     { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
@@ -70,7 +80,8 @@ export default function Navbar() {
           )}
 
           {/* Right Side Auth Buttons / Profile Dropdown */}
-          <div className="hidden md:flex md:items-center md:gap-4">
+          <div className="hidden md:flex md:items-center md:gap-3">
+            <ThemeToggle theme={theme} setTheme={setTheme} mounted={mounted} />
             {status === "loading" ? (
               <div className="h-8 w-8 animate-pulse rounded-full bg-muted" />
             ) : isAuthenticated ? (
@@ -168,21 +179,28 @@ export default function Navbar() {
                     <p className="text-xs text-muted-foreground">{session.user?.email}</p>
                   </div>
                 </div>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="text-destructive hover:bg-destructive/10 hover:text-destructive"
-                  onClick={() => {
-                    setMobileMenuOpen(false);
-                    signOut({ callbackUrl: "/" });
-                  }}
-                >
-                  <LogOut className="h-5 w-5" />
-                </Button>
+                <div className="flex items-center gap-1.5">
+                  <ThemeToggle theme={theme} setTheme={setTheme} mounted={mounted} />
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="text-destructive hover:bg-destructive/10 hover:text-destructive h-9 w-9 p-0 flex items-center justify-center"
+                    onClick={() => {
+                      setMobileMenuOpen(false);
+                      signOut({ callbackUrl: "/" });
+                    }}
+                  >
+                    <LogOut className="h-5 w-5" />
+                  </Button>
+                </div>
               </div>
             </div>
           ) : (
             <div className="space-y-2 py-2 border-t border-border flex flex-col">
+              <div className="flex items-center justify-between px-3 py-1 bg-muted/30 rounded-lg">
+                <span className="text-xs font-semibold text-muted-foreground">Appearance</span>
+                <ThemeToggle theme={theme} setTheme={setTheme} mounted={mounted} />
+              </div>
               <Link href="/login" className={buttonVariants({ variant: "outline", className: "w-full text-center" })} onClick={() => setMobileMenuOpen(false)}>
                 Log In
               </Link>
@@ -194,5 +212,33 @@ export default function Navbar() {
         </div>
       )}
     </nav>
+  );
+}
+
+function ThemeToggle({
+  theme,
+  setTheme,
+  mounted,
+}: {
+  theme?: string;
+  setTheme: (theme: string) => void;
+  mounted: boolean;
+}) {
+  if (!mounted) {
+    return <div className="h-9 w-9 rounded-lg bg-muted/20 animate-pulse" />;
+  }
+
+  return (
+    <Button
+      variant="ghost"
+      size="icon"
+      onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+      className="h-9 w-9 text-muted-foreground hover:bg-muted hover:text-foreground relative flex items-center justify-center rounded-lg cursor-pointer"
+      title="Toggle Theme"
+    >
+      <Sun className="h-4.5 w-4.5 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
+      <Moon className="absolute h-4.5 w-4.5 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
+      <span className="sr-only">Toggle theme</span>
+    </Button>
   );
 }

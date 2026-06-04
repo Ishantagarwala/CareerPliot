@@ -1,0 +1,248 @@
+
+> temp-next-app@0.1.0 lint
+> eslint
+
+
+/Users/aritra/Dev/Hackathon/bwu-ai-hackathon-2026/app/(dashboard)/career/page.tsx
+  38:5   error  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+/Users/aritra/Dev/Hackathon/bwu-ai-hackathon-2026/app/(dashboard)/career/page.tsx:38:5
+  36 |
+  37 |   useEffect(() => {
+> 38 |     fetchRecommendations();
+     |     ^^^^^^^^^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  39 |   }, []);
+  40 |
+  41 |   const handleSelect = async (recommendationId: string) => {  react-hooks/set-state-in-effect
+  62:19  error  Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       @typescript-eslint/no-explicit-any
+
+/Users/aritra/Dev/Hackathon/bwu-ai-hackathon-2026/app/(dashboard)/courses/page.tsx
+  57:5  error    Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+/Users/aritra/Dev/Hackathon/bwu-ai-hackathon-2026/app/(dashboard)/courses/page.tsx:57:5
+  55 |
+  56 |   useEffect(() => {
+> 57 |     fetchCourses();
+     |     ^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  58 |   }, [level, budget]);
+  59 |
+  60 |   if (loading && courses.length === 0) {  react-hooks/set-state-in-effect
+  58:6  warning  React Hook useEffect has a missing dependency: 'fetchCourses'. Either include it or remove the dependency array                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          react-hooks/exhaustive-deps
+
+/Users/aritra/Dev/Hackathon/bwu-ai-hackathon-2026/app/(dashboard)/dashboard/page.tsx
+  10:3  warning  'Award' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 @typescript-eslint/no-unused-vars
+  18:3  warning  'Flame' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 @typescript-eslint/no-unused-vars
+  89:5  error    Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+/Users/aritra/Dev/Hackathon/bwu-ai-hackathon-2026/app/(dashboard)/dashboard/page.tsx:89:5
+  87 |
+  88 |   useEffect(() => {
+> 89 |     fetchDashboardData();
+     |     ^^^^^^^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  90 |   }, []);
+  91 |
+  92 |   if (loading) {  react-hooks/set-state-in-effect
+
+/Users/aritra/Dev/Hackathon/bwu-ai-hackathon-2026/app/(dashboard)/pdf/page.tsx
+   18:15  error  Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        @typescript-eslint/no-explicit-any
+   49:5   error  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+/Users/aritra/Dev/Hackathon/bwu-ai-hackathon-2026/app/(dashboard)/pdf/page.tsx:49:5
+  47 |
+  48 |   useEffect(() => {
+> 49 |     fetchHistory();
+     |     ^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  50 |   }, []);
+  51 |
+  52 |   const handleUploadSuccess = (newDoc: any) => {  react-hooks/set-state-in-effect
+   52:40  error  Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        @typescript-eslint/no-explicit-any
+  100:19  error  Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        @typescript-eslint/no-explicit-any
+  215:61  error  `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 react/no-unescaped-entities
+  215:82  error  `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 react/no-unescaped-entities
+
+/Users/aritra/Dev/Hackathon/bwu-ai-hackathon-2026/app/(dashboard)/roadmap/page.tsx
+  56:5   error  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+/Users/aritra/Dev/Hackathon/bwu-ai-hackathon-2026/app/(dashboard)/roadmap/page.tsx:56:5
+  54 |
+  55 |   useEffect(() => {
+> 56 |     fetchRoadmap();
+     |     ^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  57 |   }, []);
+  58 |
+  59 |   const handleMilestoneToggle = async (milestoneId: string, completed: boolean) => {  react-hooks/set-state-in-effect
+  78:19  error  Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                @typescript-eslint/no-explicit-any
+
+/Users/aritra/Dev/Hackathon/bwu-ai-hackathon-2026/app/api/auth/register/route.ts
+  58:19  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/aritra/Dev/Hackathon/bwu-ai-hackathon-2026/app/api/career/assess/route.ts
+  97:19  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/aritra/Dev/Hackathon/bwu-ai-hackathon-2026/app/api/career/recommendations/route.ts
+  20:19  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/aritra/Dev/Hackathon/bwu-ai-hackathon-2026/app/api/career/select/route.ts
+  43:19  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/aritra/Dev/Hackathon/bwu-ai-hackathon-2026/app/api/courses/route.ts
+   93:18  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  108:19  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/aritra/Dev/Hackathon/bwu-ai-hackathon-2026/app/api/pdf/questions/[docId]/route.ts
+  33:19  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/aritra/Dev/Hackathon/bwu-ai-hackathon-2026/app/api/pdf/summary/[docId]/route.ts
+  33:19  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/aritra/Dev/Hackathon/bwu-ai-hackathon-2026/app/api/pdf/upload/route.ts
+   43:17  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   48:26  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  163:19  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  185:19  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/aritra/Dev/Hackathon/bwu-ai-hackathon-2026/app/api/progress/route.ts
+   87:38  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   90:48  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  137:19  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  183:19  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/aritra/Dev/Hackathon/bwu-ai-hackathon-2026/app/api/roadmap/progress/route.ts
+  69:19  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/aritra/Dev/Hackathon/bwu-ai-hackathon-2026/app/api/roadmap/route.ts
+  108:19  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/aritra/Dev/Hackathon/bwu-ai-hackathon-2026/app/api/test-db/route.ts
+  8:19  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/aritra/Dev/Hackathon/bwu-ai-hackathon-2026/app/api/tutor/chat/route.ts
+   73:32  error  Unexpected any. Specify a different type                                                                             @typescript-eslint/no-explicit-any
+   82:7   error  Use "@ts-expect-error" instead of "@ts-ignore", as "@ts-ignore" will do nothing if the following line is error-free  @typescript-eslint/ban-ts-comment
+  112:19  error  Unexpected any. Specify a different type                                                                             @typescript-eslint/no-explicit-any
+
+/Users/aritra/Dev/Hackathon/bwu-ai-hackathon-2026/app/api/tutor/history/route.ts
+  17:19  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  37:19  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/aritra/Dev/Hackathon/bwu-ai-hackathon-2026/app/page.tsx
+  14:3  warning  'CheckCircle' is defined but never used  @typescript-eslint/no-unused-vars
+
+/Users/aritra/Dev/Hackathon/bwu-ai-hackathon-2026/components/auth/LoginForm.tsx
+  120:16  error  `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`  react/no-unescaped-entities
+
+/Users/aritra/Dev/Hackathon/bwu-ai-hackathon-2026/components/career/AssessmentForm.tsx
+   25:32  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  159:19  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  281:73  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/aritra/Dev/Hackathon/bwu-ai-hackathon-2026/components/courses/CourseCard.tsx
+   4:29  warning  'CardDescription' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  @typescript-eslint/no-unused-vars
+  33:7   error    Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+/Users/aritra/Dev/Hackathon/bwu-ai-hackathon-2026/components/courses/CourseCard.tsx:33:7
+  31 |     const val = localStorage.getItem(key);
+  32 |     if (val === "true") {
+> 33 |       setCompleted(true);
+     |       ^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  34 |     }
+  35 |   }, [course._id]);
+  36 |  react-hooks/set-state-in-effect
+  62:19  error    Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     @typescript-eslint/no-explicit-any
+
+/Users/aritra/Dev/Hackathon/bwu-ai-hackathon-2026/components/dashboard/ProgressChart.tsx
+    6:26  warning  'Sparkles' is defined but never used                                                                                 @typescript-eslint/no-unused-vars
+   77:19  warning  'isCompleted' is assigned a value but never used                                                                     @typescript-eslint/no-unused-vars
+  103:21  error    Use "@ts-expect-error" instead of "@ts-ignore", as "@ts-ignore" will do nothing if the following line is error-free  @typescript-eslint/ban-ts-comment
+
+/Users/aritra/Dev/Hackathon/bwu-ai-hackathon-2026/components/dashboard/StreakTracker.tsx
+  5:17  warning  'Sparkles' is defined but never used  @typescript-eslint/no-unused-vars
+  5:27  warning  'Trophy' is defined but never used    @typescript-eslint/no-unused-vars
+
+/Users/aritra/Dev/Hackathon/bwu-ai-hackathon-2026/components/pdf/PdfUploader.tsx
+    4:59  warning  'CheckCircle2' is defined but never used  @typescript-eslint/no-unused-vars
+   10:31  error    Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  124:19  error    Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/aritra/Dev/Hackathon/bwu-ai-hackathon-2026/components/pdf/SummaryViewer.tsx
+   4:33  warning  'Download' is defined but never used                @typescript-eslint/no-unused-vars
+  23:14  warning  'err' is defined but never used                     @typescript-eslint/no-unused-vars
+  35:11  error    'trimmed' is never reassigned. Use 'const' instead  prefer-const
+
+/Users/aritra/Dev/Hackathon/bwu-ai-hackathon-2026/components/tutor/ChatInterface.tsx
+    6:10  warning  'Card' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         @typescript-eslint/no-unused-vars
+    6:16  warning  'CardContent' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  @typescript-eslint/no-unused-vars
+    6:41  warning  'CardHeader' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   @typescript-eslint/no-unused-vars
+    6:53  warning  'CardTitle' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    @typescript-eslint/no-unused-vars
+    6:64  warning  'CardDescription' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              @typescript-eslint/no-unused-vars
+   48:5   error    Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+/Users/aritra/Dev/Hackathon/bwu-ai-hackathon-2026/components/tutor/ChatInterface.tsx:48:5
+  46 |
+  47 |   useEffect(() => {
+> 48 |     fetchHistory();
+     |     ^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  49 |   }, []);
+  50 |
+  51 |   useEffect(() => {  react-hooks/set-state-in-effect
+   95:19  error    Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 @typescript-eslint/no-explicit-any
+  119:19  error    Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 @typescript-eslint/no-explicit-any
+  141:17  error    `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          react/no-unescaped-entities
+  141:38  error    `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          react/no-unescaped-entities
+  144:17  error    `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          react/no-unescaped-entities
+  144:39  error    `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          react/no-unescaped-entities
+  147:17  error    `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          react/no-unescaped-entities
+  147:42  error    `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          react/no-unescaped-entities
+
+/Users/aritra/Dev/Hackathon/bwu-ai-hackathon-2026/components/tutor/MessageBubble.tsx
+  27:14  warning  'err' is defined but never used  @typescript-eslint/no-unused-vars
+  66:14  warning  'err' is defined but never used  @typescript-eslint/no-unused-vars
+
+/Users/aritra/Dev/Hackathon/bwu-ai-hackathon-2026/lib/db.ts
+  15:3  warning  Unused eslint-disable directive (no problems were reported from 'no-var')
+
+✖ 75 problems (55 errors, 20 warnings)
+  1 error and 1 warning potentially fixable with the `--fix` option.
+

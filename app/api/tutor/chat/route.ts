@@ -68,10 +68,10 @@ Guidelines:
     const client = getLlmClient();
     const model = getLlmModel();
 
-    const messages = [
+    const messages: Array<{ role: "system" | "user" | "assistant"; content: string }> = [
       { role: "system", content: systemPrompt },
       ...recentHistory.map((m: any) => ({
-        role: m.role,
+        role: m.role as "user" | "assistant",
         content: m.content,
       })),
       { role: "user", content: message },
@@ -79,7 +79,6 @@ Guidelines:
 
     const completion = await client.chat.completions.create({
       model,
-      // @ts-ignore
       messages,
       temperature: 0.7,
     });

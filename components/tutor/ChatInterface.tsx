@@ -3,10 +3,11 @@
 import React, { useState, useEffect, useRef } from "react";
 import MessageBubble from "./MessageBubble";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { CardFooter } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Send, Trash2, Sparkles, MessageSquare, Loader2 } from "lucide-react";
+import { Send, Trash2, Sparkles, MessageSquare } from "lucide-react";
 import { toast } from "sonner";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface Message {
   role: "user" | "assistant";
@@ -138,13 +139,13 @@ export default function ChatInterface() {
             <div className="p-3.5 bg-muted/50 border border-border/50 rounded-xl space-y-2 text-[10px] text-muted-foreground">
               <span className="font-bold text-foreground block mb-1">Try asking:</span>
               <p className="hover:text-primary cursor-pointer transition-colors" onClick={() => setInput("Explain the difference between SQL and NoSQL databases.")}>
-                "Explain SQL vs NoSQL"
+                &quot;Explain SQL vs NoSQL&quot;
               </p>
               <p className="hover:text-primary cursor-pointer transition-colors" onClick={() => setInput("Explain closure in JavaScript with an example.")}>
-                "What is a JS closure?"
+                &quot;What is a JS closure?&quot;
               </p>
               <p className="hover:text-primary cursor-pointer transition-colors" onClick={() => setInput("Suggest a simple project to build for Python beginner stage.")}>
-                "Project ideas for Python"
+                &quot;Project ideas for Python&quot;
               </p>
             </div>
           </div>
@@ -181,8 +182,17 @@ export default function ChatInterface() {
           className="flex-1 overflow-y-auto p-6 space-y-4 bg-muted/20"
         >
           {loadingHistory ? (
-            <div className="flex h-full items-center justify-center">
-              <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            <div className="space-y-4 p-1">
+              {[1, 2, 3].map((i) => (
+                <div key={i} className={`flex w-full ${i % 2 === 1 ? "justify-start" : "justify-end"}`}>
+                  <div className={`flex items-start gap-2.5 max-w-[70%] ${i % 2 === 1 ? "flex-row" : "flex-row-reverse"}`}>
+                    <Skeleton className="h-8 w-8 rounded-full shrink-0" />
+                    <div className="flex flex-col space-y-1">
+                      <Skeleton className={`h-16 w-48 sm:w-64 rounded-2xl ${i % 2 === 1 ? "rounded-tl-none" : "rounded-tr-none"}`} />
+                    </div>
+                  </div>
+                </div>
+              ))}
             </div>
           ) : messages.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-full text-center p-6 space-y-4">

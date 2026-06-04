@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useRef } from "react";
-import { UploadCloud, FileText, X, AlertCircle, Sparkles, CheckCircle2 } from "lucide-react";
+import { UploadCloud, FileText, X, AlertCircle, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { toast } from "sonner";

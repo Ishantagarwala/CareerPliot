@@ -8,6 +8,7 @@ import QuizViewer from "@/components/pdf/QuizViewer";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface DocumentItem {
   _id: string;
@@ -149,9 +150,16 @@ export default function PdfPage() {
             
             <CardContent className="p-2 flex-1 overflow-y-auto space-y-1">
               {loadingHistory ? (
-                <div className="flex flex-col items-center justify-center py-10 gap-2">
-                  <Loader2 className="h-5 w-5 animate-spin text-primary" />
-                  <span className="text-xs text-muted-foreground">Loading history...</span>
+                <div className="space-y-2 p-1">
+                  {[1, 2, 3].map((i) => (
+                    <div key={i} className="flex gap-2.5 p-2 items-center rounded-xl border border-border/50 bg-muted/10 animate-pulse">
+                      <Skeleton className="h-5 w-5 rounded shrink-0" />
+                      <div className="space-y-1.5 flex-1 min-w-0">
+                        <Skeleton className="h-3 w-3/4" />
+                        <Skeleton className="h-2 w-1/2" />
+                      </div>
+                    </div>
+                  ))}
                 </div>
               ) : documents.length === 0 ? (
                 <div className="text-center py-10 px-4">
@@ -212,7 +220,7 @@ export default function PdfPage() {
                   onClick={() => setShowUploader(false)}
                   className="font-semibold flex items-center gap-1.5"
                 >
-                  <ArrowLeft className="h-4 w-4" /> Back to "{activeDoc.filename}"
+                  <ArrowLeft className="h-4 w-4" /> Back to &quot;{activeDoc.filename}&quot;
                 </Button>
               )}
             </div>
