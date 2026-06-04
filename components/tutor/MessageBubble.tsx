@@ -79,7 +79,7 @@ export default function MessageBubble({ message }: MessageBubbleProps) {
             className={`px-1.5 py-0.5 rounded font-mono text-[12px] border mx-0.5 ${
               isUser
                 ? "bg-white/20 border-white/10 text-white"
-                : "bg-muted border-border text-foreground"
+                : "bg-muted border-border text-foreground dark:text-foreground"
             }`}
           >
             {part.slice(1, -1)}
@@ -179,7 +179,7 @@ export default function MessageBubble({ message }: MessageBubbleProps) {
             <blockquote
               key={lineIdx}
               className={`pl-4 border-l-2 my-2 italic ${
-                isUser ? "border-white/30 text-white/95" : "border-primary/50 text-muted-foreground"
+                isUser ? "border-white/30 text-white/95" : "border-primary/50 text-foreground/70"
               }`}
             >
               {formatInlineText(trimmed.substring(2))}
@@ -194,7 +194,7 @@ export default function MessageBubble({ message }: MessageBubbleProps) {
             <li
               key={lineIdx}
               className={`text-sm list-disc ml-5 mb-1.5 leading-relaxed ${
-                isUser ? "text-white/90" : "text-muted-foreground"
+                isUser ? "text-white/90" : "text-foreground/80"
               }`}
             >
               {formatInlineText(trimmed.substring(2))}
@@ -212,7 +212,7 @@ export default function MessageBubble({ message }: MessageBubbleProps) {
             <li
               key={lineIdx}
               className={`text-sm list-decimal ml-5 mb-1.5 leading-relaxed ${
-                isUser ? "text-white/90" : "text-muted-foreground"
+                isUser ? "text-white/90" : "text-foreground/80"
               }`}
               style={{ listStyleType: "decimal" }}
             >
@@ -233,7 +233,7 @@ export default function MessageBubble({ message }: MessageBubbleProps) {
           <p
             key={lineIdx}
             className={`text-sm leading-relaxed mb-2.5 ${
-              isUser ? "text-white" : "text-muted-foreground"
+              isUser ? "text-white" : "text-foreground/80"
             }`}
           >
             {formatInlineText(line)}

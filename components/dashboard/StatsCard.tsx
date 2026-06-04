@@ -11,6 +11,7 @@ interface StatsCardProps {
   iconColor: string;
   bgColor: string;
   description?: string;
+  animationDelay?: number;
 }
 
 export default function StatsCard({
@@ -20,9 +21,13 @@ export default function StatsCard({
   iconColor,
   bgColor,
   description,
+  animationDelay = 0,
 }: StatsCardProps) {
   return (
-    <Card className="border-border bg-card hover:shadow-md transition-all duration-300 group overflow-hidden relative">
+    <Card
+      className="border-border bg-card hover:shadow-md transition-all duration-300 group overflow-hidden relative animate-fade-in-up"
+      style={{ animationDelay: `${animationDelay}ms` }}
+    >
       {/* Decorative gradient overlay */}
       <div className="absolute inset-0 bg-gradient-to-br from-transparent to-muted/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
       
