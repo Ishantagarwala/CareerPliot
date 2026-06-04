@@ -396,7 +396,8 @@ git push origin dev
 | `MONGODB_URI` | MongoDB Atlas → Connect → Drivers | ✅ Yes |
 | `NEXTAUTH_URL` | `http://localhost:3000` (dev) / production URL | ✅ Yes |
 | `NEXTAUTH_SECRET` | `openssl rand -base64 32` | ✅ Yes |
-| `OPENAI_API_KEY` | https://platform.openai.com/api-keys | ✅ Yes |
+| `OPENAI_API_KEY` | https://platform.openai.com/api-keys | ⚠️ Optional (if using OpenAI) |
+| `GEMINI_API_KEY` | https://aistudio.google.com/ | ⚠️ Optional (if using Gemini) |
 
 ---
 

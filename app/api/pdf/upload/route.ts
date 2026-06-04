@@ -115,7 +115,7 @@ Return your response ONLY as a JSON object matching this schema:
 Extracted Text:
 ${textToAnalyze}`;
 
-    const llmResponse = await generateStructuredJson<LlmResponse>(systemPrompt, userPrompt);
+    const llmResponse = await generateStructuredJson<LlmResponse>(systemPrompt, userPrompt, true);
 
     if (!llmResponse || !llmResponse.summary || !Array.isArray(llmResponse.questions)) {
       throw new Error("Invalid output format from LLM");

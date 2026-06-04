@@ -23,12 +23,18 @@ export function getLlmClient(): OpenAI {
 
 /**
  * Returns the model name to use.
- * Defaults to "gemini-2.5-flash" if GEMINI_API_KEY is present,
- * or "gpt-4o-mini" if using OpenAI. Can be overridden via environment variables.
+ * Defaults to "gemini-3.1-flash-lite" (or "gemini-3-flash" for PDF) if GEMINI_API_KEY is present,
+ * or "gpt-4o-mini" (or "gpt-4o" for PDF) if using OpenAI. Can be overridden via environment variables.
  */
-export function getLlmModel(): string {
+export function getLlmModel(isPdf = false): string {
   if (process.env.GEMINI_API_KEY) {
-    return process.env.GEMINI_MODEL || "gemini-2.5-flash";
+    if (isPdf) {
+      return process.env.GEMINI_PDF_MODEL || "gemini-3-flash";
+    }
+    return process.env.GEMINI_MODEL || "gemini-3.1-flash-lite";
+  }
+  if (isPdf) {
+    return process.env.OPENAI_PDF_MODEL || "gpt-4o";
   }
   return process.env.OPENAI_MODEL || "gpt-4o-mini";
 }
@@ -39,10 +45,11 @@ export function getLlmModel(): string {
  */
 export async function generateStructuredJson<T>(
   systemPrompt: string,
-  userPrompt: string
+  userPrompt: string,
+  isPdf = false
 ): Promise<T> {
   const client = getLlmClient();
-  const model = getLlmModel();
+  const model = getLlmModel(isPdf);
 
   try {
     const response = await client.chat.completions.create({
