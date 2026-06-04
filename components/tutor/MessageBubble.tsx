@@ -68,6 +68,48 @@ export default function MessageBubble({ message }: MessageBubbleProps) {
     }
   };
 
+  const formatInlineText = (text: string) => {
+    // Regex to split by inline code, bold, or italic
+    const parts = text.split(/(`[^`]+`|\*\*[^*]+\*\*|\*[^*]+\*)/g);
+    return parts.map((part, index) => {
+      if (part.startsWith("`") && part.endsWith("`")) {
+        return (
+          <code
+            key={index}
+            className={`px-1.5 py-0.5 rounded font-mono text-[12px] border mx-0.5 ${
+              isUser
+                ? "bg-white/20 border-white/10 text-white"
+                : "bg-muted border-border text-foreground"
+            }`}
+          >
+            {part.slice(1, -1)}
+          </code>
+        );
+      }
+      if (part.startsWith("**") && part.endsWith("**")) {
+        return (
+          <strong
+            key={index}
+            className={`font-bold ${isUser ? "text-white" : "text-foreground"}`}
+          >
+            {part.slice(2, -2)}
+          </strong>
+        );
+      }
+      if (part.startsWith("*") && part.endsWith("*")) {
+        return (
+          <em
+            key={index}
+            className={`italic ${isUser ? "text-white/95" : "text-foreground"}`}
+          >
+            {part.slice(1, -1)}
+          </em>
+        );
+      }
+      return part;
+    });
+  };
+
   const formatContent = (text: string) => {
     // Split by code blocks (```lang ... ```)
     const parts = text.split(/(```[\s\S]*?```)/g);
@@ -85,54 +127,121 @@ export default function MessageBubble({ message }: MessageBubbleProps) {
 
       // Normal text with newlines
       const lines = part.split("\n");
-      return lines.map((line, lineIdx) => {
+      const elements: React.ReactNode[] = [];
+
+      lines.forEach((line, lineIdx) => {
         const trimmed = line.trim();
 
-        const formatBold = (str: string) => {
-          const boldParts = str.split(/\*\*(.*?)\*\*/g);
-          return boldParts.map((bPart, bIdx) => {
-            if (bIdx % 2 === 1) {
-              return (
-                <strong
-                  key={bIdx}
-                  className={`font-bold ${isUser ? "text-white" : "text-foreground"}`}
-                >
-                  {bPart}
-                </strong>
-              );
-            }
-            return bPart;
-          });
-        };
+        // 1. Headers (supports # to ######)
+        const headerMatch = trimmed.match(/^(#{1,6})\s+(.*)/);
+        if (headerMatch) {
+          const level = headerMatch[1].length;
+          const headerText = headerMatch[2];
+          const Tag = `h${level}` as any;
+          
+          let sizeClass = "text-sm font-bold mt-3 mb-1.5";
+          if (level === 1) sizeClass = "text-xl font-bold mt-6 mb-4";
+          else if (level === 2) sizeClass = "text-lg font-bold mt-5 mb-3.5";
+          else if (level === 3) sizeClass = "text-base font-bold mt-4 mb-2";
+          else if (level === 4) sizeClass = "text-sm font-bold mt-3.5 mb-1.5";
+          else if (level === 5) sizeClass = "text-xs font-bold mt-3 mb-1";
+          else if (level === 6) sizeClass = "text-xs font-bold mt-2.5 mb-1 text-muted-foreground";
 
+          elements.push(
+            <Tag
+              key={lineIdx}
+              className={`font-heading ${sizeClass} ${
+                isUser ? "text-white" : level === 2 ? "text-primary" : "text-foreground"
+              }`}
+            >
+              {formatInlineText(headerText)}
+            </Tag>
+          );
+          return;
+        }
+
+        // 2. Horizontal Rule
+        if (trimmed === "---" || trimmed === "***" || trimmed === "___") {
+          elements.push(
+            <hr
+              key={lineIdx}
+              className={`my-4 border-t ${
+                isUser ? "border-white/20" : "border-border"
+              }`}
+            />
+          );
+          return;
+        }
+
+        // 3. Blockquotes
+        if (trimmed.startsWith("> ")) {
+          elements.push(
+            <blockquote
+              key={lineIdx}
+              className={`pl-4 border-l-2 my-2 italic ${
+                isUser ? "border-white/30 text-white/95" : "border-primary/50 text-muted-foreground"
+              }`}
+            >
+              {formatInlineText(trimmed.substring(2))}
+            </blockquote>
+          );
+          return;
+        }
+
+        // 4. Unordered List Item
         if (trimmed.startsWith("- ") || trimmed.startsWith("* ")) {
-          return (
+          elements.push(
             <li
               key={lineIdx}
               className={`text-sm list-disc ml-5 mb-1.5 leading-relaxed ${
                 isUser ? "text-white/90" : "text-muted-foreground"
               }`}
             >
-              {formatBold(trimmed.substring(2))}
+              {formatInlineText(trimmed.substring(2))}
             </li>
           );
+          return;
         }
 
+        // 5. Ordered List Item
+        const orderedMatch = trimmed.match(/^(\d+)\.\s+(.*)/);
+        if (orderedMatch) {
+          const num = orderedMatch[1];
+          const itemText = orderedMatch[2];
+          elements.push(
+            <li
+              key={lineIdx}
+              className={`text-sm list-decimal ml-5 mb-1.5 leading-relaxed ${
+                isUser ? "text-white/90" : "text-muted-foreground"
+              }`}
+              style={{ listStyleType: "decimal" }}
+            >
+              {formatInlineText(itemText)}
+            </li>
+          );
+          return;
+        }
+
+        // 6. Empty Line
         if (trimmed === "") {
-          return <div key={lineIdx} className="h-2" />;
+          elements.push(<div key={lineIdx} className="h-2" />);
+          return;
         }
 
-        return (
+        // 7. Plain Paragraph
+        elements.push(
           <p
             key={lineIdx}
             className={`text-sm leading-relaxed mb-2.5 ${
               isUser ? "text-white" : "text-muted-foreground"
             }`}
           >
-            {formatBold(line)}
+            {formatInlineText(line)}
           </p>
         );
       });
+
+      return elements;
     });
   };
 
