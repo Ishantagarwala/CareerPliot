@@ -30,17 +30,23 @@ export async function GET() {
 
     await dbConnect();
 
-    // 1. Check if roadmap already exists
-    let roadmap = await Roadmap.findOne({ userId });
-    if (roadmap) {
-      return NextResponse.json(roadmap);
-    }
-
     // 2. Find selected career path
     const selectedRecommendation = await CareerRecommendation.findOne({
       userId,
       selected: true,
     });
+
+    // 1. Check if roadmap already exists
+    let roadmap = await Roadmap.findOne({ userId });
+    if (roadmap) {
+      if (selectedRecommendation && roadmap.careerPath !== selectedRecommendation.careerPath) {
+        // Career path changed! Delete the old roadmap to force regeneration
+        await Roadmap.deleteOne({ _id: roadmap._id });
+        roadmap = null;
+      } else {
+        return NextResponse.json(roadmap);
+      }
+    }
 
     if (!selectedRecommendation) {
       return NextResponse.json(

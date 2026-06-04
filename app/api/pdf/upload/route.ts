@@ -4,9 +4,10 @@ import dbConnect from "@/lib/db";
 import Document from "@/models/Document";
 import UserProgress from "@/models/UserProgress";
 import { generateStructuredJson } from "@/lib/llm";
-import { PDFParse } from "pdf-parse";
 import { mkdir, writeFile } from "fs/promises";
 import path from "path";
+
+const { PDFParse } = eval('require')("pdf-parse");
 
 interface LlmQuestion {
   question: string;

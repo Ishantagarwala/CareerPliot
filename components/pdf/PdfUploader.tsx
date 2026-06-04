@@ -136,7 +136,10 @@ export default function PdfUploader({ onUploadSuccess }: PdfUploaderProps) {
         onDragOver={handleDrag}
         onDragLeave={handleDrag}
         onDrop={handleDrop}
+        onClick={!file && !uploading ? onButtonClick : undefined}
         className={`relative flex flex-col items-center justify-center p-8 rounded-2xl border-2 border-dashed transition-all duration-300 min-h-[220px] bg-card ${
+          !file && !uploading ? "cursor-pointer" : ""
+        } ${
           dragActive
             ? "border-primary bg-primary/5 scale-[0.99]"
             : "border-border hover:border-primary/50"
@@ -159,13 +162,9 @@ export default function PdfUploader({ onUploadSuccess }: PdfUploaderProps) {
             <div className="space-y-1">
               <p className="font-medium text-sm text-foreground">
                 Drag and drop your study materials here, or{" "}
-                <button
-                  type="button"
-                  onClick={onButtonClick}
-                  className="text-primary font-semibold hover:underline"
-                >
+                <span className="text-primary font-semibold hover:underline">
                   browse
-                </button>
+                </span>
               </p>
               <p className="text-xs text-muted-foreground">PDF notes, slides, or chapters up to 10MB</p>
             </div>
