@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -44,6 +44,7 @@ export default function AssessmentForm({ onSuccess }: AssessmentFormProps) {
   const {
     register,
     handleSubmit,
+    setValue,
     formState: { errors },
   } = useForm<AssessmentFormValues>({
     resolver: zodResolver(assessmentSchema),
@@ -51,6 +52,38 @@ export default function AssessmentForm({ onSuccess }: AssessmentFormProps) {
       goals: "",
     },
   });
+
+  useEffect(() => {
+    async function loadProfile() {
+      try {
+        const res = await fetch("/api/career/assess");
+        if (res.ok) {
+          const profile = await res.json();
+          if (profile) {
+            if (profile.interests && profile.interests.length > 0) {
+              setSelectedInterests(profile.interests);
+            }
+            if (profile.subjects && profile.subjects.length > 0) {
+              setSelectedSubjects(profile.subjects);
+            }
+            if (profile.skills && profile.skills.length > 0) {
+              const cleanedSkills = profile.skills.map((s: any) => ({
+                name: s.name,
+                level: s.level,
+              }));
+              setSkills(cleanedSkills);
+            }
+            if (profile.goals) {
+              setValue("goals", profile.goals);
+            }
+          }
+        }
+      } catch (err) {
+        console.error("Error loading assessment profile:", err);
+      }
+    }
+    loadProfile();
+  }, [setValue]);
 
   const interestsOptions = [
     "Software Engineering",
