@@ -9,7 +9,19 @@ import Document from "@/models/Document";
 import ChatHistory from "@/models/ChatHistory";
 import UserProgress from "@/models/UserProgress";
 
+export async function GET(req: Request) {
+  const response = await handleSeed();
+  if (response.status === 200) {
+    return NextResponse.redirect(new URL("/dashboard", req.url));
+  }
+  return response;
+}
+
 export async function POST() {
+  return handleSeed();
+}
+
+async function handleSeed() {
   try {
     const session = await auth();
     if (!session || !session.user || !session.user.id) {
