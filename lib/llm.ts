@@ -29,7 +29,7 @@ export function getLlmClient(): OpenAI {
 export function getLlmModel(isPdf = false): string {
   if (process.env.GEMINI_API_KEY) {
     if (isPdf) {
-      return process.env.GEMINI_PDF_MODEL || "gemini-3-flash";
+      return process.env.GEMINI_PDF_MODEL || "gemini-3.5-flash";
     }
     return process.env.GEMINI_MODEL || "gemini-3.1-flash-lite";
   }
