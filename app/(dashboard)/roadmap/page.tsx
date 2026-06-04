@@ -4,8 +4,9 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import RoadmapViewer from "@/components/roadmap/RoadmapViewer";
 import { buttonVariants } from "@/components/ui/button";
-import { Loader2, Award, Compass, ArrowRight } from "lucide-react";
+import { Award, Compass, ArrowRight } from "lucide-react";
 import { toast } from "sonner";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface Milestone {
   _id?: string;
@@ -83,9 +84,40 @@ export default function RoadmapPage() {
 
   if (loading) {
     return (
-      <div className="flex h-[60vh] flex-col items-center justify-center gap-4">
-        <Loader2 className="h-10 w-10 animate-spin text-primary" />
-        <p className="text-muted-foreground text-sm font-medium">Assembling your custom roadmap...</p>
+      <div className="space-y-8">
+        <div className="border-b border-border pb-5">
+          <Skeleton className="h-9 w-64 mb-2" />
+          <Skeleton className="h-4 w-96" />
+        </div>
+        
+        {/* Roadmap stages timeline skeleton */}
+        <div className="space-y-12 relative before:absolute before:inset-y-0 before:left-4 sm:before:left-6 before:w-0.5 before:bg-muted/80">
+          {[1, 2].map((stageIdx) => (
+            <div key={stageIdx} className="relative pl-10 sm:pl-16 space-y-6">
+              {/* Timeline marker */}
+              <div className="absolute left-1.5 sm:left-3.5 top-0 h-6 w-6 rounded-full border-4 border-background bg-zinc-200 dark:bg-zinc-800 animate-pulse" />
+              
+              {/* Stage Header */}
+              <div className="space-y-2">
+                <Skeleton className="h-6 w-36" />
+                <Skeleton className="h-4 w-64" />
+              </div>
+              
+              {/* Milestones list */}
+              <div className="grid grid-cols-1 gap-4">
+                {[1, 2].map((milestoneIdx) => (
+                  <div key={milestoneIdx} className="border border-border bg-card rounded-2xl p-5 flex items-start gap-4">
+                    <Skeleton className="h-6 w-6 rounded-md shrink-0 mt-0.5" />
+                    <div className="space-y-2 flex-1">
+                      <Skeleton className="h-5 w-48" />
+                      <Skeleton className="h-4 w-full" />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
     );
   }

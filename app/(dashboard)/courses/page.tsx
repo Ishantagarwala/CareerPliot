@@ -1,12 +1,13 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
 import CourseCard from "@/components/courses/CourseCard";
 import CourseFilters from "@/components/courses/CourseFilters";
 import { buttonVariants } from "@/components/ui/button";
-import { Loader2, BookOpen, Compass, ArrowRight, Library } from "lucide-react";
+import { BookOpen, Compass, ArrowRight, Library } from "lucide-react";
 import { toast } from "sonner";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface Course {
   _id: string;
@@ -27,7 +28,7 @@ export default function CoursesPage() {
   const [level, setLevel] = useState("all");
   const [budget, setBudget] = useState("all");
 
-  const fetchCourses = async () => {
+  const fetchCourses = useCallback(async () => {
     setLoading(true);
     try {
       const url = new URL("/api/courses", window.location.origin);
@@ -51,17 +52,61 @@ export default function CoursesPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [level, budget]);
 
   useEffect(() => {
     fetchCourses();
-  }, [level, budget]);
+  }, [fetchCourses]);
+
+  const renderSkeletons = () => (
+    <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+      {[1, 2, 3, 4].map((i) => (
+        <div key={i} className="border border-border bg-card rounded-2xl p-5 space-y-4">
+          <div className="flex justify-between items-center">
+            <Skeleton className="h-5 w-20" />
+            <div className="flex gap-2">
+              <Skeleton className="h-5 w-16" />
+              <Skeleton className="h-5 w-12" />
+            </div>
+          </div>
+          <Skeleton className="h-12 w-full" />
+          <Skeleton className="h-4 w-32" />
+          <div className="flex gap-3 pt-3 border-t border-border/50">
+            <Skeleton className="h-9 flex-1" />
+            <Skeleton className="h-9 w-9" />
+          </div>
+        </div>
+      ))}
+    </div>
+  );
 
   if (loading && courses.length === 0) {
     return (
-      <div className="flex h-[60vh] flex-col items-center justify-center gap-4">
-        <Loader2 className="h-10 w-10 animate-spin text-primary" />
-        <p className="text-muted-foreground text-sm font-medium">Assembling course recommendations...</p>
+      <div className="space-y-8">
+        <div className="border-b border-border pb-5">
+          <Skeleton className="h-9 w-64 mb-2" />
+          <Skeleton className="h-4 w-96" />
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+          {/* Filters skeleton */}
+          <div className="md:col-span-1">
+            <div className="border border-border rounded-2xl p-5 space-y-4 bg-card">
+              <Skeleton className="h-6 w-24 mb-4" />
+              <div className="space-y-3">
+                <Skeleton className="h-4 w-12" />
+                <Skeleton className="h-9 w-full" />
+              </div>
+              <div className="space-y-3 pt-4">
+                <Skeleton className="h-4 w-12" />
+                <Skeleton className="h-9 w-full" />
+              </div>
+            </div>
+          </div>
+          {/* Courses grid skeleton */}
+          <div className="md:col-span-3">
+            {renderSkeletons()}
+          </div>
+        </div>
       </div>
     );
   }
@@ -112,9 +157,7 @@ export default function CoursesPage() {
             {/* Right Column Grid */}
             <div className="md:col-span-3">
               {loading ? (
-                <div className="flex h-[40vh] items-center justify-center">
-                  <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                </div>
+                renderSkeletons()
               ) : courses.length === 0 ? (
                 <div className="flex flex-col items-center justify-center text-center p-8 border border-dashed border-border rounded-2xl py-16 space-y-4 bg-card">
                   <div className="h-12 w-12 rounded-full bg-muted flex items-center justify-center text-muted-foreground">

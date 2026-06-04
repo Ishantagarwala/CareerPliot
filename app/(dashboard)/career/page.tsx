@@ -4,8 +4,9 @@ import { useEffect, useState } from "react";
 import AssessmentForm from "@/components/career/AssessmentForm";
 import RecommendationCard from "@/components/career/RecommendationCard";
 import { Button } from "@/components/ui/button";
-import { Loader2, RefreshCw, Compass } from "lucide-react";
+import { RefreshCw, Compass } from "lucide-react";
 import { toast } from "sonner";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface CareerRecommendation {
   _id: string;
@@ -73,9 +74,25 @@ export default function CareerPage() {
 
   if (loading) {
     return (
-      <div className="flex h-[60vh] flex-col items-center justify-center gap-4">
-        <Loader2 className="h-10 w-10 animate-spin text-primary" />
-        <p className="text-muted-foreground text-sm font-medium">Loading your career profile...</p>
+      <div className="space-y-8">
+        <div className="border-b border-border pb-5">
+          <Skeleton className="h-9 w-48 mb-2" />
+          <Skeleton className="h-4 w-96" />
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="border border-border bg-card rounded-2xl p-6 space-y-4">
+              <div className="flex justify-between items-center">
+                <Skeleton className="h-6 w-32" />
+                <Skeleton className="h-6 w-16 rounded-full" />
+              </div>
+              <Skeleton className="h-20 w-full" />
+              <div className="border-t border-border pt-4">
+                <Skeleton className="h-9 w-full rounded-lg" />
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
     );
   }

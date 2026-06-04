@@ -24,7 +24,7 @@ function CodeBlock({ code, language }: { code: string; language: string }) {
       setCopied(true);
       toast.success("Code copied to clipboard!");
       setTimeout(() => setCopied(false), 2000);
-    } catch (err) {
+    } catch {
       toast.error("Failed to copy code");
     }
   };
@@ -63,7 +63,7 @@ export default function MessageBubble({ message }: MessageBubbleProps) {
       setCopiedText(true);
       toast.success("Message copied!");
       setTimeout(() => setCopiedText(false), 2000);
-    } catch (err) {
+    } catch {
       toast.error("Failed to copy message");
     }
   };

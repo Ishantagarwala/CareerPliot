@@ -3,7 +3,7 @@
 import React from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
-import { Award, Compass, Sparkles } from "lucide-react";
+import { Award, Compass } from "lucide-react";
 
 interface StageDetail {
   completed: number;
@@ -74,7 +74,6 @@ export default function ProgressChart({ stageProgress, careerPath }: ProgressCha
         {careerPath ? (
           stages.map((stage) => {
             const percent = getPercentage(stage.completed, stage.total);
-            const isCompleted = percent === 100 && stage.total > 0;
             return (
               <div key={stage.key} className="space-y-2 group">
                 <div className="flex justify-between items-start">
@@ -100,7 +99,6 @@ export default function ProgressChart({ stageProgress, careerPath }: ProgressCha
                   <Progress 
                     value={percent} 
                     className="h-2.5 bg-muted rounded-full overflow-hidden" 
-                    // @ts-ignore
                     indicatorClassName={stage.color}
                   />
                 </div>

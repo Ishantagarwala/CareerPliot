@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import React, { useState } from "react";
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
 import { Star, ExternalLink, GraduationCap, CheckCircle2 } from "lucide-react";
@@ -22,17 +22,14 @@ interface CourseCardProps {
 }
 
 export default function CourseCard({ course }: CourseCardProps) {
-  const [completed, setCompleted] = useState(false);
-  const [loading, setLoading] = useState(false);
-
-  // Load completion state from localStorage
-  useEffect(() => {
-    const key = `course_completed_${course._id}`;
-    const val = localStorage.getItem(key);
-    if (val === "true") {
-      setCompleted(true);
+  const [completed, setCompleted] = useState(() => {
+    if (typeof window !== "undefined") {
+      const key = `course_completed_${course._id}`;
+      return localStorage.getItem(key) === "true";
     }
-  }, [course._id]);
+    return false;
+  });
+  const [loading, setLoading] = useState(false);
 
   const toggleCompleted = async () => {
     setLoading(true);

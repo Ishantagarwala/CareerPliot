@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { Copy, Check, FileText, Download } from "lucide-react";
+import { Copy, Check, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { toast } from "sonner";
@@ -20,7 +20,7 @@ export default function SummaryViewer({ summary, filename }: SummaryViewerProps)
       setCopied(true);
       toast.success("Summary copied to clipboard!");
       setTimeout(() => setCopied(false), 2000);
-    } catch (err) {
+    } catch {
       toast.error("Failed to copy text");
     }
   };
@@ -32,7 +32,7 @@ export default function SummaryViewer({ summary, filename }: SummaryViewerProps)
     const elements: React.ReactNode[] = [];
 
     lines.forEach((line, index) => {
-      let trimmed = line.trim();
+      const trimmed = line.trim();
 
       // Bold formatter
       const formatBold = (str: string) => {
