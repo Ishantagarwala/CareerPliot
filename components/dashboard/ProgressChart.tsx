@@ -75,7 +75,7 @@ export default function ProgressChart({ stageProgress, careerPath }: ProgressCha
           stages.map((stage) => {
             const percent = getPercentage(stage.completed, stage.total);
             return (
-              <div key={stage.key} className="space-y-2 group">
+              <div key={stage.key} className="space-y-2 group animate-fade-in-up" style={{ animationDelay: `${stages.indexOf(stage) * 150}ms` }}>
                 <div className="flex justify-between items-start">
                   <div className="space-y-0.5">
                     <span className="text-xs font-bold text-foreground block group-hover:text-primary transition-colors">

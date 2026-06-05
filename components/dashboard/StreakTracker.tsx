@@ -69,7 +69,7 @@ export default function StreakTracker({ streakDays, lastActive }: StreakTrackerP
 
       <CardContent className="space-y-6">
         {/* Streak Flame Badge */}
-        <div className="flex items-center gap-4 p-4 rounded-2xl bg-amber-500/5 border border-amber-500/10">
+        <div className="flex items-center gap-4 p-4 rounded-2xl bg-amber-500/5 border border-amber-500/10 animate-fade-in-up">
           <div className="h-14 w-14 rounded-full bg-amber-500/10 flex items-center justify-center text-amber-500 shrink-0">
             <Flame className="h-8 w-8 fill-amber-500" />
           </div>
@@ -93,13 +93,14 @@ export default function StreakTracker({ streakDays, lastActive }: StreakTrackerP
             {weeklyDays.map((day, idx) => (
               <div
                 key={idx}
-                className={`flex flex-col items-center p-2 rounded-xl border text-center transition-all ${
+                className={`flex flex-col items-center p-2 rounded-xl border text-center transition-all animate-fade-in-up ${
                   day.isActive
                     ? "bg-amber-500/10 border-amber-500/30 text-amber-500"
                     : day.isToday
                     ? "border-primary bg-primary/5 text-primary"
                     : "border-border/50 bg-card text-muted-foreground"
                 }`}
+                style={{ animationDelay: `${idx * 80}ms` }}
               >
                 <span className="text-[9px] font-bold uppercase tracking-wider block">
                   {day.name}

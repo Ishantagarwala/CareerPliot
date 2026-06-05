@@ -78,7 +78,7 @@ export default function MessageBubble({ message }: MessageBubbleProps) {
             key={index}
             className={`px-1.5 py-0.5 rounded font-mono text-[12px] border mx-0.5 ${
               isUser
-                ? "bg-white/20 border-white/10 text-white"
+                ? "bg-primary-foreground/20 border-primary-foreground/10 text-primary-foreground"
                 : "bg-muted border-border text-foreground dark:text-foreground"
             }`}
           >
@@ -90,7 +90,7 @@ export default function MessageBubble({ message }: MessageBubbleProps) {
         return (
           <strong
             key={index}
-            className={`font-bold ${isUser ? "text-white" : "text-foreground"}`}
+            className={`font-bold ${isUser ? "text-primary-foreground" : "text-foreground"}`}
           >
             {part.slice(2, -2)}
           </strong>
@@ -100,7 +100,7 @@ export default function MessageBubble({ message }: MessageBubbleProps) {
         return (
           <em
             key={index}
-            className={`italic ${isUser ? "text-white/95" : "text-foreground"}`}
+            className={`italic ${isUser ? "text-primary-foreground/95" : "text-foreground"}`}
           >
             {part.slice(1, -1)}
           </em>
@@ -151,7 +151,7 @@ export default function MessageBubble({ message }: MessageBubbleProps) {
             <Tag
               key={lineIdx}
               className={`font-heading ${sizeClass} ${
-                isUser ? "text-white" : level === 2 ? "text-primary" : "text-foreground"
+                isUser ? "text-primary-foreground" : level === 2 ? "text-primary" : "text-foreground"
               }`}
             >
               {formatInlineText(headerText)}
@@ -166,7 +166,7 @@ export default function MessageBubble({ message }: MessageBubbleProps) {
             <hr
               key={lineIdx}
               className={`my-4 border-t ${
-                isUser ? "border-white/20" : "border-border"
+                isUser ? "border-primary-foreground/20" : "border-border"
               }`}
             />
           );
@@ -179,7 +179,7 @@ export default function MessageBubble({ message }: MessageBubbleProps) {
             <blockquote
               key={lineIdx}
               className={`pl-4 border-l-2 my-2 italic ${
-                isUser ? "border-white/30 text-white/95" : "border-primary/50 text-foreground/70"
+                isUser ? "border-primary-foreground/30 text-primary-foreground/95" : "border-primary/50 text-foreground/70"
               }`}
             >
               {formatInlineText(trimmed.substring(2))}
@@ -194,7 +194,7 @@ export default function MessageBubble({ message }: MessageBubbleProps) {
             <li
               key={lineIdx}
               className={`text-sm list-disc ml-5 mb-1.5 leading-relaxed ${
-                isUser ? "text-white/90" : "text-foreground/80"
+                isUser ? "text-primary-foreground/90" : "text-foreground/80"
               }`}
             >
               {formatInlineText(trimmed.substring(2))}
@@ -212,7 +212,7 @@ export default function MessageBubble({ message }: MessageBubbleProps) {
             <li
               key={lineIdx}
               className={`text-sm list-decimal ml-5 mb-1.5 leading-relaxed ${
-                isUser ? "text-white/90" : "text-foreground/80"
+                isUser ? "text-primary-foreground/90" : "text-foreground/80"
               }`}
               style={{ listStyleType: "decimal" }}
             >
@@ -233,7 +233,7 @@ export default function MessageBubble({ message }: MessageBubbleProps) {
           <p
             key={lineIdx}
             className={`text-sm leading-relaxed mb-2.5 ${
-              isUser ? "text-white" : "text-foreground/80"
+              isUser ? "text-primary-foreground" : "text-foreground/80"
             }`}
           >
             {formatInlineText(line)}

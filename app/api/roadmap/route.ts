@@ -44,7 +44,7 @@ export async function GET() {
         await Roadmap.deleteOne({ _id: roadmap._id });
         roadmap = null;
       } else {
-        return NextResponse.json(roadmap);
+        return NextResponse.json(roadmap.toJSON());
       }
     }
 
@@ -110,7 +110,7 @@ Generate a personalized roadmap tailored for this student.`;
       currentStage: "beginner",
     });
 
-    return NextResponse.json(roadmap);
+    return NextResponse.json(roadmap.toJSON());
   } catch (error: any) {
     console.error("Roadmap GET route error:", error);
     return NextResponse.json(

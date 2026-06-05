@@ -179,7 +179,7 @@ export default function ChatInterface() {
         {/* Message Feed */}
         <div
           ref={scrollRef}
-          className="flex-1 overflow-y-auto p-6 space-y-4 bg-muted/20"
+          className="flex-1 overflow-y-auto p-6 space-y-4 bg-muted/30"
         >
           {loadingHistory ? (
             <div className="space-y-4 p-1">
