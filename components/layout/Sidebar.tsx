@@ -4,6 +4,9 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useSession, signOut } from "next-auth/react";
 import { cn } from "@/lib/utils";
+import { useTheme } from "next-themes";
+import { useState, useEffect } from "react";
+import { Sun, Moon } from "lucide-react";
 
 interface SidebarProps {
   className?: string;
@@ -25,11 +28,19 @@ const bottomItems = [
 export default function Sidebar({ className }: SidebarProps) {
   const pathname = usePathname();
   const { data: session } = useSession();
+  const { theme, setTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  const isDark = theme === "dark";
 
   return (
     <aside
       className={cn(
-        "flex flex-col h-screen w-64 fixed left-0 top-0 bg-[#0e0e0e] border-r border-[#262626] py-8 z-40",
+        "flex flex-col h-screen w-64 fixed left-0 top-0 bg-sidebar border-r border-sidebar-border py-8 z-40 transition-colors duration-300",
         className
       )}
     >
@@ -37,13 +48,13 @@ export default function Sidebar({ className }: SidebarProps) {
       <div className="px-6 mb-10">
         <Link href="/dashboard" className="block">
           <h1
-            className="text-xl font-bold text-white tracking-tight"
+            className="text-xl font-bold text-foreground tracking-tight"
             style={{ fontFamily: "'Hanken Grotesk', system-ui, sans-serif" }}
           >
             Career Pilot
           </h1>
           <p
-            className="text-[11px] text-[#8e9192] mt-1 uppercase tracking-[0.15em] font-medium"
+            className="text-[11px] text-muted-foreground mt-1 uppercase tracking-[0.15em] font-medium"
             style={{ fontFamily: "'JetBrains Mono', monospace" }}
           >
             Executive Suite
@@ -61,19 +72,19 @@ export default function Sidebar({ className }: SidebarProps) {
               key={item.name}
               href={item.href}
               className={cn(
-                "flex items-center gap-3 px-4 py-3 rounded text-sm font-medium nav-link-monolith group",
+                "flex items-center gap-3 px-4 py-3 rounded text-sm font-medium nav-link-monolith group transition-all duration-300",
                 isActive
-                  ? "bg-[#2a2a2a] text-white border-r-2 border-white"
-                  : "text-[#c4c7c8] hover:bg-[#201f1f] hover:text-white"
+                  ? "bg-sidebar-accent text-foreground border-r-2 border-primary"
+                  : "text-muted-foreground hover:bg-sidebar-accent/50 hover:text-foreground"
               )}
               style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "13px", letterSpacing: "0.04em" }}
             >
               <span
                 className={cn(
-                  "material-symbols-outlined text-[20px] transition-colors",
+                  "material-symbols-outlined text-[20px] transition-colors duration-300",
                   isActive
-                    ? "text-white"
-                    : "text-[#8e9192] group-hover:text-white"
+                    ? "text-primary"
+                    : "text-muted-foreground group-hover:text-foreground"
                 )}
                 style={isActive ? { fontVariationSettings: "'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24" } : undefined}
               >
@@ -86,15 +97,40 @@ export default function Sidebar({ className }: SidebarProps) {
       </nav>
 
       {/* Bottom Section */}
-      <div className="mt-auto px-2 flex flex-col gap-1 pt-4 border-t border-[#262626] mx-4">
+      <div className="mt-auto px-2 flex flex-col gap-1 pt-4 border-t border-sidebar-border mx-4">
+        {mounted && (
+          <button
+            onClick={() => setTheme(isDark ? "light" : "dark")}
+            className="flex items-center gap-3 px-4 py-3 rounded text-muted-foreground hover:bg-sidebar-accent hover:text-foreground nav-link-monolith group text-sm w-full text-left cursor-pointer transition-all duration-300"
+            style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "13px", letterSpacing: "0.04em" }}
+            aria-label="Toggle Theme"
+          >
+            <div className="relative w-5 h-5 flex items-center justify-center overflow-hidden shrink-0">
+              <Sun
+                className={cn(
+                  "absolute w-5 h-5 transition-all duration-500 transform text-muted-foreground group-hover:text-foreground",
+                  isDark ? "rotate-90 scale-0 opacity-0" : "rotate-0 scale-100 opacity-100"
+                )}
+              />
+              <Moon
+                className={cn(
+                  "absolute w-5 h-5 transition-all duration-500 transform text-muted-foreground group-hover:text-foreground",
+                  isDark ? "rotate-0 scale-100 opacity-100" : "-rotate-90 scale-0 opacity-0"
+                )}
+              />
+            </div>
+            <span>{isDark ? "Light Mode" : "Dark Mode"}</span>
+          </button>
+        )}
+        
         {bottomItems.map((item) => (
           <Link
             key={item.name}
             href={item.href}
-            className="flex items-center gap-3 px-4 py-3 rounded text-[#c4c7c8] hover:bg-[#201f1f] hover:text-white nav-link-monolith group text-sm"
+            className="flex items-center gap-3 px-4 py-3 rounded text-muted-foreground hover:bg-sidebar-accent hover:text-foreground nav-link-monolith group text-sm transition-all duration-300"
             style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "13px", letterSpacing: "0.04em" }}
           >
-            <span className="material-symbols-outlined text-[20px] text-[#8e9192] group-hover:text-white transition-colors">
+            <span className="material-symbols-outlined text-[20px] text-muted-foreground group-hover:text-foreground transition-colors duration-300">
               {item.icon}
             </span>
             <span>{item.name}</span>
@@ -102,10 +138,10 @@ export default function Sidebar({ className }: SidebarProps) {
         ))}
         <button
           onClick={() => signOut({ callbackUrl: "/" })}
-          className="flex items-center gap-3 px-4 py-3 rounded text-[#c4c7c8] hover:bg-[#201f1f] hover:text-white nav-link-monolith group text-sm w-full text-left cursor-pointer"
+          className="flex items-center gap-3 px-4 py-3 rounded text-muted-foreground hover:bg-sidebar-accent hover:text-foreground nav-link-monolith group text-sm w-full text-left cursor-pointer transition-all duration-300"
           style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "13px", letterSpacing: "0.04em" }}
         >
-          <span className="material-symbols-outlined text-[20px] text-[#8e9192] group-hover:text-white transition-colors">
+          <span className="material-symbols-outlined text-[20px] text-muted-foreground group-hover:text-foreground transition-colors duration-300">
             logout
           </span>
           <span>Sign Out</span>
@@ -114,3 +150,4 @@ export default function Sidebar({ className }: SidebarProps) {
     </aside>
   );
 }
+

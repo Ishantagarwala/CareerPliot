@@ -20,6 +20,8 @@ export const metadata: Metadata = {
   description: "Navigate your career path with AI-driven discovery, custom roadmaps, filtered courses, notes summarization, and interactive tutoring.",
 };
 
+import { ThemeProvider } from "@/components/layout/ThemeProvider";
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -28,7 +30,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`dark ${inter.variable} ${jetbrainsMono.variable} h-full antialiased`}
+      className={`${inter.variable} ${jetbrainsMono.variable} h-full antialiased`}
       suppressHydrationWarning
     >
       <head>
@@ -43,8 +45,10 @@ export default function RootLayout({
       </head>
       <body className="min-h-full flex flex-col font-sans bg-background text-foreground selection:bg-primary selection:text-primary-foreground">
         <SessionProvider>
-          {children}
-          <Toaster position="top-right" richColors />
+          <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false}>
+            {children}
+            <Toaster position="top-right" richColors />
+          </ThemeProvider>
         </SessionProvider>
       </body>
     </html>

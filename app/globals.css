@@ -48,46 +48,48 @@
   --radius-4xl: calc(var(--radius) * 3);
 }
 
-/* ===== MONOLITH DARK PALETTE (forced dark mode) ===== */
+/* ===== MONOLITH LIGHT/DARK PALETTES ===== */
 
 :root {
-  --background: #0A0A0A;
-  --foreground: #e5e2e1;
-  --card: #1A1A1A;
-  --card-foreground: #e5e2e1;
-  --popover: #262626;
-  --popover-foreground: #e5e2e1;
-  --primary: #ffffff;
-  --primary-foreground: #0A0A0A;
-  --secondary: #1A1A1A;
-  --secondary-foreground: #e5e2e1;
-  --muted: #1A1A1A;
-  --muted-foreground: #8e9192;
-  --accent: #262626;
-  --accent-foreground: #e5e2e1;
-  --destructive: #ffb4ab;
-  --border: #262626;
-  --input: #262626;
-  --ring: #404040;
-  --chart-1: #ffffff;
-  --chart-2: #c4c7c8;
-  --chart-3: #8e9192;
-  --chart-4: #636565;
-  --chart-5: #444748;
+  --background: #f9f9f9;
+  --background-rgb: 249, 249, 249;
+  --foreground: #1a1c1c;
+  --card: #ffffff;
+  --card-foreground: #1a1c1c;
+  --popover: #ffffff;
+  --popover-foreground: #1a1c1c;
+  --primary: #000000;
+  --primary-foreground: #ffffff;
+  --secondary: #f3f3f3;
+  --secondary-foreground: #5e5e5e;
+  --muted: #f3f3f3;
+  --muted-foreground: #5e5e5e;
+  --accent: #eeeeee;
+  --accent-foreground: #1a1c1c;
+  --destructive: #ba1a1a;
+  --border: #cfc4c5;
+  --input: #cfc4c5;
+  --ring: #7e7576;
+  --chart-1: #000000;
+  --chart-2: #5e5e5e;
+  --chart-3: #7e7576;
+  --chart-4: #cfc4c5;
+  --chart-5: #e2e2e2;
   --radius: 0.25rem;
-  --sidebar: #0e0e0e;
-  --sidebar-foreground: #e5e2e1;
-  --sidebar-primary: #ffffff;
-  --sidebar-primary-foreground: #0A0A0A;
-  --sidebar-accent: #2a2a2a;
-  --sidebar-accent-foreground: #e5e2e1;
-  --sidebar-border: #262626;
-  --sidebar-ring: #404040;
+  --sidebar: #f3f3f3;
+  --sidebar-foreground: #1a1c1c;
+  --sidebar-primary: #000000;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #e8e8e8;
+  --sidebar-accent-foreground: #1a1c1c;
+  --sidebar-border: #cfc4c5;
+  --sidebar-ring: #7e7576;
 }
 
 /* Keep .dark class vars identical for compatibility */
 .dark {
   --background: #0A0A0A;
+  --background-rgb: 10, 10, 10;
   --foreground: #e5e2e1;
   --card: #1A1A1A;
   --card-foreground: #e5e2e1;
@@ -159,8 +161,8 @@
 /* ===== SELECTION ===== */
 
 ::selection {
-  background: #ffffff;
-  color: #0A0A0A;
+  background: var(--primary);
+  color: var(--primary-foreground);
 }
 
 /* ===== ANIMATION KEYFRAMES ===== */
@@ -477,7 +479,7 @@
 input:focus,
 textarea:focus,
 select:focus {
-  border-color: #ffffff !important;
+  border-color: var(--primary) !important;
   outline: none;
   box-shadow: none;
 }
@@ -486,11 +488,162 @@ select:focus {
 
 .monolith-chip {
   padding: 4px 12px;
-  border: 1px solid #262626;
+  border: 1px solid var(--border);
   font-size: 12px;
   line-height: 16px;
   letter-spacing: 0.05em;
   font-weight: 500;
-  color: #e5e2e1;
+  color: var(--foreground);
   background: transparent;
+}
+
+/* ===== MONOLITH LIGHT/DARK OVERRIDES FOR TAILWIND HEX-CLASSES ===== */
+.bg-\[\#0A0A0A\] {
+  background-color: var(--background) !important;
+}
+.bg-\[\#131313\] {
+  background-color: var(--background) !important;
+}
+.bg-\[\#1A1A1A\] {
+  background-color: var(--card) !important;
+}
+.bg-\[\#0e0e0e\] {
+  background-color: var(--sidebar) !important;
+}
+.bg-\[\#2a2a2a\] {
+  background-color: var(--sidebar-accent) !important;
+}
+.bg-\[\#262626\] {
+  background-color: var(--accent) !important;
+}
+.hover\:bg-\[\#1A1A1A\]:hover {
+  background-color: var(--accent) !important;
+}
+.hover\:bg-\[\#201f1f\]:hover {
+  background-color: var(--sidebar-accent) !important;
+}
+.hover\:bg-\[\#e2e2e2\]:hover {
+  background-color: var(--accent) !important;
+}
+
+/* Gradients and opacity layers */
+.bg-\[\#0A0A0A\]\/80 {
+  background-color: rgba(var(--background-rgb), 0.8) !important;
+}
+.bg-\[\#0A0A0A\]\/90 {
+  background-color: rgba(var(--background-rgb), 0.9) !important;
+}
+
+/* Borders */
+.border-\[\#262626\] {
+  border-color: var(--border) !important;
+}
+.border-t-\[\#262626\] {
+  border-top-color: var(--border) !important;
+}
+.border-b-\[\#262626\] {
+  border-bottom-color: var(--border) !important;
+}
+.border-l-\[\#262626\] {
+  border-left-color: var(--border) !important;
+}
+.border-r-\[\#262626\] {
+  border-right-color: var(--border) !important;
+}
+.border-\[\#404040\] {
+  border-color: var(--ring) !important;
+}
+.hover\:border-\[\#404040\]:hover {
+  border-color: var(--ring) !important;
+}
+.border-l-\[\#404040\] {
+  border-left-color: var(--ring) !important;
+}
+.border-r-white {
+  border-right-color: var(--primary) !important;
+}
+.border-white {
+  border-color: var(--primary) !important;
+}
+
+/* Text Colors */
+.text-\[\#c4c7c8\] {
+  color: var(--foreground) !important;
+}
+.text-\[\#8e9192\] {
+  color: var(--muted-foreground) !important;
+}
+.text-\[\#636565\] {
+  color: var(--muted-foreground) !important;
+}
+.text-\[\#e5e2e1\] {
+  color: var(--foreground) !important;
+}
+
+/* Primary element overrides */
+.bg-white.text-\[\#0A0A0A\] {
+  background-color: var(--primary) !important;
+  color: var(--primary-foreground) !important;
+}
+.bg-white.text-\[\#0A0A0A\]:hover {
+  opacity: 0.9 !important;
+}
+
+/* Light transparent layers overrides in light mode */
+.light .bg-white\/5 {
+  background-color: rgba(0, 0, 0, 0.05) !important;
+}
+.light .bg-white\/10 {
+  background-color: rgba(0, 0, 0, 0.1) !important;
+}
+.light .border-white\/30 {
+  border-color: rgba(0, 0, 0, 0.15) !important;
+}
+.light .bg-white\/5.text-white {
+  color: var(--foreground) !important;
+}
+.light .border-white\/30.text-white {
+  color: var(--foreground) !important;
+}
+
+/* Light mode specific element style overrides to fix white-on-white issues */
+.light .text-white {
+  color: var(--foreground) !important;
+}
+.light .border-white {
+  border-color: var(--primary) !important;
+}
+.light .border-t-white {
+  border-top-color: var(--primary) !important;
+}
+.light .progress-bar-fill,
+.light .bg-white.progress-bar-fill {
+  background-color: var(--primary) !important;
+}
+.light .bg-white.transition-all.duration-500 {
+  background-color: var(--primary) !important;
+}
+.light .rounded-full.bg-white {
+  background-color: var(--primary) !important;
+}
+.light .rounded-full.bg-\[\#0A0A0A\] {
+  background-color: var(--background) !important;
+}
+.light .border-4.border-\[\#0A0A0A\] {
+  border-color: var(--background) !important;
+}
+.light .border-2.border-\[\#404040\] {
+  border-color: var(--ring) !important;
+}
+.light .bg-\[\#404040\] {
+  background-color: var(--ring) !important;
+}
+.light .timeline-track {
+  background-color: var(--border) !important;
+}
+.light .absolute.left-0.top-0.bottom-0.w-1.bg-white {
+  background-color: var(--primary) !important;
+}
+.light .focus\:border-white:focus {
+  border-color: var(--primary) !important;
 }
