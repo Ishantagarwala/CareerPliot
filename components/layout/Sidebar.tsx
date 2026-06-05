@@ -48,20 +48,28 @@ export default function Sidebar({ className }: SidebarProps) {
       )}
     >
       {/* Brand Header */}
-      <div className="px-6 mb-10">
-        <Link href="/dashboard" className="block">
-          <h1
-            className="text-xl font-bold text-foreground tracking-tight"
+      <div className="px-6 mb-8 pb-6 border-b border-sidebar-border">
+        <Link href="/dashboard" className="flex items-center gap-3">
+          <div
+            className="w-10 h-10 bg-primary flex items-center justify-center text-primary-foreground font-bold text-lg select-none shrink-0"
             style={{ fontFamily: "'Hanken Grotesk', system-ui, sans-serif" }}
           >
-            Career Pilot
-          </h1>
-          <p
-            className="text-[11px] text-muted-foreground mt-1 uppercase tracking-[0.15em] font-medium"
-            style={{ fontFamily: "'JetBrains Mono', monospace" }}
-          >
-            Executive Suite
-          </p>
+            C
+          </div>
+          <div>
+            <h1
+              className="text-base font-bold text-foreground tracking-tight leading-none"
+              style={{ fontFamily: "'Hanken Grotesk', system-ui, sans-serif" }}
+            >
+              Career Pilot
+            </h1>
+            <p
+              className="text-[10px] text-muted-foreground uppercase tracking-[0.15em] font-medium mt-1.5"
+              style={{ fontFamily: "'JetBrains Mono', monospace" }}
+            >
+              Executive Growth
+            </p>
+          </div>
         </Link>
       </div>
 
