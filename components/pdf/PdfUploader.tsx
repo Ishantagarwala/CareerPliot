@@ -1,9 +1,6 @@
 "use client";
 
 import React, { useState, useRef } from "react";
-import { UploadCloud, FileText, X, AlertCircle, Sparkles } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Progress } from "@/components/ui/progress";
 import { toast } from "sonner";
 
 interface PdfUploaderProps {
@@ -16,7 +13,7 @@ export default function PdfUploader({ onUploadSuccess }: PdfUploaderProps) {
   const [uploading, setUploading] = useState(false);
   const [progress, setProgress] = useState(0);
   const [error, setError] = useState<string | null>(null);
-  
+
   const inputRef = useRef<HTMLInputElement>(null);
 
   const handleDrag = (e: React.DragEvent) => {
@@ -36,7 +33,6 @@ export default function PdfUploader({ onUploadSuccess }: PdfUploaderProps) {
       toast.error("Invalid file format");
       return false;
     }
-    // Limit size to 10MB just for safety
     if (selectedFile.size > 10 * 1024 * 1024) {
       setError("File is too large. Maximum size is 10MB.");
       toast.error("File too large");
@@ -49,7 +45,7 @@ export default function PdfUploader({ onUploadSuccess }: PdfUploaderProps) {
     e.preventDefault();
     e.stopPropagation();
     setDragActive(false);
-    
+
     if (e.dataTransfer.files && e.dataTransfer.files[0]) {
       const droppedFile = e.dataTransfer.files[0];
       if (validateFile(droppedFile)) {
@@ -114,13 +110,12 @@ export default function PdfUploader({ onUploadSuccess }: PdfUploaderProps) {
       setProgress(100);
       const data = await res.json();
       toast.success("Document analyzed successfully!");
-      
+
       setTimeout(() => {
         onUploadSuccess(data.document);
         removeFile();
         setUploading(false);
       }, 500);
-      
     } catch (err: any) {
       clearInterval(interval);
       setError(err.message || "Something went wrong during PDF processing.");
@@ -137,12 +132,12 @@ export default function PdfUploader({ onUploadSuccess }: PdfUploaderProps) {
         onDragLeave={handleDrag}
         onDrop={handleDrop}
         onClick={!file && !uploading ? onButtonClick : undefined}
-        className={`relative flex flex-col items-center justify-center p-8 rounded-2xl border-2 border-dashed transition-all duration-300 min-h-[220px] bg-card ${
+        className={`relative flex flex-col items-center justify-center p-8 border-2 border-dashed transition-all min-h-[220px] ${
           !file && !uploading ? "cursor-pointer" : ""
         } ${
           dragActive
-            ? "border-primary bg-primary/5 scale-[0.99]"
-            : "border-border hover:border-primary/50"
+            ? "border-white bg-white/5"
+            : "border-[#262626] hover:border-[#404040]"
         } ${uploading ? "pointer-events-none opacity-80" : ""}`}
       >
         <input
@@ -156,77 +151,93 @@ export default function PdfUploader({ onUploadSuccess }: PdfUploaderProps) {
 
         {!file && !uploading && (
           <div className="flex flex-col items-center text-center space-y-4">
-            <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center text-primary transition-transform duration-300 hover:scale-110">
-              <UploadCloud className="h-6 w-6" />
+            <div className="h-14 w-14 border border-[#262626] bg-[#131313] flex items-center justify-center text-white">
+              <span className="material-symbols-outlined text-[28px]">cloud_upload</span>
             </div>
             <div className="space-y-1">
-              <p className="font-medium text-sm text-foreground">
+              <p className="font-medium text-sm text-white">
                 Drag and drop your study materials here, or{" "}
-                <span className="text-primary font-semibold hover:underline">
-                  browse
-                </span>
+                <span className="text-white font-bold hover:underline">browse</span>
               </p>
-              <p className="text-xs text-muted-foreground">PDF notes, slides, or chapters up to 10MB</p>
+              <p
+                className="text-[11px] text-[#636565]"
+                style={{ fontFamily: "'JetBrains Mono', monospace", letterSpacing: "0.05em" }}
+              >
+                PDF NOTES, SLIDES, OR CHAPTERS UP TO 10MB
+              </p>
             </div>
           </div>
         )}
 
         {file && !uploading && (
-          <div className="flex flex-col items-center w-full max-w-md p-4 bg-muted/50 rounded-xl border border-border">
+          <div className="flex flex-col items-center w-full max-w-md p-4 bg-[#131313] border border-[#262626]">
             <div className="flex items-center justify-between w-full">
               <div className="flex items-center gap-3 min-w-0">
-                <div className="h-10 w-10 bg-primary/10 rounded-lg flex items-center justify-center text-primary shrink-0">
-                  <FileText className="h-5 w-5" />
+                <div className="h-10 w-10 border border-[#262626] bg-[#0A0A0A] flex items-center justify-center text-white shrink-0">
+                  <span className="material-symbols-outlined text-[20px]">description</span>
                 </div>
                 <div className="min-w-0">
-                  <p className="text-sm font-semibold text-foreground truncate max-w-[200px]">
+                  <p className="text-sm font-medium text-white truncate max-w-[200px]">
                     {file.name}
                   </p>
-                  <p className="text-xs text-muted-foreground">
+                  <p
+                    className="text-[10px] text-[#636565]"
+                    style={{ fontFamily: "'JetBrains Mono', monospace" }}
+                  >
                     {(file.size / (1024 * 1024)).toFixed(2)} MB
                   </p>
                 </div>
               </div>
-              <Button
-                variant="ghost"
-                size="icon"
+              <button
                 onClick={removeFile}
-                className="h-8 w-8 text-muted-foreground hover:text-foreground"
+                className="h-8 w-8 flex items-center justify-center text-[#8e9192] hover:text-white transition-colors"
               >
-                <X className="h-4 w-4" />
-              </Button>
+                <span className="material-symbols-outlined text-[18px]">close</span>
+              </button>
             </div>
 
-            <Button
+            <button
               onClick={handleUpload}
-              className="w-full mt-5 font-semibold flex items-center justify-center gap-2 shadow-sm"
+              className="w-full mt-5 py-2.5 bg-white text-[#0A0A0A] font-bold text-xs hover:bg-[#e2e2e2] transition-colors flex items-center justify-center gap-2"
+              style={{ fontFamily: "'JetBrains Mono', monospace", letterSpacing: "0.04em" }}
             >
-              <Sparkles className="h-4 w-4" /> Analyze with AI
-            </Button>
+              <span className="material-symbols-outlined text-[16px]">auto_awesome</span>
+              Analyze with AI
+            </button>
           </div>
         )}
 
         {uploading && (
           <div className="w-full max-w-md flex flex-col items-center space-y-4 py-4">
-            <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center text-primary relative">
-              <Sparkles className="h-6 w-6 animate-pulse" />
-              <div className="absolute inset-0 rounded-full border-2 border-primary/30 border-t-primary animate-spin" />
+            <div className="h-12 w-12 border border-[#262626] bg-[#131313] flex items-center justify-center text-white relative">
+              <span className="material-symbols-outlined text-[24px]">auto_awesome</span>
+              <div className="absolute inset-0 border-2 border-[#262626] border-t-white animate-spin" />
             </div>
-            
-            <div className="w-full space-y-1.5 text-center">
-              <p className="text-sm font-semibold text-foreground">
+
+            <div className="w-full space-y-2 text-center">
+              <p className="text-sm font-medium text-white">
                 {progress < 85 ? "Reading & Extracting Text..." : "AI summarizing and generating quizzes..."}
               </p>
-              <Progress value={progress} className="h-2 w-full bg-muted" />
-              <span className="text-xs text-muted-foreground font-medium">{progress}% Complete</span>
+              <div className="h-1 w-full bg-[#262626] overflow-hidden">
+                <div
+                  className="h-full bg-white transition-all duration-500 ease-out"
+                  style={{ width: `${progress}%` }}
+                />
+              </div>
+              <span
+                className="text-[11px] text-[#8e9192]"
+                style={{ fontFamily: "'JetBrains Mono', monospace" }}
+              >
+                {progress}% Complete
+              </span>
             </div>
           </div>
         )}
       </div>
 
       {error && (
-        <div className="flex items-start gap-2.5 mt-3 p-3 bg-destructive/10 border border-destructive/20 text-destructive rounded-lg text-xs font-medium">
-          <AlertCircle className="h-4 w-4 shrink-0 mt-0.5" />
+        <div className="flex items-start gap-2.5 mt-3 p-3 bg-[#1A1A1A] border border-[#ffb4ab]/30 text-[#ffb4ab] text-xs font-medium">
+          <span className="material-symbols-outlined text-[16px] shrink-0 mt-0.5">error</span>
           <p>{error}</p>
         </div>
       )}

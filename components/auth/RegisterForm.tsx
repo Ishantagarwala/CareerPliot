@@ -7,11 +7,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { signIn } from "next-auth/react";
 import { toast } from "sonner";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Loader2, ArrowRight } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import Link from "next/link";
 
 const registerSchema = z.object({
@@ -47,7 +43,6 @@ export default function RegisterForm() {
   const onSubmit = async (values: RegisterFormValues) => {
     setLoading(true);
     try {
-      // POST to our registration API
       const res = await fetch("/api/auth/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -67,7 +62,6 @@ export default function RegisterForm() {
 
       toast.success("Account registered successfully! Logging you in...");
 
-      // Automatically sign in the user
       const loginRes = await signIn("credentials", {
         email: values.email,
         password: values.password,
@@ -90,93 +84,79 @@ export default function RegisterForm() {
     }
   };
 
+  const fields = [
+    { id: "name", label: "Full Name", type: "text", placeholder: "John Doe", error: errors.name },
+    { id: "email", label: "Email", type: "email", placeholder: "name@example.com", error: errors.email },
+    { id: "password", label: "Password", type: "password", placeholder: "••••••••", error: errors.password },
+    { id: "confirmPassword", label: "Confirm Password", type: "password", placeholder: "••••••••", error: errors.confirmPassword },
+  ] as const;
+
   return (
-    <Card className="w-full max-w-md border-border bg-card/50 backdrop-blur-xl shadow-xl">
-      <CardHeader className="space-y-1">
-        <CardTitle className="font-heading text-2xl font-bold tracking-tight text-center">
+    <div className="w-full max-w-md bg-[#1A1A1A] border border-[#262626] overflow-hidden">
+      <div className="p-6 border-b border-[#262626] text-center space-y-2">
+        <h1
+          className="text-2xl font-bold text-white tracking-tight"
+          style={{ fontFamily: "'Hanken Grotesk', system-ui, sans-serif" }}
+        >
           Create an Account
-        </CardTitle>
-        <CardDescription className="text-center text-muted-foreground text-sm">
+        </h1>
+        <p className="text-sm text-[#8e9192]">
           Enter your details below to set up your Career Pilot profile
-        </CardDescription>
-      </CardHeader>
+        </p>
+      </div>
       <form onSubmit={handleSubmit(onSubmit)}>
-        <CardContent className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="name">Full Name</Label>
-            <Input
-              id="name"
-              type="text"
-              placeholder="John Doe"
-              {...register("name")}
-              className={errors.name ? "border-destructive focus:ring-destructive" : ""}
-            />
-            {errors.name && (
-              <p className="text-xs text-destructive mt-1">{errors.name.message}</p>
-            )}
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
-            <Input
-              id="email"
-              type="email"
-              placeholder="name@example.com"
-              {...register("email")}
-              className={errors.email ? "border-destructive focus:ring-destructive" : ""}
-            />
-            {errors.email && (
-              <p className="text-xs text-destructive mt-1">{errors.email.message}</p>
-            )}
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="password">Password</Label>
-            <Input
-              id="password"
-              type="password"
-              placeholder="••••••••"
-              {...register("password")}
-              className={errors.password ? "border-destructive focus:ring-destructive" : ""}
-            />
-            {errors.password && (
-              <p className="text-xs text-destructive mt-1">{errors.password.message}</p>
-            )}
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="confirmPassword">Confirm Password</Label>
-            <Input
-              id="confirmPassword"
-              type="password"
-              placeholder="••••••••"
-              {...register("confirmPassword")}
-              className={errors.confirmPassword ? "border-destructive focus:ring-destructive" : ""}
-            />
-            {errors.confirmPassword && (
-              <p className="text-xs text-destructive mt-1">{errors.confirmPassword.message}</p>
-            )}
-          </div>
-        </CardContent>
-        <CardFooter className="flex flex-col gap-4">
-          <Button type="submit" className="w-full font-semibold" disabled={loading}>
+        <div className="p-6 space-y-4">
+          {fields.map((field) => (
+            <div key={field.id} className="space-y-2">
+              <label
+                htmlFor={field.id}
+                className="text-[11px] text-[#8e9192] uppercase tracking-[0.1em] font-medium block"
+                style={{ fontFamily: "'JetBrains Mono', monospace" }}
+              >
+                {field.label}
+              </label>
+              <input
+                id={field.id}
+                type={field.type}
+                placeholder={field.placeholder}
+                {...register(field.id)}
+                className={`w-full border bg-[#131313] px-3 py-2 text-sm text-white placeholder:text-[#636565] focus:border-white focus:ring-0 focus:outline-none transition-colors ${
+                  field.error ? "border-[#ffb4ab]" : "border-[#262626]"
+                }`}
+              />
+              {field.error && (
+                <p className="text-xs text-[#ffb4ab] mt-1">{field.error.message}</p>
+              )}
+            </div>
+          ))}
+        </div>
+        <div className="p-6 pt-0 space-y-4">
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full py-2.5 bg-white text-[#0A0A0A] font-bold text-xs hover:bg-[#e2e2e2] transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
+            style={{ fontFamily: "'JetBrains Mono', monospace", letterSpacing: "0.04em" }}
+          >
             {loading ? (
               <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                <Loader2 className="h-4 w-4 animate-spin" />
                 Registering...
               </>
             ) : (
               <>
                 Create Account
-                <ArrowRight className="ml-2 h-4 w-4" />
+                <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
               </>
             )}
-          </Button>
-          <div className="text-sm text-center text-muted-foreground w-full">
+          </button>
+          <div className="text-sm text-center text-[#8e9192]">
             Already have an account?{" "}
-            <Link href="/login" className="text-primary font-medium hover:underline">
+            <Link href="/login" className="text-white font-medium hover:underline">
               Log In
             </Link>
           </div>
-        </CardFooter>
+        </div>
       </form>
-    </Card>
+    </div>
   );
 }

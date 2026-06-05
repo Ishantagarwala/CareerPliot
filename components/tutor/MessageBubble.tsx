@@ -1,8 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { Copy, Check, Terminal, User } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Copy, Check, Terminal } from "lucide-react";
 import { toast } from "sonner";
 
 interface Message {
@@ -30,23 +29,27 @@ function CodeBlock({ code, language }: { code: string; language: string }) {
   };
 
   return (
-    <div className="my-4 rounded-xl border border-zinc-800 bg-zinc-950 overflow-hidden shadow-md">
+    <div className="my-4 border border-[#262626] bg-[#0A0A0A] overflow-hidden">
       {/* Header bar */}
-      <div className="flex items-center justify-between px-4 py-2 border-b border-zinc-800 bg-zinc-900/50 text-xs font-semibold text-zinc-400">
-        <span className="flex items-center gap-1.5 capitalize">
-          <Terminal className="h-3.5 w-3.5 text-primary" />
+      <div className="flex items-center justify-between px-4 py-2 border-b border-[#262626] bg-[#131313]">
+        <span
+          className="flex items-center gap-1.5 capitalize text-[#8e9192]"
+          style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "11px", letterSpacing: "0.05em" }}
+        >
+          <Terminal className="h-3.5 w-3.5 text-white" />
           {language || "code"}
         </span>
         <button
           onClick={handleCopyCode}
-          className="flex items-center gap-1 hover:text-zinc-200 transition-colors"
+          className="flex items-center gap-1 text-[#8e9192] hover:text-white transition-colors"
+          style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "11px", letterSpacing: "0.05em" }}
         >
-          {copied ? <Check className="h-3 w-3 text-emerald-400" /> : <Copy className="h-3 w-3" />}
+          {copied ? <Check className="h-3 w-3 text-white" /> : <Copy className="h-3 w-3" />}
           {copied ? "Copied" : "Copy"}
         </button>
       </div>
       {/* Code Area */}
-      <pre className="p-4 overflow-x-auto text-xs text-zinc-100 font-mono leading-relaxed bg-zinc-950">
+      <pre className="p-4 overflow-x-auto text-xs text-[#c4c7c8] leading-relaxed bg-[#0A0A0A]" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
         <code>{code}</code>
       </pre>
     </div>
@@ -69,18 +72,14 @@ export default function MessageBubble({ message }: MessageBubbleProps) {
   };
 
   const formatInlineText = (text: string) => {
-    // Regex to split by inline code, bold, or italic
     const parts = text.split(/(`[^`]+`|\*\*[^*]+\*\*|\*[^*]+\*)/g);
     return parts.map((part, index) => {
       if (part.startsWith("`") && part.endsWith("`")) {
         return (
           <code
             key={index}
-            className={`px-1.5 py-0.5 rounded font-mono text-[12px] border mx-0.5 ${
-              isUser
-                ? "bg-primary-foreground/20 border-primary-foreground/10 text-primary-foreground"
-                : "bg-muted border-border text-foreground dark:text-foreground"
-            }`}
+            className="px-1.5 py-0.5 text-[12px] border mx-0.5 bg-[#131313] border-[#262626] text-white"
+            style={{ fontFamily: "'JetBrains Mono', monospace" }}
           >
             {part.slice(1, -1)}
           </code>
@@ -88,20 +87,14 @@ export default function MessageBubble({ message }: MessageBubbleProps) {
       }
       if (part.startsWith("**") && part.endsWith("**")) {
         return (
-          <strong
-            key={index}
-            className={`font-bold ${isUser ? "text-primary-foreground" : "text-foreground"}`}
-          >
+          <strong key={index} className="font-bold text-white">
             {part.slice(2, -2)}
           </strong>
         );
       }
       if (part.startsWith("*") && part.endsWith("*")) {
         return (
-          <em
-            key={index}
-            className={`italic ${isUser ? "text-primary-foreground/95" : "text-foreground"}`}
-          >
+          <em key={index} className="italic text-[#c4c7c8]">
             {part.slice(1, -1)}
           </em>
         );
@@ -111,7 +104,6 @@ export default function MessageBubble({ message }: MessageBubbleProps) {
   };
 
   const formatContent = (text: string) => {
-    // Split by code blocks (```lang ... ```)
     const parts = text.split(/(```[\s\S]*?```)/g);
 
     return parts.map((part, index) => {
@@ -125,62 +117,49 @@ export default function MessageBubble({ message }: MessageBubbleProps) {
         );
       }
 
-      // Normal text with newlines
       const lines = part.split("\n");
       const elements: React.ReactNode[] = [];
 
       lines.forEach((line, lineIdx) => {
         const trimmed = line.trim();
 
-        // 1. Headers (supports # to ######)
+        // Headers
         const headerMatch = trimmed.match(/^(#{1,6})\s+(.*)/);
         if (headerMatch) {
           const level = headerMatch[1].length;
           const headerText = headerMatch[2];
-          const Tag = `h${level}` as any;
-          
+
           let sizeClass = "text-sm font-bold mt-3 mb-1.5";
           if (level === 1) sizeClass = "text-xl font-bold mt-6 mb-4";
           else if (level === 2) sizeClass = "text-lg font-bold mt-5 mb-3.5";
           else if (level === 3) sizeClass = "text-base font-bold mt-4 mb-2";
-          else if (level === 4) sizeClass = "text-sm font-bold mt-3.5 mb-1.5";
-          else if (level === 5) sizeClass = "text-xs font-bold mt-3 mb-1";
-          else if (level === 6) sizeClass = "text-xs font-bold mt-2.5 mb-1 text-muted-foreground";
 
           elements.push(
-            <Tag
+            <div
               key={lineIdx}
-              className={`font-heading ${sizeClass} ${
-                isUser ? "text-primary-foreground" : level === 2 ? "text-primary" : "text-foreground"
-              }`}
+              className={`${sizeClass} text-white`}
+              style={{ fontFamily: "'Hanken Grotesk', system-ui, sans-serif" }}
             >
               {formatInlineText(headerText)}
-            </Tag>
+            </div>
           );
           return;
         }
 
-        // 2. Horizontal Rule
+        // Horizontal Rule
         if (trimmed === "---" || trimmed === "***" || trimmed === "___") {
           elements.push(
-            <hr
-              key={lineIdx}
-              className={`my-4 border-t ${
-                isUser ? "border-primary-foreground/20" : "border-border"
-              }`}
-            />
+            <hr key={lineIdx} className="my-4 border-t border-[#262626]" />
           );
           return;
         }
 
-        // 3. Blockquotes
+        // Blockquotes
         if (trimmed.startsWith("> ")) {
           elements.push(
             <blockquote
               key={lineIdx}
-              className={`pl-4 border-l-2 my-2 italic ${
-                isUser ? "border-primary-foreground/30 text-primary-foreground/95" : "border-primary/50 text-foreground/70"
-              }`}
+              className="pl-4 border-l-2 border-[#404040] my-2 italic text-[#c4c7c8]"
             >
               {formatInlineText(trimmed.substring(2))}
             </blockquote>
@@ -188,54 +167,36 @@ export default function MessageBubble({ message }: MessageBubbleProps) {
           return;
         }
 
-        // 4. Unordered List Item
+        // Unordered list
         if (trimmed.startsWith("- ") || trimmed.startsWith("* ")) {
           elements.push(
-            <li
-              key={lineIdx}
-              className={`text-sm list-disc ml-5 mb-1.5 leading-relaxed ${
-                isUser ? "text-primary-foreground/90" : "text-foreground/80"
-              }`}
-            >
+            <li key={lineIdx} className="text-sm list-disc ml-5 mb-1.5 leading-relaxed text-[#c4c7c8]">
               {formatInlineText(trimmed.substring(2))}
             </li>
           );
           return;
         }
 
-        // 5. Ordered List Item
+        // Ordered list
         const orderedMatch = trimmed.match(/^(\d+)\.\s+(.*)/);
         if (orderedMatch) {
-          const num = orderedMatch[1];
-          const itemText = orderedMatch[2];
           elements.push(
-            <li
-              key={lineIdx}
-              className={`text-sm list-decimal ml-5 mb-1.5 leading-relaxed ${
-                isUser ? "text-primary-foreground/90" : "text-foreground/80"
-              }`}
-              style={{ listStyleType: "decimal" }}
-            >
-              {formatInlineText(itemText)}
+            <li key={lineIdx} className="text-sm list-decimal ml-5 mb-1.5 leading-relaxed text-[#c4c7c8]" style={{ listStyleType: "decimal" }}>
+              {formatInlineText(orderedMatch[2])}
             </li>
           );
           return;
         }
 
-        // 6. Empty Line
+        // Empty
         if (trimmed === "") {
           elements.push(<div key={lineIdx} className="h-2" />);
           return;
         }
 
-        // 7. Plain Paragraph
+        // Paragraph
         elements.push(
-          <p
-            key={lineIdx}
-            className={`text-sm leading-relaxed mb-2.5 ${
-              isUser ? "text-primary-foreground" : "text-foreground/80"
-            }`}
-          >
+          <p key={lineIdx} className="text-sm leading-relaxed mb-2.5 text-[#c4c7c8]">
             {formatInlineText(line)}
           </p>
         );
@@ -253,43 +214,53 @@ export default function MessageBubble({ message }: MessageBubbleProps) {
     <div className={`flex w-full ${isUser ? "justify-end" : "justify-start"} mb-4 group`}>
       <div className={`flex items-start gap-2.5 max-w-[85%] sm:max-w-[75%] ${isUser ? "flex-row-reverse" : "flex-row"}`}>
         {/* Avatar */}
-        <div className={`h-8 w-8 rounded-full flex items-center justify-center shrink-0 shadow-sm border ${
-          isUser 
-            ? "bg-primary border-primary/20 text-primary-foreground" 
-            : "bg-muted border-border text-muted-foreground"
+        <div className={`h-8 w-8 flex items-center justify-center shrink-0 border ${
+          isUser
+            ? "bg-white border-white text-[#0A0A0A]"
+            : "bg-[#1A1A1A] border-[#262626] text-white"
         }`}>
-          {isUser ? <User className="h-4.5 w-4.5" /> : <span className="text-xs font-heading font-extrabold text-primary">AI</span>}
+          {isUser ? (
+            <span className="material-symbols-outlined text-[16px]">person</span>
+          ) : (
+            <span
+              className="text-xs font-bold"
+              style={{ fontFamily: "'JetBrains Mono', monospace" }}
+            >
+              AI
+            </span>
+          )}
         </div>
 
         {/* Bubble */}
         <div className="flex flex-col space-y-1">
           <div
-            className={`relative p-4 rounded-2xl shadow-sm border transition-all ${
+            className={`relative p-4 border transition-all ${
               isUser
-                ? "bg-primary border-primary/20 text-primary-foreground rounded-tr-none"
-                : "bg-card border-border text-card-foreground rounded-tl-none"
+                ? "bg-[#262626] border-[#404040] text-white"
+                : "bg-[#1A1A1A] border-[#262626] text-[#e5e2e1]"
             }`}
           >
             <div className="break-words select-text">
               {formatContent(message.content)}
             </div>
-            
-            {/* Quick Actions (only visible on bubble hover) */}
-            <div className={`absolute bottom-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1 bg-background/90 dark:bg-zinc-900/90 backdrop-blur-sm border border-border rounded-lg p-0.5 shadow-sm`}>
-              <Button
-                variant="ghost"
-                size="icon"
+
+            {/* Copy button (hover) */}
+            <div className="absolute bottom-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
+              <button
                 onClick={handleCopyMessage}
-                className="h-6 w-6 text-muted-foreground hover:text-foreground"
+                className="h-6 w-6 flex items-center justify-center bg-[#0A0A0A]/80 border border-[#262626] text-[#8e9192] hover:text-white transition-colors"
               >
-                {copiedText ? <Check className="h-3.5 w-3.5 text-emerald-500" /> : <Copy className="h-3.5 w-3.5" />}
-              </Button>
+                {copiedText ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
+              </button>
             </div>
           </div>
-          
+
           {/* Timestamp */}
           {timeString && (
-            <span className={`text-[9px] text-muted-foreground font-semibold px-1 ${isUser ? "text-right" : "text-left"}`}>
+            <span
+              className={`text-[9px] text-[#636565] px-1 ${isUser ? "text-right" : "text-left"}`}
+              style={{ fontFamily: "'JetBrains Mono', monospace" }}
+            >
               {timeString}
             </span>
           )}

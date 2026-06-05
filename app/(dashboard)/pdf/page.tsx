@@ -1,14 +1,10 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { FileText, Sparkles, Plus, Clock, Loader2, ArrowLeft } from "lucide-react";
 import PdfUploader from "@/components/pdf/PdfUploader";
 import SummaryViewer from "@/components/pdf/SummaryViewer";
 import QuizViewer from "@/components/pdf/QuizViewer";
-import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { Skeleton } from "@/components/ui/skeleton";
 
 interface DocumentItem {
   _id: string;
@@ -34,7 +30,6 @@ export default function PdfPage() {
         const data = await res.json();
         setDocuments(data);
         if (data.length > 0) {
-          // Keep uploader open by default, but have history ready
           setShowUploader(true);
         }
       }
@@ -59,8 +54,7 @@ export default function PdfPage() {
       summary: newDoc.summary,
       questions: newDoc.questions,
     };
-    
-    // Add to list and select it
+
     setDocuments((prev) => [formattedDoc, ...prev]);
     setActiveDoc(formattedDoc);
     setShowUploader(false);
@@ -70,7 +64,6 @@ export default function PdfPage() {
   const handleSelectDocument = async (doc: DocumentItem) => {
     setLoadingDetails(true);
     try {
-      // Fetch full details if they aren't pre-loaded
       if (!doc.summary || !doc.questions) {
         const [summaryRes, questionsRes] = await Promise.all([
           fetch(`/api/pdf/summary/${doc._id}`),
@@ -90,7 +83,6 @@ export default function PdfPage() {
           questions: questionsData.questions,
         };
 
-        // Update local list
         setDocuments((prev) => prev.map((d) => (d._id === doc._id ? fullDoc : d)));
         setActiveDoc(fullDoc);
       } else {
@@ -108,62 +100,68 @@ export default function PdfPage() {
   return (
     <div className="space-y-8">
       {/* Page Header */}
-      <div className="border-b border-border pb-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div className="border-b border-[#262626] pb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 animate-fade-in-up">
         <div>
-          <h1 className="font-heading text-3xl font-bold tracking-tight text-foreground flex items-center gap-2">
-            <FileText className="h-7 w-7 text-primary animate-pulse" />
+          <h1
+            className="text-3xl font-bold text-white tracking-tight flex items-center gap-3"
+            style={{ fontFamily: "'Hanken Grotesk', system-ui, sans-serif" }}
+          >
+            <span className="material-symbols-outlined text-[28px]">picture_as_pdf</span>
             AI PDF & Notes Assistant
           </h1>
-          <p className="text-muted-foreground text-sm mt-1">
+          <p className="text-sm text-[#8e9192] mt-2">
             Extract summarizations, generate conceptual MCQs, and create study flashcards from your documents.
           </p>
         </div>
 
         {activeDoc && !showUploader && (
-          <Button
+          <button
             onClick={() => setShowUploader(true)}
-            size="sm"
-            className="font-semibold flex items-center gap-1.5 self-start sm:self-auto"
+            className="self-start inline-flex items-center px-4 py-2 bg-white text-[#0A0A0A] font-bold hover:bg-[#e2e2e2] transition-colors text-xs gap-1.5"
+            style={{ fontFamily: "'JetBrains Mono', monospace", letterSpacing: "0.04em" }}
           >
-            <Plus className="h-4 w-4" /> Analyze New Document
-          </Button>
+            <span className="material-symbols-outlined text-[16px]">add</span>
+            Analyze New Document
+          </button>
         )}
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
         {/* Left column: History Sidebar */}
         <div className="lg:col-span-1 space-y-4">
-          <Card className="border-border bg-card shadow-sm h-full max-h-[70vh] flex flex-col overflow-hidden">
-            <div className="p-4 border-b border-border/50 flex items-center justify-between">
-              <span className="font-heading text-sm font-bold flex items-center gap-1.5 text-foreground">
-                <Clock className="h-4 w-4 text-primary" /> Recent Uploads
+          <div className="bg-[#1A1A1A] border border-[#262626] h-full max-h-[70vh] flex flex-col overflow-hidden">
+            <div className="p-4 border-b border-[#262626] flex items-center justify-between">
+              <span className="flex items-center gap-1.5 text-white text-xs font-bold" style={{ fontFamily: "'JetBrains Mono', monospace", letterSpacing: "0.05em" }}>
+                <span className="material-symbols-outlined text-[16px]">history</span>
+                RECENT UPLOADS
               </span>
               {!showUploader && (
                 <button
                   onClick={() => setShowUploader(true)}
-                  className="text-xs text-primary font-bold hover:underline"
+                  className="text-[10px] text-white hover:underline"
+                  style={{ fontFamily: "'JetBrains Mono', monospace", letterSpacing: "0.05em" }}
                 >
                   New Upload
                 </button>
               )}
             </div>
-            
-            <CardContent className="p-2 flex-1 overflow-y-auto space-y-1">
+
+            <div className="p-2 flex-1 overflow-y-auto space-y-1">
               {loadingHistory ? (
                 <div className="space-y-2 p-1">
                   {[1, 2, 3].map((i) => (
-                    <div key={i} className="flex gap-2.5 p-2 items-center rounded-xl border border-border/50 bg-muted/10 animate-pulse">
-                      <Skeleton className="h-5 w-5 rounded shrink-0" />
+                    <div key={i} className="flex gap-2.5 p-2 items-center border border-[#262626]">
+                      <div className="h-5 w-5 bg-[#262626] shrink-0" />
                       <div className="space-y-1.5 flex-1 min-w-0">
-                        <Skeleton className="h-3 w-3/4" />
-                        <Skeleton className="h-2 w-1/2" />
+                        <div className="h-3 w-3/4 bg-[#262626]" />
+                        <div className="h-2 w-1/2 bg-[#262626]" />
                       </div>
                     </div>
                   ))}
                 </div>
               ) : documents.length === 0 ? (
                 <div className="text-center py-10 px-4">
-                  <p className="text-xs text-muted-foreground">No documents uploaded yet.</p>
+                  <p className="text-xs text-[#636565]">No documents uploaded yet.</p>
                 </div>
               ) : (
                 documents.map((doc) => {
@@ -172,18 +170,23 @@ export default function PdfPage() {
                     <button
                       key={doc._id}
                       onClick={() => handleSelectDocument(doc)}
-                      className={`w-full text-left p-3 rounded-xl transition-all flex items-start gap-2.5 group hover:bg-muted ${
+                      className={`w-full text-left p-3 transition-all flex items-start gap-2.5 group hover:bg-[#262626] ${
                         isActive
-                          ? "bg-primary/5 border border-primary/20 text-foreground"
-                          : "text-muted-foreground hover:text-foreground"
+                          ? "bg-[#262626] border border-white/20 text-white"
+                          : "text-[#c4c7c8] hover:text-white border border-transparent"
                       }`}
                     >
-                      <FileText className={`h-4.5 w-4.5 shrink-0 mt-0.5 ${isActive ? "text-primary" : "text-muted-foreground group-hover:text-foreground"}`} />
+                      <span className={`material-symbols-outlined text-[16px] shrink-0 mt-0.5 ${isActive ? "text-white" : "text-[#8e9192] group-hover:text-white"}`}>
+                        description
+                      </span>
                       <div className="min-w-0">
-                        <p className={`text-xs font-semibold truncate ${isActive ? "text-primary" : "text-foreground"}`}>
+                        <p className={`text-xs font-medium truncate ${isActive ? "text-white" : "text-[#c4c7c8]"}`}>
                           {doc.filename}
                         </p>
-                        <p className="text-[10px] text-muted-foreground mt-0.5">
+                        <p
+                          className="text-[10px] text-[#636565] mt-0.5"
+                          style={{ fontFamily: "'JetBrains Mono', monospace" }}
+                        >
                           {new Date(doc.createdAt).toLocaleDateString(undefined, {
                             month: "short",
                             day: "numeric",
@@ -196,78 +199,95 @@ export default function PdfPage() {
                   );
                 })
               )}
-            </CardContent>
-          </Card>
+            </div>
+          </div>
         </div>
 
-        {/* Right column: Dynamic Content Area */}
+        {/* Right column: Dynamic Content */}
         <div className="lg:col-span-3">
           {showUploader ? (
-            /* Upload File Form */
-            <div className="space-y-6 max-w-2xl">
+            <div className="space-y-6 max-w-2xl animate-fade-in-up">
               <div className="space-y-2">
-                <h3 className="font-heading text-lg font-bold text-foreground">Upload Document</h3>
-                <p className="text-sm text-muted-foreground">
+                <h3
+                  className="font-bold text-lg text-white"
+                  style={{ fontFamily: "'Hanken Grotesk', system-ui, sans-serif" }}
+                >
+                  Upload Document
+                </h3>
+                <p className="text-sm text-[#8e9192]">
                   Select a PDF notes file, textbook chapter, or course syllabus. Our AI will extract key text, summarize the content, and generate testing material.
                 </p>
               </div>
-              
+
               <PdfUploader onUploadSuccess={handleUploadSuccess} />
 
               {activeDoc && (
-                <Button
-                  variant="outline"
+                <button
                   onClick={() => setShowUploader(false)}
-                  className="font-semibold flex items-center gap-1.5"
+                  className="inline-flex items-center px-5 py-2 border border-[#262626] text-[#c4c7c8] hover:border-white hover:text-white transition-colors text-xs"
+                  style={{ fontFamily: "'JetBrains Mono', monospace", letterSpacing: "0.04em" }}
                 >
-                  <ArrowLeft className="h-4 w-4" /> Back to &quot;{activeDoc.filename}&quot;
-                </Button>
+                  <span className="material-symbols-outlined text-[16px] mr-1.5">arrow_back</span>
+                  Back to &quot;{activeDoc.filename}&quot;
+                </button>
               )}
             </div>
           ) : loadingDetails ? (
-            /* Loading State */
-            <div className="flex h-[40vh] flex-col items-center justify-center gap-4 bg-card border border-border rounded-2xl">
-              <Loader2 className="h-8 w-8 animate-spin text-primary" />
-              <p className="text-sm text-muted-foreground font-semibold">Retrieving document intelligence...</p>
+            <div className="flex h-[40vh] flex-col items-center justify-center gap-4 bg-[#1A1A1A] border border-[#262626] animate-fade-in-up">
+              <div className="h-8 w-8 border-2 border-[#262626] border-t-white animate-spin" />
+              <p
+                className="text-sm text-[#8e9192] font-medium"
+                style={{ fontFamily: "'JetBrains Mono', monospace" }}
+              >
+                Retrieving document intelligence...
+              </p>
             </div>
           ) : activeDoc ? (
-            /* View Analyzed Document */
-            <div className="space-y-6">
+            <div className="space-y-6 animate-fade-in-up">
               {/* Document Info bar */}
-              <div className="p-4 bg-card border border-border rounded-2xl flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+              <div className="p-4 bg-[#1A1A1A] border border-[#262626] flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 <div className="flex items-center gap-3">
-                  <div className="h-10 w-10 bg-primary/10 rounded-xl flex items-center justify-center text-primary shrink-0">
-                    <FileText className="h-5 w-5" />
+                  <div className="h-10 w-10 border border-[#262626] bg-[#131313] flex items-center justify-center text-white shrink-0">
+                    <span className="material-symbols-outlined text-[20px]">description</span>
                   </div>
                   <div>
-                    <h3 className="font-heading font-bold text-sm text-foreground truncate max-w-[280px] sm:max-w-md">
+                    <h3
+                      className="font-bold text-sm text-white truncate max-w-[280px] sm:max-w-md"
+                      style={{ fontFamily: "'Hanken Grotesk', system-ui, sans-serif" }}
+                    >
                       {activeDoc.filename}
                     </h3>
-                    <p className="text-xs text-muted-foreground flex items-center gap-1 mt-0.5">
-                      <Sparkles className="h-3 w-3 text-amber-500" /> AI analysis complete
+                    <p
+                      className="text-[10px] text-[#8e9192] flex items-center gap-1 mt-0.5"
+                      style={{ fontFamily: "'JetBrains Mono', monospace", letterSpacing: "0.05em" }}
+                    >
+                      <span className="material-symbols-outlined text-[12px]">auto_awesome</span>
+                      AI ANALYSIS COMPLETE
                     </p>
                   </div>
                 </div>
 
-                {/* Tabs selection */}
-                <div className="flex bg-muted p-1 rounded-xl self-start sm:self-auto border border-border/50">
+                {/* Tabs */}
+                <div className="flex bg-[#131313] p-1 border border-[#262626] self-start sm:self-auto">
                   <button
                     onClick={() => setActiveTab("summary")}
-                    className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all ${
+                    className={`px-3 py-1.5 text-xs font-medium transition-all ${
                       activeTab === "summary"
-                        ? "bg-card text-foreground shadow-sm"
-                        : "text-muted-foreground hover:text-foreground"
+                        ? "bg-white text-[#0A0A0A]"
+                        : "text-[#8e9192] hover:text-white"
                     }`}
+                    style={{ fontFamily: "'JetBrains Mono', monospace", letterSpacing: "0.04em" }}
                   >
                     Summary
                   </button>
                   <button
                     onClick={() => setActiveTab("quiz")}
-                    className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all ${
+                    className={`px-3 py-1.5 text-xs font-medium transition-all ${
                       activeTab === "quiz"
-                        ? "bg-card text-foreground shadow-sm"
-                        : "text-muted-foreground hover:text-foreground"
+                        ? "bg-white text-[#0A0A0A]"
+                        : "text-[#8e9192] hover:text-white"
                     }`}
+                    style={{ fontFamily: "'JetBrains Mono', monospace", letterSpacing: "0.04em" }}
                   >
                     Practice & Quiz
                   </button>

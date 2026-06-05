@@ -1,9 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { Copy, Check, FileText } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Copy, Check } from "lucide-react";
 import { toast } from "sonner";
 
 interface SummaryViewerProps {
@@ -25,63 +23,59 @@ export default function SummaryViewer({ summary, filename }: SummaryViewerProps)
     }
   };
 
-  // Helper to parse basic markdown elements to HTML
   const formatSummary = (text: string) => {
     const lines = text.split("\n");
-    let inList = false;
     const elements: React.ReactNode[] = [];
+
+    const formatBold = (str: string) => {
+      const parts = str.split(/\*\*(.*?)\*\*/g);
+      return parts.map((part, i) => (i % 2 === 1 ? <strong key={i} className="font-bold text-white">{part}</strong> : part));
+    };
 
     lines.forEach((line, index) => {
       const trimmed = line.trim();
 
-      // Bold formatter
-      const formatBold = (str: string) => {
-        const parts = str.split(/\*\*(.*?)\*\*/g);
-        return parts.map((part, i) => (i % 2 === 1 ? <strong key={i} className="font-bold text-foreground">{part}</strong> : part));
-      };
-
       if (trimmed.startsWith("### ")) {
-        if (inList) {
-          inList = false;
-        }
         elements.push(
-          <h4 key={index} className="font-heading text-base font-bold mt-5 mb-2 text-foreground flex items-center gap-1.5 border-b border-border/50 pb-1">
+          <h4
+            key={index}
+            className="text-base font-bold mt-5 mb-2 text-white flex items-center gap-1.5 border-b border-[#262626] pb-1"
+            style={{ fontFamily: "'Hanken Grotesk', system-ui, sans-serif" }}
+          >
             {formatBold(trimmed.substring(4))}
           </h4>
         );
       } else if (trimmed.startsWith("## ")) {
-        if (inList) {
-          inList = false;
-        }
         elements.push(
-          <h3 key={index} className="font-heading text-lg font-bold mt-6 mb-3 text-primary flex items-center gap-2">
+          <h3
+            key={index}
+            className="text-lg font-bold mt-6 mb-3 text-white flex items-center gap-2"
+            style={{ fontFamily: "'Hanken Grotesk', system-ui, sans-serif" }}
+          >
             {formatBold(trimmed.substring(3))}
           </h3>
         );
       } else if (trimmed.startsWith("# ")) {
-        if (inList) {
-          inList = false;
-        }
         elements.push(
-          <h2 key={index} className="font-heading text-xl font-bold mt-8 mb-4 text-foreground">
+          <h2
+            key={index}
+            className="text-xl font-bold mt-8 mb-4 text-white"
+            style={{ fontFamily: "'Hanken Grotesk', system-ui, sans-serif" }}
+          >
             {formatBold(trimmed.substring(2))}
           </h2>
         );
       } else if (trimmed.startsWith("- ") || trimmed.startsWith("* ")) {
-        const itemText = trimmed.substring(2);
         elements.push(
-          <li key={index} className="text-sm text-muted-foreground ml-4 pl-1 list-disc mb-1.5 leading-relaxed">
-            {formatBold(itemText)}
+          <li key={index} className="text-sm text-[#c4c7c8] ml-4 pl-1 list-disc mb-1.5 leading-relaxed">
+            {formatBold(trimmed.substring(2))}
           </li>
         );
       } else if (trimmed === "") {
-        // Just empty space
+        // skip
       } else {
-        if (inList) {
-          inList = false;
-        }
         elements.push(
-          <p key={index} className="text-sm text-muted-foreground leading-relaxed mb-3">
+          <p key={index} className="text-sm text-[#c4c7c8] leading-relaxed mb-3">
             {formatBold(trimmed)}
           </p>
         );
@@ -92,34 +86,35 @@ export default function SummaryViewer({ summary, filename }: SummaryViewerProps)
   };
 
   return (
-    <Card className="border-border bg-card shadow-sm">
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4 border-b border-border/50">
+    <div className="bg-[#1A1A1A] border border-[#262626]">
+      <div className="flex items-center justify-between p-4 border-b border-[#262626]">
         <div>
-          <CardTitle className="font-heading text-xl font-bold flex items-center gap-2">
-            <FileText className="h-5 w-5 text-primary" />
-            Study Summary
-          </CardTitle>
-          <CardDescription className="truncate max-w-[280px] sm:max-w-md mt-1">
-            Generated from {filename}
-          </CardDescription>
-        </div>
-        <div className="flex gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleCopy}
-            className="h-9 font-semibold flex items-center gap-1.5"
+          <h3
+            className="font-bold text-base text-white flex items-center gap-2"
+            style={{ fontFamily: "'Hanken Grotesk', system-ui, sans-serif" }}
           >
-            {copied ? <Check className="h-4 w-4 text-emerald-500" /> : <Copy className="h-4 w-4" />}
-            {copied ? "Copied" : "Copy"}
-          </Button>
+            <span className="material-symbols-outlined text-[18px]">description</span>
+            Study Summary
+          </h3>
+          <p
+            className="truncate max-w-[280px] sm:max-w-md mt-1 text-[10px] text-[#636565]"
+            style={{ fontFamily: "'JetBrains Mono', monospace", letterSpacing: "0.05em" }}
+          >
+            Generated from {filename}
+          </p>
         </div>
-      </CardHeader>
-      <CardContent className="pt-6">
-        <div className="prose prose-sm dark:prose-invert max-w-none">
-          {formatSummary(summary)}
-        </div>
-      </CardContent>
-    </Card>
+        <button
+          onClick={handleCopy}
+          className="h-9 px-3 border border-[#262626] text-[#c4c7c8] hover:border-white hover:text-white transition-colors text-xs flex items-center gap-1.5"
+          style={{ fontFamily: "'JetBrains Mono', monospace", letterSpacing: "0.04em" }}
+        >
+          {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+          {copied ? "Copied" : "Copy"}
+        </button>
+      </div>
+      <div className="p-6">
+        {formatSummary(summary)}
+      </div>
+    </div>
   );
 }
