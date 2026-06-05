@@ -19,6 +19,9 @@ const menuItems = [
   { name: "Course Recommendations", href: "/courses", icon: "school" },
   { name: "AI PDF Assistant", href: "/pdf", icon: "picture_as_pdf" },
   { name: "AI Tutor", href: "/tutor", icon: "psychology" },
+  { name: "Profile", href: "/profile", icon: "person" },
+  { name: "Study With Me", href: "/study", icon: "group" },
+  { name: "Tech News", href: "/news", icon: "newspaper" },
 ];
 
 const bottomItems = [
