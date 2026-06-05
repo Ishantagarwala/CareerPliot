@@ -340,7 +340,7 @@ export default function NewsPage() {
                   <img
                     src={featuredArticle.imageUrl}
                     alt={featuredArticle.imageAlt || "Featured image"}
-                    className="w-full h-full object-cover grayscale opacity-60 group-hover:opacity-85 transition-opacity duration-500 mix-blend-luminosity scale-100 group-hover:scale-105"
+                    className="w-full h-full object-cover opacity-90 group-hover:opacity-100 transition-opacity duration-500 scale-100 group-hover:scale-105"
                   />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center bg-accent">
@@ -537,7 +537,7 @@ export default function NewsPage() {
                     <img
                       src={article.imageUrl}
                       alt={article.imageAlt || "Analysis cover image"}
-                      className="w-full h-full object-cover grayscale opacity-50 mix-blend-screen scale-100 group-hover:scale-103 transition-transform"
+                      className="w-full h-full object-cover opacity-90 group-hover:opacity-100 scale-100 group-hover:scale-103 transition-transform"
                     />
                   </div>
                 )}
