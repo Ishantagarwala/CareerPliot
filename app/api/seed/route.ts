@@ -248,15 +248,25 @@ async function handleSeed() {
     ];
     await Todo.insertMany(defaultTodos);
 
-    // 10. Seed high-signal Tech News
+    // 10. Seed high-signal Tech News (or let live fetch handle it)
+    // Drop the News collection cleanly to avoid unique index conflicts
+    try {
+      await News.collection.drop();
+    } catch {
+      // Collection might not exist yet — that's fine
+    }
+
     const techNewsData = [
       {
         title: "The Engineering Management Exodus: Why Top Talent is Leaving GCCs for Indian Startups",
-        summary: "Global Capability Centers (GCCs) in India are facing a unique attrition challenge. Senior engineering leaders are increasingly migrating towards hyper-growth domestic startups offering superior equity upside and faster decision-making autonomy. We analyze the compensation data and career trajectories driving this structural shift.",
+        summary: "Global Capability Centers (GCCs) in India are facing a unique attrition challenge. Senior engineering leaders are increasingly migrating towards hyper-growth domestic startups offering superior equity upside and faster decision-making autonomy.",
         content: "Global Capability Centers (GCCs) in India are facing a unique attrition challenge. Senior engineering leaders are increasingly migrating towards hyper-growth domestic startups offering superior equity upside and faster decision-making autonomy. We analyze the compensation data and career trajectories driving this structural shift.",
         readTime: "5 Min Read",
-        tags: ["Leadership", "Compensation", "India"],
+        tags: ["Leadership", "Hiring", "India"],
         category: "Featured",
+        sourceUrl: "https://inc42.com",
+        source: "Inc42",
+        fetchedAt: new Date(),
         imageUrl: "https://lh3.googleusercontent.com/aida-public/AB6AXuDic8CPg9qURJzrtj0LcyGRewdM8AH0kLvOsXSdRAbeFNj0RvkdkGeZILXgj56YWcqg3czTmlFfmGX8n1GpLlp_1R8tvt5q7Xb5N82I84y9oT3RR0Seuc_q41Mt2sPoX4aSZmdXybafnhutbUMbUb-MjhH1moGAnAY1aUhkqWLOBaDUmcODRW0st2xWN9SX01q11WjLkS4Kry3nKG8Q4bwvEypfEf10L9rqB_b0ddv41wt6KgzbxxlXO2WXJYU0vXkQ7TxInGtUY83R",
         imageAlt: "Stark skyscraper architectural shot",
         publishedAt: new Date()
@@ -266,8 +276,11 @@ async function handleSeed() {
         summary: "A deep dive into the draft policy requiring algorithmic transparency and its potential impact on series A funding cycles.",
         content: "A deep dive into the draft policy requiring algorithmic transparency and its potential impact on series A funding cycles.",
         readTime: "3 Min Read",
-        tags: ["Policy", "India", "AI"],
+        tags: ["Policy", "India", "AI/ML"],
         category: "Live Feed",
+        sourceUrl: "https://yourstory.com",
+        source: "YourStory",
+        fetchedAt: new Date(),
         publishedAt: new Date(Date.now() - 3600000)
       },
       {
@@ -275,48 +288,63 @@ async function handleSeed() {
         summary: "The fund aims to capture value in infrastructure layer startups, shifting focus away from consumer tech.",
         content: "The fund aims to capture value in infrastructure layer startups, shifting focus away from consumer tech.",
         readTime: "4 Min Read",
-        tags: ["Venture Capital", "SaaS", "India"],
+        tags: ["Funding", "Startups", "India"],
         category: "Live Feed",
+        sourceUrl: "https://economictimes.indiatimes.com",
+        source: "ET Tech",
+        fetchedAt: new Date(),
         publishedAt: new Date(Date.now() - 7200000)
       },
       {
-        title: "The Rise of the 'Fractional' CTO in India's Mid-Market",
-        summary: "Experienced technical leaders are increasingly opting for portfolio careers over single full-time roles, commanding higher hourly premiums.",
-        content: "Experienced technical leaders are increasingly opting for portfolio careers over single full-time roles, commanding higher hourly premiums.",
+        title: "Top Tech Internship Programs Opening in India: Summer 2026 Roundup",
+        summary: "Major companies including Google, Microsoft, Amazon, and Flipkart have opened their summer 2026 internship applications. Here's what you need to know about eligibility, stipends, and deadlines.",
+        content: "Major companies including Google, Microsoft, Amazon, and Flipkart have opened their summer 2026 internship applications.",
         readTime: "3 Min Read",
-        tags: ["Career Trends", "Leadership", "India"],
+        tags: ["Internship", "Hiring", "India"],
         category: "Live Feed",
+        sourceUrl: "https://inc42.com",
+        source: "Inc42",
+        fetchedAt: new Date(),
         publishedAt: new Date(Date.now() - 86400000)
       },
       {
-        title: "Q3 Compensation Benchmark: VP Engineering",
+        title: "Q3 Compensation Benchmark: VP Engineering Salaries in India",
         summary: "Exclusive data on cash vs. equity splits for series B/C startups in major Indian metros.",
         content: "Exclusive data on cash vs. equity splits for series B/C startups in major Indian metros.",
         readTime: "8 Min Read",
-        tags: ["Data Report", "Compensation", "India"],
+        tags: ["Hiring", "India", "Tech Industry"],
         category: "In-Depth Analysis",
+        sourceUrl: "https://economictimes.indiatimes.com",
+        source: "ET Tech",
+        fetchedAt: new Date(),
         imageUrl: "https://lh3.googleusercontent.com/aida-public/AB6AXuOm_3Hm7_N7wt_Ugo8T5za-QYnAVSd2vZfH9QwjqXPMz14QK7mXzeuWEXrKMqGKyU8kQ-nPaEP6QXqehXexeucVEm7dYenv_d8y4R4GayIF27WmqJcZubMBYLH76BOfKgOqPgS3XM4D6-6ianYpk2JpGAurGbGEU7bw-LlvxKe8j5prgqSC2mNLAH0s0_6s9NNgCefpIDS2vhIRY7QkS2K6F5Nm4sLDuAMYM8brCgDFMgOqM1M_pu6C-o7hcDW504A0Ma6ZmZXDs7V",
         imageAlt: "Data chart visualization",
         publishedAt: new Date(Date.now() - 172800000)
       },
       {
-        title: "Transitioning from Enterprise to Hyper-growth",
+        title: "Transitioning from Enterprise to Hyper-growth: FAANG Directors Share Insights",
         summary: "Candid insights from three former FAANG directors who successfully integrated into Indian unicorn cultures.",
         content: "Candid insights from three former FAANG directors who successfully integrated into Indian unicorn cultures.",
         readTime: "10 Min Read",
-        tags: ["Interview", "Leadership", "India"],
+        tags: ["Hiring", "Leadership", "India"],
         category: "In-Depth Analysis",
+        sourceUrl: "https://yourstory.com",
+        source: "YourStory",
+        fetchedAt: new Date(),
         imageUrl: "https://lh3.googleusercontent.com/aida-public/AB6AXuCf0wob8XHFLM1Mmu3Td3le_qZ-QK_buDwasDiX1brob_4b8mA1TTEZT_GwV_E8gq42qaxyMqE4GaJD2IoTsb4191CGiaH5Pa3HlPd6qTqISGiAOsW6uLvVwUUx2teMvdE7m5IklypbZmKu4EiMylA9EMKIpqDD2eDY_pQBohU_ocUNSpoprt9VA7I5Anro7Y4HiZEA471FCPdBQd02GxtX5YfQIcC4nAKB8vlYEoK7K3Q36bSSd29IwWt2v1JBDtWTamX1ZiGwdPTc",
         imageAlt: "Corporate boardroom",
         publishedAt: new Date(Date.now() - 259200000)
       },
       {
-        title: "The Architecture Overhaul: Post-Funding Priorities",
+        title: "The Architecture Overhaul: Post-Funding Tech Priorities",
         summary: "When technical debt becomes strategic debt. A guide for incoming CTOs managing legacy system modernization.",
         content: "When technical debt becomes strategic debt. A guide for incoming CTOs managing legacy system modernization.",
         readTime: "6 Min Read",
-        tags: ["Tech Strategy", "Leadership"],
+        tags: ["Tech Industry", "AI/ML", "Startups"],
         category: "In-Depth Analysis",
+        sourceUrl: "https://techcrunch.com",
+        source: "TechCrunch",
+        fetchedAt: new Date(),
         imageUrl: "https://lh3.googleusercontent.com/aida-public/AB6AXuAQ5MIWTViNFT0K7f4QsKJpByBCfzU_t9CGACcwjjfDgXB4dN7Uzx9xi-84KawL2gfmZ_oTb8BmDH-F5XvDfxiyySOkMhOuEbJlJAgcv-xYiU1tCGZOndEQhGbYWCWr_6IjO8uMLjamqbWf52K0MS6-VVJ4yhpvLzur8focF0ngqO2DQA7LzRSrvz_069jE03Z97vJnY1-PX4SPoau6j2cBCjyW3yHgLjDOgccgulYAMxXx3mJMV3JKk98Oo0HOyw1K6YFqv9KxdqTa",
         imageAlt: "Server room networking wires",
         publishedAt: new Date(Date.now() - 345600000)
