@@ -1,7 +1,5 @@
 "use client";
 
-import { Label } from "@/components/ui/label";
-
 interface CourseFiltersProps {
   level: string;
   setLevel: (level: string) => void;
@@ -24,21 +22,27 @@ export default function CourseFilters({ level, setLevel, budget, setBudget }: Co
   ];
 
   return (
-    <div className="bg-card border border-border p-5 rounded-2xl shadow-sm space-y-6">
-      <h3 className="font-heading font-bold text-base border-b border-border pb-3">
+    <div className="bg-[#1A1A1A] border border-[#262626] p-5 space-y-6">
+      <h3
+        className="font-bold text-sm text-white border-b border-[#262626] pb-3"
+        style={{ fontFamily: "'Hanken Grotesk', system-ui, sans-serif" }}
+      >
         Filter Recommendations
       </h3>
 
       {/* Difficulty level */}
       <div className="space-y-3">
-        <Label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+        <span
+          className="text-[11px] text-[#8e9192] uppercase tracking-[0.1em] font-medium block"
+          style={{ fontFamily: "'JetBrains Mono', monospace" }}
+        >
           Difficulty Level
-        </Label>
+        </span>
         <div className="space-y-2">
           {levelOptions.map((opt) => (
             <label
               key={opt.value}
-              className="flex items-center gap-2.5 text-sm font-medium text-foreground cursor-pointer"
+              className="flex items-center gap-2.5 text-sm font-medium text-[#c4c7c8] cursor-pointer hover:text-white transition-colors"
             >
               <input
                 type="radio"
@@ -46,7 +50,7 @@ export default function CourseFilters({ level, setLevel, budget, setBudget }: Co
                 value={opt.value}
                 checked={level === opt.value}
                 onChange={() => setLevel(opt.value)}
-                className="h-4 w-4 border-border text-primary focus:ring-primary accent-primary"
+                className="h-4 w-4 border-[#404040] bg-transparent accent-white focus:ring-0"
               />
               <span>{opt.label}</span>
             </label>
@@ -56,14 +60,17 @@ export default function CourseFilters({ level, setLevel, budget, setBudget }: Co
 
       {/* Budget */}
       <div className="space-y-3">
-        <Label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+        <span
+          className="text-[11px] text-[#8e9192] uppercase tracking-[0.1em] font-medium block"
+          style={{ fontFamily: "'JetBrains Mono', monospace" }}
+        >
           Price / Budget
-        </Label>
+        </span>
         <div className="space-y-2">
           {budgetOptions.map((opt) => (
             <label
               key={opt.value}
-              className="flex items-center gap-2.5 text-sm font-medium text-foreground cursor-pointer"
+              className="flex items-center gap-2.5 text-sm font-medium text-[#c4c7c8] cursor-pointer hover:text-white transition-colors"
             >
               <input
                 type="radio"
@@ -71,7 +78,7 @@ export default function CourseFilters({ level, setLevel, budget, setBudget }: Co
                 value={opt.value}
                 checked={budget === opt.value}
                 onChange={() => setBudget(opt.value)}
-                className="h-4 w-4 border-border text-primary focus:ring-primary accent-primary"
+                className="h-4 w-4 border-[#404040] bg-transparent accent-white focus:ring-0"
               />
               <span>{opt.label}</span>
             </label>
