@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Study With Me - Career Pilot</title>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=Plus+Jakarta+Sans:wght@600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "on-tertiary-fixed": "#1a1c1c",
+                        "on-error-container": "#93000a",
+                        "on-secondary-fixed-variant": "#464747",
+                        "on-tertiary-container": "#838484",
+                        "surface-container-high": "#e8e8e8",
+                        "tertiary-fixed-dim": "#c6c6c6",
+                        "surface-container-lowest": "#ffffff",
+                        "surface-container-low": "#f3f3f3",
+                        "surface-container": "#eeeeee",
+                        "on-tertiary-fixed-variant": "#454747",
+                        "primary-fixed": "#e2e2e2",
+                        "inverse-primary": "#c6c6c6",
+                        "secondary": "#5e5e5e",
+                        "on-primary-fixed-variant": "#474747",
+                        "surface": "#f9f9f9",
+                        "secondary-fixed": "#e4e2e2",
+                        "on-secondary-container": "#626262",
+                        "tertiary-fixed": "#e2e2e2",
+                        "surface-bright": "#f9f9f9",
+                        "background": "#f9f9f9",
+                        "outline": "#7e7576",
+                        "error-container": "#ffdad6",
+                        "outline-variant": "#cfc4c5",
+                        "on-tertiary": "#ffffff",
+                        "on-primary": "#ffffff",
+                        "inverse-on-surface": "#f1f1f1",
+                        "on-primary-container": "#848484",
+                        "primary-container": "#1b1b1b",
+                        "on-error": "#ffffff",
+                        "on-surface-variant": "#4c4546",
+                        "secondary-container": "#e1dfdf",
+                        "surface-tint": "#5e5e5e",
+                        "primary": "#000000",
+                        "tertiary-container": "#1a1c1c",
+                        "on-surface": "#1a1c1c",
+                        "tertiary": "#000000",
+                        "surface-variant": "#e2e2e2",
+                        "surface-dim": "#dadada",
+                        "on-secondary-fixed": "#1b1c1c",
+                        "on-primary-fixed": "#1b1b1b",
+                        "inverse-surface": "#2f3131",
+                        "secondary-fixed-dim": "#c7c6c6",
+                        "primary-fixed-dim": "#c6c6c6",
+                        "on-background": "#1a1c1c",
+                        "error": "#ba1a1a",
+                        "surface-container-highest": "#e2e2e2",
+                        "on-secondary": "#ffffff"
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    spacing: {
+                        "margin-mobile": "16px",
+                        "margin-desktop": "40px",
+                        "xl": "80px",
+                        "sm": "12px",
+                        "md": "24px",
+                        "xs": "4px",
+                        "lg": "48px",
+                        "gutter": "24px",
+                        "base": "8px"
+                    },
+                    fontFamily: {
+                        "label-lg": ["Inter"],
+                        "headline-md": ["Plus Jakarta Sans"],
+                        "body-sm": ["Inter"],
+                        "display": ["Plus Jakarta Sans"],
+                        "body-lg": ["Inter"],
+                        "headline-lg-mobile": ["Plus Jakarta Sans"],
+                        "headline-lg": ["Plus Jakarta Sans"],
+                        "headline-sm": ["Plus Jakarta Sans"],
+                        "body-md": ["Inter"],
+                        "label-sm": ["Inter"]
+                    },
+                    fontSize: {
+                        "label-lg": ["14px", { lineHeight: "20px", letterSpacing: "0.02em", fontWeight: "600" }],
+                        "headline-md": ["24px", { lineHeight: "32px", fontWeight: "600" }],
+                        "body-sm": ["14px", { lineHeight: "20px", fontWeight: "400" }],
+                        "display": ["40px", { lineHeight: "48px", letterSpacing: "-0.02em", fontWeight: "700" }],
+                        "body-lg": ["18px", { lineHeight: "28px", fontWeight: "400" }],
+                        "headline-lg-mobile": ["28px", { lineHeight: "36px", fontWeight: "700" }],
+                        "headline-lg": ["32px", { lineHeight: "40px", letterSpacing: "-0.02em", fontWeight: "700" }],
+                        "headline-sm": ["20px", { lineHeight: "28px", fontWeight: "600" }],
+                        "body-md": ["16px", { lineHeight: "24px", fontWeight: "400" }],
+                        "label-sm": ["12px", { lineHeight: "16px", fontWeight: "500" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        body { font-family: 'Inter', sans-serif; background-color: #f9f9f9; color: #1a1c1c; }
+        .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+        .icon-fill { font-variation-settings: 'FILL' 1; }
+        
+        /* Custom Checkbox Styling for high-end look */
+        .task-checkbox:checked + label .check-box-inner {
+            background-color: #000;
+            border-color: #000;
+        }
+        .task-checkbox:checked + label .check-icon {
+            opacity: 1;
+        }
+        .task-checkbox:checked + label .task-text {
+            text-decoration: line-through;
+            color: #838484; /* on-tertiary-container */
+        }
+    </style>
+</head>
+<body class="bg-surface text-on-surface antialiased min-h-screen flex">
+<nav class="fixed h-full w-[280px] left-0 top-0 bg-surface-container-low border-r border-outline-variant flex flex-col py-md px-sm overflow-y-auto z-20">
+<div class="mb-lg px-sm">
+<h1 class="font-display text-display font-bold text-primary">Career Pilot</h1>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-xs">Executive Growth</p>
+</div>
+<ul class="flex flex-col gap-xs flex-grow">
+<li>
+<a class="flex items-center gap-sm px-sm py-sm rounded-DEFAULT text-on-surface-variant hover:text-primary hover:bg-surface-container-high transition-colors duration-200 cursor-pointer active:scale-95 transition-transform" href="#">
+<span class="material-symbols-outlined font-headline-sm">dashboard</span>
+<span class="font-label-lg text-label-lg">Dashboard</span>
+</a>
+</li>
+<li>
+<a class="flex items-center gap-sm px-sm py-sm rounded-DEFAULT text-on-surface-variant hover:text-primary hover:bg-surface-container-high transition-colors duration-200 cursor-pointer active:scale-95 transition-transform" href="#">
+<span class="material-symbols-outlined font-headline-sm">explore</span>
+<span class="font-label-lg text-label-lg">Career Discovery</span>
+</a>
+</li>
+<li>
+<a class="flex items-center gap-sm px-sm py-sm rounded-DEFAULT text-on-surface-variant hover:text-primary hover:bg-surface-container-high transition-colors duration-200 cursor-pointer active:scale-95 transition-transform" href="#">
+<span class="material-symbols-outlined font-headline-sm">map</span>
+<span class="font-label-lg text-label-lg">Learning Roadmap</span>
+</a>
+</li>
+<li>
+<a class="flex items-center gap-sm px-sm py-sm rounded-DEFAULT text-on-surface-variant hover:text-primary hover:bg-surface-container-high transition-colors duration-200 cursor-pointer active:scale-95 transition-transform" href="#">
+<span class="material-symbols-outlined font-headline-sm">school</span>
+<span class="font-label-lg text-label-lg">Course Recommendations</span>
+</a>
+</li>
+<li>
+<a class="flex items-center gap-sm px-sm py-sm rounded-DEFAULT text-on-surface-variant hover:text-primary hover:bg-surface-container-high transition-colors duration-200 cursor-pointer active:scale-95 transition-transform" href="#">
+<span class="material-symbols-outlined font-headline-sm">picture_as_pdf</span>
+<span class="font-label-lg text-label-lg">AI PDF Assistant</span>
+</a>
+</li>
+<li>
+<a class="flex items-center gap-sm px-sm py-sm rounded-DEFAULT text-on-surface-variant hover:text-primary hover:bg-surface-container-high transition-colors duration-200 cursor-pointer active:scale-95 transition-transform" href="#">
+<span class="material-symbols-outlined font-headline-sm">smart_toy</span>
+<span class="font-label-lg text-label-lg">AI Tutor</span>
+</a>
+</li>
+<li>
+<a class="flex items-center gap-sm px-sm py-sm rounded-DEFAULT text-on-surface-variant hover:text-primary hover:bg-surface-container-high transition-colors duration-200 cursor-pointer active:scale-95 transition-transform" href="#">
+<span class="material-symbols-outlined font-headline-sm">person</span>
+<span class="font-label-lg text-label-lg">Profile</span>
+</a>
+</li>
+<li>
+<a class="flex items-center gap-sm px-sm py-sm text-primary font-bold border-l-4 border-primary bg-surface-container-highest cursor-pointer active:scale-95 transition-transform" href="#">
+<span class="material-symbols-outlined font-headline-sm icon-fill">group</span>
+<span class="font-label-lg text-label-lg">Study With Me</span>
+</a>
+</li>
+<li>
+<a class="flex items-center gap-sm px-sm py-sm rounded-DEFAULT text-on-surface-variant hover:text-primary hover:bg-surface-container-high transition-colors duration-200 cursor-pointer active:scale-95 transition-transform" href="#">
+<span class="material-symbols-outlined font-headline-sm">newspaper</span>
+<span class="font-label-lg text-label-lg">Tech News</span>
+</a>
+</li>
+</ul>
+<div class="mt-auto pt-md border-t border-outline-variant flex items-center gap-sm px-sm">
+<div class="w-10 h-10 rounded-full bg-surface-variant overflow-hidden border border-outline-variant">
+<img alt="User Profile Avatar" class="w-full h-full object-cover" data-alt="A close-up, highly detailed portrait of a professional individual against a clean, minimalist light-gray background. The lighting is soft and even, highlighting sharp features and a confident, modern corporate appearance. The color palette is muted, focusing on sophisticated neutral tones to match a high-end application interface." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDdZjkbjiLREqkfDNFF2Nf8l_kijlyUNqt-R5-ERwfFCfgAcVr8RcWMj7An8EjYsYEIf3AXMPr6H7j0G3QlFDo7q8S5yMCQgHthWKDKbRVtcw3YWPN4lFJ6QIL2qCUEUkQNxYP1-Z_DxL5n0YEKEU21H8lhwkGeV0y3jAmKvhdyeYzhnMYGddvVnBd3HR4Wtby-8ocMNsa1SFxEh38GJpRGIw36C-OpeYKo9FvgQG0sM2v1ROt8UjdLKQYMqTlwKE3OP0bAY053zuZ_"/>
+</div>
+<div>
+<p class="font-label-lg text-label-lg text-primary">Alex Mercer</p>
+<p class="font-label-sm text-label-sm text-on-surface-variant">Pro Member</p>
+</div>
+</div>
+</nav>
+<header class="fixed top-0 right-0 left-[280px] h-16 bg-surface border-b border-outline-variant flex items-center justify-between px-margin-desktop z-10">
+<div class="flex items-center gap-md">
+<span class="font-headline-sm text-headline-sm text-primary">Focus Hub</span>
+</div>
+<div class="flex flex-1 max-w-md mx-md">
+<div class="w-full relative group">
+<span class="material-symbols-outlined absolute left-sm top-1/2 -translate-y-1/2 text-on-surface-variant font-headline-sm">search</span>
+<input class="w-full h-10 pl-xl pr-sm bg-surface-container-lowest border border-outline-variant rounded-lg font-body-sm text-body-sm text-on-surface focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all placeholder:text-on-surface-variant" placeholder="Search resources..." type="text"/>
+</div>
+</div>
+<div class="flex items-center gap-sm">
+<button class="w-10 h-10 rounded-full flex items-center justify-center text-on-surface-variant hover:text-primary hover:bg-surface-container-low transition-colors">
+<span class="material-symbols-outlined font-headline-sm">notifications</span>
+</button>
+<button class="w-10 h-10 rounded-full flex items-center justify-center text-on-surface-variant hover:text-primary hover:bg-surface-container-low transition-colors">
+<span class="material-symbols-outlined font-headline-sm">settings</span>
+</button>
+<div class="w-8 h-8 rounded-full bg-surface-variant overflow-hidden border border-outline-variant ml-sm cursor-pointer">
+<img alt="User Profile" class="w-full h-full object-cover" data-alt="A close-up, highly detailed portrait of a professional individual against a clean, minimalist light-gray background. The lighting is soft and even, highlighting sharp features and a confident, modern corporate appearance. The color palette is muted, focusing on sophisticated neutral tones to match a high-end application interface." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAPqOVsUYkgxdPoKZVyr0k1VcRmiZbSV1KPtVMoMtUs7fOyHhErhkZIRftQO1hnMicPEq2HokCmQDgNrXE24r0ltcDRCFcQskIjuyaKqEnNoBsZ2mubd2ibcS4lfH-790CsZeLxiuJDG_FwD5orgdlgLsU-i5bHgFISnTrY8v8Aiy8-Yzbj_99XQ7LJ-pgnt4tYqzWaPuQtikg0bL6IcXYLc2m9iqbAvzEsnmubAZwHwW3OZnYOq4lIIMb9EnDxrG6Pn4KZjB3cVOhx"/>
+</div>
+</div>
+</header>
+<main class="ml-[280px] pt-16 w-full min-h-screen bg-surface">
+<div class="max-w-[1440px] mx-auto px-margin-desktop py-lg">
+<div class="mb-lg">
+<h2 class="font-headline-lg text-headline-lg text-primary">Deep Work Session</h2>
+<p class="font-body-md text-body-md text-on-surface-variant mt-xs">Block distractions. Execute relentlessly.</p>
+</div>
+<div class="grid grid-cols-12 gap-gutter">
+<div class="col-span-12 lg:col-span-8 flex flex-col gap-gutter">
+<div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-xl flex flex-col items-center justify-center relative overflow-hidden min-h-[400px]">
+<div class="absolute inset-0 opacity-5 pointer-events-none" style="background-image: radial-gradient(circle at 2px 2px, black 1px, transparent 0); background-size: 32px 32px;"></div>
+<div class="flex gap-sm mb-lg relative z-10 bg-surface-container-low p-xs rounded-lg border border-outline-variant">
+<button class="px-md py-sm rounded-DEFAULT bg-primary text-on-primary font-label-lg text-label-lg transition-transform active:scale-95">Pomodoro</button>
+<button class="px-md py-sm rounded-DEFAULT text-on-surface-variant hover:text-primary font-label-lg text-label-lg transition-colors">Short Break</button>
+<button class="px-md py-sm rounded-DEFAULT text-on-surface-variant hover:text-primary font-label-lg text-label-lg transition-colors">Long Break</button>
+</div>
+<div class="font-display text-[120px] leading-none font-bold text-primary tracking-tighter mb-lg relative z-10">
+                            25:00
+                        </div>
+<div class="flex gap-md relative z-10">
+<button class="px-xl py-sm bg-primary text-on-primary rounded-lg font-label-lg text-label-lg flex items-center gap-sm transition-transform active:scale-95 hover:bg-tertiary-container shadow-sm">
+<span class="material-symbols-outlined icon-fill">play_arrow</span>
+                                Start Focus
+                            </button>
+<button class="w-12 h-12 rounded-lg border border-outline-variant bg-surface-container-lowest text-primary flex items-center justify-center hover:bg-surface-container-low transition-colors">
+<span class="material-symbols-outlined">refresh</span>
+</button>
+</div>
+</div>
+<div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-md flex items-center justify-between">
+<div class="flex items-center gap-md">
+<div class="w-16 h-16 bg-surface-container-high rounded-lg flex items-center justify-center border border-outline-variant overflow-hidden">
+<span class="material-symbols-outlined text-on-surface-variant font-display text-display">graphic_eq</span>
+</div>
+<div>
+<h4 class="font-label-lg text-label-lg text-primary">Ambient Lo-Fi Vol. 4</h4>
+<p class="font-label-sm text-label-sm text-on-surface-variant mt-1">Study Beats / Background</p>
+</div>
+</div>
+<div class="flex items-center gap-lg">
+<button class="text-on-surface-variant hover:text-primary transition-colors">
+<span class="material-symbols-outlined font-headline-md">skip_previous</span>
+</button>
+<button class="w-12 h-12 rounded-full bg-primary text-on-primary flex items-center justify-center hover:bg-tertiary-container transition-colors shadow-sm">
+<span class="material-symbols-outlined icon-fill font-headline-md">pause</span>
+</button>
+<button class="text-on-surface-variant hover:text-primary transition-colors">
+<span class="material-symbols-outlined font-headline-md">skip_next</span>
+</button>
+</div>
+<div class="hidden md:flex items-center gap-sm w-48">
+<span class="material-symbols-outlined text-on-surface-variant text-sm">volume_down</span>
+<div class="h-1 flex-1 bg-surface-container-high rounded-full overflow-hidden">
+<div class="h-full bg-primary w-2/3"></div>
+</div>
+<span class="material-symbols-outlined text-on-surface-variant text-sm">volume_up</span>
+</div>
+</div>
+</div>
+<div class="col-span-12 lg:col-span-4 flex flex-col gap-gutter">
+<div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-md flex-1 flex flex-col">
+<div class="flex items-center justify-between mb-md pb-sm border-b border-outline-variant">
+<h3 class="font-headline-sm text-headline-sm text-primary">Daily Execution</h3>
+<button class="text-on-surface-variant hover:text-primary transition-colors">
+<span class="material-symbols-outlined">add</span>
+</button>
+</div>
+<div class="flex-1 overflow-y-auto pr-sm custom-scrollbar">
+<ul class="flex flex-col gap-sm">
+<li class="group">
+<input class="hidden task-checkbox" id="task1" type="checkbox"/>
+<label class="flex items-start gap-sm cursor-pointer p-sm rounded-lg hover:bg-surface-container-low transition-colors" for="task1">
+<div class="w-5 h-5 mt-0.5 border border-outline-variant rounded flex items-center justify-center bg-surface-container-lowest check-box-inner transition-colors shrink-0">
+<span class="material-symbols-outlined text-[14px] text-on-primary opacity-0 check-icon transition-opacity">check</span>
+</div>
+<span class="font-body-md text-body-md text-primary task-text transition-colors select-none">Review Q3 Architecture Specs</span>
+</label>
+</li>
+<li class="group">
+<input checked="" class="hidden task-checkbox" id="task2" type="checkbox"/>
+<label class="flex items-start gap-sm cursor-pointer p-sm rounded-lg hover:bg-surface-container-low transition-colors" for="task2">
+<div class="w-5 h-5 mt-0.5 border border-outline-variant rounded flex items-center justify-center bg-surface-container-lowest check-box-inner transition-colors shrink-0">
+<span class="material-symbols-outlined text-[14px] text-on-primary opacity-0 check-icon transition-opacity">check</span>
+</div>
+<span class="font-body-md text-body-md text-primary task-text transition-colors select-none">Finalize API Endpoints</span>
+</label>
+</li>
+<li class="group">
+<input class="hidden task-checkbox" id="task3" type="checkbox"/>
+<label class="flex items-start gap-sm cursor-pointer p-sm rounded-lg hover:bg-surface-container-low transition-colors" for="task3">
+<div class="w-5 h-5 mt-0.5 border border-outline-variant rounded flex items-center justify-center bg-surface-container-lowest check-box-inner transition-colors shrink-0">
+<span class="material-symbols-outlined text-[14px] text-on-primary opacity-0 check-icon transition-opacity">check</span>
+</div>
+<span class="font-body-md text-body-md text-primary task-text transition-colors select-none">Draft Deployment Strategy Doc</span>
+</label>
+</li>
+<li class="group">
+<input class="hidden task-checkbox" id="task4" type="checkbox"/>
+<label class="flex items-start gap-sm cursor-pointer p-sm rounded-lg hover:bg-surface-container-low transition-colors" for="task4">
+<div class="w-5 h-5 mt-0.5 border border-outline-variant rounded flex items-center justify-center bg-surface-container-lowest check-box-inner transition-colors shrink-0">
+<span class="material-symbols-outlined text-[14px] text-on-primary opacity-0 check-icon transition-opacity">check</span>
+</div>
+<span class="font-body-md text-body-md text-primary task-text transition-colors select-none">Team Sync Prep</span>
+</label>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="col-span-12">
+<div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-md">
+<div class="flex flex-col sm:flex-row sm:items-center justify-between mb-lg gap-sm">
+<h3 class="font-headline-sm text-headline-sm text-primary">Progress Map</h3>
+<div class="flex bg-surface-container-low p-xs rounded-lg border border-outline-variant self-start sm:self-auto">
+<button class="px-sm py-1 rounded text-on-surface-variant hover:text-primary font-label-sm text-label-sm transition-colors">Monthly</button>
+<button class="px-sm py-1 rounded text-on-surface-variant hover:text-primary font-label-sm text-label-sm transition-colors">Quarterly</button>
+<button class="px-sm py-1 rounded bg-surface-container-lowest shadow-sm border border-outline-variant text-primary font-label-sm text-label-sm">Yearly</button>
+</div>
+</div>
+<div class="overflow-x-auto pb-sm">
+<div class="min-w-[800px] flex gap-1 items-end">
+<script>
+                                    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+                                    let html = '';
+                                    
+                                    html += '<div class="flex flex-col gap-1 mr-2 text-on-surface-variant font-label-sm text-[10px] uppercase justify-between h-[104px] pt-4">';
+                                    html += '<span>Mon</span><span>Wed</span><span>Fri</span>';
+                                    html += '</div>';
+
+                                    html += '<div class="flex flex-col gap-1 flex-1">';
+                                    html += '<div class="flex justify-between text-on-surface-variant font-label-sm text-[10px] uppercase mb-1 px-1">';
+                                    months.forEach(m => html += `<span>${m}</span>`);
+                                    html += '</div>';
+                                    
+                                    html += '<div class="flex gap-1">';
+                                    for(let w=0; w<52; w++) {
+                                        html += '<div class="flex flex-col gap-1">';
+                                        for(let d=0; d<7; d++) {
+                                            const intensities = ['bg-surface-container-high', 'bg-surface-dim', 'bg-outline-variant', 'bg-secondary', 'bg-primary'];
+                                            const rand = Math.random();
+                                            let intensityClass = intensities[0];
+                                            if(rand > 0.6) intensityClass = intensities[1];
+                                            if(rand > 0.8) intensityClass = intensities[2];
+                                            if(rand > 0.9) intensityClass = intensities[3];
+                                            if(rand > 0.95) intensityClass = intensities[4];
+                                            
+                                            html += `<div class="w-3 h-3 rounded-[2px] ${intensityClass} hover:ring-1 hover:ring-primary cursor-pointer transition-all" title="Activity detail"></div>`;
+                                        }
+                                        html += '</div>';
+                                    }
+                                    html += '</div></div>';
+                                    document.write(html);
+                                </script>
+</div>
+</div>
+<div class="mt-sm flex items-center justify-end gap-sm font-label-sm text-label-sm text-on-surface-variant">
+<span>Less</span>
+<div class="flex gap-1">
+<div class="w-3 h-3 rounded-[2px] bg-surface-container-high"></div>
+<div class="w-3 h-3 rounded-[2px] bg-surface-dim"></div>
+<div class="w-3 h-3 rounded-[2px] bg-outline-variant"></div>
+<div class="w-3 h-3 rounded-[2px] bg-secondary"></div>
+<div class="w-3 h-3 rounded-[2px] bg-primary"></div>
+</div>
+<span>More</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+</body></html>

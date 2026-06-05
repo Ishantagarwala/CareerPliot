@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Tech News - Career Pilot</title>
+<!-- Google Fonts -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;600;700&amp;family=Inter:wght@400;500&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet"/>
+<!-- Material Symbols -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!-- Tailwind Config -->
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "surface-container-highest": "#353534",
+                        "on-secondary": "#313030",
+                        "secondary-fixed-dim": "#c8c6c5",
+                        "primary-fixed-dim": "#c6c6c7",
+                        "on-background": "#e5e2e1",
+                        "error": "#ffb4ab",
+                        "on-secondary-fixed": "#1c1b1b",
+                        "on-primary-fixed": "#1a1c1c",
+                        "inverse-surface": "#e5e2e1",
+                        "tertiary": "#ffffff",
+                        "surface-variant": "#353534",
+                        "surface-dim": "#131313",
+                        "on-surface": "#e5e2e1",
+                        "surface-tint": "#c6c6c7",
+                        "primary": "#ffffff",
+                        "tertiary-container": "#e2e2e2",
+                        "secondary-container": "#474746",
+                        "primary-container": "#e2e2e2",
+                        "on-error": "#690005",
+                        "on-surface-variant": "#c4c7c8",
+                        "on-primary": "#2f3131",
+                        "inverse-on-surface": "#313030",
+                        "on-primary-container": "#636565",
+                        "outline-variant": "#444748",
+                        "on-tertiary": "#2f3131",
+                        "outline": "#8e9192",
+                        "error-container": "#93000a",
+                        "background": "#131313",
+                        "tertiary-fixed": "#e2e2e2",
+                        "surface-bright": "#3a3939",
+                        "on-secondary-container": "#b7b5b4",
+                        "secondary-fixed": "#e5e2e1",
+                        "surface": "#131313",
+                        "secondary": "#c8c6c5",
+                        "on-primary-fixed-variant": "#454747",
+                        "inverse-primary": "#5d5f5f",
+                        "primary-fixed": "#e2e2e2",
+                        "on-tertiary-fixed-variant": "#454747",
+                        "tertiary-fixed-dim": "#c6c6c7",
+                        "surface-container-lowest": "#0e0e0e",
+                        "surface-container-low": "#1c1b1b",
+                        "surface-container": "#201f1f",
+                        "surface-container-high": "#2a2a2a",
+                        "on-tertiary-container": "#636565",
+                        "on-secondary-fixed-variant": "#474746",
+                        "on-error-container": "#ffdad6",
+                        "on-tertiary-fixed": "#1a1c1c"
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0px", /* Brutalist override based on style guidance */
+                        "lg": "0px",
+                        "xl": "0px",
+                        "full": "9999px"
+                    },
+                    spacing: {
+                        "unit": "8px",
+                        "gutter": "24px",
+                        "margin-desktop": "48px",
+                        "margin-mobile": "16px",
+                        "container-max": "1280px"
+                    },
+                    fontFamily: {
+                        "headline-lg": ["Hanken Grotesk"],
+                        "headline-lg-mobile": ["Hanken Grotesk"],
+                        "display": ["Hanken Grotesk"],
+                        "body-md": ["Inter"],
+                        "label-sm": ["JetBrains Mono"],
+                        "body-lg": ["Inter"],
+                        "headline-md": ["Hanken Grotesk"],
+                        "label-md": ["JetBrains Mono"]
+                    },
+                    fontSize: {
+                        "headline-lg": ["32px", { lineHeight: "40px", letterSpacing: "-0.01em", fontWeight: "600" }],
+                        "headline-lg-mobile": ["24px", { lineHeight: "32px", fontWeight: "600" }],
+                        "display": ["48px", { lineHeight: "56px", letterSpacing: "-0.02em", fontWeight: "700" }],
+                        "body-md": ["16px", { lineHeight: "24px", fontWeight: "400" }],
+                        "label-sm": ["12px", { lineHeight: "16px", letterSpacing: "0.05em", fontWeight: "500" }],
+                        "body-lg": ["18px", { lineHeight: "28px", fontWeight: "400" }],
+                        "headline-md": ["20px", { lineHeight: "28px", fontWeight: "600" }],
+                        "label-md": ["14px", { lineHeight: "20px", letterSpacing: "0.05em", fontWeight: "500" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        /* Base brutalist resets */
+        body {
+            background-color: #131313;
+            color: #e5e2e1;
+        }
+        /* Custom scrollbar for raw feel */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #131313; 
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #353534; 
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #444748; 
+        }
+    </style>
+</head>
+<body class="bg-background text-on-surface font-body-md text-body-md antialiased overflow-x-hidden selection:bg-primary selection:text-on-primary">
+<!-- SideNavBar -->
+<nav class="hidden md:flex flex-col h-screen overflow-y-auto fixed h-full w-[280px] left-0 top-0 bg-surface-container-low dark:bg-surface-container-high border-r border-outline-variant dark:border-outline z-50">
+<!-- Brand Header -->
+<div class="px-6 py-8 border-b border-outline-variant dark:border-outline mb-4">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 bg-primary flex items-center justify-center text-on-primary font-display text-headline-md font-bold">
+                    C
+                </div>
+<div>
+<h1 class="font-display text-headline-md font-bold text-primary dark:text-primary-fixed">Career Pilot</h1>
+<p class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-widest mt-1">Executive Growth</p>
+</div>
+</div>
+</div>
+<!-- Navigation Links -->
+<div class="flex-1 flex flex-col px-4 space-y-1">
+<!-- Inactive Tab: Dashboard -->
+<a class="flex items-center gap-3 px-3 py-3 font-label-md text-label-md text-on-surface-variant dark:text-on-tertiary-container hover:text-primary dark:hover:text-primary-fixed hover:bg-surface-container-high dark:hover:bg-surface-container-lowest transition-colors duration-200 cursor-pointer active:scale-95 transition-transform" href="#">
+<span class="material-symbols-outlined text-[20px]" data-icon="dashboard">dashboard</span>
+<span>Dashboard</span>
+</a>
+<!-- Inactive Tab: Career Discovery -->
+<a class="flex items-center gap-3 px-3 py-3 font-label-md text-label-md text-on-surface-variant dark:text-on-tertiary-container hover:text-primary dark:hover:text-primary-fixed hover:bg-surface-container-high dark:hover:bg-surface-container-lowest transition-colors duration-200 cursor-pointer active:scale-95 transition-transform" href="#">
+<span class="material-symbols-outlined text-[20px]" data-icon="explore">explore</span>
+<span>Career Discovery</span>
+</a>
+<!-- Inactive Tab: Learning Roadmap -->
+<a class="flex items-center gap-3 px-3 py-3 font-label-md text-label-md text-on-surface-variant dark:text-on-tertiary-container hover:text-primary dark:hover:text-primary-fixed hover:bg-surface-container-high dark:hover:bg-surface-container-lowest transition-colors duration-200 cursor-pointer active:scale-95 transition-transform" href="#">
+<span class="material-symbols-outlined text-[20px]" data-icon="map">map</span>
+<span>Learning Roadmap</span>
+</a>
+<!-- Inactive Tab: Course Recommendations -->
+<a class="flex items-center gap-3 px-3 py-3 font-label-md text-label-md text-on-surface-variant dark:text-on-tertiary-container hover:text-primary dark:hover:text-primary-fixed hover:bg-surface-container-high dark:hover:bg-surface-container-lowest transition-colors duration-200 cursor-pointer active:scale-95 transition-transform" href="#">
+<span class="material-symbols-outlined text-[20px]" data-icon="school">school</span>
+<span>Course Recommendations</span>
+</a>
+<!-- Inactive Tab: AI PDF Assistant -->
+<a class="flex items-center gap-3 px-3 py-3 font-label-md text-label-md text-on-surface-variant dark:text-on-tertiary-container hover:text-primary dark:hover:text-primary-fixed hover:bg-surface-container-high dark:hover:bg-surface-container-lowest transition-colors duration-200 cursor-pointer active:scale-95 transition-transform" href="#">
+<span class="material-symbols-outlined text-[20px]" data-icon="picture_as_pdf">picture_as_pdf</span>
+<span>AI PDF Assistant</span>
+</a>
+<!-- Inactive Tab: AI Tutor -->
+<a class="flex items-center gap-3 px-3 py-3 font-label-md text-label-md text-on-surface-variant dark:text-on-tertiary-container hover:text-primary dark:hover:text-primary-fixed hover:bg-surface-container-high dark:hover:bg-surface-container-lowest transition-colors duration-200 cursor-pointer active:scale-95 transition-transform" href="#">
+<span class="material-symbols-outlined text-[20px]" data-icon="smart_toy">smart_toy</span>
+<span>AI Tutor</span>
+</a>
+<!-- Inactive Tab: Profile -->
+<a class="flex items-center gap-3 px-3 py-3 font-label-md text-label-md text-on-surface-variant dark:text-on-tertiary-container hover:text-primary dark:hover:text-primary-fixed hover:bg-surface-container-high dark:hover:bg-surface-container-lowest transition-colors duration-200 cursor-pointer active:scale-95 transition-transform" href="#">
+<span class="material-symbols-outlined text-[20px]" data-icon="person">person</span>
+<span>Profile</span>
+</a>
+<!-- Inactive Tab: Study With Me -->
+<a class="flex items-center gap-3 px-3 py-3 font-label-md text-label-md text-on-surface-variant dark:text-on-tertiary-container hover:text-primary dark:hover:text-primary-fixed hover:bg-surface-container-high dark:hover:bg-surface-container-lowest transition-colors duration-200 cursor-pointer active:scale-95 transition-transform" href="#">
+<span class="material-symbols-outlined text-[20px]" data-icon="group">group</span>
+<span>Study With Me</span>
+</a>
+<!-- ACTIVE Tab: Tech News -->
+<a class="flex items-center gap-3 px-3 py-3 font-label-md text-label-md cursor-pointer active:scale-95 transition-transform text-primary dark:text-primary-fixed font-bold border-l-4 border-primary dark:border-primary-fixed bg-surface-container-highest dark:bg-surface-container-lowest" href="#">
+<span class="material-symbols-outlined text-[20px]" data-icon="newspaper" style="font-variation-settings: 'FILL' 1;">newspaper</span>
+<span>Tech News</span>
+</a>
+</div>
+<!-- User Profile Avatar Footer (Implied by JSON header_avatar_alt) -->
+<div class="p-6 border-t border-outline-variant dark:border-outline mt-auto">
+<div class="flex items-center gap-3">
+<img alt="User Profile Avatar" class="w-8 h-8 rounded-none border border-outline-variant grayscale" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBV1OC2L_1cipC35yr1NwI-RzZKGHIOuEfyHG-YR3AggRypNPcI4QqDqgz_ZHX-pS-cLCe2NPBrPArtd-xeGjmNBX5YWAAOVUm6xWoaUBYB8EGvgdagiuX3_nYXo1UVq5Pwu7J0C7kGgyyFdb4AB2UFVspzSQri-aauuCw8Y6M4ynk8AzNLfLTReY1sd1AJI1tEkyttvY1uHf5XCE62LdorNjwd2rivdlg6UOZX2Ddz5D2lBqFdK7mkUZ-uvc5SrfD3XfF8r_TMvxtY"/>
+<span class="font-label-md text-label-md text-on-surface truncate">Executive.User</span>
+</div>
+</div>
+</nav>
+<!-- TopAppBar -->
+<header class="hidden md:flex items-center justify-between px-margin-desktop fixed top-0 right-0 left-[280px] h-16 bg-surface dark:bg-surface-dim border-b border-outline-variant dark:border-outline z-40">
+<!-- Left empty to balance right side actions, or could have breadcrumbs -->
+<div class="flex items-center gap-4">
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-widest border border-outline-variant px-2 py-1">Tech &amp; Market Intelligence</span>
+</div>
+<!-- Right Side: Search & Actions -->
+<div class="flex items-center gap-6">
+<!-- Search Bar (on_right) -->
+<div class="relative focus-within:ring-1 focus-within:ring-primary transition-all">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-[18px]" data-icon="search">search</span>
+<input class="bg-surface-container-low border border-outline-variant text-on-surface font-label-sm text-label-sm py-2 pl-10 pr-4 focus:outline-none focus:border-primary focus:bg-surface placeholder-on-surface-variant w-[240px] transition-colors" placeholder="Search Intelligence..." type="text"/>
+</div>
+<!-- Trailing Icons -->
+<div class="flex items-center gap-4">
+<button class="text-on-surface-variant dark:text-on-tertiary-container hover:text-primary dark:hover:text-primary-fixed transition-colors">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+</button>
+<button class="text-on-surface-variant dark:text-on-tertiary-container hover:text-primary dark:hover:text-primary-fixed transition-colors">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+</button>
+<img alt="User Profile" class="w-8 h-8 border border-outline-variant grayscale cursor-pointer hover:border-primary transition-colors" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAigbx_N8EWJ6mKTIWGAGOzzxf5QhFbzvpG8Ar5aH4aGptzS7wjIdWZy4WH3oOT2tOZ2RfzFrJ1-OlbZXnTBHIbxMJy5EgrSYPAEgJnGH-FsU7wTsX6M5C-hNfPze7T7oqZ3BNAWQZzYB1PeqbUoAQYkkBFcLSra2_RUvymVHyJ7S7vWLl93FP1RZDRHmG_y8oH9L0LlknCATdvs5nYqPn6kXlrT9NSNCkjNIQMzkUneBGtfapXLyKdeeSqEKbpgjtqyNmvlAbqPZs0"/>
+</div>
+</div>
+</header>
+<!-- Main Content Area -->
+<main class="md:ml-[280px] pt-16 min-h-screen">
+<div class="max-w-container-max mx-auto p-margin-mobile md:p-margin-desktop">
+<!-- Page Header -->
+<div class="mb-12 border-b border-outline-variant pb-6 flex flex-col md:flex-row md:items-end justify-between gap-6">
+<div>
+<h2 class="font-display text-display text-primary">Daily Dispatch</h2>
+<p class="font-body-lg text-body-lg text-on-surface-variant mt-2 max-w-2xl">High-signal intelligence on India's tech ecosystem and executive career movements. Cut through the noise.</p>
+</div>
+<div class="flex gap-3">
+<button class="px-4 py-2 bg-transparent border border-outline-variant text-on-surface font-label-sm text-label-sm uppercase tracking-wider hover:border-primary hover:text-primary transition-colors">
+                        Filter: India
+                    </button>
+<button class="px-4 py-2 bg-transparent border border-outline-variant text-on-surface font-label-sm text-label-sm uppercase tracking-wider hover:border-primary hover:text-primary transition-colors">
+                        Filter: Leadership
+                    </button>
+</div>
+</div>
+<!-- Content Grid (Asymmetric) -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-gutter">
+<!-- Featured Article (Span 8) -->
+<article class="lg:col-span-8 bg-surface-container-low border border-outline-variant flex flex-col group cursor-pointer hover:border-outline transition-colors duration-300 relative overflow-hidden">
+<div class="h-[400px] w-full bg-surface-container-highest relative overflow-hidden">
+<img alt="Featured news background" class="w-full h-full object-cover grayscale opacity-60 group-hover:opacity-80 transition-opacity duration-500 mix-blend-luminosity scale-100 group-hover:scale-105" data-alt="A stark, high-contrast black and white photograph of a modern, angular skyscraper interior in a bustling Indian tech hub like Bengaluru or Hyderabad. The scene features harsh, dramatic directional lighting casting deep shadows across polished concrete floors and glass partitions. The mood is corporate, intensely focused, and monumental, adhering to a minimalist, structuralist aesthetic with sharp architectural lines." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDic8CPg9qURJzrtj0LcyGRewdM8AH0kLvOsXSdRAbeFNj0RvkdkGeZILXgj56YWcqg3czTmlFfmGX8n1GpLlp_1R8tvt5q7Xb5N82I84y9oT3RR0Seuc_q41Mt2sPoX4aSZmdXybafnhutbUMbUb-MjhH1moGAnAY1aUhkqWLOBaDUmcODRW0st2xWN9SX01q11WjLkS4Kry3nKG8Q4bwvEypfEf10L9rqB_b0ddv41wt6KgzbxxlXO2WXJYU0vXkQ7TxInGtUY83R"/>
+<div class="absolute inset-0 bg-gradient-to-t from-surface-container-low via-transparent to-transparent"></div>
+<div class="absolute top-4 left-4 flex gap-2">
+<span class="bg-surface border border-outline-variant px-2 py-1 font-label-sm text-label-sm text-primary uppercase tracking-widest">Market Shift</span>
+</div>
+</div>
+<div class="p-8 flex flex-col flex-1 z-10 relative bg-surface-container-low">
+<div class="flex items-center gap-4 text-on-surface-variant font-label-sm text-label-sm mb-4">
+<span>08:00 AM IST</span>
+<span class="w-1 h-1 bg-outline-variant rounded-full"></span>
+<span>5 Min Read</span>
+</div>
+<h3 class="font-headline-lg text-headline-lg text-primary mb-4 group-hover:text-tertiary-container transition-colors">The Engineering Management Exodus: Why Top Talent is Leaving GCCs for Indian Startups</h3>
+<p class="font-body-md text-body-md text-on-surface-variant mb-8 line-clamp-3">Global Capability Centers (GCCs) in India are facing a unique attrition challenge. Senior engineering leaders are increasingly migrating towards hyper-growth domestic startups offering superior equity upside and faster decision-making autonomy. We analyze the compensation data and career trajectories driving this structural shift.</p>
+<div class="mt-auto pt-6 border-t border-outline-variant flex items-center justify-between">
+<div class="flex gap-2">
+<span class="px-2 py-1 border border-outline-variant text-on-surface font-label-sm text-[10px] uppercase">Leadership</span>
+<span class="px-2 py-1 border border-outline-variant text-on-surface font-label-sm text-[10px] uppercase">Compensation</span>
+</div>
+<button class="bg-primary text-surface-container-lowest font-label-sm text-label-sm uppercase px-6 py-3 hover:bg-tertiary-container transition-colors flex items-center gap-2">
+                                Read Brief <span class="material-symbols-outlined text-[16px]" data-icon="arrow_forward">arrow_forward</span>
+</button>
+</div>
+</div>
+</article>
+<!-- Sidebar Daily Feed (Span 4) -->
+<aside class="lg:col-span-4 flex flex-col gap-6">
+<div class="border-b border-outline-variant pb-4 mb-2">
+<h4 class="font-headline-md text-headline-md text-primary flex items-center gap-2">
+<span class="w-2 h-2 bg-primary"></span> Live Feed
+                        </h4>
+</div>
+<div class="flex flex-col gap-0 border-t border-outline-variant">
+<!-- News Item 1 -->
+<a class="group border-b border-outline-variant p-4 hover:bg-surface-container-high transition-colors bg-surface flex flex-col gap-2" href="#">
+<div class="flex justify-between items-start mb-1">
+<span class="font-label-sm text-[10px] text-primary uppercase border border-outline-variant px-1.5 py-0.5">Policy</span>
+<span class="font-label-sm text-[10px] text-on-surface-variant">10:45 AM</span>
+</div>
+<h5 class="font-headline-md text-[16px] leading-[22px] text-on-surface group-hover:text-primary transition-colors">India's New AI Regulation Framework: Implications for Startup Founders</h5>
+<p class="font-body-md text-[13px] text-on-surface-variant line-clamp-2 mt-1">A deep dive into the draft policy requiring algorithmic transparency and its potential impact on series A funding cycles.</p>
+</a>
+<!-- News Item 2 -->
+<a class="group border-b border-outline-variant p-4 hover:bg-surface-container-high transition-colors bg-surface flex flex-col gap-2" href="#">
+<div class="flex justify-between items-start mb-1">
+<span class="font-label-sm text-[10px] text-primary uppercase border border-outline-variant px-1.5 py-0.5">Venture Capital</span>
+<span class="font-label-sm text-[10px] text-on-surface-variant">Yesterday</span>
+</div>
+<h5 class="font-headline-md text-[16px] leading-[22px] text-on-surface group-hover:text-primary transition-colors">Peak XV Allocates $250M for DeepTech SaaS in Bangalore</h5>
+<p class="font-body-md text-[13px] text-on-surface-variant line-clamp-2 mt-1">The fund aims to capture value in infrastructure layer startups, shifting focus away from consumer tech.</p>
+</a>
+<!-- News Item 3 -->
+<a class="group border-b border-outline-variant p-4 hover:bg-surface-container-high transition-colors bg-surface flex flex-col gap-2" href="#">
+<div class="flex justify-between items-start mb-1">
+<span class="font-label-sm text-[10px] text-primary uppercase border border-outline-variant px-1.5 py-0.5">Career Trends</span>
+<span class="font-label-sm text-[10px] text-on-surface-variant">Yesterday</span>
+</div>
+<h5 class="font-headline-md text-[16px] leading-[22px] text-on-surface group-hover:text-primary transition-colors">The Rise of the 'Fractional' CTO in India's Mid-Market</h5>
+<p class="font-body-md text-[13px] text-on-surface-variant line-clamp-2 mt-1">Experienced technical leaders are increasingly opting for portfolio careers over single full-time roles, commanding higher hourly premiums.</p>
+</a>
+</div>
+<a class="mt-4 font-label-sm text-label-sm text-primary uppercase tracking-widest flex items-center gap-2 hover:underline underline-offset-4 decoration-outline-variant" href="#">
+                        View Complete Archive <span class="material-symbols-outlined text-[16px]" data-icon="chevron_right">chevron_right</span>
+</a>
+</aside>
+</div>
+<!-- Analysis Section (Bottom row) -->
+<div class="mt-16 pt-16 border-t border-outline-variant">
+<div class="mb-8">
+<h3 class="font-headline-lg text-headline-lg text-primary">In-Depth Analysis</h3>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-gutter">
+<!-- Analysis Card 1 -->
+<div class="border border-outline-variant bg-surface group cursor-pointer hover:bg-surface-container-low transition-colors duration-300">
+<div class="h-48 border-b border-outline-variant overflow-hidden relative">
+<div class="absolute inset-0 bg-surface-container z-10 opacity-40 group-hover:opacity-20 transition-opacity"></div>
+<img alt="Data chart background" class="w-full h-full object-cover grayscale opacity-50 mix-blend-screen" data-alt="A minimalist, monochromatic visualization of complex data networks and glowing financial charts on a dark screen. The image features sharp, vector-like lines intersecting in an abstract digital space, representing data analytics and market trends. Lighting is harsh and artificial, evoking a brutalist, high-tech command center aesthetic in pure black, white, and subtle greys." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDOm_3Hm7_N7wt_Ugo8T5za-QYnAVSd2vZfH9QwjqXPMz14QK7mXzeuWEXrKMqGKyU8kQ-nPaEP6QXqehXexeucVEm7dYenv_d8y4R4GayIF27WmqJcZubMBYLH76BOfKgOqPgS3XM4D6-6ianYpk2JpGAurGbGEU7bw-LlvxKe8j5prgqSC2mNLAH0s0_6s9NNgCefpIDS2vhIRY7QkS2K6F5Nm4sLDuAMYM8brCgDFMgOqM1M_pu6C-o7hcDW504A0Ma6ZmZXDs7V"/>
+</div>
+<div class="p-6">
+<span class="font-label-sm text-[10px] text-on-surface-variant uppercase tracking-widest mb-3 block">Data Report</span>
+<h4 class="font-headline-md text-headline-md text-on-surface mb-3 group-hover:text-primary">Q3 Compensation Benchmark: VP Engineering</h4>
+<p class="font-body-md text-[14px] text-on-surface-variant">Exclusive data on cash vs. equity splits for series B/C startups in major Indian metros.</p>
+</div>
+</div>
+<!-- Analysis Card 2 -->
+<div class="border border-outline-variant bg-surface group cursor-pointer hover:bg-surface-container-low transition-colors duration-300">
+<div class="h-48 border-b border-outline-variant overflow-hidden relative">
+<div class="absolute inset-0 bg-surface-container z-10 opacity-40 group-hover:opacity-20 transition-opacity"></div>
+<img alt="Meeting room background" class="w-full h-full object-cover grayscale opacity-50 mix-blend-screen" data-alt="A stark black and white photograph of an empty, ultra-modern corporate boardroom. A sleek, minimal glass table sits center, surrounded by austere black chairs. Sharp geometric shadows fall across the bare concrete walls from intense natural light streaming through floor-to-ceiling windows. The mood is cold, decisive, and quietly powerful, adhering to a strict monochromatic design system." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCf0wob8XHFLM1Mmu3Td3le_qZ-QK_buDwasDiX1brob_4b8mA1TTEZT_GwV_E8gq42qaxyMqE4GaJD2IoTsb4191CGiaH5Pa3HlPd6qTqISGiAOsW6uLvVwUUx2teMvdE7m5IklypbZmKu4EiMylA9EMKIpqDD2eDY_pQBohU_ocUNSpoprt9VA7I5Anro7Y4HiZEA471FCPdBQd02GxtX5YfQIcC4nAKB8vlYEoK7K3Q36bSSd29IwWt2v1JBDtWTamX1ZiGwdPTc"/>
+</div>
+<div class="p-6">
+<span class="font-label-sm text-[10px] text-on-surface-variant uppercase tracking-widest mb-3 block">Interview</span>
+<h4 class="font-headline-md text-headline-md text-on-surface mb-3 group-hover:text-primary">Transitioning from Enterprise to Hyper-growth</h4>
+<p class="font-body-md text-[14px] text-on-surface-variant">Candid insights from three former FAANG directors who successfully integrated into Indian unicorn cultures.</p>
+</div>
+</div>
+<!-- Analysis Card 3 -->
+<div class="border border-outline-variant bg-surface group cursor-pointer hover:bg-surface-container-low transition-colors duration-300">
+<div class="h-48 border-b border-outline-variant overflow-hidden relative">
+<div class="absolute inset-0 bg-surface-container z-10 opacity-40 group-hover:opacity-20 transition-opacity"></div>
+<img alt="Code architecture background" class="w-full h-full object-cover grayscale opacity-50 mix-blend-screen" data-alt="A close-up, high-contrast monochrome image of complex server architecture and fiber optic cabling. The lighting is severe and dramatic, highlighting the structural geometry of the hardware. Deep shadows contrast with brilliant white highlights on the metal casings, creating a brutalist, industrial-tech aesthetic perfectly aligned with a dark mode, minimalist UI." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAQ5MIWTViNFT0K7f4QsKJpByBCfzU_t9CGACcwjjfDgXB4dN7Uzx9xi-84KawL2gfmZ_oTb8BmDH-F5XvDfxiyySOkMhOuEbJlJAgcv-xYiU1tCGZOndEQhGbYWCWr_6IjO8uMLjamqbWf52K0MS6-VVJ4yhpvLzur8focF0ngqO2DQA7LzRSrvz_069jE03Z97vJnY1-PX4SPoau6j2cBCjyW3yHgLjDOgccgulYAMxXx3mJMV3JKk98Oo0HOyw1K6YFqv9KxdqTa"/>
+</div>
+<div class="p-6">
+<span class="font-label-sm text-[10px] text-on-surface-variant uppercase tracking-widest mb-3 block">Tech Strategy</span>
+<h4 class="font-headline-md text-headline-md text-on-surface mb-3 group-hover:text-primary">The Architecture Overhaul: Post-Funding Priorities</h4>
+<p class="font-body-md text-[14px] text-on-surface-variant">When technical debt becomes strategic debt. A guide for incoming CTOs managing legacy system modernization.</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+</body></html>
