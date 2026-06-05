@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Career Pilot - AI PDF Assistant</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=Plus+Jakarta+Sans:wght@600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "primary-container": "#1b1b1b",
+                        "primary-fixed": "#e2e2e2",
+                        "surface-variant": "#e2e2e2",
+                        "tertiary": "#000000",
+                        "surface-container-lowest": "#ffffff",
+                        "secondary-container": "#e1dfdf",
+                        "surface-container-highest": "#e2e2e2",
+                        "tertiary-fixed-dim": "#c6c6c6",
+                        "on-secondary-fixed": "#1b1c1c",
+                        "surface-container-low": "#f3f3f3",
+                        "surface": "#f9f9f9",
+                        "on-error-container": "#93000a",
+                        "on-primary-fixed-variant": "#474747",
+                        "on-surface-variant": "#4c4546",
+                        "surface-bright": "#f9f9f9",
+                        "on-primary-container": "#848484",
+                        "background": "#f9f9f9",
+                        "primary": "#000000",
+                        "on-tertiary-fixed-variant": "#454747",
+                        "inverse-on-surface": "#f1f1f1",
+                        "on-error": "#ffffff",
+                        "tertiary-container": "#1a1c1c",
+                        "on-surface": "#1a1c1c",
+                        "outline-variant": "#cfc4c5",
+                        "error-container": "#ffdad6",
+                        "on-tertiary": "#ffffff",
+                        "surface-container-high": "#e8e8e8",
+                        "secondary-fixed-dim": "#c7c6c6",
+                        "tertiary-fixed": "#e2e2e2",
+                        "surface-tint": "#5e5e5e",
+                        "surface-container": "#eeeeee",
+                        "surface-dim": "#dadada",
+                        "secondary-fixed": "#e4e2e2",
+                        "on-secondary-fixed-variant": "#464747",
+                        "on-background": "#1a1c1c",
+                        "outline": "#7e7576",
+                        "on-tertiary-fixed": "#1a1c1c",
+                        "on-primary-fixed": "#1b1b1b",
+                        "inverse-primary": "#c6c6c6",
+                        "secondary": "#5e5e5e",
+                        "on-primary": "#ffffff",
+                        "on-tertiary-container": "#838484",
+                        "on-secondary": "#ffffff",
+                        "on-secondary-container": "#626262",
+                        "error": "#ba1a1a",
+                        "inverse-surface": "#2f3131",
+                        "primary-fixed-dim": "#c6c6c6"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "gutter": "24px",
+                        "margin-mobile": "16px",
+                        "md": "24px",
+                        "xl": "80px",
+                        "xs": "4px",
+                        "base": "8px",
+                        "margin-desktop": "40px",
+                        "sm": "12px",
+                        "lg": "48px"
+                    },
+                    "fontFamily": {
+                        "display": ["Plus Jakarta Sans"],
+                        "headline-lg-mobile": ["Plus Jakarta Sans"],
+                        "body-lg": ["Inter"],
+                        "headline-md": ["Plus Jakarta Sans"],
+                        "headline-lg": ["Plus Jakarta Sans"],
+                        "label-lg": ["Inter"],
+                        "headline-sm": ["Plus Jakarta Sans"],
+                        "body-sm": ["Inter"],
+                        "body-md": ["Inter"],
+                        "label-sm": ["Inter"]
+                    },
+                    "fontSize": {
+                        "display": ["40px", { "lineHeight": "48px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "headline-lg-mobile": ["28px", { "lineHeight": "36px", "fontWeight": "700" }],
+                        "body-lg": ["18px", { "lineHeight": "28px", "fontWeight": "400" }],
+                        "headline-md": ["24px", { "lineHeight": "32px", "fontWeight": "600" }],
+                        "headline-lg": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "label-lg": ["14px", { "lineHeight": "20px", "letterSpacing": "0.02em", "fontWeight": "600" }],
+                        "headline-sm": ["20px", { "lineHeight": "28px", "fontWeight": "600" }],
+                        "body-sm": ["14px", { "lineHeight": "20px", "fontWeight": "400" }],
+                        "body-md": ["16px", { "lineHeight": "24px", "fontWeight": "400" }],
+                        "label-sm": ["12px", { "lineHeight": "16px", "fontWeight": "500" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .material-symbols-outlined.fill {
+            font-variation-settings: 'FILL' 1;
+        }
+        
+        /* Custom Scrollbar for minimalistic look */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #e2e2e2;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #c6c6c6;
+        }
+    </style>
+</head>
+<body class="bg-background text-on-background font-body-md text-body-md antialiased flex h-screen overflow-hidden">
+<!-- SideNavBar -->
+<nav class="fixed left-0 top-0 h-full w-[280px] flex flex-col p-6 gap-y-4 bg-surface-container-low dark:bg-primary-container border-r border-outline-variant dark:border-outline z-40 hidden md:flex">
+<!-- Header -->
+<div class="flex items-center gap-3 mb-6 px-2">
+<div class="w-10 h-10 rounded-lg bg-primary flex items-center justify-center text-on-primary">
+<span class="material-symbols-outlined">rocket_launch</span>
+</div>
+<div>
+<h1 class="font-display text-headline-sm font-bold text-primary dark:text-primary-fixed leading-tight">Career Pilot</h1>
+<p class="font-label-sm text-label-sm text-secondary">Precision Career Growth</p>
+</div>
+</div>
+<!-- Main Navigation -->
+<div class="flex-1 flex flex-col gap-1">
+<!-- Dashboard -->
+<a class="flex items-center gap-3 px-3 py-2 text-secondary dark:text-on-surface-variant hover:bg-surface-container-high dark:hover:bg-tertiary-container rounded-lg duration-200 ease-in-out transition-all" href="#">
+<span class="material-symbols-outlined text-[20px]">dashboard</span>
+<span class="font-label-lg text-label-lg">Dashboard</span>
+</a>
+<!-- Career Discovery -->
+<a class="flex items-center gap-3 px-3 py-2 text-secondary dark:text-on-surface-variant hover:bg-surface-container-high dark:hover:bg-tertiary-container rounded-lg duration-200 ease-in-out transition-all" href="#">
+<span class="material-symbols-outlined text-[20px]">explore</span>
+<span class="font-label-lg text-label-lg">Career Discovery</span>
+</a>
+<!-- Learning Roadmap -->
+<a class="flex items-center gap-3 px-3 py-2 text-secondary dark:text-on-surface-variant hover:bg-surface-container-high dark:hover:bg-tertiary-container rounded-lg duration-200 ease-in-out transition-all" href="#">
+<span class="material-symbols-outlined text-[20px]">map</span>
+<span class="font-label-lg text-label-lg">Learning Roadmap</span>
+</a>
+<!-- Course Recommendations -->
+<a class="flex items-center gap-3 px-3 py-2 text-secondary dark:text-on-surface-variant hover:bg-surface-container-high dark:hover:bg-tertiary-container rounded-lg duration-200 ease-in-out transition-all" href="#">
+<span class="material-symbols-outlined text-[20px]">school</span>
+<span class="font-label-lg text-label-lg">Course Recommendations</span>
+</a>
+<!-- AI PDF Assistant (ACTIVE) -->
+<a class="flex items-center gap-3 px-3 py-2 bg-primary text-on-primary dark:bg-primary-fixed dark:text-on-primary-fixed rounded-lg font-bold duration-200 ease-in-out transition-all" href="#">
+<span class="material-symbols-outlined text-[20px] fill">picture_as_pdf</span>
+<span class="font-label-lg text-label-lg">AI PDF Assistant</span>
+</a>
+<!-- AI Tutor -->
+<a class="flex items-center gap-3 px-3 py-2 text-secondary dark:text-on-surface-variant hover:bg-surface-container-high dark:hover:bg-tertiary-container rounded-lg duration-200 ease-in-out transition-all" href="#">
+<span class="material-symbols-outlined text-[20px]">smart_toy</span>
+<span class="font-label-lg text-label-lg">AI Tutor</span>
+</a>
+</div>
+<!-- Footer Navigation & CTA -->
+<div class="mt-auto flex flex-col gap-4 border-t border-outline-variant pt-4">
+<button class="w-full py-2 px-4 rounded-lg bg-surface-container-lowest border border-outline-variant text-primary font-label-lg text-label-lg hover:bg-surface-container-high transition-colors">
+                Upgrade to Pro
+            </button>
+<div class="flex flex-col gap-1">
+<a class="flex items-center gap-3 px-3 py-2 text-secondary hover:bg-surface-container-high rounded-lg transition-colors" href="#">
+<span class="material-symbols-outlined text-[20px]">help</span>
+<span class="font-label-lg text-label-lg">Help Center</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 text-secondary hover:bg-surface-container-high rounded-lg transition-colors" href="#">
+<span class="material-symbols-outlined text-[20px]">logout</span>
+<span class="font-label-lg text-label-lg">Logout</span>
+</a>
+</div>
+</div>
+</nav>
+<!-- Main Content Area -->
+<main class="flex-1 md:ml-[280px] flex flex-col h-screen min-w-0 bg-background relative">
+<!-- TopAppBar -->
+<header class="w-full sticky top-0 z-50 flex items-center justify-between px-margin-desktop py-4 bg-surface dark:bg-background border-b border-outline-variant dark:border-outline">
+<!-- Mobile Brand (Hidden on Desktop) -->
+<div class="md:hidden flex items-center gap-2">
+<span class="font-display text-headline-sm font-bold text-primary dark:text-on-background">Career Pilot</span>
+</div>
+<div class="hidden md:block flex-1">
+<!-- Empty space on desktop left side to push search right -->
+</div>
+<!-- Right Actions -->
+<div class="flex items-center gap-4">
+<!-- Search Bar -->
+<div class="relative w-64 hidden sm:block">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-secondary text-[20px]">search</span>
+<input class="w-full pl-10 pr-4 py-2 bg-surface-container-lowest border border-outline-variant rounded-lg font-body-sm text-body-sm focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all text-on-surface placeholder-secondary" placeholder="Search resources..." type="text"/>
+</div>
+<!-- Icon Actions -->
+<button class="w-10 h-10 flex items-center justify-center rounded-full text-secondary hover:text-primary hover:bg-surface-container-high transition-colors cursor-pointer active:scale-95">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+<button class="w-10 h-10 flex items-center justify-center rounded-full text-secondary hover:text-primary hover:bg-surface-container-high transition-colors cursor-pointer active:scale-95">
+<span class="material-symbols-outlined">settings</span>
+</button>
+<!-- Profile Avatar Placeholder -->
+<button class="w-9 h-9 rounded-full bg-surface-container-high border border-outline-variant overflow-hidden cursor-pointer active:scale-95 transition-transform">
+<img alt="User profile avatar" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB06-duzI97wT3KNbIEVnpM4SfP3JWgD3wUixS4GP7738TTIJ2NZuPQxIGFYgD26fkjRj2MlijBX1bZZ10CNuxjS2fMk4DpRBIcRPNGFRoDtyeO4v0r4QQJ-gcmFs_rjNpXwR3MussIy9Snw_aZRIk78CxzU2GcUKzSg9RhbQ3t5jd6vXG3XUvSrIgvoi-Z90ydoQ4fXxC6FETB96wg02urcCw8WKFdgmfE8wIQ4pNkIS9owmRs4me1PbGUwfqGVxaqo4fk3UjU91KK"/>
+</button>
+</div>
+</header>
+<!-- Split Screen Workspace -->
+<div class="flex-1 p-margin-desktop overflow-hidden flex flex-col">
+<!-- Page Header -->
+<div class="mb-md flex justify-between items-end flex-shrink-0">
+<div>
+<h2 class="font-display text-headline-lg font-bold text-primary tracking-tight">Document Intelligence</h2>
+<p class="font-body-md text-body-md text-secondary mt-1">Upload technical materials for structural analysis and synthesis.</p>
+</div>
+<button class="bg-primary text-on-primary px-4 py-2 rounded-lg font-label-lg text-label-lg flex items-center gap-2 hover:bg-opacity-90 transition-opacity">
+<span class="material-symbols-outlined text-[18px]">upload_file</span>
+                    Upload Document
+                </button>
+</div>
+<!-- Main Split Layout -->
+<div class="flex-1 flex flex-col lg:flex-row gap-gutter min-h-0">
+<!-- Left: Document Viewer Area (Central Upload State demonstrated) -->
+<div class="flex-[3] bg-surface-container-lowest border border-outline-variant rounded-xl flex flex-col overflow-hidden relative group">
+<!-- Viewer Toolbar (Simulated) -->
+<div class="h-14 border-b border-outline-variant bg-surface-container-low flex items-center justify-between px-4 flex-shrink-0">
+<div class="flex items-center gap-3">
+<span class="font-label-sm text-label-sm text-secondary bg-surface border border-outline-variant px-2 py-1 rounded">Advanced_System_Architecture_v2.pdf</span>
+</div>
+<div class="flex items-center gap-2 text-secondary">
+<button class="p-1.5 hover:bg-surface-container-high rounded transition-colors"><span class="material-symbols-outlined text-[20px]">remove</span></button>
+<span class="font-label-sm text-label-sm w-12 text-center">100%</span>
+<button class="p-1.5 hover:bg-surface-container-high rounded transition-colors"><span class="material-symbols-outlined text-[20px]">add</span></button>
+<div class="w-px h-4 bg-outline-variant mx-2"></div>
+<button class="p-1.5 hover:bg-surface-container-high rounded transition-colors"><span class="material-symbols-outlined text-[20px]">zoom_in_map</span></button>
+</div>
+</div>
+<!-- PDF Content Area (Simulated Document) -->
+<div class="flex-1 bg-surface-container-low overflow-y-auto p-8 flex justify-center relative">
+<!-- Simulated PDF Page -->
+<div class="w-full max-w-[800px] h-fit min-h-[1000px] bg-white border border-outline-variant shadow-sm p-12 flex flex-col gap-6">
+<div class="h-8 bg-surface-container-highest w-3/4 rounded-sm"></div>
+<div class="h-4 bg-surface-container-high w-1/4 mb-8 rounded-sm"></div>
+<div class="space-y-3">
+<div class="h-3 bg-surface-container-high w-full rounded-sm"></div>
+<div class="h-3 bg-surface-container-high w-full rounded-sm"></div>
+<div class="h-3 bg-surface-container-high w-11/12 rounded-sm"></div>
+<div class="h-3 bg-surface-container-high w-full rounded-sm"></div>
+<div class="h-3 bg-surface-container-high w-4/5 rounded-sm"></div>
+</div>
+<div class="h-64 bg-surface-container-lowest border border-outline-variant w-full my-6 flex items-center justify-center text-outline">
+<span class="material-symbols-outlined text-display">analytics</span>
+</div>
+<div class="space-y-3">
+<div class="h-3 bg-surface-container-high w-full rounded-sm"></div>
+<div class="h-3 bg-surface-container-high w-10/12 rounded-sm"></div>
+<div class="h-3 bg-surface-container-high w-full rounded-sm"></div>
+</div>
+</div>
+<!-- Upload Overlay (Hover State simulation for the "Central Upload Area" requirement while showing context) -->
+<div class="absolute inset-0 bg-surface/80 backdrop-blur-sm flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+<div class="w-96 border-2 border-dashed border-outline rounded-xl p-8 bg-surface-container-lowest text-center flex flex-col items-center gap-4 cursor-pointer hover:border-primary transition-colors">
+<div class="w-16 h-16 rounded-full bg-surface-container-low flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-[32px]">cloud_upload</span>
+</div>
+<div>
+<h3 class="font-headline-sm text-headline-sm font-semibold text-primary">Drop new PDF here</h3>
+<p class="font-body-sm text-body-sm text-secondary mt-1">or click to browse local files</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Right: AI Chat Interface -->
+<div class="flex-[2] bg-surface-container-lowest border border-outline-variant rounded-xl flex flex-col min-w-[320px]">
+<!-- Chat Header -->
+<div class="p-4 border-b border-outline-variant flex items-center gap-3">
+<div class="w-8 h-8 rounded bg-primary flex items-center justify-center text-on-primary">
+<span class="material-symbols-outlined text-[18px]">neurology</span>
+</div>
+<h3 class="font-headline-sm text-headline-sm font-semibold text-primary">Analysis Copilot</h3>
+</div>
+<!-- Quick Actions (Minimalist Chips) -->
+<div class="p-4 border-b border-outline-variant bg-surface-container-lowest flex flex-wrap gap-2">
+<button class="px-3 py-1.5 bg-surface border border-outline-variant rounded-full font-label-sm text-label-sm text-primary hover:bg-surface-container-high hover:border-outline transition-all flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[16px]">summarize</span> Summarize
+                        </button>
+<button class="px-3 py-1.5 bg-surface border border-outline-variant rounded-full font-label-sm text-label-sm text-primary hover:bg-surface-container-high hover:border-outline transition-all flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[16px]">key</span> Key Concepts
+                        </button>
+<button class="px-3 py-1.5 bg-surface border border-outline-variant rounded-full font-label-sm text-label-sm text-primary hover:bg-surface-container-high hover:border-outline transition-all flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[16px]">style</span> Flashcards
+                        </button>
+</div>
+<!-- Chat History -->
+<div class="flex-1 overflow-y-auto p-4 flex flex-col gap-6">
+<!-- AI Message -->
+<div class="flex gap-3 max-w-[90%]">
+<div class="w-8 h-8 rounded bg-surface-container-high flex items-center justify-center flex-shrink-0 text-primary border border-outline-variant">
+<span class="material-symbols-outlined text-[16px]">smart_toy</span>
+</div>
+<div class="flex flex-col gap-1">
+<span class="font-label-sm text-label-sm text-secondary">System • 10:42 AM</span>
+<div class="bg-surface-container-low text-primary p-3 rounded-lg rounded-tl-none font-body-sm text-body-sm border border-outline-variant/50">
+                                    Document parsed successfully. The text covers system architecture principles, focusing on scalability and microservices. How would you like to process this information?
+                                </div>
+</div>
+</div>
+</div>
+<!-- Input Area -->
+<div class="p-4 bg-surface-container-lowest border-t border-outline-variant">
+<div class="relative flex items-end gap-2 bg-surface border border-outline-variant rounded-lg p-2 focus-within:border-primary focus-within:ring-1 focus-within:ring-primary transition-all">
+<textarea class="flex-1 bg-transparent border-none focus:ring-0 resize-none font-body-sm text-body-sm p-2 max-h-32 text-on-surface placeholder-secondary" placeholder="Ask a question about the document..." rows="1" style="min-height: 40px;"></textarea>
+<button class="p-2 bg-primary text-on-primary rounded flex items-center justify-center hover:bg-opacity-90 transition-opacity flex-shrink-0 mb-0.5 mr-0.5">
+<span class="material-symbols-outlined text-[18px]">send</span>
+</button>
+</div>
+<p class="text-center font-label-sm text-[10px] text-secondary mt-2">AI can make mistakes. Verify critical structural data.</p>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- Auto-resize textarea script -->
+<script>
+        const tx = document.getElementsByTagName("textarea");
+        for (let i = 0; i < tx.length; i++) {
+            tx[i].setAttribute("style", "height:" + (tx[i].scrollHeight) + "px;overflow-y:hidden;");
+            tx[i].addEventListener("input", OnInput, false);
+        }
+
+        function OnInput() {
+            this.style.height = 0;
+            this.style.height = (this.scrollHeight) + "px";
+        }
+    </script>
+</body></html>
