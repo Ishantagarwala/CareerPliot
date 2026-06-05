@@ -298,6 +298,7 @@ export default function DashboardHome() {
             iconColor="text-blue-500"
             bgColor="bg-blue-500/10"
             description={`${progressData.roadmap.milestoneCompletionRate.toFixed(0)}% milestones completed`}
+            animationDelay={0}
           />
           <StatsCard
             title="Courses Finished"
@@ -306,6 +307,7 @@ export default function DashboardHome() {
             iconColor="text-emerald-500"
             bgColor="bg-emerald-500/10"
             description="Self-reported completed courses"
+            animationDelay={100}
           />
           <StatsCard
             title="Notes Analyzed"
@@ -314,6 +316,7 @@ export default function DashboardHome() {
             iconColor="text-purple-500"
             bgColor="bg-purple-500/10"
             description="PDF materials studied with AI"
+            animationDelay={200}
           />
           <StatsCard
             title="Tutor Sessions"
@@ -322,6 +325,7 @@ export default function DashboardHome() {
             iconColor="text-pink-500"
             bgColor="bg-pink-500/10"
             description="Interactive tutor conversations"
+            animationDelay={300}
           />
         </div>
       )}

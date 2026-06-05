@@ -28,7 +28,8 @@ export async function PUT(req: Request) {
     let milestoneFound = false;
     for (const stage of roadmap.stages) {
       for (const milestone of stage.milestones) {
-        if (milestone._id?.toString() === milestoneId) {
+        const mId = milestone._id?.toString();
+        if (mId === milestoneId || mId === milestoneId?.toString()) {
           milestone.completed = completed;
           milestone.completedAt = completed ? new Date() : undefined;
           milestoneFound = true;
@@ -36,6 +37,21 @@ export async function PUT(req: Request) {
         }
       }
       if (milestoneFound) break;
+    }
+
+    if (!milestoneFound) {
+      // Try finding by index as fallback
+      for (const stage of roadmap.stages) {
+        const idx = stage.milestones.findIndex(
+          (m: any) => m.title === milestoneId
+        );
+        if (idx !== -1) {
+          stage.milestones[idx].completed = completed;
+          stage.milestones[idx].completedAt = completed ? new Date() : undefined;
+          milestoneFound = true;
+          break;
+        }
+      }
     }
 
     if (!milestoneFound) {
@@ -64,7 +80,7 @@ export async function PUT(req: Request) {
 
     return NextResponse.json({
       message: "Milestone updated successfully",
-      roadmap,
+      roadmap: roadmap.toJSON(),
     });
   } catch (error: any) {
     console.error("Roadmap progress update error:", error);

@@ -42,7 +42,7 @@ export default function Sidebar({ className }: SidebarProps) {
       )}
     >
       {/* Sidebar Header */}
-      <div className={cn("flex h-16 items-center justify-between px-4 border-b border-border", collapsed && "justify-center")}>
+      <div className={cn("flex h-12 items-center justify-between px-4 border-b border-border", collapsed && "justify-center")}>
         {!collapsed && (
           <span className="font-heading text-lg font-bold tracking-tight text-primary">
             Main Menu

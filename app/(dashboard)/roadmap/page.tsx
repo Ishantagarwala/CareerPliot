@@ -89,29 +89,29 @@ export default function RoadmapPage() {
           <Skeleton className="h-9 w-64 mb-2" />
           <Skeleton className="h-4 w-96" />
         </div>
+
+        {/* Loading indicator with message */}
+        <div className="flex flex-col items-center justify-center py-16 space-y-4">
+          <div className="h-12 w-12 rounded-full border-4 border-primary/20 border-t-primary animate-spin" />
+          <div className="text-center space-y-1">
+            <p className="text-sm font-semibold text-foreground">Loading your learning roadmap...</p>
+            <p className="text-xs text-muted-foreground">This may take a moment if your roadmap is being generated for the first time.</p>
+          </div>
+        </div>
         
         {/* Roadmap stages timeline skeleton */}
-        <div className="space-y-12 relative before:absolute before:inset-y-0 before:left-4 sm:before:left-6 before:w-0.5 before:bg-muted/80">
+        <div className="space-y-6">
           {[1, 2].map((stageIdx) => (
-            <div key={stageIdx} className="relative pl-10 sm:pl-16 space-y-6">
-              {/* Timeline marker */}
-              <div className="absolute left-1.5 sm:left-3.5 top-0 h-6 w-6 rounded-full border-4 border-background bg-zinc-200 dark:bg-zinc-800 animate-pulse" />
-              
-              {/* Stage Header */}
-              <div className="space-y-2">
+            <div key={stageIdx} className="border border-border bg-card rounded-2xl p-6 space-y-4">
+              <div className="flex justify-between items-center border-b border-border pb-4">
                 <Skeleton className="h-6 w-36" />
-                <Skeleton className="h-4 w-64" />
+                <Skeleton className="h-6 w-24 rounded-full" />
               </div>
-              
-              {/* Milestones list */}
-              <div className="grid grid-cols-1 gap-4">
-                {[1, 2].map((milestoneIdx) => (
-                  <div key={milestoneIdx} className="border border-border bg-card rounded-2xl p-5 flex items-start gap-4">
-                    <Skeleton className="h-6 w-6 rounded-md shrink-0 mt-0.5" />
-                    <div className="space-y-2 flex-1">
-                      <Skeleton className="h-5 w-48" />
-                      <Skeleton className="h-4 w-full" />
-                    </div>
+              <div className="space-y-3">
+                {[1, 2, 3].map((milestoneIdx) => (
+                  <div key={milestoneIdx} className="border border-border rounded-xl p-4 flex items-start gap-4">
+                    <Skeleton className="h-4 w-4 rounded-sm shrink-0 mt-0.5" />
+                    <Skeleton className="h-4 flex-1" />
                   </div>
                 ))}
               </div>

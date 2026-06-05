@@ -17,7 +17,7 @@ export default function DashboardLayout({
         <Sidebar className="hidden md:flex" />
 
         {/* Right Main Content Panel */}
-        <main className="flex-1 bg-zinc-50/50 dark:bg-zinc-950/20 overflow-y-auto px-4 py-8 sm:px-6 lg:px-8">
+        <main className="flex-1 bg-zinc-50/50 dark:bg-zinc-950/20 overflow-y-auto px-4 py-6 sm:px-6 lg:px-8">
           <div className="mx-auto max-w-7xl">
             {children}
           </div>
