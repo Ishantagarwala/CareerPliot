@@ -19,13 +19,12 @@ const menuItems = [
   { name: "Course Recommendations", href: "/courses", icon: "school" },
   { name: "AI PDF Assistant", href: "/pdf", icon: "picture_as_pdf" },
   { name: "AI Tutor", href: "/tutor", icon: "psychology" },
-  { name: "Profile", href: "/profile", icon: "person" },
   { name: "Study With Me", href: "/study", icon: "group" },
   { name: "Tech News", href: "/news", icon: "newspaper" },
 ];
 
 const bottomItems = [
-  { name: "Help", href: "#", icon: "help" },
+  { name: "Profile", href: "/profile", icon: "person" },
 ];
 
 export default function Sidebar({ className }: SidebarProps) {
@@ -134,19 +133,36 @@ export default function Sidebar({ className }: SidebarProps) {
           </button>
         )}
         
-        {bottomItems.map((item) => (
-          <Link
-            key={item.name}
-            href={item.href}
-            className="flex items-center gap-3 px-4 py-3 rounded text-muted-foreground hover:bg-sidebar-accent hover:text-foreground nav-link-monolith group text-sm transition-all duration-300"
-            style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "13px", letterSpacing: "0.04em" }}
-          >
-            <span className="material-symbols-outlined text-[20px] text-muted-foreground group-hover:text-foreground transition-colors duration-300">
-              {item.icon}
-            </span>
-            <span>{item.name}</span>
-          </Link>
-        ))}
+        {bottomItems.map((item) => {
+          const isActive =
+            pathname === item.href || pathname.startsWith(item.href + "/");
+          return (
+            <Link
+              key={item.name}
+              href={item.href}
+              className={cn(
+                "flex items-center gap-3 px-4 py-3 rounded text-sm font-medium nav-link-monolith group transition-all duration-300",
+                isActive
+                  ? "bg-sidebar-accent text-foreground border-r-2 border-primary"
+                  : "text-muted-foreground hover:bg-sidebar-accent/50 hover:text-foreground"
+              )}
+              style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "13px", letterSpacing: "0.04em" }}
+            >
+              <span
+                className={cn(
+                  "material-symbols-outlined text-[20px] transition-colors duration-300",
+                  isActive
+                    ? "text-primary"
+                    : "text-muted-foreground group-hover:text-foreground"
+                )}
+                style={isActive ? { fontVariationSettings: "'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24" } : undefined}
+              >
+                {item.icon}
+              </span>
+              <span>{item.name}</span>
+            </Link>
+          );
+        })}
         <button
           onClick={() => signOut({ callbackUrl: "/" })}
           className="flex items-center gap-3 px-4 py-3 rounded text-muted-foreground hover:bg-sidebar-accent hover:text-foreground nav-link-monolith group text-sm w-full text-left cursor-pointer transition-all duration-300"
