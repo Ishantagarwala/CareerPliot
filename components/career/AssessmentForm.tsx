@@ -96,16 +96,16 @@ export default function AssessmentForm({ onSuccess }: AssessmentFormProps) {
   ];
 
   const subjectsOptions = [
-    "Mathematics",
     "Computer Science",
-    "Physics",
-    "Chemistry",
-    "Biology",
-    "English & Literature",
-    "Economics & Finance",
-    "Business Studies",
-    "History & Sociology",
-    "Art & Design",
+    "Mathematics",
+    "Data Structures & Algorithms",
+    "Web Development",
+    "Database Systems (DBMS)",
+    "Computer Networks",
+    "Software Engineering",
+    "Machine Learning & AI",
+    "Discrete Mathematics",
+    "Statistics & Probability",
   ];
 
   const toggleInterest = (interest: string) => {
@@ -159,7 +159,19 @@ export default function AssessmentForm({ onSuccess }: AssessmentFormProps) {
       setStep(3);
       return;
     }
-    if (skills.length === 0) {
+
+    // Auto-include typed but unadded skill
+    let finalSkills = [...skills];
+    if (newSkillName.trim()) {
+      const skillToAdd = newSkillName.trim();
+      if (!skills.some((s) => s.name.toLowerCase() === skillToAdd.toLowerCase())) {
+        finalSkills.push({ name: skillToAdd, level: newSkillLevel });
+        setSkills((prev) => [...prev, { name: skillToAdd, level: newSkillLevel }]);
+        setNewSkillName("");
+      }
+    }
+
+    if (finalSkills.length === 0) {
       toast.error("Please list at least one skill in Step 4.");
       return;
     }
@@ -173,7 +185,7 @@ export default function AssessmentForm({ onSuccess }: AssessmentFormProps) {
           interests: selectedInterests,
           goals: values.goals,
           subjects: selectedSubjects,
-          skills: skills,
+          skills: finalSkills,
         }),
       });
 
@@ -228,7 +240,7 @@ export default function AssessmentForm({ onSuccess }: AssessmentFormProps) {
         </p>
       </div>
 
-      <form onSubmit={handleSubmit(onSubmit)}>
+      <form onSubmit={(e) => e.preventDefault()}>
         <div className="p-6 min-h-[240px]">
           {/* STEP 1: Interests */}
           {step === 1 && (
@@ -317,6 +329,12 @@ export default function AssessmentForm({ onSuccess }: AssessmentFormProps) {
                     placeholder="e.g. Python, Figma"
                     value={newSkillName}
                     onChange={(e) => setNewSkillName(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        e.preventDefault();
+                        addSkill();
+                      }
+                    }}
                     className="w-full border border-[#262626] bg-transparent px-3 py-1.5 text-sm text-white placeholder:text-[#636565] focus:border-white focus:ring-0 focus:outline-none"
                   />
                 </div>
@@ -419,7 +437,8 @@ export default function AssessmentForm({ onSuccess }: AssessmentFormProps) {
             </button>
           ) : (
             <button
-              type="submit"
+              type="button"
+              onClick={handleSubmit(onSubmit)}
               disabled={loading}
               className="inline-flex items-center px-6 py-2.5 bg-white text-[#0A0A0A] font-bold hover:bg-[#e2e2e2] transition-colors text-xs disabled:opacity-50"
               style={{ fontFamily: "'JetBrains Mono', monospace", letterSpacing: "0.04em" }}
