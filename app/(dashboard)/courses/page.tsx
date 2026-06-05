@@ -4,10 +4,7 @@ import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
 import CourseCard from "@/components/courses/CourseCard";
 import CourseFilters from "@/components/courses/CourseFilters";
-import { buttonVariants } from "@/components/ui/button";
-import { BookOpen, Compass, ArrowRight, Library } from "lucide-react";
 import { toast } from "sonner";
-import { Skeleton } from "@/components/ui/skeleton";
 
 interface Course {
   _id: string;
@@ -24,7 +21,6 @@ export default function CoursesPage() {
   const [loading, setLoading] = useState(true);
   const [errorStatus, setErrorStatus] = useState<number | null>(null);
 
-  // Filter states
   const [level, setLevel] = useState("all");
   const [budget, setBudget] = useState("all");
 
@@ -61,19 +57,19 @@ export default function CoursesPage() {
   const renderSkeletons = () => (
     <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
       {[1, 2, 3, 4].map((i) => (
-        <div key={i} className="border border-border bg-card rounded-2xl p-5 space-y-4">
+        <div key={i} className="bg-[#1A1A1A] border border-[#262626] p-5 space-y-4 animate-fade-in-up" style={{ animationDelay: `${i * 80}ms` }}>
           <div className="flex justify-between items-center">
-            <Skeleton className="h-5 w-20" />
+            <div className="h-5 w-20 bg-[#262626]" />
             <div className="flex gap-2">
-              <Skeleton className="h-5 w-16" />
-              <Skeleton className="h-5 w-12" />
+              <div className="h-5 w-16 bg-[#262626]" />
+              <div className="h-5 w-12 bg-[#262626]" />
             </div>
           </div>
-          <Skeleton className="h-12 w-full" />
-          <Skeleton className="h-4 w-32" />
-          <div className="flex gap-3 pt-3 border-t border-border/50">
-            <Skeleton className="h-9 flex-1" />
-            <Skeleton className="h-9 w-9" />
+          <div className="h-12 w-full bg-[#262626]" />
+          <div className="h-4 w-32 bg-[#262626]" />
+          <div className="flex gap-3 pt-3 border-t border-[#262626]">
+            <div className="h-9 flex-1 bg-[#262626]" />
+            <div className="h-9 w-9 bg-[#262626]" />
           </div>
         </div>
       ))}
@@ -82,27 +78,21 @@ export default function CoursesPage() {
 
   if (loading && courses.length === 0) {
     return (
-      <div className="space-y-8">
-        <div className="border-b border-border pb-5">
-          <Skeleton className="h-9 w-64 mb-2" />
-          <Skeleton className="h-4 w-96" />
+      <div className="space-y-8 animate-fade-in-up">
+        <div className="border-b border-[#262626] pb-6">
+          <div className="h-8 w-64 bg-[#1A1A1A] mb-2" />
+          <div className="h-4 w-96 bg-[#1A1A1A]" />
         </div>
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-          {/* Filters skeleton */}
           <div className="md:col-span-1">
-            <div className="border border-border rounded-2xl p-5 space-y-4 bg-card">
-              <Skeleton className="h-6 w-24 mb-4" />
+            <div className="bg-[#1A1A1A] border border-[#262626] p-5 space-y-4">
+              <div className="h-6 w-24 bg-[#262626] mb-4" />
               <div className="space-y-3">
-                <Skeleton className="h-4 w-12" />
-                <Skeleton className="h-9 w-full" />
-              </div>
-              <div className="space-y-3 pt-4">
-                <Skeleton className="h-4 w-12" />
-                <Skeleton className="h-9 w-full" />
+                <div className="h-4 w-12 bg-[#262626]" />
+                <div className="h-9 w-full bg-[#262626]" />
               </div>
             </div>
           </div>
-          {/* Courses grid skeleton */}
           <div className="md:col-span-3">
             {renderSkeletons()}
           </div>
@@ -113,33 +103,47 @@ export default function CoursesPage() {
 
   return (
     <div className="space-y-8">
-      {/* Header Info */}
-      <div className="border-b border-border pb-5">
-        <h1 className="font-heading text-3xl font-bold tracking-tight text-foreground flex items-center gap-2">
-          <BookOpen className="h-7 w-7 text-primary" />
+      {/* Header */}
+      <div className="border-b border-[#262626] pb-6 animate-fade-in-up">
+        <h1
+          className="text-3xl font-bold text-white tracking-tight flex items-center gap-3"
+          style={{ fontFamily: "'Hanken Grotesk', system-ui, sans-serif" }}
+        >
+          <span className="material-symbols-outlined text-[28px]">school</span>
           Course Recommendations
         </h1>
-        <p className="text-muted-foreground text-sm mt-1">
+        <p className="text-sm text-[#8e9192] mt-2">
           Explore courses selected specifically to support your milestones and career growth.
         </p>
       </div>
 
-      {/* Main Content Area */}
+      {/* Main Content */}
       <div className="relative">
         {errorStatus === 404 ? (
-          <div className="flex flex-col items-center justify-center text-center p-8 border border-dashed border-border rounded-2xl max-w-lg mx-auto py-16 space-y-6 bg-card">
-            <div className="h-16 w-16 rounded-full bg-primary/10 flex items-center justify-center text-primary">
-              <Compass className="h-8 w-8 animate-pulse" />
+          <div className="flex flex-col items-center justify-center text-center border-2 border-dashed border-[#262626] max-w-lg mx-auto py-16 px-8 space-y-6 bg-[#131313] animate-fade-in-up">
+            <div className="h-16 w-16 border border-[#262626] flex items-center justify-center text-white">
+              <span className="material-symbols-outlined text-[32px]">explore</span>
             </div>
             <div className="space-y-2">
-              <h3 className="font-heading text-xl font-bold">No Career Path Selected</h3>
-              <p className="text-sm text-muted-foreground max-w-sm">
+              <h3
+                className="font-bold text-xl text-white"
+                style={{ fontFamily: "'Hanken Grotesk', system-ui, sans-serif" }}
+              >
+                No Career Path Selected
+              </h3>
+              <p className="text-sm text-[#8e9192] max-w-sm">
                 Before we can pull course recommendations, you need to complete the Career Discovery assessment and select a path.
               </p>
             </div>
-            <Link href="/career" className={buttonVariants({ variant: "default", className: "font-semibold" })}>
+            <Link
+              href="/career"
+              className="inline-flex items-center px-6 py-2.5 bg-white text-[#0A0A0A] font-bold hover:bg-[#e2e2e2] transition-colors text-xs group"
+              style={{ fontFamily: "'JetBrains Mono', monospace", letterSpacing: "0.04em" }}
+            >
               Start Career Assessment
-              <ArrowRight className="h-4 w-4 ml-2" />
+              <span className="material-symbols-outlined text-[16px] ml-1.5 group-hover:translate-x-0.5 transition-transform">
+                arrow_forward
+              </span>
             </Link>
           </div>
         ) : (
@@ -159,21 +163,23 @@ export default function CoursesPage() {
               {loading ? (
                 renderSkeletons()
               ) : courses.length === 0 ? (
-                <div className="flex flex-col items-center justify-center text-center p-8 border border-dashed border-border rounded-2xl py-16 space-y-4 bg-card">
-                  <div className="h-12 w-12 rounded-full bg-muted flex items-center justify-center text-muted-foreground">
-                    <Library className="h-6 w-6" />
+                <div className="flex flex-col items-center justify-center text-center border-2 border-dashed border-[#262626] py-16 space-y-4 bg-[#131313] animate-fade-in-up">
+                  <div className="h-12 w-12 border border-[#262626] flex items-center justify-center text-[#8e9192]">
+                    <span className="material-symbols-outlined text-[24px]">library_books</span>
                   </div>
                   <div>
-                    <h4 className="font-bold text-base">No Matching Courses Found</h4>
-                    <p className="text-sm text-muted-foreground max-w-xs mt-1">
+                    <h4 className="font-bold text-base text-white">No Matching Courses Found</h4>
+                    <p className="text-sm text-[#8e9192] max-w-xs mt-1">
                       No courses match your active filter selections. Try broadening your criteria.
                     </p>
                   </div>
                 </div>
               ) : (
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                  {courses.map((course) => (
-                    <CourseCard key={course._id} course={course} />
+                  {courses.map((course, idx) => (
+                    <div key={course._id} className="animate-fade-in-up" style={{ animationDelay: `${idx * 80}ms` }}>
+                      <CourseCard course={course} />
+                    </div>
                   ))}
                 </div>
               )}

@@ -2,12 +2,7 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import MessageBubble from "./MessageBubble";
-import { Button } from "@/components/ui/button";
-import { CardFooter } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Send, Trash2, Sparkles, MessageSquare } from "lucide-react";
 import { toast } from "sonner";
-import { Skeleton } from "@/components/ui/skeleton";
 
 interface Message {
   role: "user" | "assistant";
@@ -20,10 +15,10 @@ export default function ChatInterface() {
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [loadingHistory, setLoadingHistory] = useState(true);
-  
-  const scrollRef = useRef<HTMLDivElement>(null);
 
-  // Auto scroll to bottom
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
   const scrollToBottom = () => {
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
@@ -59,8 +54,10 @@ export default function ChatInterface() {
 
     const userMessageText = input;
     setInput("");
-    
-    // Add user message to local state immediately
+    if (textareaRef.current) {
+      textareaRef.current.style.height = "56px";
+    }
+
     const userMessage: Message = {
       role: "user",
       content: userMessageText,
@@ -81,8 +78,7 @@ export default function ChatInterface() {
       }
 
       const data = await res.json();
-      
-      // Update with the full history returned, or append assistant message
+
       if (data.messages) {
         setMessages(data.messages);
       } else {
@@ -122,134 +118,167 @@ export default function ChatInterface() {
     }
   };
 
+  const quickActions = [
+    { category: "TECHNICAL", title: "Review Python Script", icon: "code", prompt: "Review this Python script and suggest improvements." },
+    { category: "PREPARATION", title: "Mock Interview Prep", icon: "co_present", prompt: "Help me prepare for a technical interview. Ask me mock questions." },
+    { category: "THEORY", title: "System Design Concepts", icon: "architecture", prompt: "Explain key system design concepts like load balancing and microservices." },
+    { category: "STRATEGY", title: "Leadership Scenarios", icon: "leaderboard", prompt: "Suggest a simple project to build for Python beginner stage." },
+  ];
+
+  const handleTextareaInput = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setInput(e.target.value);
+    if (textareaRef.current) {
+      textareaRef.current.style.height = "56px";
+      textareaRef.current.style.height = Math.min(textareaRef.current.scrollHeight, 200) + "px";
+    }
+  };
+
   return (
-    <div className="grid grid-cols-1 md:grid-cols-4 gap-8 h-[calc(100vh-200px)] min-h-[500px]">
-      {/* Left panel: Tutor Info & Clear Actions */}
-      <div className="md:col-span-1 flex flex-col justify-between h-full bg-card border border-border rounded-2xl p-6 shadow-sm">
-        <div className="space-y-6">
-          <div className="flex items-center gap-2">
-            <MessageSquare className="h-6 w-6 text-primary" />
-            <h2 className="font-heading text-lg font-bold text-foreground">AI Study Tutor</h2>
+    <div className="flex flex-col h-[calc(100vh-200px)] min-h-[500px] relative">
+      {/* Chat Canvas */}
+      <div
+        ref={scrollRef}
+        className="flex-1 overflow-y-auto px-4 md:px-12 py-8 pb-32 flex flex-col items-center"
+      >
+        {loadingHistory ? (
+          <div className="flex flex-col items-center justify-center h-full space-y-4">
+            <div className="h-8 w-8 border-2 border-[#262626] border-t-white animate-spin" />
+            <p className="text-xs text-[#8e9192]">Loading conversation...</p>
           </div>
-          
-          <div className="space-y-4">
-            <p className="text-xs text-muted-foreground leading-relaxed">
-              Your 24/7 learning assistant. Ask me questions about concepts, request code explanations, or paste errors to debug together.
-            </p>
-            <div className="p-3.5 bg-muted/50 border border-border/50 rounded-xl space-y-2 text-[10px] text-muted-foreground">
-              <span className="font-bold text-foreground block mb-1">Try asking:</span>
-              <p className="hover:text-primary cursor-pointer transition-colors" onClick={() => setInput("Explain the difference between SQL and NoSQL databases.")}>
-                &quot;Explain SQL vs NoSQL&quot;
-              </p>
-              <p className="hover:text-primary cursor-pointer transition-colors" onClick={() => setInput("Explain closure in JavaScript with an example.")}>
-                &quot;What is a JS closure?&quot;
-              </p>
-              <p className="hover:text-primary cursor-pointer transition-colors" onClick={() => setInput("Suggest a simple project to build for Python beginner stage.")}>
-                &quot;Project ideas for Python&quot;
+        ) : messages.length === 0 ? (
+          <>
+            {/* Empty State / Greeting */}
+            <div className="w-full max-w-3xl flex flex-col items-center text-center space-y-6 mb-12 animate-fade-in-up">
+              <div className="w-16 h-16 border border-[#262626] bg-[#1A1A1A] flex items-center justify-center animate-border-pulse">
+                <span className="material-symbols-outlined text-[32px] text-white" style={{ fontVariationSettings: "'FILL' 1" }}>
+                  psychology
+                </span>
+              </div>
+              <h2
+                className="text-3xl md:text-5xl font-bold text-white tracking-tight"
+                style={{ fontFamily: "'Hanken Grotesk', system-ui, sans-serif" }}
+              >
+                How can I assist your learning today?
+              </h2>
+              <p className="text-lg text-[#c4c7c8] max-w-xl">
+                I am your dedicated AI Tutor. Provide a topic, paste a problem, or select a quick action below to begin our session.
               </p>
             </div>
-          </div>
-        </div>
 
-        {messages.length > 0 && (
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleClearHistory}
-            className="w-full font-semibold border-destructive/20 text-destructive hover:bg-destructive/10 hover:text-destructive flex items-center justify-center gap-1.5 mt-6"
-          >
-            <Trash2 className="h-4 w-4" /> Clear Conversation
-          </Button>
+            {/* Quick Action Bento Grid */}
+            <div className="w-full max-w-3xl grid grid-cols-1 md:grid-cols-2 gap-4">
+              {quickActions.map((action, idx) => (
+                <button
+                  key={idx}
+                  onClick={() => {
+                    setInput(action.prompt);
+                    textareaRef.current?.focus();
+                  }}
+                  className="group flex flex-col items-start p-6 bg-[#131313] border border-[#262626] hover:border-[#404040] hover:bg-[#1A1A1A] transition-colors text-left relative overflow-hidden h-32 animate-fade-in-up"
+                  style={{ animationDelay: `${idx * 100}ms` }}
+                >
+                  <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+                    <span className="material-symbols-outlined text-[48px]">{action.icon}</span>
+                  </div>
+                  <span
+                    className="text-[11px] text-[#8e9192] mb-2 uppercase tracking-[0.15em]"
+                    style={{ fontFamily: "'JetBrains Mono', monospace" }}
+                  >
+                    {action.category}
+                  </span>
+                  <h3
+                    className="text-lg font-bold text-white"
+                    style={{ fontFamily: "'Hanken Grotesk', system-ui, sans-serif" }}
+                  >
+                    {action.title}
+                  </h3>
+                </button>
+              ))}
+            </div>
+          </>
+        ) : (
+          <div className="w-full max-w-3xl space-y-4">
+            {messages.map((msg, index) => (
+              <MessageBubble key={index} message={msg} />
+            ))}
+
+            {/* Typing Indicator */}
+            {loading && (
+              <div className="flex w-full justify-start mb-4">
+                <div className="flex items-start gap-2.5 max-w-[75%]">
+                  <div className="h-8 w-8 border border-[#262626] bg-[#1A1A1A] flex items-center justify-center shrink-0">
+                    <span
+                      className="text-xs font-bold text-white"
+                      style={{ fontFamily: "'JetBrains Mono', monospace" }}
+                    >
+                      AI
+                    </span>
+                  </div>
+                  <div className="bg-[#1A1A1A] border border-[#262626] p-4 flex items-center gap-1.5 py-3 px-4">
+                    <span className="h-2 w-2 bg-white/30 rounded-full animate-bounce" style={{ animationDelay: "0ms" }} />
+                    <span className="h-2 w-2 bg-white/50 rounded-full animate-bounce" style={{ animationDelay: "150ms" }} />
+                    <span className="h-2 w-2 bg-white/70 rounded-full animate-bounce" style={{ animationDelay: "300ms" }} />
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
         )}
       </div>
 
-      {/* Right panel: Active Chat feed */}
-      <div className="md:col-span-3 flex flex-col h-full bg-card border border-border rounded-2xl shadow-sm overflow-hidden">
-        {/* Chat Header */}
-        <div className="px-6 py-4 border-b border-border/50 bg-zinc-50/50 dark:bg-zinc-950/20 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
-            <span className="text-xs font-bold text-foreground">Active Chat Session</span>
-          </div>
-          <span className="text-[10px] text-muted-foreground font-semibold flex items-center gap-1">
-            <Sparkles className="h-3 w-3 text-amber-500" /> Powered by GPT-4o-Mini
-          </span>
-        </div>
-
-        {/* Message Feed */}
-        <div
-          ref={scrollRef}
-          className="flex-1 overflow-y-auto p-6 space-y-4 bg-muted/30"
-        >
-          {loadingHistory ? (
-            <div className="space-y-4 p-1">
-              {[1, 2, 3].map((i) => (
-                <div key={i} className={`flex w-full ${i % 2 === 1 ? "justify-start" : "justify-end"}`}>
-                  <div className={`flex items-start gap-2.5 max-w-[70%] ${i % 2 === 1 ? "flex-row" : "flex-row-reverse"}`}>
-                    <Skeleton className="h-8 w-8 rounded-full shrink-0" />
-                    <div className="flex flex-col space-y-1">
-                      <Skeleton className={`h-16 w-48 sm:w-64 rounded-2xl ${i % 2 === 1 ? "rounded-tl-none" : "rounded-tr-none"}`} />
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          ) : messages.length === 0 ? (
-            <div className="flex flex-col items-center justify-center h-full text-center p-6 space-y-4">
-              <div className="h-16 w-16 bg-primary/10 rounded-full flex items-center justify-center text-primary animate-bounce">
-                <MessageSquare className="h-8 w-8" />
-              </div>
-              <div className="space-y-1">
-                <h3 className="font-heading text-lg font-bold text-foreground">Start a Conversation</h3>
-                <p className="text-sm text-muted-foreground max-w-sm">
-                  Say hi or ask any academic or programming question to begin learning with your AI Tutor.
-                </p>
-              </div>
-            </div>
-          ) : (
-            messages.map((msg, index) => (
-              <MessageBubble key={index} message={msg} />
-            ))
-          )}
-
-          {/* Typing Indicator */}
-          {loading && (
-            <div className="flex w-full justify-start mb-4">
-              <div className="flex items-start gap-2.5 max-w-[75%] flex-row">
-                <div className="h-8 w-8 rounded-full flex items-center justify-center bg-muted border border-border text-muted-foreground shrink-0 shadow-sm">
-                  <span className="text-xs font-heading font-extrabold text-primary">AI</span>
-                </div>
-                <div className="flex flex-col space-y-1">
-                  <div className="bg-card border border-border p-4 rounded-2xl rounded-tl-none shadow-sm flex items-center gap-1 py-3 px-4">
-                    <span className="h-2 w-2 bg-primary/40 rounded-full animate-bounce" style={{ animationDelay: "0ms" }} />
-                    <span className="h-2 w-2 bg-primary/60 rounded-full animate-bounce" style={{ animationDelay: "150ms" }} />
-                    <span className="h-2 w-2 bg-primary/80 rounded-full animate-bounce" style={{ animationDelay: "300ms" }} />
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* Input Bar */}
-        <CardFooter className="p-4 border-t border-border/50 bg-zinc-50/50 dark:bg-zinc-950/20">
-          <form onSubmit={handleSend} className="flex w-full gap-2.5">
-            <Input
+      {/* Fixed Bottom Input Bar */}
+      <div className="absolute bottom-0 left-0 right-0 bg-[#0A0A0A]/90 backdrop-blur-md border-t border-[#262626] p-4 md:p-6 z-40">
+        <div className="max-w-3xl mx-auto relative flex items-end gap-2">
+          <form onSubmit={handleSend} className="flex-1 relative">
+            <label className="sr-only" htmlFor="ai-input">Message AI Tutor</label>
+            <textarea
+              ref={textareaRef}
+              id="ai-input"
               value={input}
-              onChange={(e) => setInput(e.target.value)}
-              placeholder="Ask a question, request code examples, or debug a script..."
+              onChange={handleTextareaInput}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && !e.shiftKey) {
+                  e.preventDefault();
+                  handleSend(e);
+                }
+              }}
+              placeholder="Message AI Tutor..."
               disabled={loading || loadingHistory}
-              className="flex-1 rounded-xl bg-card border-border shadow-none focus-visible:ring-primary font-medium text-sm h-11"
+              rows={1}
+              className="w-full bg-[#1A1A1A] border border-[#262626] text-white text-sm p-4 pr-24 focus:border-white focus:ring-0 focus:outline-none resize-none overflow-hidden transition-colors placeholder:text-[#636565]"
+              style={{ minHeight: "56px" }}
             />
-            <Button
-              type="submit"
-              disabled={!input.trim() || loading}
-              className="h-11 px-4.5 rounded-xl font-bold flex items-center gap-1.5 shrink-0"
-            >
-              <Send className="h-4 w-4" /> Send
-            </Button>
+            <div className="absolute right-2 bottom-2 flex items-center gap-2">
+              <button
+                type="submit"
+                disabled={!input.trim() || loading}
+                className="p-2 bg-white text-[#0A0A0A] hover:bg-[#e2e2e2] transition-colors flex items-center justify-center h-10 w-10 disabled:opacity-30 disabled:cursor-not-allowed"
+              >
+                <span className="material-symbols-outlined text-[20px]" style={{ fontVariationSettings: "'FILL' 1" }}>
+                  arrow_upward
+                </span>
+              </button>
+            </div>
           </form>
-        </CardFooter>
+        </div>
+        <div className="max-w-3xl mx-auto mt-2 flex items-center justify-between">
+          <span
+            className="text-[10px] text-[#636565]"
+            style={{ fontFamily: "'JetBrains Mono', monospace", letterSpacing: "0.05em" }}
+          >
+            AI can make mistakes. Verify important information.
+          </span>
+          {messages.length > 0 && (
+            <button
+              onClick={handleClearHistory}
+              className="text-[10px] text-[#636565] hover:text-[#ffb4ab] transition-colors flex items-center gap-1"
+              style={{ fontFamily: "'JetBrains Mono', monospace", letterSpacing: "0.05em" }}
+            >
+              <span className="material-symbols-outlined text-[12px]">delete</span>
+              Clear History
+            </button>
+          )}
+        </div>
       </div>
     </div>
   );

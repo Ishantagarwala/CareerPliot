@@ -3,10 +3,7 @@
 import { useEffect, useState } from "react";
 import AssessmentForm from "@/components/career/AssessmentForm";
 import RecommendationCard from "@/components/career/RecommendationCard";
-import { Button } from "@/components/ui/button";
-import { RefreshCw, Compass } from "lucide-react";
 import { toast } from "sonner";
-import { Skeleton } from "@/components/ui/skeleton";
 
 interface CareerRecommendation {
   _id: string;
@@ -52,8 +49,6 @@ export default function CareerPage() {
       if (!res.ok) throw new Error(data.message || "Failed to select path");
 
       toast.success("Career path updated successfully!");
-      
-      // Update local state to show selected path
       setRecommendations((prev) =>
         prev.map((rec) => ({
           ...rec,
@@ -74,21 +69,21 @@ export default function CareerPage() {
 
   if (loading) {
     return (
-      <div className="space-y-8">
-        <div className="border-b border-border pb-5">
-          <Skeleton className="h-9 w-48 mb-2" />
-          <Skeleton className="h-4 w-96" />
+      <div className="space-y-8 animate-fade-in-up">
+        <div className="border-b border-[#262626] pb-6">
+          <div className="h-8 w-48 bg-[#1A1A1A] mb-2" />
+          <div className="h-4 w-96 bg-[#1A1A1A]" />
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {[1, 2, 3].map((i) => (
-            <div key={i} className="border border-border bg-card rounded-2xl p-6 space-y-4">
+            <div key={i} className="bg-[#1A1A1A] border border-[#262626] p-6 space-y-4 animate-fade-in-up" style={{ animationDelay: `${i * 100}ms` }}>
               <div className="flex justify-between items-center">
-                <Skeleton className="h-6 w-32" />
-                <Skeleton className="h-6 w-16 rounded-full" />
+                <div className="h-6 w-32 bg-[#262626]" />
+                <div className="h-6 w-16 bg-[#262626]" />
               </div>
-              <Skeleton className="h-20 w-full" />
-              <div className="border-t border-border pt-4">
-                <Skeleton className="h-9 w-full rounded-lg" />
+              <div className="h-20 w-full bg-[#262626]" />
+              <div className="border-t border-[#262626] pt-4">
+                <div className="h-9 w-full bg-[#262626]" />
               </div>
             </div>
           ))}
@@ -101,23 +96,31 @@ export default function CareerPage() {
 
   return (
     <div className="space-y-8">
-      {/* Header Info */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border pb-5">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#262626] pb-6 animate-fade-in-up">
         <div>
-          <h1 className="font-heading text-3xl font-bold tracking-tight text-foreground flex items-center gap-2">
-            <Compass className="h-7 w-7 text-primary" />
-            Career Discovery
+          <h1
+            className="text-3xl font-bold text-white tracking-tight flex items-center gap-3"
+            style={{ fontFamily: "'Hanken Grotesk', system-ui, sans-serif" }}
+          >
+            <span className="material-symbols-outlined text-[28px]">explore</span>
+            {hasRecommendations ? "Explore Trajectories" : "Career Discovery"}
           </h1>
-          <p className="text-muted-foreground text-sm mt-1">
+          <p className="text-sm text-[#8e9192] mt-2 max-w-2xl">
             {hasRecommendations
-              ? "Select an AI-recommended career path to generate your learning roadmap."
+              ? "Discover optimal career paths tailored to your skill matrix. Select a path to generate your personalized learning roadmap."
               : "Discover your ideal professional paths by filling out our AI assessment."}
           </p>
         </div>
         {hasRecommendations && (
-          <Button variant="outline" size="sm" onClick={handleRetake} className="self-start">
-            <RefreshCw className="mr-2 h-4 w-4" /> Retake Assessment
-          </Button>
+          <button
+            onClick={handleRetake}
+            className="self-start inline-flex items-center px-4 py-2 border border-[#262626] text-[#c4c7c8] hover:border-white hover:text-white transition-colors text-xs"
+            style={{ fontFamily: "'JetBrains Mono', monospace", letterSpacing: "0.04em" }}
+          >
+            <span className="material-symbols-outlined text-[16px] mr-1.5">refresh</span>
+            Retake Assessment
+          </button>
         )}
       </div>
 
@@ -125,13 +128,14 @@ export default function CareerPage() {
       <div className="relative">
         {hasRecommendations ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {recommendations.map((rec) => (
-              <RecommendationCard
-                key={rec._id}
-                rec={rec}
-                onSelect={handleSelect}
-                selectingId={selectingId}
-              />
+            {recommendations.map((rec, idx) => (
+              <div key={rec._id} className="animate-fade-in-up" style={{ animationDelay: `${idx * 100}ms` }}>
+                <RecommendationCard
+                  rec={rec}
+                  onSelect={handleSelect}
+                  selectingId={selectingId}
+                />
+              </div>
             ))}
           </div>
         ) : (
