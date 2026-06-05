@@ -1,9 +1,6 @@
 "use client";
 
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Check, Sparkles, Loader2 } from "lucide-react";
+import { Loader2 } from "lucide-react";
 
 interface CareerRecommendation {
   _id: string;
@@ -23,66 +20,98 @@ export default function RecommendationCard({ rec, onSelect, selectingId }: Recom
   const isSelected = rec.selected;
   const isSelecting = selectingId === rec._id;
 
-  // Compute a match score color
-  const getScoreColor = (score: number) => {
-    if (score >= 90) return "bg-emerald-500/10 text-emerald-500 border-emerald-500/20";
-    if (score >= 80) return "bg-purple-500/10 text-purple-500 border-purple-500/20";
-    return "bg-blue-500/10 text-blue-500 border-blue-500/20";
-  };
-
   return (
-    <Card className={`relative overflow-hidden transition-all duration-300 ${isSelected ? "border-primary ring-2 ring-primary/20 bg-primary/[0.02]" : "border-border hover:shadow-md"}`}>
+    <div
+      className={`relative overflow-hidden transition-all p-6 flex flex-col ${
+        isSelected
+          ? "bg-[#1A1A1A] border-2 border-white"
+          : "bg-[#1A1A1A] border border-[#262626] hover:border-[#404040]"
+      }`}
+    >
       {isSelected && (
-        <div className="absolute top-0 right-0 bg-primary text-primary-foreground px-3 py-1 rounded-bl-lg text-xs font-semibold flex items-center gap-1">
-          <Check className="h-3 w-3" /> Selected Path
+        <div
+          className="absolute top-0 right-0 bg-white text-[#0A0A0A] px-3 py-1 text-[11px] font-bold flex items-center gap-1"
+          style={{ fontFamily: "'JetBrains Mono', monospace", letterSpacing: "0.05em" }}
+        >
+          <span className="material-symbols-outlined text-[14px]">check_circle</span>
+          SELECTED
         </div>
       )}
-      
-      <CardHeader className="pb-3">
-        <div className="flex justify-between items-start gap-4 pr-16">
-          <div>
-            <CardTitle className="font-heading text-xl font-bold text-foreground">
-              {rec.careerPath}
-            </CardTitle>
-            <CardDescription className="mt-1">
-              AI Match Compatibility
-            </CardDescription>
+
+      {/* Header */}
+      <div className="flex justify-between items-start gap-4 pr-20 mb-4">
+        <div className="flex items-start gap-3">
+          <div className="h-12 w-12 border border-[#262626] bg-[#131313] flex items-center justify-center shrink-0">
+            <span className="material-symbols-outlined text-[22px] text-white">model_training</span>
           </div>
-          <Badge className={`text-sm font-semibold py-1 px-2.5 ${getScoreColor(rec.matchScore)}`}>
-            {rec.matchScore}% Match
-          </Badge>
+          <div>
+            <h3
+              className="font-bold text-lg text-white group-hover:underline decoration-1 underline-offset-4"
+              style={{ fontFamily: "'Hanken Grotesk', system-ui, sans-serif" }}
+            >
+              {rec.careerPath}
+            </h3>
+            <p
+              className="text-[11px] text-[#8e9192] uppercase tracking-[0.1em] mt-1"
+              style={{ fontFamily: "'JetBrains Mono', monospace" }}
+            >
+              AI Match Compatibility
+            </p>
+          </div>
         </div>
-      </CardHeader>
-
-      <CardContent className="pb-4">
-        <div className="flex gap-2 items-start text-sm text-muted-foreground leading-relaxed bg-muted/30 p-3 rounded-lg border border-border/50">
-          <Sparkles className="h-4 w-4 text-amber-500 mt-0.5 shrink-0" />
-          <p>{rec.reasoning}</p>
+        <div className="flex flex-col items-end">
+          <span
+            className="text-2xl font-bold text-white"
+            style={{ fontFamily: "'Hanken Grotesk', system-ui, sans-serif" }}
+          >
+            {rec.matchScore}%
+          </span>
+          <span
+            className="text-[10px] text-[#8e9192] uppercase tracking-[0.15em]"
+            style={{ fontFamily: "'JetBrains Mono', monospace" }}
+          >
+            Match
+          </span>
         </div>
-      </CardContent>
+      </div>
 
-      <CardFooter className="pt-2 border-t border-border/50 bg-zinc-50/50 dark:bg-zinc-950/20">
-        <Button
-          variant={isSelected ? "secondary" : "default"}
-          onClick={() => onSelect(rec._id)}
-          disabled={isSelected || isSelecting}
-          className="w-full font-semibold"
-        >
-          {isSelecting ? (
-            <>
-              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-              Selecting...
-            </>
-          ) : isSelected ? (
-            <>
-              <Check className="h-4 w-4 mr-2" />
-              Current Career Path
-            </>
-          ) : (
-            "Select This Career Path"
-          )}
-        </Button>
-      </CardFooter>
-    </Card>
+      {/* Reasoning */}
+      <div className="p-4 bg-[#131313] border border-[#262626] mb-6 flex-1">
+        <p className="text-sm text-[#c4c7c8] leading-relaxed">{rec.reasoning}</p>
+      </div>
+
+      {/* Progress bar */}
+      <div className="h-1 w-full bg-[#262626] overflow-hidden mb-4">
+        <div className="h-full bg-white progress-bar-fill" style={{ width: `${rec.matchScore}%` }} />
+      </div>
+
+      {/* Action */}
+      <button
+        onClick={() => onSelect(rec._id)}
+        disabled={isSelected || isSelecting}
+        className={`w-full py-2.5 text-xs font-bold transition-colors flex items-center justify-center gap-2 ${
+          isSelected
+            ? "bg-[#131313] border border-[#262626] text-[#8e9192] cursor-default"
+            : isSelecting
+            ? "bg-[#262626] text-white cursor-wait"
+            : "bg-white text-[#0A0A0A] hover:bg-[#e2e2e2] cursor-pointer"
+        }`}
+        style={{ fontFamily: "'JetBrains Mono', monospace", letterSpacing: "0.05em" }}
+      >
+        {isSelecting ? (
+          <>
+            <Loader2 className="h-4 w-4 animate-spin" />
+            Selecting...
+          </>
+        ) : isSelected ? (
+          <>
+            <span className="material-symbols-outlined text-[16px]">check_circle</span>
+            Current Career Path
+          </>
+        ) : (
+          "Select This Career Path"
+        )}
+      </button>
+    </div>
   );
 }

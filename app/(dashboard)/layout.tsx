@@ -7,22 +7,21 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="flex min-h-screen flex-col bg-background">
-      {/* Top Navigation */}
-      <Navbar showLinks={false} />
+    <div className="flex min-h-screen bg-[#0A0A0A]">
+      {/* Desktop Sidebar — hidden on mobile */}
+      <Sidebar className="hidden md:flex" />
 
-      {/* Main Workspace */}
-      <div className="flex flex-1">
-        {/* Left Sidebar - hidden on mobile, navbar menu handles it */}
-        <Sidebar className="hidden md:flex" />
-
-        {/* Right Main Content Panel */}
-        <main className="flex-1 bg-zinc-50/50 dark:bg-zinc-950/20 overflow-y-auto px-4 py-6 sm:px-6 lg:px-8">
-          <div className="mx-auto max-w-7xl">
-            {children}
-          </div>
-        </main>
+      {/* Mobile Top Bar */}
+      <div className="md:hidden fixed top-0 left-0 right-0 z-50">
+        <Navbar showLinks={false} />
       </div>
+
+      {/* Main Content Area */}
+      <main className="flex-1 md:ml-64 pt-16 md:pt-0 overflow-y-auto min-h-screen">
+        <div className="w-full max-w-[1280px] mx-auto px-4 md:px-12 py-8 md:py-12">
+          {children}
+        </div>
+      </main>
     </div>
   );
 }
