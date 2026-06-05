@@ -1,24 +1,30 @@
 export default function Footer() {
   return (
-    <footer className="w-full border-t border-border bg-card py-6 text-card-foreground relative">
-      {/* Gradient accent line */}
-      <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-purple-500/50 to-transparent" />
-      
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4">
+    <footer className="w-full border-t border-[#262626] bg-[#0A0A0A] py-8">
+      <div className="mx-auto max-w-[1280px] px-4 sm:px-6 lg:px-12 flex flex-col sm:flex-row items-center justify-between gap-4">
         <div className="text-center sm:text-left">
-          <p className="text-sm font-semibold tracking-tight text-foreground">
+          <p
+            className="text-sm font-bold text-white tracking-tight"
+            style={{ fontFamily: "'Hanken Grotesk', system-ui, sans-serif" }}
+          >
             Career Pilot
           </p>
-          <p className="text-xs text-muted-foreground mt-1">
+          <p className="text-xs text-[#8e9192] mt-1">
             Empowering students with personalized AI learning roadmaps and career guidance.
           </p>
         </div>
         <div className="text-center sm:text-right">
-          <p className="text-xs text-muted-foreground">
-            &copy; {new Date().getFullYear()} Team FinessBaba. All rights reserved.
+          <p
+            className="text-[11px] text-[#636565] uppercase tracking-[0.1em]"
+            style={{ fontFamily: "'JetBrains Mono', monospace" }}
+          >
+            &copy; {new Date().getFullYear()} Team FinessBaba
           </p>
-          <p className="text-xs text-muted-foreground mt-1">
-            Built for Brainware AI Hackathon 2026.
+          <p
+            className="text-[11px] text-[#636565] mt-1 uppercase tracking-[0.1em]"
+            style={{ fontFamily: "'JetBrains Mono', monospace" }}
+          >
+            Built for Brainware AI Hackathon 2026
           </p>
         </div>
       </div>

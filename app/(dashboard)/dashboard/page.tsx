@@ -3,24 +3,17 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
-import { buttonVariants } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import {
-  Compass,
-  BookOpen,
-  ArrowRight,
-  Sparkles,
-  LayoutDashboard,
   CheckCircle2,
+  BookOpen,
   FileText,
   MessageSquare,
-  Target,
+  ArrowRight,
 } from "lucide-react";
 import StatsCard from "@/components/dashboard/StatsCard";
 import ProgressChart from "@/components/dashboard/ProgressChart";
 import StreakTracker from "@/components/dashboard/StreakTracker";
 import { toast } from "sonner";
-import { Skeleton } from "@/components/ui/skeleton";
 
 interface CareerRecommendation {
   _id: string;
@@ -89,76 +82,20 @@ export default function DashboardHome() {
 
   if (loading) {
     return (
-      <div className="space-y-8">
-        {/* Welcome Header Skeleton */}
-        <div className="border-b border-border pb-5">
-          <Skeleton className="h-9 w-64 mb-2" />
-          <Skeleton className="h-4 w-96" />
+      <div className="space-y-8 animate-fade-in-up">
+        {/* Skeleton */}
+        <div className="border-b border-[#262626] pb-6">
+          <div className="h-8 w-48 bg-[#1A1A1A] mb-2" />
+          <div className="h-4 w-80 bg-[#1A1A1A]" />
         </div>
-
-        {/* Top Cards grid skeleton */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          <div className="lg:col-span-2">
-            <div className="border border-border bg-card rounded-2xl p-6 h-full space-y-4">
-              <Skeleton className="h-5 w-32" />
-              <Skeleton className="h-8 w-64" />
-              <Skeleton className="h-4 w-full" />
-              <Skeleton className="h-4 w-3/4" />
-              <div className="border-t border-border pt-4 flex gap-3">
-                <Skeleton className="h-9 w-28" />
-                <Skeleton className="h-9 w-24" />
-              </div>
-            </div>
-          </div>
-          <div className="lg:col-span-1">
-            <div className="border border-border bg-card rounded-2xl p-6 h-full flex flex-col items-center justify-center space-y-4">
-              <Skeleton className="h-5 w-32" />
-              <Skeleton className="h-28 w-28 rounded-full" />
-              <Skeleton className="h-4 w-40" />
-            </div>
-          </div>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="lg:col-span-2 bg-[#1A1A1A] border border-[#262626] h-48" />
+          <div className="bg-[#1A1A1A] border border-[#262626] h-48" />
         </div>
-
-        {/* Stats grid skeleton */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {[1, 2, 3, 4].map((i) => (
-            <div key={i} className="border border-border bg-card rounded-2xl p-5 space-y-3">
-              <div className="flex justify-between items-center">
-                <Skeleton className="h-4 w-24" />
-                <Skeleton className="h-8 w-8 rounded-lg" />
-              </div>
-              <Skeleton className="h-7 w-16" />
-              <Skeleton className="h-3.5 w-32" />
-            </div>
+            <div key={i} className="bg-[#1A1A1A] border border-[#262626] h-28" />
           ))}
-        </div>
-
-        {/* Charts/Heatmap grid skeleton */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          <div className="border border-border bg-card rounded-2xl p-6 space-y-4">
-            <Skeleton className="h-6 w-48 mb-6" />
-            {[1, 2, 3].map((i) => (
-              <div key={i} className="space-y-2" style={{ contentVisibility: "auto" }}>
-                <div className="flex justify-between">
-                  <Skeleton className="h-4 w-32" />
-                  <Skeleton className="h-4 w-20" />
-                </div>
-                <Skeleton className="h-3 w-full rounded-full" />
-              </div>
-            ))}
-          </div>
-          <div className="border border-border bg-card rounded-2xl p-6 space-y-6">
-            <Skeleton className="h-6 w-48" />
-            <Skeleton className="h-14 w-full rounded-xl" />
-            <div className="space-y-2">
-              <Skeleton className="h-4 w-24" />
-              <div className="grid grid-cols-7 gap-2">
-                {[1, 2, 3, 4, 5, 6, 7].map((i) => (
-                  <Skeleton key={i} className="h-12 w-full rounded-xl" />
-                ))}
-              </div>
-            </div>
-          </div>
         </div>
       </div>
     );
@@ -172,131 +109,169 @@ export default function DashboardHome() {
 
   return (
     <div className="space-y-8">
-      {/* Welcome Hero */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between border-b border-border pb-5 gap-4">
-        <div>
-          <h1 className="font-heading text-3xl font-bold tracking-tight text-foreground flex items-center gap-2">
-            <LayoutDashboard className="h-7 w-7 text-primary" />
-            Dashboard
-          </h1>
-          <p className="text-muted-foreground text-sm mt-1">
-            Welcome back, <span className="font-bold text-foreground">{session?.user?.name || "Student"}</span>! Here is your personalized learning progress.
-          </p>
-        </div>
+      {/* Welcome Header */}
+      <div className="border-b border-[#262626] pb-6 animate-fade-in-up">
+        <h1
+          className="text-3xl font-bold text-white tracking-tight flex items-center gap-3"
+          style={{ fontFamily: "'Hanken Grotesk', system-ui, sans-serif" }}
+        >
+          <span className="material-symbols-outlined text-[28px]">dashboard</span>
+          Dashboard
+        </h1>
+        <p className="text-sm text-[#8e9192] mt-2">
+          Welcome back, <span className="font-bold text-white">{session?.user?.name || "Student"}</span>. Here is your personalized learning progress.
+        </p>
       </div>
 
       {/* Profile Overview and Readiness Gauge */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Profile Card */}
         <div className="lg:col-span-2">
           {selectedPath ? (
-            <Card className="border-border bg-card shadow-sm h-full relative overflow-hidden flex flex-col justify-between">
-              <div className="absolute inset-y-0 right-0 w-1/3 bg-radial from-primary/5 to-transparent pointer-events-none" />
-              <CardHeader className="pb-3">
-                <div className="inline-flex items-center gap-1.5 rounded-full border border-primary/20 bg-primary/5 px-2.5 py-0.5 text-xs font-semibold text-primary mb-2 self-start">
-                  <Sparkles className="h-3 w-3" /> Selected Career Path
+            <div className="bg-[#1A1A1A] border border-[#262626] p-8 h-full relative overflow-hidden animate-fade-in-up delay-100">
+              <div className="absolute inset-y-0 right-0 w-1/3 bg-[radial-gradient(ellipse_at_right,_rgba(255,255,255,0.03)_0%,_transparent_60%)] pointer-events-none" />
+
+              <div className="relative">
+                <div
+                  className="inline-flex items-center gap-2 px-3 py-1 border border-[#262626] bg-[#131313] text-[#c4c7c8] mb-4"
+                  style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "11px", letterSpacing: "0.08em" }}
+                >
+                  <span className="w-2 h-2 rounded-full bg-white" />
+                  SELECTED CAREER PATH
                 </div>
-                <CardTitle className="font-heading text-2xl font-bold">
+
+                <h2
+                  className="text-2xl font-bold text-white mb-1"
+                  style={{ fontFamily: "'Hanken Grotesk', system-ui, sans-serif" }}
+                >
                   {selectedPath.careerPath}
-                </CardTitle>
-                <CardDescription className="font-semibold text-xs text-primary mt-1.5">
+                </h2>
+
+                <p
+                  className="text-xs text-white mb-4"
+                  style={{ fontFamily: "'JetBrains Mono', monospace", letterSpacing: "0.05em" }}
+                >
                   Compatibility Score: {selectedPath.matchScore}% Match
-                </CardDescription>
-              </CardHeader>
-              
-              <CardContent className="flex-1">
-                <p className="text-sm text-muted-foreground leading-relaxed">
+                </p>
+
+                <p className="text-sm text-[#c4c7c8] leading-relaxed mb-6 max-w-xl">
                   {selectedPath.reasoning}
                 </p>
-              </CardContent>
-              
-              <CardFooter className="pt-4 border-t border-border/50 bg-zinc-50/50 dark:bg-zinc-950/20 flex gap-4">
-                <Link href="/roadmap" className={buttonVariants({ size: "sm", className: "font-semibold" })}>
-                  View Roadmap
-                  <ArrowRight className="h-4 w-4 ml-1.5" />
-                </Link>
-                <Link href="/career" className={buttonVariants({ size: "sm", variant: "outline" })}>
-                  Change Path
-                </Link>
-              </CardFooter>
-            </Card>
-          ) : (
-            <Card className="border-dashed border-2 border-border bg-card/50 text-center py-12 px-6 h-full flex flex-col items-center justify-center gap-4">
-              <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center text-primary">
-                <Compass className="h-6 w-6" />
+
+                <div className="border-t border-[#262626] pt-4 flex gap-3">
+                  <Link
+                    href="/roadmap"
+                    className="inline-flex items-center px-5 py-2 bg-white text-[#0A0A0A] font-bold hover:bg-[#e2e2e2] transition-colors text-xs group"
+                    style={{ fontFamily: "'JetBrains Mono', monospace", letterSpacing: "0.04em" }}
+                  >
+                    View Roadmap
+                    <ArrowRight className="h-3.5 w-3.5 ml-1.5 group-hover:translate-x-0.5 transition-transform" />
+                  </Link>
+                  <Link
+                    href="/career"
+                    className="inline-flex items-center px-5 py-2 border border-white text-white hover:bg-[#1A1A1A] transition-colors text-xs"
+                    style={{ fontFamily: "'JetBrains Mono', monospace", letterSpacing: "0.04em" }}
+                  >
+                    Change Path
+                  </Link>
+                </div>
               </div>
-              <div className="space-y-1">
-                <h3 className="font-heading font-bold text-lg">No Active Career Path Selected</h3>
-                <p className="text-sm text-muted-foreground max-w-sm">
+            </div>
+          ) : (
+            <div className="border-2 border-dashed border-[#262626] bg-[#131313] text-center py-16 px-8 h-full flex flex-col items-center justify-center gap-5 animate-fade-in-up delay-100">
+              <div className="h-14 w-14 border border-[#262626] flex items-center justify-center text-white">
+                <span className="material-symbols-outlined text-[28px]">explore</span>
+              </div>
+              <div className="space-y-2">
+                <h3
+                  className="font-bold text-lg text-white"
+                  style={{ fontFamily: "'Hanken Grotesk', system-ui, sans-serif" }}
+                >
+                  No Active Career Path Selected
+                </h3>
+                <p className="text-sm text-[#8e9192] max-w-sm">
                   Complete the Career Discovery questionnaire to unlock personalized learning paths, courses, and AI study tools.
                 </p>
               </div>
-              <Link href="/career" className={buttonVariants({ variant: "default", className: "font-semibold" })}>
+              <Link
+                href="/career"
+                className="inline-flex items-center px-6 py-2.5 bg-white text-[#0A0A0A] font-bold hover:bg-[#e2e2e2] transition-colors text-xs group"
+                style={{ fontFamily: "'JetBrains Mono', monospace", letterSpacing: "0.04em" }}
+              >
                 Get Started
-                <ArrowRight className="h-4 w-4 ml-1.5" />
+                <ArrowRight className="h-3.5 w-3.5 ml-1.5 group-hover:translate-x-0.5 transition-transform" />
               </Link>
-            </Card>
+            </div>
           )}
         </div>
 
-        {/* Readiness Circular Score Gauge */}
+        {/* Readiness Gauge */}
         <div className="lg:col-span-1">
-          <Card className="border-border bg-card shadow-sm h-full flex flex-col items-center justify-center p-6 text-center">
-            <CardHeader className="p-0 pb-4">
-              <CardTitle className="font-heading text-base font-bold flex items-center justify-center gap-1.5">
-                <Target className="h-5 w-5 text-primary" /> Overall Readiness
-              </CardTitle>
-              <CardDescription>Composite score toward job-readiness</CardDescription>
-            </CardHeader>
-            <CardContent className="flex flex-col items-center justify-center p-0 space-y-4">
-              {/* Radial Progress Gauge */}
-              <div className="relative h-32 w-32 flex items-center justify-center">
-                <svg className="h-full w-full transform -rotate-90">
-                  {/* Background track circle */}
-                  <circle
-                    cx="64"
-                    cy="64"
-                    r={radius}
-                    className="stroke-muted"
-                    strokeWidth="10"
-                    fill="transparent"
-                  />
-                  {/* Indicator circle */}
-                  <circle
-                    cx="64"
-                    cy="64"
-                    r={radius}
-                    className="stroke-primary transition-all duration-1000 ease-out"
-                    strokeWidth="10"
-                    strokeDasharray={circumference}
-                    strokeDashoffset={strokeDashoffset}
-                    strokeLinecap="round"
-                    fill="transparent"
-                  />
-                </svg>
-                <div className="absolute flex flex-col items-center justify-center">
-                  <span className="text-3xl font-extrabold text-foreground tracking-tight">{readiness}%</span>
-                  <span className="text-[10px] text-muted-foreground font-semibold uppercase tracking-wider mt-0.5">Ready</span>
-                </div>
+          <div className="bg-[#1A1A1A] border border-[#262626] p-6 h-full flex flex-col items-center justify-center text-center animate-fade-in-up delay-200">
+            <div className="mb-4">
+              <h3
+                className="text-sm font-bold text-white flex items-center justify-center gap-1.5"
+                style={{ fontFamily: "'Hanken Grotesk', system-ui, sans-serif" }}
+              >
+                <span className="material-symbols-outlined text-[18px]">target</span>
+                Overall Readiness
+              </h3>
+              <p className="text-[10px] text-[#8e9192] mt-1">Composite score toward job-readiness</p>
+            </div>
+
+            {/* Radial Progress Gauge */}
+            <div className="relative h-32 w-32 flex items-center justify-center my-4">
+              <svg className="h-full w-full transform -rotate-90">
+                <circle
+                  cx="64"
+                  cy="64"
+                  r={radius}
+                  className="stroke-[#262626]"
+                  strokeWidth="8"
+                  fill="transparent"
+                />
+                <circle
+                  cx="64"
+                  cy="64"
+                  r={radius}
+                  className="stroke-white transition-all duration-1000 ease-out"
+                  strokeWidth="8"
+                  strokeDasharray={circumference}
+                  strokeDashoffset={strokeDashoffset}
+                  strokeLinecap="butt"
+                  fill="transparent"
+                />
+              </svg>
+              <div className="absolute flex flex-col items-center justify-center">
+                <span
+                  className="text-3xl font-bold text-white tracking-tight"
+                  style={{ fontFamily: "'Hanken Grotesk', system-ui, sans-serif" }}
+                >
+                  {readiness}%
+                </span>
+                <span
+                  className="text-[10px] text-[#8e9192] uppercase tracking-[0.15em] mt-0.5"
+                  style={{ fontFamily: "'JetBrains Mono', monospace" }}
+                >
+                  Ready
+                </span>
               </div>
-              
-              <div className="text-[10px] text-muted-foreground leading-relaxed max-w-[200px] font-medium">
-                Calculated based on milestones ({progressData?.roadmap?.completedMilestones || 0} done), course completions, document analysis, and tutor chats.
-              </div>
-            </CardContent>
-          </Card>
+            </div>
+
+            <div className="text-[10px] text-[#636565] leading-relaxed max-w-[200px] font-medium">
+              Based on milestones ({progressData?.roadmap?.completedMilestones || 0} done), courses, document analysis, and tutor chats.
+            </div>
+          </div>
         </div>
       </div>
 
-      {/* Stats Cards Section */}
+      {/* Stats Cards */}
       {selectedPath && progressData && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <StatsCard
             title="Roadmap Progress"
             value={`${progressData.roadmap.completedMilestones} / ${progressData.roadmap.totalMilestones}`}
             icon={CheckCircle2}
-            iconColor="text-blue-500"
-            bgColor="bg-blue-500/10"
             description={`${progressData.roadmap.milestoneCompletionRate.toFixed(0)}% milestones completed`}
             animationDelay={0}
           />
@@ -304,35 +279,29 @@ export default function DashboardHome() {
             title="Courses Finished"
             value={progressData.metrics.coursesCompleted}
             icon={BookOpen}
-            iconColor="text-emerald-500"
-            bgColor="bg-emerald-500/10"
             description="Self-reported completed courses"
-            animationDelay={100}
+            animationDelay={80}
           />
           <StatsCard
             title="Notes Analyzed"
             value={progressData.metrics.pdfsAnalyzed}
             icon={FileText}
-            iconColor="text-purple-500"
-            bgColor="bg-purple-500/10"
             description="PDF materials studied with AI"
-            animationDelay={200}
+            animationDelay={160}
           />
           <StatsCard
             title="Tutor Sessions"
             value={progressData.metrics.tutorSessions}
             icon={MessageSquare}
-            iconColor="text-pink-500"
-            bgColor="bg-pink-500/10"
             description="Interactive tutor conversations"
-            animationDelay={300}
+            animationDelay={240}
           />
         </div>
       )}
 
-      {/* Charts and Habits Trackers */}
+      {/* Charts */}
       {selectedPath && progressData && (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <ProgressChart
             stageProgress={progressData.roadmap.stageProgress}
             careerPath={progressData.roadmap.careerPath}

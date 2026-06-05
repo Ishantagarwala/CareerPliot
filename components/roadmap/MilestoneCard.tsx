@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Loader2, Calendar } from "lucide-react";
+import { Loader2 } from "lucide-react";
 
 interface Milestone {
   _id?: string;
@@ -38,21 +38,21 @@ export default function MilestoneCard({ milestone, onToggle }: MilestoneCardProp
 
   return (
     <div
-      className={`flex items-start gap-4 rounded-xl border p-4 transition-all ${
+      className={`flex items-start gap-4 border p-4 transition-all ${
         milestone.completed
-          ? "border-emerald-500/30 bg-emerald-500/[0.02] dark:border-emerald-500/20"
-          : "border-border bg-card hover:border-muted-foreground/30"
+          ? "border-[#404040] bg-[#131313]"
+          : "border-[#262626] hover:border-[#404040]"
       }`}
     >
-      <div className="flex h-5 items-center">
+      <div className="flex h-5 items-center mt-0.5">
         {loading ? (
-          <Loader2 className="h-4 w-4 animate-spin text-primary" />
+          <Loader2 className="h-4 w-4 animate-spin text-white" />
         ) : (
           <input
             type="checkbox"
             checked={milestone.completed}
             onChange={(e) => handleCheckedChange(e.target.checked)}
-            className="h-4 w-4 rounded border-border text-primary focus:ring-primary cursor-pointer accent-primary"
+            className="h-4 w-4 border-[#404040] bg-transparent text-white focus:ring-0 cursor-pointer accent-white"
           />
         )}
       </div>
@@ -61,17 +61,20 @@ export default function MilestoneCard({ milestone, onToggle }: MilestoneCardProp
         <p
           className={`text-sm font-medium leading-relaxed ${
             milestone.completed
-              ? "text-muted-foreground line-through decoration-emerald-500/50"
-              : "text-foreground"
+              ? "text-[#8e9192] line-through decoration-[#404040]"
+              : "text-white"
           }`}
         >
           {milestone.title}
         </p>
 
         {milestone.completed && formattedDate && (
-          <div className="flex items-center gap-1 text-[11px] text-emerald-600 font-semibold dark:text-emerald-500">
-            <Calendar className="h-3 w-3" />
-            Completed on {formattedDate}
+          <div
+            className="flex items-center gap-1 text-[10px] text-[#636565]"
+            style={{ fontFamily: "'JetBrains Mono', monospace", letterSpacing: "0.05em" }}
+          >
+            <span className="material-symbols-outlined text-[14px]">check_circle</span>
+            Completed {formattedDate}
           </div>
         )}
       </div>
