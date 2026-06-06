@@ -13,9 +13,24 @@ if (typeof global !== "undefined") {
   global.btoa = (str: string) => Buffer.from(str, "binary").toString("base64");
 }
 
+// Polyfill DOMMatrix for pdfjs-dist in serverless environments (text extraction only)
+if (typeof globalThis.DOMMatrix === "undefined") {
+  (globalThis as any).DOMMatrix = class DOMMatrix {
+    a = 1; b = 0; c = 0; d = 1; e = 0; f = 0;
+    static fromMatrix() { return new DOMMatrix(); }
+    static fromFloat32Array() { return new DOMMatrix(); }
+    static fromFloat64Array() { return new DOMMatrix(); }
+    translate() { return this; }
+    scale() { return this; }
+    multiply() { return this; }
+    inverse() { return this; }
+    transformPoint(p: any) { return p; }
+  };
+}
+
 // Import worker first as required by pdf-parse v2 in serverless environments
-eval('require')("pdf-parse/worker");
-const { PDFParse } = eval('require')("pdf-parse");
+import "pdf-parse/worker";
+import { PDFParse } from "pdf-parse";
 
 interface LlmQuestion {
   question: string;
