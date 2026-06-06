@@ -1,6 +1,6 @@
 # 🚀 Career Pilot v2.0 — Comprehensive Enhancement Roadmap
 
-> **Team FinessBaba | Brainware AI Hackathon 2026**
+> **Made By Aritra with ❤️ | Brainware AI Hackathon 2026**
 >
 > *This document details 10 major feature enhancements — 6 from your original ideas (refined and expanded) plus 4 additional suggestions based on product-market fit analysis for Indian students.*
 
@@ -1391,4 +1391,4 @@ This positions Career Pilot not just as a hackathon project, but as a potentiall
 
 ---
 
-*Document Version: 1.0 | Created: June 6, 2026 | Team FinessBaba*
+*Document Version: 1.0 | Created: June 6, 2026 | Made By Aritra with ❤️*

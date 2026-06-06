@@ -2,7 +2,7 @@
 
 > **Tech Stack**: Next.js 15 (App Router) + MongoDB (Mongoose) + NextAuth.js + Tailwind CSS + shadcn/ui + OpenAI API
 >
-> **Team FinessBaba | Brainware AI Hackathon 2026**
+> **Made By Aritra with ❤️ | Brainware AI Hackathon 2026**
 
 ---
 
@@ -407,4 +407,4 @@ git push origin dev
 
 ---
 
-*Last Updated: June 4, 2026 | Team FinessBaba*
+*Last Updated: June 4, 2026 | Made By Aritra with ❤️*
