@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -19,7 +19,60 @@ type LoginFormValues = z.infer<typeof loginSchema>;
 
 export default function LoginForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [loading, setLoading] = useState(false);
+  const [demoLoading, setDemoLoading] = useState(false);
+  const [demoStep, setDemoStep] = useState("");
+
+  const handleDemoLogin = async () => {
+    setDemoLoading(true);
+    setDemoStep("Creating demo account...");
+    try {
+      // 1. Try to register demo user. If user already exists, it will throw a 400, which we can ignore.
+      await fetch("/api/auth/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: "Demo Student",
+          email: "demo@careerpilot.com",
+          password: "demo1234",
+        }),
+      });
+
+      setDemoStep("Signing in...");
+      // 2. Perform sign in
+      const res = await signIn("credentials", {
+        email: "demo@careerpilot.com",
+        password: "demo1234",
+        redirect: false,
+      });
+
+      if (res?.error) {
+        toast.error("Failed to sign in as demo user. Please try again.");
+        setDemoLoading(false);
+        setDemoStep("");
+        return;
+      }
+
+      setDemoStep("Seeding demo data...");
+      toast.success("Successfully logged in! Seeding demo data...");
+
+      // 3. Redirect to seed endpoint
+      window.location.href = "/api/seed";
+    } catch (err) {
+      console.error(err);
+      toast.error("An unexpected error occurred during demo setup.");
+      setDemoLoading(false);
+      setDemoStep("");
+    }
+  };
+
+  useEffect(() => {
+    if (searchParams && searchParams.get("demo") === "true") {
+      router.replace("/login");
+      handleDemoLogin();
+    }
+  }, [searchParams]);
 
   const {
     register,
@@ -56,6 +109,33 @@ export default function LoginForm() {
       setLoading(false);
     }
   };
+
+  if (demoLoading) {
+    return (
+      <div className="w-full max-w-md bg-[#1A1A1A] border border-[#262626] p-8 text-center space-y-6 animate-fade-in-up">
+        <div className="flex flex-col items-center justify-center space-y-4 py-8">
+          <div className="relative flex items-center justify-center">
+            {/* Pulsing animated outer ring */}
+            <span className="absolute inline-flex h-16 w-16 rounded-full bg-indigo-500/10 animate-ping" />
+            <div className="h-16 w-16 border-t-2 border-indigo-500 rounded-full animate-spin flex items-center justify-center">
+              <span className="material-symbols-outlined text-indigo-400 text-2xl animate-pulse">bolt</span>
+            </div>
+          </div>
+          <div className="space-y-2">
+            <h3 className="text-lg font-bold text-white tracking-tight" style={{ fontFamily: "'Hanken Grotesk', system-ui, sans-serif" }}>
+              Initializing Demo Session
+            </h3>
+            <p className="text-sm text-[#8e9192]" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
+              {demoStep}
+            </p>
+          </div>
+        </div>
+        <div className="text-xs text-[#636565] border-t border-[#262626] pt-4">
+          This will take a moment to configure your custom AI roadmaps.
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="w-full max-w-md bg-[#1A1A1A] border border-[#262626] overflow-hidden">
@@ -134,7 +214,24 @@ export default function LoginForm() {
               </>
             )}
           </button>
-          <div className="text-sm text-center text-[#8e9192]">
+
+          <div className="relative flex py-1 items-center">
+            <div className="flex-grow border-t border-[#262626]"></div>
+            <span className="flex-shrink mx-4 text-[10px] text-[#636565] uppercase tracking-wider" style={{ fontFamily: "'JetBrains Mono', monospace" }}>or</span>
+            <div className="flex-grow border-t border-[#262626]"></div>
+          </div>
+
+          <button
+            type="button"
+            onClick={handleDemoLogin}
+            className="w-full py-2.5 border border-indigo-500/30 text-indigo-400 font-bold text-xs hover:bg-indigo-500/10 hover:border-indigo-500 hover:text-white transition-all flex items-center justify-center gap-2"
+            style={{ fontFamily: "'JetBrains Mono', monospace", letterSpacing: "0.04em" }}
+          >
+            Try Demo Login
+            <span className="material-symbols-outlined text-[16px]">bolt</span>
+          </button>
+
+          <div className="text-sm text-center text-[#8e9192] pt-2">
             Don&apos;t have an account?{" "}
             <Link href="/register" className="text-white font-medium hover:underline">
               Sign Up

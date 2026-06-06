@@ -51,6 +51,13 @@ export default function Home() {
         </Link>
         <div className="flex items-center gap-3">
           <Link
+            href="/login?demo=true"
+            className="px-5 py-2 text-indigo-400 border border-indigo-500/30 hover:border-indigo-500 hover:text-white hover:bg-indigo-500/10 transition-colors"
+            style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "12px", letterSpacing: "0.05em", fontWeight: 500 }}
+          >
+            Demo Login
+          </Link>
+          <Link
             href="/login"
             className="px-5 py-2 text-white border border-[#262626] hover:border-white transition-colors"
             style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "12px", letterSpacing: "0.05em", fontWeight: 500 }}
@@ -111,6 +118,16 @@ export default function Home() {
                 style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "13px", letterSpacing: "0.04em" }}
               >
                 Sign In
+              </Link>
+              <Link
+                href="/login?demo=true"
+                className="inline-flex items-center justify-center px-8 py-3 bg-gradient-to-r from-indigo-500 to-purple-600 text-white font-bold hover:from-indigo-600 hover:to-purple-700 transition-all shadow-[0_0_20px_rgba(99,102,241,0.25)] hover:shadow-[0_0_25px_rgba(99,102,241,0.4)] flex items-center gap-2 group"
+                style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "13px", letterSpacing: "0.04em" }}
+              >
+                Demo Login
+                <span className="material-symbols-outlined text-[18px] group-hover:animate-pulse">
+                  bolt
+                </span>
               </Link>
             </div>
           </div>
