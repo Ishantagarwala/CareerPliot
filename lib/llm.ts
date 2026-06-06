@@ -6,8 +6,8 @@ import OpenAI from "openai";
  * Otherwise, it uses the standard OpenAI API.
  */
 export function getLlmClient(): OpenAI {
-  const geminiKey = process.env.GEMINI_API_KEY;
-  const openAiKey = process.env.OPENAI_API_KEY;
+  const geminiKey = process.env.GEMINI_API_KEY?.trim();
+  const openAiKey = process.env.OPENAI_API_KEY?.trim();
 
   if (geminiKey) {
     return new OpenAI({

@@ -267,7 +267,7 @@ async function handleSeed() {
         sourceUrl: "https://inc42.com",
         source: "Inc42",
         fetchedAt: new Date(),
-        imageUrl: "https://lh3.googleusercontent.com/aida-public/AB6AXuDic8CPg9qURJzrtj0LcyGRewdM8AH0kLvOsXSdRAbeFNj0RvkdkGeZILXgj56YWcqg3czTmlFfmGX8n1GpLlp_1R8tvt5q7Xb5N82I84y9oT3RR0Seuc_q41Mt2sPoX4aSZmdXybafnhutbUMbUb-MjhH1moGAnAY1aUhkqWLOBaDUmcODRW0st2xWN9SX01q11WjLkS4Kry3nKG8Q4bwvEypfEf10L9rqB_b0ddv41wt6KgzbxxlXO2WXJYU0vXkQ7TxInGtUY83R",
+        imageUrl: "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=800&q=80",
         imageAlt: "Stark skyscraper architectural shot",
         publishedAt: new Date()
       },
@@ -317,7 +317,7 @@ async function handleSeed() {
         sourceUrl: "https://economictimes.indiatimes.com",
         source: "ET Tech",
         fetchedAt: new Date(),
-        imageUrl: "https://lh3.googleusercontent.com/aida-public/AB6AXuOm_3Hm7_N7wt_Ugo8T5za-QYnAVSd2vZfH9QwjqXPMz14QK7mXzeuWEXrKMqGKyU8kQ-nPaEP6QXqehXexeucVEm7dYenv_d8y4R4GayIF27WmqJcZubMBYLH76BOfKgOqPgS3XM4D6-6ianYpk2JpGAurGbGEU7bw-LlvxKe8j5prgqSC2mNLAH0s0_6s9NNgCefpIDS2vhIRY7QkS2K6F5Nm4sLDuAMYM8brCgDFMgOqM1M_pu6C-o7hcDW504A0Ma6ZmZXDs7V",
+        imageUrl: "https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&w=800&q=80",
         imageAlt: "Data chart visualization",
         publishedAt: new Date(Date.now() - 172800000)
       },
@@ -331,7 +331,7 @@ async function handleSeed() {
         sourceUrl: "https://yourstory.com",
         source: "YourStory",
         fetchedAt: new Date(),
-        imageUrl: "https://lh3.googleusercontent.com/aida-public/AB6AXuCf0wob8XHFLM1Mmu3Td3le_qZ-QK_buDwasDiX1brob_4b8mA1TTEZT_GwV_E8gq42qaxyMqE4GaJD2IoTsb4191CGiaH5Pa3HlPd6qTqISGiAOsW6uLvVwUUx2teMvdE7m5IklypbZmKu4EiMylA9EMKIpqDD2eDY_pQBohU_ocUNSpoprt9VA7I5Anro7Y4HiZEA471FCPdBQd02GxtX5YfQIcC4nAKB8vlYEoK7K3Q36bSSd29IwWt2v1JBDtWTamX1ZiGwdPTc",
+        imageUrl: "https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=800&q=80",
         imageAlt: "Corporate boardroom",
         publishedAt: new Date(Date.now() - 259200000)
       },
@@ -345,7 +345,7 @@ async function handleSeed() {
         sourceUrl: "https://techcrunch.com",
         source: "TechCrunch",
         fetchedAt: new Date(),
-        imageUrl: "https://lh3.googleusercontent.com/aida-public/AB6AXuAQ5MIWTViNFT0K7f4QsKJpByBCfzU_t9CGACcwjjfDgXB4dN7Uzx9xi-84KawL2gfmZ_oTb8BmDH-F5XvDfxiyySOkMhOuEbJlJAgcv-xYiU1tCGZOndEQhGbYWCWr_6IjO8uMLjamqbWf52K0MS6-VVJ4yhpvLzur8focF0ngqO2DQA7LzRSrvz_069jE03Z97vJnY1-PX4SPoau6j2cBCjyW3yHgLjDOgccgulYAMxXx3mJMV3JKk98Oo0HOyw1K6YFqv9KxdqTa",
+        imageUrl: "https://images.unsplash.com/photo-1558494949-ef010cbdcc31?auto=format&fit=crop&w=800&q=80",
         imageAlt: "Server room networking wires",
         publishedAt: new Date(Date.now() - 345600000)
       }
