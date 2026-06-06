@@ -7,6 +7,12 @@ import { generateStructuredJson } from "@/lib/llm";
 import { mkdir, writeFile } from "fs/promises";
 import path from "path";
 
+// Polyfill global atob/btoa for Node environment to handle binary streams in pdf-parse
+if (typeof global !== "undefined") {
+  global.atob = (str: string) => Buffer.from(str, "base64").toString("binary");
+  global.btoa = (str: string) => Buffer.from(str, "binary").toString("base64");
+}
+
 const { PDFParse } = eval('require')("pdf-parse");
 
 interface LlmQuestion {
@@ -75,14 +81,20 @@ export async function POST(req: Request) {
       ? pdfText.substring(0, maxChars) + "\n\n[Content truncated for length limits...]"
       : pdfText;
 
-    // 2. Save file locally inside public/uploads
-    const uploadDir = path.join(process.cwd(), "public", "uploads");
-    await mkdir(uploadDir, { recursive: true });
-    
+    // 2. Save file locally inside public/uploads (skip writing to disk in production/Vercel serverless environment to prevent EROFS)
     const uniqueFilename = `${Date.now()}-${file.name.replace(/\s+/g, "_")}`;
-    const filePath = path.join(uploadDir, uniqueFilename);
-    await writeFile(filePath, buffer);
     const fileUrl = `/uploads/${uniqueFilename}`;
+    
+    if (!process.env.VERCEL && process.env.NODE_ENV !== "production") {
+      try {
+        const uploadDir = path.join(process.cwd(), "public", "uploads");
+        await mkdir(uploadDir, { recursive: true });
+        const filePath = path.join(uploadDir, uniqueFilename);
+        await writeFile(filePath, buffer);
+      } catch (writeError) {
+        console.error("Local file write error (non-fatal):", writeError);
+      }
+    }
 
     // 3. Connect to Database
     await dbConnect();
