@@ -13,6 +13,8 @@ if (typeof global !== "undefined") {
   global.btoa = (str: string) => Buffer.from(str, "binary").toString("base64");
 }
 
+// Import worker first as required by pdf-parse v2 in serverless environments
+eval('require')("pdf-parse/worker");
 const { PDFParse } = eval('require')("pdf-parse");
 
 interface LlmQuestion {
