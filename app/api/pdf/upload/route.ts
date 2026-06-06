@@ -28,9 +28,7 @@ if (typeof globalThis.DOMMatrix === "undefined") {
   };
 }
 
-// Import worker first as required by pdf-parse v2 in serverless environments
-import "pdf-parse/worker";
-import { PDFParse } from "pdf-parse";
+// pdfjs-dist will be imported dynamically in the handler
 
 interface LlmQuestion {
   question: string;
@@ -62,27 +60,35 @@ export async function POST(req: Request) {
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
 
-    // 1. Extract text from PDF using PDFParse class
+    // 1. Extract text from PDF using direct pdfjs-dist
     let pdfText = "";
-    let parser: any = null;
     try {
-      parser = new PDFParse({ data: new Uint8Array(buffer) });
-      const parsedPdf = await parser.getText();
-      pdfText = parsedPdf.text || "";
+      const pdfjs = await import("pdfjs-dist/legacy/build/pdf.mjs");
+      pdfjs.GlobalWorkerOptions.workerSrc = "pdfjs-dist/legacy/build/pdf.worker.mjs";
+      
+      const loadingTask = pdfjs.getDocument({
+        data: new Uint8Array(buffer),
+        useWorkerFetch: false,
+        isEvalSupported: false,
+      });
+      
+      const pdf = await loadingTask.promise;
+      let extractedText = "";
+      for (let i = 1; i <= pdf.numPages; i++) {
+        const page = await pdf.getPage(i);
+        const content = await page.getTextContent();
+        const pageText = content.items
+          .map((item: any) => item.str)
+          .join(" ");
+        extractedText += pageText + "\n";
+      }
+      pdfText = extractedText;
     } catch (parseError: any) {
       console.error("PDF Parsing Error:", parseError);
       return NextResponse.json(
         { message: "Failed to parse PDF document. Ensure the file is not corrupted." },
         { status: 422 }
       );
-    } finally {
-      if (parser) {
-        try {
-          await parser.destroy();
-        } catch (destroyError) {
-          console.error("Error destroying PDFParse worker:", destroyError);
-        }
-      }
     }
 
     if (!pdfText.trim()) {
