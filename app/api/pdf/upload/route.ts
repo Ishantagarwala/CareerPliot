@@ -64,7 +64,6 @@ export async function POST(req: Request) {
     let pdfText = "";
     try {
       const pdfjs = await import("pdfjs-dist/legacy/build/pdf.mjs");
-      pdfjs.GlobalWorkerOptions.workerSrc = "pdfjs-dist/legacy/build/pdf.worker.mjs";
       
       const loadingTask = pdfjs.getDocument({
         data: new Uint8Array(buffer),
@@ -86,7 +85,7 @@ export async function POST(req: Request) {
     } catch (parseError: any) {
       console.error("PDF Parsing Error:", parseError);
       return NextResponse.json(
-        { message: "Failed to parse PDF document. Ensure the file is not corrupted." },
+        { message: `Failed to parse PDF document: ${parseError.message || parseError}` },
         { status: 422 }
       );
     }
