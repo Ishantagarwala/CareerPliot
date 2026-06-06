@@ -103,8 +103,20 @@ export default function PdfUploader({ onUploadSuccess }: PdfUploaderProps) {
       clearInterval(interval);
 
       if (!res.ok) {
-        const errorData = await res.json();
-        throw new Error(errorData.message || "Failed to process document");
+        let errorMessage = "Failed to process document";
+        try {
+          const contentType = res.headers.get("content-type");
+          if (contentType && contentType.includes("application/json")) {
+            const errorData = await res.json();
+            errorMessage = errorData.message || errorData.error || errorMessage;
+          } else {
+            const errorText = await res.text();
+            errorMessage = errorText.substring(0, 150) || errorMessage;
+          }
+        } catch (parseErr) {
+          console.error("Error parsing error response:", parseErr);
+        }
+        throw new Error(errorMessage);
       }
 
       setProgress(100);
