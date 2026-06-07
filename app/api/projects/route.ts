@@ -32,45 +32,95 @@ export async function GET(req: Request) {
     if (mode === "hackathons") {
       const localHackathons = await Hackathon.find({}).sort({ startDate: 1 }).lean();
       
-      let devfolioHackathons: any[] = [];
-      try {
-        const response = await fetch("https://api.devfolio.co/api/hackathons?page=1&limit=15");
-        if (response.ok) {
-          const data = await response.json();
-          if (data && Array.isArray(data.result)) {
-            devfolioHackathons = data.result.map((item: any) => {
-              const starts = new Date(item.starts_at);
-              const ends = new Date(item.ends_at);
-              const now = new Date();
-              let status: 'upcoming' | 'active' | 'completed' = 'upcoming';
-              if (ends < now) status = 'completed';
-              else if (starts < now) status = 'active';
+      const fetchDevfolio = async () => {
+        try {
+          const res = await fetch("https://api.devfolio.co/api/hackathons?page=1&limit=10");
+          if (res.ok) {
+            const data = await res.json();
+            if (data && Array.isArray(data.result)) {
+              return data.result.map((item: any) => {
+                const starts = new Date(item.starts_at);
+                const ends = new Date(item.ends_at);
+                const now = new Date();
+                let status: 'upcoming' | 'active' | 'completed' = 'upcoming';
+                if (ends < now) status = 'completed';
+                else if (starts < now) status = 'active';
 
-              return {
-                _id: `devfolio-${item.uuid || item.slug}`,
-                title: item.name || "Devfolio Hackathon",
-                organizer: item.hackathon_setting?.subdomain || item.slug || "Devfolio Organizer",
-                platform: "devfolio",
-                url: item.site || `https://${item.slug}.devfolio.co`,
-                description: item.tagline || (item.desc ? item.desc.substring(0, 150) + "..." : "No description available."),
-                startDate: starts.toISOString(),
-                endDate: ends.toISOString(),
-                mode: item.is_online ? "online" : "offline",
-                location: item.location || item.city || "Online",
-                prizes: Array.isArray(item.prizes) && item.prizes.length > 0
-                  ? item.prizes.map((p: any) => `${p.name}: ${p.desc}`).join(" | ").substring(0, 150)
-                  : "Refer to platform for prize details",
-                themes: Array.isArray(item.themes) ? item.themes.map((t: any) => t.name) : ["Technology"],
-                status: status,
-              };
-            });
+                return {
+                  _id: `devfolio-${item.uuid || item.slug}`,
+                  title: item.name || "Devfolio Hackathon",
+                  organizer: item.hackathon_setting?.subdomain || item.slug || "Devfolio Organizer",
+                  platform: "devfolio",
+                  url: item.site || `https://${item.slug}.devfolio.co`,
+                  description: item.tagline || (item.desc ? item.desc.substring(0, 150) + "..." : "No description available."),
+                  startDate: starts.toISOString(),
+                  endDate: ends.toISOString(),
+                  mode: item.is_online ? "online" : "offline",
+                  location: item.location || item.city || "Online",
+                  prizes: Array.isArray(item.prizes) && item.prizes.length > 0
+                    ? item.prizes.map((p: any) => `${p.name}: ${p.desc}`).join(" | ").substring(0, 150)
+                    : "Refer to platform for prize details",
+                  themes: Array.isArray(item.themes) ? item.themes.map((t: any) => t.name) : ["Technology"],
+                  status,
+                };
+              });
+            }
           }
+        } catch (err) {
+          console.error("Failed to fetch Devfolio hackathons:", err);
         }
-      } catch (err) {
-        console.error("Failed to fetch live Devfolio hackathons:", err);
-      }
+        return [];
+      };
 
-      return NextResponse.json([...localHackathons, ...devfolioHackathons]);
+      const fetchHackerEarth = async () => {
+        try {
+          const res = await fetch("https://www.hackerearth.com/chrome-extension/events/");
+          if (res.ok) {
+            const data = await res.json();
+            if (data && Array.isArray(data.response)) {
+              return data.response.map((item: any) => {
+                // Parse date fields: start_tz looks like "2026-05-05 18:00:00+05:30"
+                const starts = item.start_tz ? new Date(item.start_tz.replace(" ", "T")) : new Date();
+                const ends = item.end_tz ? new Date(item.end_tz.replace(" ", "T")) : new Date();
+                const now = new Date();
+                let status: 'upcoming' | 'active' | 'completed' = 'upcoming';
+                if (ends < now) status = 'completed';
+                else if (starts < now || item.status === "ONGOING") status = 'active';
+
+                return {
+                  _id: `hackerearth-${item.url.split("/").filter(Boolean).pop() || Math.random().toString()}`,
+                  title: item.title || "HackerEarth Challenge",
+                  organizer: "HackerEarth",
+                  platform: "hackerearth",
+                  url: item.url,
+                  description: item.description || "HackerEarth competitive programming or solution development hackathon challenge.",
+                  startDate: starts.toISOString(),
+                  endDate: ends.toISOString(),
+                  mode: "online",
+                  location: "Online",
+                  prizes: "Refer to challenge page for prizes",
+                  themes: [item.challenge_type || "Competitive Programming"],
+                  status,
+                };
+              });
+            }
+          }
+        } catch (err) {
+          console.error("Failed to fetch HackerEarth hackathons:", err);
+        }
+        return [];
+      };
+
+      const results = await Promise.allSettled([fetchDevfolio(), fetchHackerEarth()]);
+      
+      const devfolioHackathons = results[0].status === "fulfilled" ? results[0].value : [];
+      const hackerEarthHackathons = results[1].status === "fulfilled" ? results[1].value : [];
+
+      return NextResponse.json([
+        ...localHackathons,
+        ...devfolioHackathons,
+        ...hackerEarthHackathons
+      ]);
     }
 
     // Default to listing ideas
