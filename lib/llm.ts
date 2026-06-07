@@ -1,13 +1,24 @@
 import OpenAI from "openai";
+import type { ChatCompletionCreateParamsNonStreaming } from "openai/resources/chat/completions";
 
 /**
  * Returns the configured OpenAI client.
+ * If ZENMUX_API_KEY is present, it uses ZenMux's OpenAI-compatible endpoint.
  * If GEMINI_API_KEY is present, it configures the client to point to the Google Gemini API endpoint.
  * Otherwise, it uses the standard OpenAI API.
  */
 export function getLlmClient(): OpenAI {
+  const zenMuxKey = process.env.ZENMUX_API_KEY?.trim();
+  const zenMuxBaseUrl = process.env.ZENMUX_BASE_URL?.trim() || "https://zenmux.ai/api/v1";
   const geminiKey = process.env.GEMINI_API_KEY?.trim();
   const openAiKey = process.env.OPENAI_API_KEY?.trim();
+
+  if (zenMuxKey) {
+    return new OpenAI({
+      apiKey: zenMuxKey,
+      baseURL: zenMuxBaseUrl,
+    });
+  }
 
   if (geminiKey) {
     return new OpenAI({
@@ -23,10 +34,18 @@ export function getLlmClient(): OpenAI {
 
 /**
  * Returns the model name to use.
- * Defaults to "gemini-3.1-flash-lite" (or "gemini-3-flash" for PDF) if GEMINI_API_KEY is present,
+ * Defaults to a ZenMux OpenAI model if ZENMUX_API_KEY is present,
+ * "gemini-3.1-flash-lite" (or "gemini-3-flash" for PDF) if GEMINI_API_KEY is present,
  * or "gpt-4o-mini" (or "gpt-4o" for PDF) if using OpenAI. Can be overridden via environment variables.
  */
 export function getLlmModel(isPdf = false): string {
+  if (process.env.ZENMUX_API_KEY) {
+    if (isPdf) {
+      return process.env.ZENMUX_PDF_MODEL || process.env.ZENMUX_MODEL || "openai/gpt-4o";
+    }
+    return process.env.ZENMUX_MODEL || "openai/gpt-4o-mini";
+  }
+
   if (process.env.GEMINI_API_KEY) {
     if (isPdf) {
       return process.env.GEMINI_PDF_MODEL || "gemini-3.5-flash";
@@ -37,6 +56,22 @@ export function getLlmModel(isPdf = false): string {
     return process.env.OPENAI_PDF_MODEL || "gpt-4o";
   }
   return process.env.OPENAI_MODEL || "gpt-4o-mini";
+}
+
+function extractJsonContent(content: string): string {
+  const trimmed = content.trim();
+  const fencedMatch = trimmed.match(/```(?:json)?\s*([\s\S]*?)```/);
+  if (fencedMatch) {
+    return fencedMatch[1].trim();
+  }
+
+  const firstBrace = trimmed.indexOf("{");
+  const lastBrace = trimmed.lastIndexOf("}");
+  if (firstBrace !== -1 && lastBrace !== -1 && lastBrace > firstBrace) {
+    return trimmed.slice(firstBrace, lastBrace + 1);
+  }
+
+  return trimmed;
 }
 
 /**
@@ -52,23 +87,27 @@ export async function generateStructuredJson<T>(
   const model = getLlmModel(isPdf);
 
   try {
-    const response = await client.chat.completions.create({
+    const request: ChatCompletionCreateParamsNonStreaming = {
       model,
       messages: [
         { role: "system", content: systemPrompt },
         { role: "user", content: userPrompt },
       ],
-      response_format: { type: "json_object" },
       temperature: 0.2,
-    });
+    };
+
+    const response = await client.chat.completions.create(
+      process.env.ZENMUX_API_KEY
+        ? request
+        : { ...request, response_format: { type: "json_object" } }
+    );
 
     const content = response.choices[0]?.message?.content;
     if (!content) {
       throw new Error("Empty response from LLM");
     }
 
-    // Parse clean JSON (sometimes LLMs enclose it in markdown blocks, let's strip those just in case)
-    const cleanContent = content.trim().replace(/^```json\s*|```$/g, "");
+    const cleanContent = extractJsonContent(content);
     return JSON.parse(cleanContent) as T;
   } catch (error) {
     console.error("LLM Generation Error:", error);

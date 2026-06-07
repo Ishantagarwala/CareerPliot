@@ -11,7 +11,7 @@ function ListItems({ items }: { items?: string[] }) {
   }
 
   return (
-    <ul className="list-disc ml-5 space-y-1">
+    <ul className="list-disc ml-5 mt-1 space-y-0.5 text-[10.5px] leading-snug">
       {filtered.map((item, index) => (
         <li key={index}>{item}</li>
       ))}
@@ -19,95 +19,192 @@ function ListItems({ items }: { items?: string[] }) {
   );
 }
 
+function Section({
+  title,
+  children,
+}: {
+  title: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <section className="mt-2.5">
+      <h2 className="text-[13px] font-bold uppercase tracking-wide border-b border-black pb-0.5 leading-none">
+        {title}
+      </h2>
+      <div className="pt-1.5">{children}</div>
+    </section>
+  );
+}
+
+function HeadingRow({
+  title,
+  meta,
+  subtitle,
+  detail,
+}: {
+  title?: string;
+  meta?: string;
+  subtitle?: string;
+  detail?: string;
+}) {
+  return (
+    <div className="mb-1.5">
+      <div className="flex justify-between gap-4 text-[11px] leading-tight">
+        <p className="font-bold">{title}</p>
+        {meta && <p className="font-bold text-right shrink-0">{meta}</p>}
+      </div>
+      {(subtitle || detail) && (
+        <div className="flex justify-between gap-4 text-[10.5px] italic leading-tight">
+          <p>{subtitle}</p>
+          {detail && <p className="text-right shrink-0">{detail}</p>}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function ResumePreview({ resume }: ResumePreviewProps) {
   const content = resume?.content || {};
   const personal = content.personalInfo || {};
   const skills = content.skills || {};
+  const contactLine = [
+    personal.phone,
+    personal.email,
+    personal.linkedin,
+    personal.github,
+    personal.portfolio,
+  ].filter(Boolean);
 
   return (
-    <article id="resume-preview" className="bg-white text-[#111] p-8 shadow-xl print:shadow-none print:p-0">
-      <header className="border-b border-[#d4d4d4] pb-4">
-        <h1 className="text-3xl font-bold tracking-tight">{personal.fullName || "Your Name"}</h1>
-        <p className="text-sm mt-2 text-[#444]">
-          {[personal.email, personal.phone, personal.location].filter(Boolean).join(" | ")}
-        </p>
-        <p className="text-sm text-[#444]">
-          {[personal.linkedin, personal.github, personal.portfolio].filter(Boolean).join(" | ")}
-        </p>
+    <article
+      id="resume-preview"
+      className="bg-white text-black shadow-xl print:shadow-none mx-auto w-full max-w-[8.5in] min-h-[11in] px-[0.42in] py-[0.34in] font-serif"
+    >
+      <header className="text-center">
+        <h1 className="text-[24px] font-bold uppercase tracking-wide leading-none">
+          {personal.fullName || "Your Name"}
+        </h1>
+        {contactLine.length > 0 && (
+          <p className="text-[10.5px] mt-2 leading-tight">
+            {contactLine.join("  |  ")}
+          </p>
+        )}
+        {personal.location && (
+          <p className="text-[10.5px] leading-tight">{personal.location}</p>
+        )}
       </header>
 
       {personal.summary && (
-        <section className="mt-5">
-          <h2 className="text-sm font-bold uppercase tracking-widest border-b border-[#e5e5e5] pb-1">Summary</h2>
-          <p className="text-sm mt-2 leading-relaxed">{personal.summary}</p>
-        </section>
+        <Section title="Summary">
+          <p className="text-[10.5px] leading-snug">{personal.summary}</p>
+        </Section>
       )}
 
-      <section className="mt-5">
-        <h2 className="text-sm font-bold uppercase tracking-widest border-b border-[#e5e5e5] pb-1">Skills</h2>
-        <div className="text-sm mt-2 space-y-1">
-          {Object.entries(skills).map(([key, value]) => (
+      {(content.education || []).length > 0 && (
+        <Section title="Education">
+          <div className="space-y-1">
+            {content.education.map((item: any, index: number) => (
+              <HeadingRow
+                key={index}
+                title={item.institution}
+                meta={[item.startDate, item.endDate].filter(Boolean).join(" - ")}
+                subtitle={[item.degree, item.field].filter(Boolean).join(" in ")}
+                detail={item.gpa ? `CGPA: ${item.gpa}` : undefined}
+              />
+            ))}
+          </div>
+        </Section>
+      )}
+
+      <Section title="Skills">
+        <div className="text-[10.5px] leading-snug space-y-0.5">
+          {Object.entries({
+            Languages: skills.technical,
+            "AI/ML & Frameworks": skills.frameworks,
+            "Developer Tools": skills.tools,
+            Interpersonal: skills.soft,
+          }).map(([key, value]) => (
             Array.isArray(value) && value.length > 0 ? (
               <p key={key}>
-                <strong className="capitalize">{key}:</strong> {value.join(", ")}
+                <strong>{key}:</strong> {value.join(", ")}
               </p>
             ) : null
           ))}
         </div>
-      </section>
+      </Section>
 
       {(content.experience || []).length > 0 && (
-        <section className="mt-5">
-          <h2 className="text-sm font-bold uppercase tracking-widest border-b border-[#e5e5e5] pb-1">Experience</h2>
-          <div className="space-y-4 mt-3">
+        <Section title="Experience">
+          <div className="space-y-1">
             {content.experience.map((item: any, index: number) => (
               <div key={index}>
-                <div className="flex justify-between gap-3">
-                  <div>
-                    <h3 className="font-bold text-sm">{item.title}</h3>
-                    <p className="text-sm text-[#444]">{item.company} {item.location ? `- ${item.location}` : ""}</p>
-                  </div>
-                  <p className="text-xs text-[#555]">{item.startDate} - {item.current ? "Present" : item.endDate}</p>
-                </div>
+                <HeadingRow
+                  title={[item.company, item.title].filter(Boolean).join(", ")}
+                  meta={[item.startDate, item.current ? "Present" : item.endDate].filter(Boolean).join(" -- ")}
+                  subtitle={item.location}
+                />
                 <ListItems items={item.bullets} />
               </div>
             ))}
           </div>
-        </section>
+        </Section>
       )}
 
       {(content.projects || []).length > 0 && (
-        <section className="mt-5">
-          <h2 className="text-sm font-bold uppercase tracking-widest border-b border-[#e5e5e5] pb-1">Projects</h2>
-          <div className="space-y-4 mt-3">
+        <Section title="Projects">
+          <div className="space-y-1">
             {content.projects.map((item: any, index: number) => (
               <div key={index}>
-                <h3 className="font-bold text-sm">{item.name}</h3>
-                <p className="text-sm">{item.description}</p>
-                <p className="text-xs text-[#555]">{(item.technologies || []).join(", ")}</p>
+                <HeadingRow
+                  title={[item.name, (item.technologies || []).length ? `| ${item.technologies.join(", ")}` : ""].filter(Boolean).join(" ")}
+                  meta={item.year || ""}
+                  subtitle={item.github || item.url}
+                />
+                {item.description && (
+                  <p className="text-[10.5px] leading-snug">{item.description}</p>
+                )}
                 <ListItems items={item.bullets} />
               </div>
             ))}
           </div>
-        </section>
+        </Section>
       )}
 
-      {(content.education || []).length > 0 && (
-        <section className="mt-5">
-          <h2 className="text-sm font-bold uppercase tracking-widest border-b border-[#e5e5e5] pb-1">Education</h2>
-          <div className="space-y-3 mt-3">
-            {content.education.map((item: any, index: number) => (
-              <div key={index} className="flex justify-between gap-3 text-sm">
-                <div>
-                  <p className="font-bold">{item.degree} {item.field ? `in ${item.field}` : ""}</p>
-                  <p className="text-[#444]">{item.institution}</p>
-                </div>
-                <p className="text-xs text-[#555]">{item.startDate} - {item.endDate}</p>
-              </div>
+      {(content.certifications || []).length > 0 && (
+        <Section title="Certifications">
+          <div className="space-y-1">
+            {content.certifications.map((item: any, index: number) => (
+              <HeadingRow
+                key={index}
+                title={item.name}
+                meta={item.date}
+                subtitle={item.issuer}
+                detail={item.url}
+              />
             ))}
           </div>
-        </section>
+        </Section>
       )}
+
+      {(content.customSections || []).map((section: any, sectionIndex: number) => (
+        section?.title && (section.items || []).length > 0 ? (
+          <Section key={sectionIndex} title={section.title}>
+            <div className="space-y-1">
+              {section.items.map((item: any, itemIndex: number) => (
+                <div key={itemIndex}>
+                  <HeadingRow
+                    title={item.heading}
+                    meta={item.date}
+                    subtitle={item.subheading}
+                    detail={item.link}
+                  />
+                  <ListItems items={item.bullets} />
+                </div>
+              ))}
+            </div>
+          </Section>
+        ) : null
+      ))}
     </article>
   );
 }
