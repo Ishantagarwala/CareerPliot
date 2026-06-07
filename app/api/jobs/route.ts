@@ -35,25 +35,139 @@ export async function GET(req: Request) {
       ];
     }
 
-    let listings = await JobListing.find(query).sort({ postedDate: -1 }).lean();
+    let localListings = await JobListing.find(query).sort({ postedDate: -1 }).lean();
 
-    // Custom sorting: If careerPath exists, bubble matching career path jobs to the top
-    if (careerPath) {
-      const regex = new RegExp(careerPath, "i");
-      listings = listings.sort((a: any, b: any) => {
-        const aMatches = a.careerPaths?.some((p: string) => regex.test(p));
-        const bMatches = b.careerPaths?.some((p: string) => regex.test(p));
-        if (aMatches && !bMatches) return -1;
-        if (!aMatches && bMatches) return 1;
-        return 0;
-      });
+    // Fetch live job postings from Arbeitnow & Remotive APIs in parallel
+    let liveListings: any[] = [];
+    
+    const fetchArbeitnow = async () => {
+      try {
+        let arbeitnowUrl = "https://www.arbeitnow.com/api/job-board-api";
+        if (search) {
+          arbeitnowUrl += `?search=${encodeURIComponent(search)}`;
+        }
+        const response = await fetch(arbeitnowUrl, { next: { revalidate: 60 } });
+        if (response.ok) {
+          const json = await response.json();
+          if (json && Array.isArray(json.data)) {
+            return json.data.slice(0, 10).map((item: any) => {
+              const cleanDesc = item.description 
+                ? item.description.replace(/<[^>]*>/g, "").replace(/&nbsp;/g, " ").replace(/\s\s+/g, " ").trim()
+                : "";
+
+              const isIntern = item.title.toLowerCase().includes("intern") || 
+                               item.title.toLowerCase().includes("werkstudent") || 
+                               item.title.toLowerCase().includes("student");
+              
+              let jobTypeEnum = "full-time";
+              if (isIntern) {
+                jobTypeEnum = "internship";
+              } else if (Array.isArray(item.job_types) && item.job_types.length > 0) {
+                const mainType = item.job_types[0].toLowerCase();
+                if (mainType.includes("part")) jobTypeEnum = "part-time";
+                else if (mainType.includes("contract")) jobTypeEnum = "contract";
+                else if (mainType.includes("intern")) jobTypeEnum = "internship";
+              }
+
+              return {
+                _id: `arbeitnow-${item.slug}`,
+                title: item.title || "Software Engineer",
+                company: item.company_name || "Tech Company",
+                type: jobTypeEnum,
+                location: item.location || "Remote",
+                remote: !!item.remote,
+                description: cleanDesc.length > 180 ? cleanDesc.substring(0, 180) + "..." : cleanDesc,
+                requirements: [],
+                skills: Array.isArray(item.tags) ? item.tags : ["Technology"],
+                applyUrl: item.url || "https://www.arbeitnow.com",
+              };
+            });
+          }
+        }
+      } catch (err) {
+        console.error("Failed to fetch live listings from Arbeitnow:", err);
+      }
+      return [];
+    };
+
+    const fetchRemotive = async () => {
+      try {
+        let remotiveUrl = "https://remotive.com/api/remote-jobs";
+        if (search) {
+          remotiveUrl += `?search=${encodeURIComponent(search)}`;
+        }
+        const response = await fetch(remotiveUrl, { next: { revalidate: 60 } });
+        if (response.ok) {
+          const json = await response.json();
+          if (json && Array.isArray(json.jobs)) {
+            return json.jobs.slice(0, 10).map((item: any) => {
+              const cleanDesc = item.description 
+                ? item.description.replace(/<[^>]*>/g, "").replace(/&nbsp;/g, " ").replace(/\s\s+/g, " ").trim()
+                : "";
+
+              const isIntern = item.title.toLowerCase().includes("intern") || 
+                               item.title.toLowerCase().includes("werkstudent") || 
+                               item.title.toLowerCase().includes("student") ||
+                               (item.job_type && item.job_type.toLowerCase().includes("intern"));
+              
+              let jobTypeEnum = "full-time";
+              if (isIntern) {
+                jobTypeEnum = "internship";
+              } else if (item.job_type) {
+                const jt = item.job_type.toLowerCase();
+                if (jt.includes("part")) jobTypeEnum = "part-time";
+                else if (jt.includes("contract")) jobTypeEnum = "contract";
+                else if (jt.includes("intern")) jobTypeEnum = "internship";
+              }
+
+              return {
+                _id: `remotive-${item.id}`,
+                title: item.title || "Software Engineer",
+                company: item.company_name || "Tech Company",
+                type: jobTypeEnum,
+                location: item.candidate_required_location || "Remote",
+                remote: true,
+                description: cleanDesc.length > 180 ? cleanDesc.substring(0, 180) + "..." : cleanDesc,
+                requirements: [],
+                skills: Array.isArray(item.tags) ? item.tags : ["Technology"],
+                applyUrl: item.url || "https://remotive.com",
+              };
+            });
+          }
+        }
+      } catch (err) {
+        console.error("Failed to fetch live listings from Remotive:", err);
+      }
+      return [];
+    };
+
+    try {
+      const [arbeitnowResults, remotiveResults] = await Promise.allSettled([
+        fetchArbeitnow(),
+        fetchRemotive()
+      ]);
+      
+      const aJobs = arbeitnowResults.status === "fulfilled" ? arbeitnowResults.value : [];
+      const rJobs = remotiveResults.status === "fulfilled" ? remotiveResults.value : [];
+      
+      liveListings = [...aJobs, ...rJobs];
+    } catch (err) {
+      console.error("Failed to perform parallel fetches for jobs:", err);
+    }
+
+    const combinedListings = [...localListings, ...liveListings];
+
+    // Apply job type filters if set
+    let filteredListings = combinedListings;
+    if (type) {
+      filteredListings = combinedListings.filter((job) => job.type === type);
     }
 
     // Fetch user profile skills
     const userSkills = profile?.skills?.map((s: any) => s.name.toLowerCase()) || [];
 
     // Inject Match Score based on profile skills
-    const listingsWithScores = listings.map((job: any) => {
+    const listingsWithScores = filteredListings.map((job: any) => {
       const jobSkills = Array.isArray(job.skills) ? job.skills : [];
       if (jobSkills.length === 0) {
         return { ...job, matchScore: 75, matchedSkills: [] };
@@ -70,7 +184,20 @@ export async function GET(req: Request) {
       };
     });
 
-    return NextResponse.json(listingsWithScores);
+    // Custom sorting: If careerPath exists, bubble matching career path jobs to the top
+    let sortedListings = listingsWithScores;
+    if (careerPath) {
+      const regex = new RegExp(careerPath, "i");
+      sortedListings = listingsWithScores.sort((a: any, b: any) => {
+        const aMatches = a.title?.match(regex) || a.skills?.some((p: string) => regex.test(p));
+        const bMatches = b.title?.match(regex) || b.skills?.some((p: string) => regex.test(p));
+        if (aMatches && !bMatches) return -1;
+        if (!aMatches && bMatches) return 1;
+        return 0;
+      });
+    }
+
+    return NextResponse.json(sortedListings);
   } catch (error: any) {
     console.error("Jobs API error:", error);
     return NextResponse.json(
