@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { toast } from "sonner";
+import { cn } from "@/lib/utils";
 import {
   Briefcase,
   Building,
@@ -34,6 +35,8 @@ interface JobListing {
   requirements: string[];
   skills: string[];
   applyUrl: string;
+  matchScore?: number;
+  matchedSkills?: string[];
 }
 
 interface Application {
@@ -294,8 +297,24 @@ export default function JobsPage() {
                             <Building className="h-5 w-5" />
                           </div>
                         )}
-                        <div>
-                          <h3 className="font-bold text-base text-white leading-tight">{job.title}</h3>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-start justify-between gap-3">
+                            <h3 className="font-bold text-base text-white leading-tight truncate">{job.title}</h3>
+                            {job.matchScore !== undefined && (
+                              <span
+                                className={cn(
+                                  "text-[9px] font-bold px-2 py-0.5 border shrink-0 font-mono tracking-wider",
+                                  job.matchScore >= 80
+                                    ? "border-green-500/30 text-green-400 bg-green-500/5"
+                                    : job.matchScore >= 65
+                                    ? "border-yellow-500/30 text-yellow-400 bg-yellow-500/5"
+                                    : "border-zinc-500/30 text-zinc-400 bg-zinc-500/5"
+                                )}
+                              >
+                                {job.matchScore}% MATCH
+                              </span>
+                            )}
+                          </div>
                           <p className="text-xs text-muted-foreground font-semibold mt-1">{job.company}</p>
                         </div>
                       </div>
@@ -322,6 +341,14 @@ export default function JobsPage() {
                       <p className="text-xs text-[#c4c7c8] leading-relaxed line-clamp-3">
                         {job.description}
                       </p>
+
+                      {/* Matched Skills Highlight */}
+                      {job.matchedSkills && job.matchedSkills.length > 0 && (
+                        <p className="text-[10px] text-green-400 font-mono flex items-center gap-1.5 pt-1.5">
+                          <Check className="h-3 w-3 text-green-400 shrink-0" />
+                          Matches: {job.matchedSkills.join(", ")}
+                        </p>
+                      )}
 
                       {/* Skills Tags */}
                       <div className="flex flex-wrap gap-1.5 pt-2">
