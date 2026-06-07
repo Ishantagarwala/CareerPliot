@@ -41,6 +41,26 @@ const emptyEducation = {
   achievements: [],
 };
 
+const emptyCertification = {
+  name: "",
+  issuer: "",
+  date: "",
+  url: "",
+};
+
+const emptyCustomSection = {
+  title: "Achievements",
+  items: [
+    {
+      heading: "",
+      subheading: "",
+      date: "",
+      link: "",
+      bullets: [""],
+    },
+  ],
+};
+
 function splitCsv(value: string) {
   return value.split(",").map((item) => item.trim()).filter(Boolean);
 }
@@ -166,6 +186,9 @@ export default function ResumeBuilder({ resumeId }: ResumeBuilderProps) {
               <button onClick={() => window.print()} className="border border-[#404040] text-white px-4 py-2 text-xs font-bold">
                 Print / Export
               </button>
+              <a href={`/api/resume/${resumeId}/latex`} className="border border-[#404040] text-white px-4 py-2 text-xs font-bold">
+                Download .tex
+              </a>
             </div>
           </div>
         </div>
@@ -311,6 +334,88 @@ export default function ResumeBuilder({ resumeId }: ResumeBuilderProps) {
               />
             ))}
           </div>
+        </section>
+
+        <section className="bg-[#1A1A1A] border border-[#262626] p-5 space-y-4">
+          <div className="flex justify-between">
+            <h2 className="font-bold text-white">Certifications</h2>
+            <button onClick={() => updateContent(["certifications"], [...content.certifications, emptyCertification])} className="text-xs text-white underline">
+              Add Certification
+            </button>
+          </div>
+          {content.certifications.map((item: any, index: number) => (
+            <div key={index} className="grid grid-cols-1 md:grid-cols-2 gap-3 border border-[#262626] p-4">
+              {["name", "issuer", "date", "url"].map((field) => (
+                <input
+                  key={field}
+                  value={item[field] || ""}
+                  onChange={(e) => {
+                    const next = [...content.certifications];
+                    next[index] = { ...next[index], [field]: e.target.value };
+                    updateContent(["certifications"], next);
+                  }}
+                  placeholder={field}
+                  className="bg-[#131313] border border-[#262626] p-3 text-white text-sm"
+                />
+              ))}
+            </div>
+          ))}
+        </section>
+
+        <section className="bg-[#1A1A1A] border border-[#262626] p-5 space-y-4">
+          <div className="flex justify-between">
+            <h2 className="font-bold text-white">Custom Sections</h2>
+            <button onClick={() => updateContent(["customSections"], [...(content.customSections || []), emptyCustomSection])} className="text-xs text-white underline">
+              Add Section
+            </button>
+          </div>
+          {(content.customSections || []).map((section: any, sectionIndex: number) => (
+            <div key={sectionIndex} className="border border-[#262626] p-4 space-y-3">
+              <input
+                value={section.title || ""}
+                onChange={(e) => {
+                  const next = [...(content.customSections || [])];
+                  next[sectionIndex] = { ...next[sectionIndex], title: e.target.value };
+                  updateContent(["customSections"], next);
+                }}
+                placeholder="Section title, e.g. Leadership & Activities"
+                className="w-full bg-[#131313] border border-[#262626] p-3 text-white text-sm"
+              />
+              {(section.items || []).map((item: any, itemIndex: number) => (
+                <div key={itemIndex} className="border border-[#262626] p-3 space-y-3">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    {["heading", "subheading", "date", "link"].map((field) => (
+                      <input
+                        key={field}
+                        value={item[field] || ""}
+                        onChange={(e) => {
+                          const next = [...(content.customSections || [])];
+                          const items = [...(next[sectionIndex].items || [])];
+                          items[itemIndex] = { ...items[itemIndex], [field]: e.target.value };
+                          next[sectionIndex] = { ...next[sectionIndex], items };
+                          updateContent(["customSections"], next);
+                        }}
+                        placeholder={field}
+                        className="bg-[#131313] border border-[#262626] p-3 text-white text-sm"
+                      />
+                    ))}
+                  </div>
+                  <textarea
+                    value={(item.bullets || []).join("\n")}
+                    onChange={(e) => {
+                      const next = [...(content.customSections || [])];
+                      const items = [...(next[sectionIndex].items || [])];
+                      items[itemIndex] = { ...items[itemIndex], bullets: e.target.value.split("\n") };
+                      next[sectionIndex] = { ...next[sectionIndex], items };
+                      updateContent(["customSections"], next);
+                    }}
+                    placeholder="One bullet per line"
+                    className="w-full min-h-20 bg-[#131313] border border-[#262626] p-3 text-white text-sm"
+                  />
+                </div>
+              ))}
+            </div>
+          ))}
         </section>
 
         <ATSScoreCard analysis={resume.atsAnalysis} loading={analyzing} onAnalyze={analyzeResume} />

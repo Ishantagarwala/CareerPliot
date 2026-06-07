@@ -26,6 +26,7 @@ export interface IResume extends MongooseDocument {
       soft: string[];
     };
     certifications: Array<Record<string, any>>;
+    customSections: Array<Record<string, any>>;
   };
   atsAnalysis?: {
     score: number;
@@ -95,6 +96,16 @@ const ResumeSchema = new Schema<IResume>({
       issuer: String,
       date: String,
       url: String,
+    }],
+    customSections: [{
+      title: String,
+      items: [{
+        heading: String,
+        subheading: String,
+        date: String,
+        link: String,
+        bullets: [String],
+      }],
     }],
   },
   atsAnalysis: {
