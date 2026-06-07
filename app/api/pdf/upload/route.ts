@@ -7,30 +7,7 @@ import { generateStructuredJson } from "@/lib/llm";
 import { mkdir, writeFile } from "fs/promises";
 import path from "path";
 
-import { PDFParse } from "pdf-parse";
-
-// Polyfill global atob/btoa for Node environment to handle binary streams in pdf-parse
-if (typeof global !== "undefined") {
-  global.atob = (str: string) => Buffer.from(str, "base64").toString("binary");
-  global.btoa = (str: string) => Buffer.from(str, "binary").toString("base64");
-}
-
-// Polyfill DOMMatrix for pdfjs-dist in serverless environments (text extraction only)
-if (typeof globalThis.DOMMatrix === "undefined") {
-  (globalThis as any).DOMMatrix = class DOMMatrix {
-    a = 1; b = 0; c = 0; d = 1; e = 0; f = 0;
-    static fromMatrix() { return new DOMMatrix(); }
-    static fromFloat32Array() { return new DOMMatrix(); }
-    static fromFloat64Array() { return new DOMMatrix(); }
-    translate() { return this; }
-    scale() { return this; }
-    multiply() { return this; }
-    inverse() { return this; }
-    transformPoint(p: any) { return p; }
-  };
-}
-
-// pdfjs-dist will be imported dynamically in the handler
+import { extractTextFromPdf } from "@/lib/pdf";
 
 interface LlmQuestion {
   question: string;
@@ -62,13 +39,10 @@ export async function POST(req: Request) {
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
 
-    // 1. Extract text from PDF using PDFParse from pdf-parse package
+    // 1. Extract text from PDF using extractTextFromPdf (PDF.co with PDF.js fallback)
     let pdfText = "";
     try {
-      const parser = new PDFParse({ data: new Uint8Array(buffer) });
-      const result = await parser.getText();
-      await parser.destroy();
-      pdfText = result.text;
+      pdfText = await extractTextFromPdf(buffer, file.name);
     } catch (parseError: any) {
       console.error("PDF Parsing Error:", parseError);
       return NextResponse.json(
