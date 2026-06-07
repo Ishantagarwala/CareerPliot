@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import dbConnect from "@/lib/db";
+import mongoose from "mongoose";
 import UserProfile from "@/models/UserProfile";
 import CareerRecommendation from "@/models/CareerRecommendation";
 import Roadmap from "@/models/Roadmap";
@@ -36,21 +37,22 @@ async function handleSeed() {
     }
 
     const userId = session.user.id;
+    const userObjectId = new mongoose.Types.ObjectId(userId);
     await dbConnect();
 
     // 1. Clear existing seed data for this specific user
-    await UserProfile.deleteMany({ userId });
-    await CareerRecommendation.deleteMany({ userId });
-    await Roadmap.deleteMany({ userId });
-    await Document.deleteMany({ userId });
-    await ChatHistory.deleteMany({ userId });
-    await UserProgress.deleteMany({ userId });
-    await Todo.deleteMany({ userId });
+    await UserProfile.deleteMany({ userId: userObjectId });
+    await CareerRecommendation.deleteMany({ userId: userObjectId });
+    await Roadmap.deleteMany({ userId: userObjectId });
+    await Document.deleteMany({ userId: userObjectId });
+    await ChatHistory.deleteMany({ userId: userObjectId });
+    await UserProgress.deleteMany({ userId: userObjectId });
+    await Todo.deleteMany({ userId: userObjectId });
     await JobListing.deleteMany({});
     await ProjectIdea.deleteMany({});
     await Hackathon.deleteMany({});
     await TeamPost.deleteMany({});
-    await Application.deleteMany({ userId });
+    await Application.deleteMany({ userId: userObjectId });
     
     // Clear and rebuild public Tech News
     await News.deleteMany({});
@@ -238,15 +240,17 @@ async function handleSeed() {
     await chat.save();
 
     // 8. Create User Progress metrics
-    const progress = new UserProgress({
-      userId,
-      coursesCompleted: 2,
-      pdfsAnalyzed: 1,
-      tutorSessions: 2,
-      streakDays: 5,
-      lastActive: new Date(),
-    });
-    await progress.save();
+    await UserProgress.findOneAndUpdate(
+      { userId: userObjectId },
+      {
+        coursesCompleted: 2,
+        pdfsAnalyzed: 1,
+        tutorSessions: 2,
+        streakDays: 5,
+        lastActive: new Date(),
+      },
+      { upsert: true, new: true }
+    );
 
     // 9. Seed default daily todos
     const defaultTodos = [
