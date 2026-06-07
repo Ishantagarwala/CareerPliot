@@ -6,7 +6,7 @@ import UserProgress from "@/models/UserProgress";
 import { generateStructuredJson } from "@/lib/llm";
 import { mkdir, writeFile } from "fs/promises";
 import path from "path";
-import { PDFParse } from "pdf-parse";
+import { extractTextFromPdf } from "@/lib/pdf";
 
 export const dynamic = "force-dynamic";
 
@@ -61,10 +61,7 @@ export async function POST(req: Request) {
     if (file.type === "application/pdf" || file.name.endsWith(".pdf")) {
       let pdfText = "";
       try {
-        const parser = new PDFParse({ data: new Uint8Array(buffer) });
-        const result = await parser.getText();
-        await parser.destroy();
-        pdfText = result.text;
+        pdfText = await extractTextFromPdf(buffer, file.name);
       } catch (parseError: any) {
         console.error("PDF Parsing Error:", parseError);
         return NextResponse.json(
