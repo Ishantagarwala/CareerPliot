@@ -30,8 +30,47 @@ export async function GET(req: Request) {
     const mode = url.searchParams.get("mode"); // 'ideas' or 'hackathons'
 
     if (mode === "hackathons") {
-      const hackathons = await Hackathon.find({}).sort({ startDate: 1 }).lean();
-      return NextResponse.json(hackathons);
+      const localHackathons = await Hackathon.find({}).sort({ startDate: 1 }).lean();
+      
+      let devfolioHackathons: any[] = [];
+      try {
+        const response = await fetch("https://api.devfolio.co/api/hackathons?page=1&limit=15");
+        if (response.ok) {
+          const data = await response.json();
+          if (data && Array.isArray(data.result)) {
+            devfolioHackathons = data.result.map((item: any) => {
+              const starts = new Date(item.starts_at);
+              const ends = new Date(item.ends_at);
+              const now = new Date();
+              let status: 'upcoming' | 'active' | 'completed' = 'upcoming';
+              if (ends < now) status = 'completed';
+              else if (starts < now) status = 'active';
+
+              return {
+                _id: `devfolio-${item.uuid || item.slug}`,
+                title: item.name || "Devfolio Hackathon",
+                organizer: item.hackathon_setting?.subdomain || item.slug || "Devfolio Organizer",
+                platform: "devfolio",
+                url: item.site || `https://${item.slug}.devfolio.co`,
+                description: item.tagline || (item.desc ? item.desc.substring(0, 150) + "..." : "No description available."),
+                startDate: starts.toISOString(),
+                endDate: ends.toISOString(),
+                mode: item.is_online ? "online" : "offline",
+                location: item.location || item.city || "Online",
+                prizes: Array.isArray(item.prizes) && item.prizes.length > 0
+                  ? item.prizes.map((p: any) => `${p.name}: ${p.desc}`).join(" | ").substring(0, 150)
+                  : "Refer to platform for prize details",
+                themes: Array.isArray(item.themes) ? item.themes.map((t: any) => t.name) : ["Technology"],
+                status: status,
+              };
+            });
+          }
+        }
+      } catch (err) {
+        console.error("Failed to fetch live Devfolio hackathons:", err);
+      }
+
+      return NextResponse.json([...localHackathons, ...devfolioHackathons]);
     }
 
     // Default to listing ideas
