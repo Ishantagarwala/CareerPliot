@@ -278,11 +278,6 @@ export default function UnifiedChat({
       </div>
 
       <div ref={scrollRef} className="flex-1 overflow-y-auto p-4 md:p-6 space-y-4">
-        {showUpload && (
-          <div className="max-w-2xl mx-auto">
-            <UploadDropzone onUploadSuccess={handleUploadSuccess} />
-          </div>
-        )}
 
         {loadingHistory ? (
           <div className="flex h-full items-center justify-center text-sm text-[#8e9192]">
@@ -398,6 +393,38 @@ export default function UnifiedChat({
           </button>
         </div>
       </form>
+
+      {/* Modal / Popup for Upload PDF */}
+      {showUpload && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+          {/* Backdrop */}
+          <div 
+            className="fixed inset-0 bg-black/80 backdrop-blur-sm transition-opacity"
+            onClick={() => setShowUpload(false)}
+          />
+          {/* Modal content */}
+          <div className="relative w-full max-w-xl bg-[#0A0A0A] border border-[#262626] p-6 animate-fade-in-up z-[101]">
+            <div className="flex items-center justify-between pb-4 border-b border-[#262626] mb-5">
+              <h3 className="text-base font-bold text-white uppercase tracking-wider font-mono">
+                Upload PDF Document
+              </h3>
+              <button 
+                onClick={() => setShowUpload(false)}
+                className="text-[#8e9192] hover:text-white transition-colors flex items-center justify-center p-1.5 hover:bg-[#1A1A1A] border border-transparent hover:border-[#262626]"
+                title="Close"
+              >
+                <span className="material-symbols-outlined text-[20px]">close</span>
+              </button>
+            </div>
+            
+            <UploadDropzone onUploadSuccess={handleUploadSuccess} />
+            
+            <p className="text-[11px] text-[#636565] mt-4 text-center font-mono">
+              The PDF will be parsed and registered to your active study materials list.
+            </p>
+          </div>
+        </div>
+      )}
     </section>
   );
 }
