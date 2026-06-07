@@ -19,6 +19,8 @@ const menuItems = [
   { name: "Course Recommendations", href: "/courses", icon: "school" },
   { name: "AI Study Hub", href: "/ai-hub", icon: "auto_awesome" },
   { name: "Resume Builder", href: "/resume", icon: "description" },
+  { name: "Jobs & Internships", href: "/jobs", icon: "work" },
+  { name: "Projects & Hackathons", href: "/projects", icon: "hub" },
   { name: "Study With Me", href: "/study", icon: "group" },
   { name: "Tech News", href: "/news", icon: "newspaper" },
 ];

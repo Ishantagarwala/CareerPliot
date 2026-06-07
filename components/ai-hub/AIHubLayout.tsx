@@ -19,6 +19,13 @@ export default function AIHubLayout() {
   const [loadingDocuments, setLoadingDocuments] = useState(true);
   const [draftPrompt, setDraftPrompt] = useState("");
 
+  // Threads state
+  const [threads, setThreads] = useState<any[]>([]);
+  const [activeThreadId, setActiveThreadId] = useState<string | null>(null);
+  const [loadingThreads, setLoadingThreads] = useState(true);
+  const [editingThreadId, setEditingThreadId] = useState<string | null>(null);
+  const [editingTitle, setEditingTitle] = useState("");
+
   const fetchDocuments = useCallback(async () => {
     try {
       const res = await fetch("/api/ai-hub/documents");
@@ -35,9 +42,64 @@ export default function AIHubLayout() {
     }
   }, []);
 
+  const fetchThreads = useCallback(async () => {
+    try {
+      const res = await fetch("/api/ai-hub/threads");
+      if (res.ok) {
+        const data = await res.json();
+        setThreads(data);
+        if (data.length > 0) {
+          setActiveThreadId((curr) => curr || data[0]._id);
+        }
+      }
+    } catch (error) {
+      console.error("Failed to load threads:", error);
+    } finally {
+      setLoadingThreads(false);
+    }
+  }, []);
+
   useEffect(() => {
     fetchDocuments();
-  }, [fetchDocuments]);
+    fetchThreads();
+  }, [fetchDocuments, fetchThreads]);
+
+  const handleRenameThread = async (id: string, newTitle: string) => {
+    if (!newTitle.trim()) return;
+    try {
+      const res = await fetch(`/api/ai-hub/threads/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ title: newTitle }),
+      });
+      if (res.ok) {
+        const updated = await res.json();
+        setThreads((prev) =>
+          prev.map((t) => (t._id === id ? { ...t, threadTitle: updated.threadTitle } : t))
+        );
+        toast.success("Conversation renamed");
+      }
+    } catch (error) {
+      toast.error("Failed to rename conversation");
+    }
+  };
+
+  const handleDeleteThread = async (id: string) => {
+    try {
+      const res = await fetch(`/api/ai-hub/threads/${id}`, {
+        method: "DELETE",
+      });
+      if (res.ok) {
+        setThreads((prev) => prev.filter((t) => t._id !== id));
+        if (activeThreadId === id) {
+          setActiveThreadId(null);
+        }
+        toast.success("Conversation deleted");
+      }
+    } catch (error) {
+      toast.error("Failed to delete conversation");
+    }
+  };
 
   const handleUploadSuccess = (document: any) => {
     const id = document.id || document._id;
@@ -73,19 +135,124 @@ export default function AIHubLayout() {
         </p>
       </div>
 
-      <div className="grid grid-cols-1 xl:grid-cols-[320px_1fr] gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-[260px_1fr_320px] gap-6">
+        {/* Panel 1: Chats Sidebar */}
+        <section className="flex flex-col bg-[#0A0A0A] border border-[#262626] p-4 h-[calc(100vh-220px)] min-h-[560px]">
+          <div className="pb-3 border-b border-[#262626] mb-4">
+            <p
+              className="text-[11px] text-[#8e9192] uppercase tracking-[0.15em] mb-2"
+              style={{ fontFamily: "'JetBrains Mono', monospace" }}
+            >
+              Conversations
+            </p>
+            <button
+              onClick={() => setActiveThreadId(null)}
+              className="w-full flex items-center justify-between border border-dashed border-[#404040] hover:border-white p-3 text-xs font-bold text-[#8e9192] hover:text-white transition-all bg-[#0A0A0A] hover:bg-[#1A1A1A]"
+              style={{ fontFamily: "'JetBrains Mono', monospace", letterSpacing: "0.04em" }}
+            >
+              <span>NEW CHAT</span>
+              <span className="material-symbols-outlined text-[16px]">add</span>
+            </button>
+          </div>
+
+          <div className="flex-1 overflow-y-auto space-y-1.5 pr-1 custom-scrollbar">
+            {loadingThreads ? (
+              <div className="text-xs text-[#8e9192] p-2 italic">Loading chats...</div>
+            ) : threads.length === 0 ? (
+              <div className="text-xs text-[#8e9192] p-2 italic">No conversations</div>
+            ) : (
+              threads.map((thread) => {
+                const isActive = activeThreadId === thread._id;
+                const isEditing = editingThreadId === thread._id;
+
+                if (isEditing) {
+                  return (
+                    <div key={thread._id} className="p-1 border border-white">
+                      <input
+                        value={editingTitle}
+                        onChange={(e) => setEditingTitle(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") {
+                            handleRenameThread(thread._id, editingTitle);
+                            setEditingThreadId(null);
+                          } else if (e.key === "Escape") {
+                            setEditingThreadId(null);
+                          }
+                        }}
+                        onBlur={() => {
+                          handleRenameThread(thread._id, editingTitle);
+                          setEditingThreadId(null);
+                        }}
+                        className="bg-[#131313] text-xs text-white px-2 py-1 w-full focus:outline-none"
+                        autoFocus
+                      />
+                    </div>
+                  );
+                }
+
+                return (
+                  <div
+                    key={thread._id}
+                    className={`group flex items-center justify-between p-3 text-xs border transition-all cursor-pointer ${
+                      isActive
+                        ? "bg-[#1A1A1A] border-white text-white font-bold"
+                        : "bg-[#0A0A0A] border-[#262626] text-[#8e9192] hover:bg-[#131313] hover:text-white"
+                    }`}
+                    onClick={() => setActiveThreadId(thread._id)}
+                  >
+                    <div className="flex items-center gap-2 truncate">
+                      <span className="material-symbols-outlined text-[15px]">chat_bubble</span>
+                      <span className="truncate max-w-[120px]">{thread.threadTitle || "AI Chat"}</span>
+                    </div>
+
+                    <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setEditingThreadId(thread._id);
+                          setEditingTitle(thread.threadTitle || "");
+                        }}
+                        className="hover:text-white text-[#8e9192] p-0.5"
+                      >
+                        <span className="material-symbols-outlined text-[14px]">edit</span>
+                      </button>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          if (confirm("Delete this conversation?")) {
+                            handleDeleteThread(thread._id);
+                          }
+                        }}
+                        className="hover:text-red-500 text-[#8e9192] p-0.5"
+                      >
+                        <span className="material-symbols-outlined text-[14px]">delete</span>
+                      </button>
+                    </div>
+                  </div>
+                );
+              })
+            )}
+          </div>
+        </section>
+
+        {/* Panel 2: Unified Chat */}
+        <UnifiedChat
+          activeThreadId={activeThreadId}
+          setActiveThreadId={setActiveThreadId}
+          onThreadCreated={fetchThreads}
+          selectedDocumentIds={selectedDocumentIds}
+          onUploadSuccess={handleUploadSuccess}
+          draftPrompt={draftPrompt}
+          onDraftPromptConsumed={() => setDraftPrompt("")}
+        />
+
+        {/* Panel 3: Document Library */}
         <DocumentLibrary
           documents={documents}
           selectedDocumentIds={selectedDocumentIds}
           loading={loadingDocuments}
           onToggleDocument={handleToggleDocument}
           onQuickPrompt={setDraftPrompt}
-        />
-        <UnifiedChat
-          selectedDocumentIds={selectedDocumentIds}
-          onUploadSuccess={handleUploadSuccess}
-          draftPrompt={draftPrompt}
-          onDraftPromptConsumed={() => setDraftPrompt("")}
         />
       </div>
     </div>

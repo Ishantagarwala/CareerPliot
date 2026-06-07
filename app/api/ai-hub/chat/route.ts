@@ -7,6 +7,8 @@ import Document from "@/models/Document";
 import UserProgress from "@/models/UserProgress";
 import { buildAiHubSystemPrompt, buildDocumentContext } from "@/lib/aiHub";
 import { getLlmClient, getLlmModel } from "@/lib/llm";
+import fs from "fs";
+import path from "path";
 
 export async function POST(req: Request) {
   try {
@@ -16,7 +18,7 @@ export async function POST(req: Request) {
     }
 
     const userId = session.user.id;
-    const { message, documentIds = [] } = await req.json();
+    const { message, documentIds = [], threadId, attachments = [] } = await req.json();
 
     if (!message || !message.trim()) {
       return NextResponse.json({ message: "Message is required" }, { status: 400 });
@@ -33,6 +35,7 @@ export async function POST(req: Request) {
       ? `The student's selected career path is "${selectedRecommendation.careerPath}". Adapt explanations, examples, and recommendations to that path when relevant.`
       : "The student has not selected an active career path yet. Help them explore options or answer general learning questions.";
 
+    // Gather PDF document contexts if any
     const safeDocumentIds = Array.isArray(documentIds)
       ? documentIds.filter((id) => typeof id === "string" && id.trim())
       : [];
@@ -43,9 +46,20 @@ export async function POST(req: Request) {
           .limit(3)
       : [];
 
-    let chat = await ChatHistory.findOne({ userId });
+    // Find or create thread
+    let chat;
+    if (threadId) {
+      chat = await ChatHistory.findOne({ _id: threadId, userId });
+    }
+    
     if (!chat) {
-      chat = new ChatHistory({ userId, messages: [] });
+      const title = message.length > 30 ? message.substring(0, 30) + "..." : message;
+      chat = new ChatHistory({
+        userId,
+        threadTitle: title,
+        threadType: safeDocumentIds.length > 0 ? "document" : "general",
+        messages: []
+      });
     }
 
     const historyLimit = 15;
@@ -53,31 +67,68 @@ export async function POST(req: Request) {
     const documentContext = buildDocumentContext(documents);
     const systemPrompt = buildAiHubSystemPrompt(careerContext, documentContext);
 
-    chat.threadType = safeDocumentIds.length > 0 ? "document" : "general";
-    chat.documentIds = safeDocumentIds;
-    chat.messages.push({
+    // Build the user message for database
+    const userMessage: any = {
       role: "user",
       content: message,
       documentIds: safeDocumentIds,
+      attachments: attachments,
       sentAt: new Date(),
+    };
+    
+    chat.messages.push(userMessage);
+
+    // Build API messages payload
+    const apiMessages: any[] = [
+      { role: "system", content: systemPrompt }
+    ];
+
+    // Add recent history to context (simplify to text for history)
+    recentHistory.forEach((msg: any) => {
+      apiMessages.push({
+        role: msg.role,
+        content: msg.content
+      });
     });
+
+    // Handle current user message (could be text or multi-modal if image is attached)
+    const imageAttachment = attachments.find((att: any) => att.type === "image");
+    
+    if (imageAttachment) {
+      try {
+        const localPath = path.join(process.cwd(), "public", imageAttachment.fileUrl);
+        const ext = path.extname(localPath).toLowerCase().replace(".", "");
+        const mimeType = ext === "png" ? "image/png" : "image/jpeg";
+        const base64Data = fs.readFileSync(localPath).toString("base64");
+        const dataUrl = `data:${mimeType};base64,${base64Data}`;
+
+        apiMessages.push({
+          role: "user",
+          content: [
+            { type: "text", text: message },
+            {
+              type: "image_url",
+              image_url: {
+                url: dataUrl
+              }
+            }
+          ]
+        });
+      } catch (err: any) {
+        console.error("Failed to load local image for vision API:", err);
+        // Fallback to text prompt
+        apiMessages.push({ role: "user", content: message });
+      }
+    } else {
+      apiMessages.push({ role: "user", content: message });
+    }
 
     const client = getLlmClient();
     const model = getLlmModel();
-    const messages: Array<{ role: "system" | "user" | "assistant"; content: string }> = [
-      { role: "system", content: systemPrompt },
-      ...recentHistory
-        .filter((m: any) => m.role === "user" || m.role === "assistant")
-        .map((m: any) => ({
-          role: m.role as "user" | "assistant",
-          content: m.content,
-        })),
-      { role: "user", content: message },
-    ];
 
     const completion = await client.chat.completions.create({
       model,
-      messages,
+      messages: apiMessages,
       temperature: 0.6,
     });
 
@@ -85,12 +136,18 @@ export async function POST(req: Request) {
       completion.choices[0]?.message?.content ||
       "I'm sorry, I encountered an issue generating a response. Please try again.";
 
+    // Save assistant reply
     chat.messages.push({
       role: "assistant",
       content: reply,
       documentIds: safeDocumentIds,
       sentAt: new Date(),
     });
+
+    // Update thread title if it was default
+    if (chat.messages.length === 2 && chat.threadTitle === "AI Study Hub") {
+      chat.threadTitle = message.length > 30 ? message.substring(0, 30) + "..." : message;
+    }
 
     await chat.save();
 
@@ -105,6 +162,7 @@ export async function POST(req: Request) {
 
     return NextResponse.json({
       reply,
+      threadId: chat._id,
       messages: chat.messages,
       documentsUsed: documents.map((doc: any) => ({
         id: doc._id,

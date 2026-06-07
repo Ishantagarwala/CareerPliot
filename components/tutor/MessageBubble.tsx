@@ -7,6 +7,12 @@ import { toast } from "sonner";
 interface Message {
   role: "user" | "assistant";
   content: string;
+  attachments?: {
+    type: "pdf" | "image";
+    filename: string;
+    fileUrl: string;
+    docId?: string;
+  }[];
   sentAt?: Date | string;
 }
 
@@ -240,6 +246,37 @@ export default function MessageBubble({ message }: MessageBubbleProps) {
                 : "bg-[#1A1A1A] border-[#262626] text-[#e5e2e1]"
             }`}
           >
+            {message.attachments && message.attachments.length > 0 && (
+              <div className="mb-3 flex flex-wrap gap-2">
+                {message.attachments.map((att, idx) => (
+                  <div
+                    key={idx}
+                    className="flex items-center gap-2 bg-[#0A0A0A] border border-[#262626] p-1.5 text-xs text-white"
+                  >
+                    {att.type === "image" ? (
+                      <a href={att.fileUrl} target="_blank" rel="noopener noreferrer" className="block hover:opacity-85">
+                        <img
+                          src={att.fileUrl}
+                          alt={att.filename}
+                          className="h-16 max-w-[120px] object-contain border border-[#262626]"
+                        />
+                      </a>
+                    ) : (
+                      <a
+                        href={att.fileUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-1.5 hover:underline text-white"
+                      >
+                        <span className="material-symbols-outlined text-red-500 text-[18px]">description</span>
+                        <span className="truncate max-w-[150px] font-mono text-[10px]">{att.filename}</span>
+                      </a>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+
             <div className="break-words select-text">
               {formatContent(message.content)}
             </div>

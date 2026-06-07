@@ -7,6 +7,8 @@ import { generateStructuredJson } from "@/lib/llm";
 import { mkdir, writeFile } from "fs/promises";
 import path from "path";
 
+import { PDFParse } from "pdf-parse";
+
 // Polyfill global atob/btoa for Node environment to handle binary streams in pdf-parse
 if (typeof global !== "undefined") {
   global.atob = (str: string) => Buffer.from(str, "base64").toString("binary");
@@ -60,28 +62,13 @@ export async function POST(req: Request) {
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
 
-    // 1. Extract text from PDF using direct pdfjs-dist
+    // 1. Extract text from PDF using PDFParse from pdf-parse package
     let pdfText = "";
     try {
-      const pdfjs = await import("pdfjs-dist/legacy/build/pdf.mjs");
-      
-      const loadingTask = pdfjs.getDocument({
-        data: new Uint8Array(buffer),
-        useWorkerFetch: false,
-        isEvalSupported: false,
-      });
-      
-      const pdf = await loadingTask.promise;
-      let extractedText = "";
-      for (let i = 1; i <= pdf.numPages; i++) {
-        const page = await pdf.getPage(i);
-        const content = await page.getTextContent();
-        const pageText = content.items
-          .map((item: any) => item.str)
-          .join(" ");
-        extractedText += pageText + "\n";
-      }
-      pdfText = extractedText;
+      const parser = new PDFParse({ data: new Uint8Array(buffer) });
+      const result = await parser.getText();
+      await parser.destroy();
+      pdfText = result.text;
     } catch (parseError: any) {
       console.error("PDF Parsing Error:", parseError);
       return NextResponse.json(

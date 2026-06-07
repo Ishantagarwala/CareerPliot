@@ -10,6 +10,11 @@ import ChatHistory from "@/models/ChatHistory";
 import UserProgress from "@/models/UserProgress";
 import Todo from "@/models/Todo";
 import News from "@/models/News";
+import JobListing from "@/models/JobListing";
+import ProjectIdea from "@/models/ProjectIdea";
+import Hackathon from "@/models/Hackathon";
+import TeamPost from "@/models/TeamPost";
+import Application from "@/models/Application";
 
 export async function GET(req: Request) {
   const response = await handleSeed();
@@ -41,6 +46,11 @@ async function handleSeed() {
     await ChatHistory.deleteMany({ userId });
     await UserProgress.deleteMany({ userId });
     await Todo.deleteMany({ userId });
+    await JobListing.deleteMany({});
+    await ProjectIdea.deleteMany({});
+    await Hackathon.deleteMany({});
+    await TeamPost.deleteMany({});
+    await Application.deleteMany({ userId });
     
     // Clear and rebuild public Tech News
     await News.deleteMany({});
@@ -256,6 +266,7 @@ async function handleSeed() {
       // Collection might not exist yet — that's fine
     }
 
+    const seededNewsFetchedAt = new Date(Date.now() - 10 * 60 * 1000); // 10 minutes ago to make cache immediately stale
     const techNewsData = [
       {
         title: "The Engineering Management Exodus: Why Top Talent is Leaving GCCs for Indian Startups",
@@ -266,7 +277,7 @@ async function handleSeed() {
         category: "Featured",
         sourceUrl: "https://inc42.com",
         source: "Inc42",
-        fetchedAt: new Date(),
+        fetchedAt: seededNewsFetchedAt,
         imageUrl: "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=800&q=80",
         imageAlt: "Stark skyscraper architectural shot",
         publishedAt: new Date()
@@ -280,7 +291,7 @@ async function handleSeed() {
         category: "Live Feed",
         sourceUrl: "https://yourstory.com",
         source: "YourStory",
-        fetchedAt: new Date(),
+        fetchedAt: seededNewsFetchedAt,
         publishedAt: new Date(Date.now() - 3600000)
       },
       {
@@ -292,7 +303,7 @@ async function handleSeed() {
         category: "Live Feed",
         sourceUrl: "https://economictimes.indiatimes.com",
         source: "ET Tech",
-        fetchedAt: new Date(),
+        fetchedAt: seededNewsFetchedAt,
         publishedAt: new Date(Date.now() - 7200000)
       },
       {
@@ -304,7 +315,7 @@ async function handleSeed() {
         category: "Live Feed",
         sourceUrl: "https://inc42.com",
         source: "Inc42",
-        fetchedAt: new Date(),
+        fetchedAt: seededNewsFetchedAt,
         publishedAt: new Date(Date.now() - 86400000)
       },
       {
@@ -316,7 +327,7 @@ async function handleSeed() {
         category: "In-Depth Analysis",
         sourceUrl: "https://economictimes.indiatimes.com",
         source: "ET Tech",
-        fetchedAt: new Date(),
+        fetchedAt: seededNewsFetchedAt,
         imageUrl: "https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&w=800&q=80",
         imageAlt: "Data chart visualization",
         publishedAt: new Date(Date.now() - 172800000)
@@ -330,7 +341,7 @@ async function handleSeed() {
         category: "In-Depth Analysis",
         sourceUrl: "https://yourstory.com",
         source: "YourStory",
-        fetchedAt: new Date(),
+        fetchedAt: seededNewsFetchedAt,
         imageUrl: "https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=800&q=80",
         imageAlt: "Corporate boardroom",
         publishedAt: new Date(Date.now() - 259200000)
@@ -344,13 +355,138 @@ async function handleSeed() {
         category: "In-Depth Analysis",
         sourceUrl: "https://techcrunch.com",
         source: "TechCrunch",
-        fetchedAt: new Date(),
+        fetchedAt: seededNewsFetchedAt,
         imageUrl: "https://images.unsplash.com/photo-1558494949-ef010cbdcc31?auto=format&fit=crop&w=800&q=80",
         imageAlt: "Server room networking wires",
         publishedAt: new Date(Date.now() - 345600000)
       }
     ];
     await News.insertMany(techNewsData);
+
+    // 11. Seed Job Listings
+    const mockJobs = [
+      {
+        title: "Frontend Engineer Intern",
+        company: "Google India",
+        companyLogo: "https://upload.wikimedia.org/wikipedia/commons/2/2f/Google_2015_logo.svg",
+        type: "internship",
+        location: "Bangalore, KA",
+        remote: false,
+        salary: { min: 45000, max: 60000, currency: "INR" },
+        description: "Google is looking for a frontend engineering intern to help build next-generation web applications using React and modern design systems.",
+        requirements: ["Strong proficiency in JS/TypeScript", "Experience with React/Next.js frameworks", "Good understanding of CSS and layout grids"],
+        skills: ["JavaScript", "React", "TypeScript", "CSS/HTML"],
+        careerPaths: ["Full-Stack Web Developer", "Frontend Developer"],
+        applyUrl: "https://careers.google.com",
+        postedDate: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000),
+        deadline: new Date(Date.now() + 15 * 24 * 60 * 60 * 1000)
+      },
+      {
+        title: "Software Engineer - Full Stack",
+        company: "Swiggy",
+        companyLogo: "https://upload.wikimedia.org/wikipedia/en/1/12/Swiggy_logo.svg",
+        type: "full-time",
+        location: "Bangalore, KA",
+        remote: false,
+        salary: { min: 80000, max: 120000, currency: "INR" },
+        description: "Join our consumer experience team to scale and optimize consumer-facing web flows and backend APIs using React, Node.js, and MongoDB.",
+        requirements: ["1+ years experience in Node.js and React", "Strong database schema design skills", "Experience with RESTful APIs"],
+        skills: ["JavaScript", "CSS/HTML", "React", "Node.js", "Databases"],
+        careerPaths: ["Full-Stack Web Developer"],
+        applyUrl: "https://careers.swiggy.com",
+        postedDate: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000),
+        deadline: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
+      },
+      {
+        title: "Backend Engineering Intern",
+        company: "Zerodha",
+        companyLogo: "https://upload.wikimedia.org/wikipedia/commons/e/eb/Zerodha_logo.svg",
+        type: "internship",
+        location: "Remote, India",
+        remote: true,
+        salary: { min: 50000, max: 50000, currency: "INR" },
+        description: "Help build scalable backend services for our trading platform. You will work on database optimization and microservice architectures.",
+        requirements: ["Familiarity with Go or Node.js", "Solid understanding of relational and NoSQL databases", "Basic Git experience"],
+        skills: ["Go", "Node.js", "Databases", "Git"],
+        careerPaths: ["Full-Stack Web Developer", "Backend Engineer"],
+        applyUrl: "https://careers.zerodha.com",
+        postedDate: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000),
+        deadline: new Date(Date.now() + 10 * 24 * 60 * 60 * 1000)
+      }
+    ];
+    await JobListing.insertMany(mockJobs);
+
+    // 12. Seed Hackathons
+    const mockHackathons = [
+      {
+        title: "Smart India Hackathon 2026",
+        organizer: "Ministry of Education",
+        platform: "other",
+        url: "https://sih.gov.in",
+        description: "A nationwide initiative to provide students a platform to solve some of the pressing problems we face in our daily lives.",
+        startDate: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000),
+        endDate: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000),
+        mode: "offline",
+        location: "New Delhi, India",
+        prizes: "₹1,00,000 per problem statement",
+        themes: ["Healthcare", "Agriculture", "Smart Cities"],
+        status: "upcoming"
+      },
+      {
+        title: "ETHIndia 2026",
+        organizer: "Devfolio",
+        platform: "devfolio",
+        url: "https://ethindia.co",
+        description: "The world's largest Ethereum hackathon. Bring your ideas to life and build the future of decentralization alongside the global Web3 community.",
+        startDate: new Date(Date.now() + 12 * 24 * 60 * 60 * 1000),
+        endDate: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000),
+        mode: "hybrid",
+        location: "Bangalore, India",
+        prizes: "$50,000 USD",
+        themes: ["Blockchain", "Web3", "DeFi"],
+        status: "upcoming"
+      }
+    ];
+    const seededHackathons = await Hackathon.insertMany(mockHackathons);
+
+    // 13. Seed Project Ideas
+    const mockProjectIdeas = [
+      {
+        title: "TaskPilot Kanban System",
+        description: "A collaborative project planning app featuring a drag-and-drop Kanban interface, user workspaces, and status updates.",
+        difficulty: "intermediate",
+        careerPaths: ["Full-Stack Web Developer"],
+        technologies: ["React", "Node.js", "MongoDB", "Tailwind CSS"],
+        estimatedTime: "2 weeks",
+        features: ["Drag and drop task boards", "Multi-user collaboration", "Interactive milestones"]
+      },
+      {
+        title: "AI-Powered PDF Flashcard Generator",
+        description: "An educational application that parses syllabus/study PDFs, extracts core concepts, and leverages an LLM to generate interactive revision flashcards and quizzes.",
+        difficulty: "advanced",
+        careerPaths: ["Full-Stack Web Developer", "AI Engineer"],
+        technologies: ["Next.js", "pdf-parse", "OpenAI API", "Tailwind CSS"],
+        estimatedTime: "3 weeks",
+        features: ["PDF parsing engine", "OpenAI completion", "Spaced repetition flashcards"]
+      }
+    ];
+    await ProjectIdea.insertMany(mockProjectIdeas);
+
+    // 14. Seed Team Posts
+    const mockTeamPosts = [
+      {
+        userId,
+        hackathonId: seededHackathons[0]._id,
+        title: "Looking for a React developer for SIH 2026",
+        description: "We are building an offline healthcare monitoring dashboard. Need someone skilled in Tailwind and React chart libraries.",
+        lookingFor: ["React", "Tailwind CSS", "Charts"],
+        teamSize: 4,
+        currentMembers: 2,
+        status: "open",
+        contactMethod: "Discord (demo#1234)"
+      }
+    ];
+    await TeamPost.insertMany(mockTeamPosts);
 
     return NextResponse.json({
       message: "Database seeded successfully for demo!",
@@ -364,7 +500,11 @@ async function handleSeed() {
         chatMessagesCount: 4,
         habitStreakDays: 5,
         todosSeededCount: defaultTodos.length,
-        newsSeededCount: techNewsData.length
+        newsSeededCount: techNewsData.length,
+        jobsSeededCount: mockJobs.length,
+        hackathonsSeededCount: mockHackathons.length,
+        projectIdeasSeededCount: mockProjectIdeas.length,
+        teamPostsSeededCount: mockTeamPosts.length
       },
     });
   } catch (error: any) {
