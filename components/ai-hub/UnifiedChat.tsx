@@ -25,6 +25,8 @@ interface UnifiedChatProps {
   onUploadSuccess: (document: any) => void;
   draftPrompt: string;
   onDraftPromptConsumed: () => void;
+  onToggleLeftSidebar?: () => void;
+  onToggleRightSidebar?: () => void;
 }
 
 export default function UnifiedChat({
@@ -35,6 +37,8 @@ export default function UnifiedChat({
   onUploadSuccess,
   draftPrompt,
   onDraftPromptConsumed,
+  onToggleLeftSidebar,
+  onToggleRightSidebar,
 }: UnifiedChatProps) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
@@ -232,23 +236,45 @@ export default function UnifiedChat({
   return (
     <section className="flex flex-col h-[calc(100vh-220px)] min-h-[560px] bg-[#0A0A0A] border border-[#262626]">
       <div className="border-b border-[#262626] p-4 flex items-center justify-between gap-3">
-        <div>
-          <p
-            className="text-[11px] text-[#8e9192] uppercase tracking-[0.15em]"
-            style={{ fontFamily: "'JetBrains Mono', monospace" }}
-          >
-            Unified Tutor + Notes
-          </p>
-          <h2 className="font-bold text-white">AI Study Hub Chat</h2>
+        <div className="flex items-center gap-2">
+          {onToggleLeftSidebar && (
+            <button
+              onClick={onToggleLeftSidebar}
+              className="lg:hidden p-1.5 border border-[#262626] bg-[#1A1A1A] text-white hover:bg-[#262626] flex items-center justify-center"
+              title="Toggle Conversations"
+            >
+              <span className="material-symbols-outlined text-[18px]">menu</span>
+            </button>
+          )}
+          <div>
+            <p
+              className="text-[11px] text-[#8e9192] uppercase tracking-[0.15em]"
+              style={{ fontFamily: "'JetBrains Mono', monospace" }}
+            >
+              Unified Tutor + Notes
+            </p>
+            <h2 className="font-bold text-white">AI Study Hub Chat</h2>
+          </div>
         </div>
-        <button
-          onClick={() => setShowUpload((value) => !value)}
-          className="inline-flex items-center gap-1.5 bg-white text-[#0A0A0A] px-3 py-2 text-xs font-bold hover:bg-[#e2e2e2]"
-          style={{ fontFamily: "'JetBrains Mono', monospace", letterSpacing: "0.04em" }}
-        >
-          <span className="material-symbols-outlined text-[16px]">attach_file</span>
-          {showUpload ? "Close Upload" : "Upload PDF"}
-        </button>
+        <div className="flex items-center gap-2">
+          {onToggleRightSidebar && (
+            <button
+              onClick={onToggleRightSidebar}
+              className="lg:hidden p-1.5 border border-[#262626] bg-[#1A1A1A] text-white hover:bg-[#262626] flex items-center justify-center"
+              title="Toggle Documents"
+            >
+              <span className="material-symbols-outlined text-[18px]">description</span>
+            </button>
+          )}
+          <button
+            onClick={() => setShowUpload((value) => !value)}
+            className="inline-flex items-center gap-1.5 bg-white text-[#0A0A0A] px-3 py-2 text-xs font-bold hover:bg-[#e2e2e2]"
+            style={{ fontFamily: "'JetBrains Mono', monospace", letterSpacing: "0.04em" }}
+          >
+            <span className="material-symbols-outlined text-[16px]">attach_file</span>
+            {showUpload ? "Close Upload" : "Upload PDF"}
+          </button>
+        </div>
       </div>
 
       <div ref={scrollRef} className="flex-1 overflow-y-auto p-4 md:p-6 space-y-4">
