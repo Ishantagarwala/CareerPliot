@@ -1,6 +1,6 @@
 # 🚀 Career Pilot — AI Career Guidance & Learning Assistant
 
-> **Brainware AI Hackathon 2026 | Made By Aritra with ❤️**
+> **Brainware AI Hackathon 2026 | Career Wallah**
 >
 > *"Empower students to discover the right career path, learn effectively, and achieve their goals with the power of AI."*
 
@@ -740,5 +740,5 @@ career-pilot/
 
 ---
 
-*Document Version: 2.0 | Last Updated: June 4, 2026 | Made By Aritra with ❤️*
+*Document Version: 2.0 | Last Updated: June 4, 2026 | Developed by Career Wallah*
 *Tech Stack Migration: React+Express+PostgreSQL → Next.js+MongoDB*
