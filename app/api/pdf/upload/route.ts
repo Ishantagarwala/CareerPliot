@@ -169,6 +169,7 @@ ${textToAnalyze}`;
       userId,
       filename: file.name,
       fileUrl,
+      contentText: textToAnalyze,
       summary: llmResponse.summary,
       questions: formattedQuestions,
     });
