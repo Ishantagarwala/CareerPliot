@@ -39,6 +39,24 @@ const RSS_FEEDS = [
     tags: ['India', 'Startups'],
     category: 'Live Feed' as const,
   },
+  {
+    url: 'https://entrackr.com/feed/',
+    source: 'Entrackr',
+    tags: ['India', 'Startups', 'Funding'],
+    category: 'Live Feed' as const,
+  },
+  {
+    url: 'https://www.moneycontrol.com/rss/MC_startup.xml',
+    source: 'Moneycontrol',
+    tags: ['India', 'Startups', 'Funding'],
+    category: 'Live Feed' as const,
+  },
+  {
+    url: 'https://www.livemint.com/rss/technology',
+    source: 'Livemint Tech',
+    tags: ['India', 'Tech Industry'],
+    category: 'In-Depth Analysis' as const,
+  },
   // Hiring & Jobs
   {
     url: 'https://www.techinasia.com/feed',
