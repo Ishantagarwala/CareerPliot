@@ -17,8 +17,8 @@ const menuItems = [
   { name: "Career Discovery", href: "/career", icon: "explore" },
   { name: "Learning Roadmap", href: "/roadmap", icon: "map" },
   { name: "Course Recommendations", href: "/courses", icon: "school" },
-  { name: "AI PDF Assistant", href: "/pdf", icon: "picture_as_pdf" },
-  { name: "AI Tutor", href: "/tutor", icon: "psychology" },
+  { name: "AI Study Hub", href: "/ai-hub", icon: "auto_awesome" },
+  { name: "Resume Builder", href: "/resume", icon: "description" },
   { name: "Study With Me", href: "/study", icon: "group" },
   { name: "Tech News", href: "/news", icon: "newspaper" },
 ];

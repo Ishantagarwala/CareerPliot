@@ -4,6 +4,29 @@
 
 @custom-variant dark (&:is(.dark *));
 
+@media print {
+  body {
+    background: #ffffff !important;
+  }
+
+  body * {
+    visibility: hidden;
+  }
+
+  #resume-preview,
+  #resume-preview * {
+    visibility: visible;
+  }
+
+  #resume-preview {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    min-height: 100%;
+    box-shadow: none !important;
+  }
+}
+
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);

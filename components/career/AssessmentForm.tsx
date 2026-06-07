@@ -161,7 +161,7 @@ export default function AssessmentForm({ onSuccess }: AssessmentFormProps) {
     }
 
     // Auto-include typed but unadded skill
-    let finalSkills = [...skills];
+    const finalSkills = [...skills];
     if (newSkillName.trim()) {
       const skillToAdd = newSkillName.trim();
       if (!skills.some((s) => s.name.toLowerCase() === skillToAdd.toLowerCase())) {

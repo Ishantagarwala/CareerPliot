@@ -11,7 +11,12 @@ export const proxy = auth((req) => {
     '/roadmap',
     '/courses',
     '/pdf',
-    '/tutor'
+    '/tutor',
+    '/ai-hub',
+    '/resume',
+    '/study',
+    '/news',
+    '/profile'
   ];
 
   const isProtectedRoute = protectedRoutes.some((route) =>
@@ -32,5 +37,10 @@ export const config = {
     '/courses/:path*',
     '/pdf/:path*',
     '/tutor/:path*',
+    '/ai-hub/:path*',
+    '/resume/:path*',
+    '/study/:path*',
+    '/news/:path*',
+    '/profile/:path*',
   ],
 };
