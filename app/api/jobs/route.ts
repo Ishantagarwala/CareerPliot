@@ -49,7 +49,28 @@ export async function GET(req: Request) {
       });
     }
 
-    return NextResponse.json(listings);
+    // Fetch user profile skills
+    const userSkills = profile?.skills?.map((s: any) => s.name.toLowerCase()) || [];
+
+    // Inject Match Score based on profile skills
+    const listingsWithScores = listings.map((job: any) => {
+      const jobSkills = Array.isArray(job.skills) ? job.skills : [];
+      if (jobSkills.length === 0) {
+        return { ...job, matchScore: 75, matchedSkills: [] };
+      }
+
+      const matched = jobSkills.filter((s: string) => userSkills.includes(s.toLowerCase()));
+      // Base score is 60%, scaling to 100% depending on skills match fraction
+      const score = Math.round(60 + (matched.length / jobSkills.length) * 40);
+
+      return {
+        ...job,
+        matchScore: score,
+        matchedSkills: matched,
+      };
+    });
+
+    return NextResponse.json(listingsWithScores);
   } catch (error: any) {
     console.error("Jobs API error:", error);
     return NextResponse.json(
