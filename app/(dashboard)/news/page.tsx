@@ -82,27 +82,38 @@ export default function NewsPage() {
   const [activeTag, setActiveTag] = useState<string | null>(null);
 
   // Fetch articles on mount
-  const loadNews = useCallback(async (forceRefresh = false) => {
+  const loadNews = useCallback(async (forceRefresh = false, silent = false) => {
     try {
-      if (forceRefresh) setRefreshing(true);
+      if (forceRefresh && !silent) setRefreshing(true);
       const url = forceRefresh ? "/api/news?refresh=true" : "/api/news";
       const res = await fetch(url);
       if (!res.ok) throw new Error();
       const data = await res.json();
       setArticles(data);
-      if (forceRefresh) {
+      if (forceRefresh && !silent) {
         toast.success("News feed refreshed with latest articles");
       }
     } catch {
-      toast.error("Failed to retrieve tech intelligence news");
+      if (!silent) {
+        toast.error("Failed to retrieve tech intelligence news");
+      }
     } finally {
-      setLoading(false);
-      setRefreshing(false);
+      if (!silent) {
+        setLoading(false);
+        setRefreshing(false);
+      }
     }
   }, []);
 
   useEffect(() => {
     loadNews();
+
+    // Auto-refresh tech news every 3 minutes silently
+    const interval = setInterval(() => {
+      loadNews(true, true);
+    }, 180000);
+
+    return () => clearInterval(interval);
   }, [loadNews]);
 
   // Filter items client-side for rapid instant response

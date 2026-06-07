@@ -350,6 +350,13 @@ export async function fetchAndCacheNews(NewsModel: any): Promise<void> {
     };
   });
 
+  // Demote existing featured articles in the DB to 'Live Feed' so they don't block new ones
+  try {
+    await NewsModel.updateMany({ category: 'Featured' }, { $set: { category: 'Live Feed' } });
+  } catch (err: any) {
+    console.error('[NewsFetcher] Error demoting featured articles:', err.message);
+  }
+
   // Upsert into MongoDB (deduplication by title)
   const bulkOps = categorized.map((article) => ({
     updateOne: {
@@ -372,12 +379,12 @@ export async function fetchAndCacheNews(NewsModel: any): Promise<void> {
   }
 }
 
-// ── Check if cache is stale (> 6 hours) ───────────────────────────────
+// ── Check if cache is stale (> 5 minutes) ───────────────────────────────
 
 export async function isCacheStale(NewsModel: any): Promise<boolean> {
-  const sixHoursAgo = new Date(Date.now() - 6 * 60 * 60 * 1000);
+  const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000);
   const recentCount = await NewsModel.countDocuments({
-    fetchedAt: { $gte: sixHoursAgo },
+    fetchedAt: { $gte: fiveMinutesAgo },
   });
   return recentCount < 3; // Consider stale if fewer than 3 recent articles
 }

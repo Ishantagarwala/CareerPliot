@@ -8,10 +8,19 @@ import UploadDropzone from "./UploadDropzone";
 interface Message {
   role: "user" | "assistant" | "system";
   content: string;
+  attachments?: {
+    type: "pdf" | "image";
+    filename: string;
+    fileUrl: string;
+    docId?: string;
+  }[];
   sentAt?: Date | string;
 }
 
 interface UnifiedChatProps {
+  activeThreadId: string | null;
+  setActiveThreadId: (id: string | null) => void;
+  onThreadCreated: () => void;
   selectedDocumentIds: string[];
   onUploadSuccess: (document: any) => void;
   draftPrompt: string;
@@ -19,6 +28,9 @@ interface UnifiedChatProps {
 }
 
 export default function UnifiedChat({
+  activeThreadId,
+  setActiveThreadId,
+  onThreadCreated,
   selectedDocumentIds,
   onUploadSuccess,
   draftPrompt,
@@ -27,29 +39,45 @@ export default function UnifiedChat({
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
-  const [loadingHistory, setLoadingHistory] = useState(true);
+  const [loadingHistory, setLoadingHistory] = useState(false);
   const [showUpload, setShowUpload] = useState(false);
+
+  // File attachments states
+  const [attachments, setAttachments] = useState<any[]>([]);
+  const [uploadingAttachment, setUploadingAttachment] = useState(false);
+
   const scrollRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // Sync with activeThreadId
   useEffect(() => {
+    if (!activeThreadId) {
+      setMessages([]);
+      setLoadingHistory(false);
+      return;
+    }
+
     async function fetchHistory() {
+      setLoadingHistory(true);
       try {
-        const res = await fetch("/api/tutor/history");
+        const res = await fetch(`/api/ai-hub/threads/${activeThreadId}`);
         if (res.ok) {
           const data = await res.json();
-          setMessages(data);
+          setMessages(data.messages || []);
+        } else {
+          toast.error("Failed to load conversation history");
         }
       } catch (error) {
         console.error(error);
-        toast.error("Failed to load study hub history");
+        toast.error("Failed to load conversation history");
       } finally {
         setLoadingHistory(false);
       }
     }
 
     fetchHistory();
-  }, []);
+  }, [activeThreadId]);
 
   useEffect(() => {
     if (draftPrompt) {
@@ -63,23 +91,95 @@ export default function UnifiedChat({
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
-  }, [messages, loading, showUpload]);
+  }, [messages, loading, showUpload, attachments, uploadingAttachment]);
+
+  const handleFileSelectClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const isImage = file.type.startsWith("image/");
+    const isPdf = file.type === "application/pdf" || file.name.endsWith(".pdf");
+
+    if (!isImage && !isPdf) {
+      toast.error("Unsupported file type. Please upload a PDF or an Image.");
+      return;
+    }
+
+    setUploadingAttachment(true);
+    const formData = new FormData();
+    formData.append("file", file);
+
+    try {
+      const res = await fetch("/api/ai-hub/upload", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => null);
+        throw new Error(errorData?.message || "Failed to upload attachment");
+      }
+
+      const uploaded = await res.json();
+
+      // If it is a PDF, also register in main document library
+      if (uploaded.type === "pdf") {
+        onUploadSuccess(uploaded);
+      }
+
+      setAttachments((prev) => [
+        ...prev,
+        {
+          type: uploaded.type,
+          filename: uploaded.filename,
+          fileUrl: uploaded.fileUrl,
+          docId: uploaded.docId,
+        },
+      ]);
+      toast.success(`${file.name} uploaded successfully.`);
+    } catch (err: any) {
+      console.error(err);
+      toast.error(err.message || "Failed to upload attachment");
+    } finally {
+      setUploadingAttachment(false);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
+    }
+  };
+
+  const removeAttachment = (index: number) => {
+    setAttachments((prev) => prev.filter((_, i) => i !== index));
+  };
 
   const handleSend = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!input.trim() || loading) {
+    if ((!input.trim() && attachments.length === 0) || loading) {
       return;
     }
 
     const userMessageText = input;
+    const currentAttachments = [...attachments];
+
     setInput("");
+    setAttachments([]);
     if (textareaRef.current) {
       textareaRef.current.style.height = "56px";
     }
 
+    // Optimistically update message bubble with attachment info
     setMessages((prev) => [
       ...prev,
-      { role: "user", content: userMessageText, sentAt: new Date().toISOString() },
+      {
+        role: "user",
+        content: userMessageText || (currentAttachments.length > 0 ? `[Attached ${currentAttachments[0].type}: ${currentAttachments[0].filename}]` : ""),
+        attachments: currentAttachments,
+        sentAt: new Date().toISOString(),
+      },
     ]);
     setLoading(true);
 
@@ -88,8 +188,10 @@ export default function UnifiedChat({
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          message: userMessageText,
+          message: userMessageText || (currentAttachments.length > 0 ? `Analyze the attached ${currentAttachments[0].type}` : "Analyze the attached file"),
           documentIds: selectedDocumentIds,
+          threadId: activeThreadId,
+          attachments: currentAttachments,
         }),
       });
 
@@ -99,10 +201,12 @@ export default function UnifiedChat({
       }
 
       const data = await res.json();
-      setMessages(data.messages || [
-        ...messages,
-        { role: "assistant", content: data.reply, sentAt: new Date().toISOString() },
-      ]);
+      setMessages(data.messages);
+
+      if (!activeThreadId && data.threadId) {
+        setActiveThreadId(data.threadId);
+        onThreadCreated();
+      }
     } catch (error: any) {
       console.error(error);
       toast.error(error.message || "AI Study Hub error. Please try again.");
@@ -182,8 +286,63 @@ export default function UnifiedChat({
         )}
       </div>
 
+      {/* Attachments inline preview */}
+      {(attachments.length > 0 || uploadingAttachment) && (
+        <div className="px-4 py-2.5 border-t border-[#262626] flex flex-wrap gap-2.5 bg-[#0F0F0F]">
+          {attachments.map((att, idx) => (
+            <div
+              key={idx}
+              className="relative flex items-center gap-2 bg-[#1A1A1A] border border-[#262626] p-2 pr-8 text-xs text-white"
+            >
+              {att.type === "image" ? (
+                <div className="h-8 w-8 relative overflow-hidden bg-black border border-[#404040]">
+                  <img src={att.fileUrl} alt={att.filename} className="h-full w-full object-cover" />
+                </div>
+              ) : (
+                <span className="material-symbols-outlined text-red-500 text-[18px]">description</span>
+              )}
+              <span className="truncate max-w-[150px] font-mono text-[11px]" title={att.filename}>
+                {att.filename}
+              </span>
+              <button
+                type="button"
+                onClick={() => removeAttachment(idx)}
+                className="absolute top-1/2 -translate-y-1/2 right-2 text-[#8e9192] hover:text-white transition-colors"
+              >
+                <span className="material-symbols-outlined text-[16px]">close</span>
+              </button>
+            </div>
+          ))}
+
+          {uploadingAttachment && (
+            <div className="flex items-center gap-2 bg-[#1A1A1A] border border-dashed border-[#404040] p-2 text-xs text-[#8e9192]">
+              <span className="animate-spin material-symbols-outlined text-[16px]">progress_activity</span>
+              <span className="font-mono text-[11px]">Uploading file...</span>
+            </div>
+          )}
+        </div>
+      )}
+
       <form onSubmit={handleSend} className="border-t border-[#262626] p-4">
         <div className="flex items-end gap-2">
+          {/* File Input and Button */}
+          <input
+            type="file"
+            ref={fileInputRef}
+            onChange={handleFileChange}
+            accept="image/*,application/pdf"
+            className="hidden"
+          />
+          <button
+            type="button"
+            disabled={loading || uploadingAttachment}
+            onClick={handleFileSelectClick}
+            className="h-14 w-14 border border-[#262626] bg-[#1A1A1A] hover:bg-[#262626] disabled:opacity-30 text-[#8e9192] hover:text-white flex items-center justify-center transition-colors"
+            title="Attach file (image or PDF)"
+          >
+            <span className="material-symbols-outlined text-[20px]">attach_file</span>
+          </button>
+
           <textarea
             ref={textareaRef}
             value={input}
@@ -199,14 +358,14 @@ export default function UnifiedChat({
                 ? "Ask about the selected document..."
                 : "Ask the AI Study Hub..."
             }
-            disabled={loading || loadingHistory}
+            disabled={loading || loadingHistory || uploadingAttachment}
             rows={1}
             className="w-full bg-[#1A1A1A] border border-[#262626] text-white text-sm p-4 focus:border-white focus:outline-none resize-none placeholder:text-[#636565]"
             style={{ minHeight: "56px" }}
           />
           <button
             type="submit"
-            disabled={!input.trim() || loading}
+            disabled={(!input.trim() && attachments.length === 0) || loading || uploadingAttachment}
             className="h-14 w-14 bg-white text-[#0A0A0A] flex items-center justify-center disabled:opacity-30 disabled:cursor-not-allowed"
           >
             <span className="material-symbols-outlined">arrow_upward</span>
