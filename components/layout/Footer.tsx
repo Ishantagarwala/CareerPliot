@@ -18,7 +18,7 @@ export default function Footer() {
             className="text-[11px] text-[#636565] uppercase tracking-[0.1em]"
             style={{ fontFamily: "'JetBrains Mono', monospace" }}
           >
-            &copy; {new Date().getFullYear()} Made By Aritra with ❤️
+            &copy; {new Date().getFullYear()} Career Wallah
           </p>
           <p
             className="text-[11px] text-[#636565] mt-1 uppercase tracking-[0.1em]"

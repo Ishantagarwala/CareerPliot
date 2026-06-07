@@ -1,10 +1,10 @@
 # 🚀 Career Pilot — AI Career Guidance & Learning Assistant
 
 [![Brainware AI Hackathon 2026](https://img.shields.io/badge/Brainware%20AI%20Hackathon-2026-blueviolet?style=for-the-badge)](https://github.com/aritraio/bwu-ai-hackathon-2026)
-[![Made By](https://img.shields.io/badge/Made%20By-Aritra%20with%20%E2%9D%A4%EF%B8%8F-orange?style=for-the-badge)](file:///Users/aritra/Dev/Hackathon/bwu-ai-hackathon-2026/CAREER_PILOT.md)
+[![Made By](https://img.shields.io/badge/Made%20By-Career%20Wallah-orange?style=for-the-badge)](#)
 [![Tech Stack](https://img.shields.io/badge/Stack-React%20%7C%20Node%20%7C%20Postgres-blue?style=for-the-badge)](#-tech-stack)
 
-Welcome to the official repository for **Career Pilot**, an AI-powered career guidance and personalized learning assistant developed by **Aritra (Made By Aritra with ❤️)** for the **Brainware AI Hackathon 2026**.
+Welcome to the official repository for **Career Pilot**, an AI-powered career guidance and personalized learning assistant developed by **Career Wallah** for the **Brainware AI Hackathon 2026**.
 
 Career Pilot is designed to eliminate the uncertainty in career planning for students. By combining interest profiling, customized roadmaps, smart course curations, interactive document analysis, and a 24/7 AI tutor, Career Pilot helps students navigate their professional journey from initial discovery to industry readiness.
 
@@ -167,7 +167,7 @@ Make sure you have the following installed:
 
 ## 📅 Hackathon Timeline & Team
 
-### 👥 Made By Aritra with ❤️
+### 👥 Developed by Career Wallah
 *   **Frontend Lead:** UI/UX, Component Routing, API Integrations
 *   **Backend Lead:** Server Orchestration, JWT Auth, Database Architecture
 *   **AI Engineer:** OpenAI API Prompt Engineering, Document Processing Pipelines
