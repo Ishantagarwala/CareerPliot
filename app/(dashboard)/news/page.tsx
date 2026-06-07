@@ -66,16 +66,16 @@ function timeAgo(dateStr: string): string {
 function getFallbackImage(tags: string[] = []): string {
   const t = tags.map((val) => val.toLowerCase());
   if (t.some((val) => val.includes("ai") || val.includes("ml") || val.includes("intelligence") || val.includes("chatbot"))) {
-    return "https://images.unsplash.com/photo-1677442136019-21780efad99a?auto=format&fit=crop&w=800&q=80"; // AI
+    return "https://images.unsplash.com/photo-1531297484001-80022131f5a1?auto=format&fit=crop&w=800&q=80"; // AI
   }
   if (t.some((val) => val.includes("startup") || val.includes("funding"))) {
-    return "https://images.unsplash.com/photo-1559136555-9303baea8ebd?auto=format&fit=crop&w=800&q=80"; // Startups
+    return "https://images.unsplash.com/photo-1519389950473-47ba0277781c?auto=format&fit=crop&w=800&q=80"; // Startups
   }
   if (t.some((val) => val.includes("hiring") || val.includes("jobs") || val.includes("internship"))) {
     return "https://images.unsplash.com/photo-1486312338219-ce68d2c6f44d?auto=format&fit=crop&w=800&q=80"; // Jobs
   }
   if (t.some((val) => val.includes("india"))) {
-    return "https://images.unsplash.com/photo-1524492412937-b28074a5d7da?auto=format&fit=crop&w=800&q=80"; // India
+    return "https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?auto=format&fit=crop&w=800&q=80"; // India/Tech
   }
   return "https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=800&q=80"; // General Tech
 }
