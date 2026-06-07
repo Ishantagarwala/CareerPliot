@@ -26,6 +26,10 @@ export default function AIHubLayout() {
   const [editingThreadId, setEditingThreadId] = useState<string | null>(null);
   const [editingTitle, setEditingTitle] = useState("");
 
+  // Mobile sidebars toggles
+  const [isLeftOpen, setIsLeftOpen] = useState(false);
+  const [isRightOpen, setIsRightOpen] = useState(false);
+
   const fetchDocuments = useCallback(async () => {
     try {
       const res = await fetch("/api/ai-hub/documents");
@@ -135,9 +139,31 @@ export default function AIHubLayout() {
         </p>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-[260px_1fr_320px] gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-[260px_1fr_320px] gap-6 relative">
+        {/* Panel 1 Backdrop (Mobile) */}
+        {isLeftOpen && (
+          <div
+            className="fixed inset-0 z-40 bg-black/60 lg:hidden"
+            onClick={() => setIsLeftOpen(false)}
+          />
+        )}
+
         {/* Panel 1: Chats Sidebar */}
-        <section className="flex flex-col bg-[#0A0A0A] border border-[#262626] p-4 h-[calc(100vh-220px)] min-h-[560px]">
+        <section
+          className={`flex flex-col bg-[#0A0A0A] border border-[#262626] p-4
+            fixed inset-y-0 left-0 z-50 w-[260px] transition-transform duration-300 ease-in-out lg:static lg:z-0 lg:w-auto lg:h-[calc(100vh-220px)] lg:min-h-[560px]
+            ${isLeftOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}`}
+        >
+          {/* Close button for Sidebar on mobile */}
+          <div className="flex justify-end lg:hidden mb-2">
+            <button
+              onClick={() => setIsLeftOpen(false)}
+              className="p-1 text-white border border-[#262626] bg-[#1A1A1A] hover:bg-[#262626] flex items-center justify-center"
+            >
+              <span className="material-symbols-outlined text-[18px]">close</span>
+            </button>
+          </div>
+
           <div className="pb-3 border-b border-[#262626] mb-4">
             <p
               className="text-[11px] text-[#8e9192] uppercase tracking-[0.15em] mb-2"
@@ -146,7 +172,10 @@ export default function AIHubLayout() {
               Conversations
             </p>
             <button
-              onClick={() => setActiveThreadId(null)}
+              onClick={() => {
+                setActiveThreadId(null);
+                setIsLeftOpen(false);
+              }}
               className="w-full flex items-center justify-between border border-dashed border-[#404040] hover:border-white p-3 text-xs font-bold text-[#8e9192] hover:text-white transition-all bg-[#0A0A0A] hover:bg-[#1A1A1A]"
               style={{ fontFamily: "'JetBrains Mono', monospace", letterSpacing: "0.04em" }}
             >
@@ -198,7 +227,10 @@ export default function AIHubLayout() {
                         ? "bg-[#1A1A1A] border-white text-white font-bold"
                         : "bg-[#0A0A0A] border-[#262626] text-[#8e9192] hover:bg-[#131313] hover:text-white"
                     }`}
-                    onClick={() => setActiveThreadId(thread._id)}
+                    onClick={() => {
+                      setActiveThreadId(thread._id);
+                      setIsLeftOpen(false);
+                    }}
                   >
                     <div className="flex items-center gap-2 truncate">
                       <span className="material-symbols-outlined text-[15px]">chat_bubble</span>
@@ -244,16 +276,43 @@ export default function AIHubLayout() {
           onUploadSuccess={handleUploadSuccess}
           draftPrompt={draftPrompt}
           onDraftPromptConsumed={() => setDraftPrompt("")}
+          onToggleLeftSidebar={() => setIsLeftOpen((prev) => !prev)}
+          onToggleRightSidebar={() => setIsRightOpen((prev) => !prev)}
         />
 
+        {/* Panel 3 Backdrop (Mobile) */}
+        {isRightOpen && (
+          <div
+            className="fixed inset-0 z-40 bg-black/60 lg:hidden"
+            onClick={() => setIsRightOpen(false)}
+          />
+        )}
+
         {/* Panel 3: Document Library */}
-        <DocumentLibrary
-          documents={documents}
-          selectedDocumentIds={selectedDocumentIds}
-          loading={loadingDocuments}
-          onToggleDocument={handleToggleDocument}
-          onQuickPrompt={setDraftPrompt}
-        />
+        <aside
+          className={`fixed inset-y-0 right-0 z-50 w-[300px] bg-[#0A0A0A] border-l border-[#262626] p-4 transition-transform duration-300 ease-in-out lg:static lg:z-0 lg:w-auto lg:border-l-0 lg:p-0 lg:h-auto
+            ${isRightOpen ? "translate-x-0" : "translate-x-full lg:translate-x-0"}`}
+        >
+          {/* Close button for Right Sidebar on mobile */}
+          <div className="flex justify-end lg:hidden mb-2">
+            <button
+              onClick={() => setIsRightOpen(false)}
+              className="p-1 text-white border border-[#262626] bg-[#1A1A1A] hover:bg-[#262626] flex items-center justify-center"
+            >
+              <span className="material-symbols-outlined text-[18px]">close</span>
+            </button>
+          </div>
+          <DocumentLibrary
+            documents={documents}
+            selectedDocumentIds={selectedDocumentIds}
+            loading={loadingDocuments}
+            onToggleDocument={handleToggleDocument}
+            onQuickPrompt={(prompt) => {
+              setDraftPrompt(prompt);
+              setIsRightOpen(false);
+            }}
+          />
+        </aside>
       </div>
     </div>
   );
