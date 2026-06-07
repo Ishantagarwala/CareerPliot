@@ -62,6 +62,24 @@ function timeAgo(dateStr: string): string {
   });
 }
 
+// ── Fallback Image Finder by Tag ──────────────────────────────────────
+function getFallbackImage(tags: string[] = []): string {
+  const t = tags.map((val) => val.toLowerCase());
+  if (t.some((val) => val.includes("ai") || val.includes("ml") || val.includes("intelligence") || val.includes("chatbot"))) {
+    return "https://images.unsplash.com/photo-1677442136019-21780efad99a?auto=format&fit=crop&w=800&q=80"; // AI
+  }
+  if (t.some((val) => val.includes("startup") || val.includes("funding"))) {
+    return "https://images.unsplash.com/photo-1559136555-9303baea8ebd?auto=format&fit=crop&w=800&q=80"; // Startups
+  }
+  if (t.some((val) => val.includes("hiring") || val.includes("jobs") || val.includes("internship"))) {
+    return "https://images.unsplash.com/photo-1486312338219-ce68d2c6f44d?auto=format&fit=crop&w=800&q=80"; // Jobs
+  }
+  if (t.some((val) => val.includes("india"))) {
+    return "https://images.unsplash.com/photo-1524492412937-b28074a5d7da?auto=format&fit=crop&w=800&q=80"; // India
+  }
+  return "https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=800&q=80"; // General Tech
+}
+
 // ── Priority tags for quick filter ────────────────────────────────────
 const PRIORITY_TAGS = [
   "India",
@@ -347,17 +365,11 @@ export default function NewsPage() {
               className="block border border-border bg-card flex flex-col group h-full transition-colors duration-300 hover:border-muted-foreground cursor-pointer no-underline"
             >
               <div className="h-[300px] sm:h-[380px] w-full bg-accent relative overflow-hidden">
-                {featuredArticle.imageUrl ? (
-                  <img
-                    src={featuredArticle.imageUrl}
-                    alt={featuredArticle.imageAlt || "Featured image"}
-                    className="w-full h-full object-cover opacity-90 group-hover:opacity-100 transition-opacity duration-500 scale-100 group-hover:scale-105"
-                  />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center bg-accent">
-                    <Newspaper className="h-16 w-16 text-muted-foreground opacity-30" />
-                  </div>
-                )}
+                <img
+                  src={featuredArticle.imageUrl || getFallbackImage(featuredArticle.tags)}
+                  alt={featuredArticle.imageAlt || "Featured image"}
+                  className="w-full h-full object-cover opacity-90 group-hover:opacity-100 transition-opacity duration-500 scale-100 group-hover:scale-105"
+                />
                 <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-transparent pointer-events-none" />
                 <div className="absolute top-4 left-4 flex items-center gap-2">
                   <span
@@ -542,16 +554,14 @@ export default function NewsPage() {
                 rel="noopener noreferrer"
                 className="border border-border bg-card flex flex-col group cursor-pointer hover:border-muted-foreground transition-all duration-300 no-underline block"
               >
-                {article.imageUrl && (
-                  <div className="h-44 w-full bg-accent overflow-hidden border-b border-border relative">
-                    <div className="absolute inset-0 bg-background/20 group-hover:bg-transparent transition-colors z-10" />
-                    <img
-                      src={article.imageUrl}
-                      alt={article.imageAlt || "Analysis cover image"}
-                      className="w-full h-full object-cover opacity-90 group-hover:opacity-100 scale-100 group-hover:scale-103 transition-transform"
-                    />
-                  </div>
-                )}
+                <div className="h-44 w-full bg-accent overflow-hidden border-b border-border relative">
+                  <div className="absolute inset-0 bg-background/20 group-hover:bg-transparent transition-colors z-10" />
+                  <img
+                    src={article.imageUrl || getFallbackImage(article.tags)}
+                    alt={article.imageAlt || "Analysis cover image"}
+                    className="w-full h-full object-cover opacity-90 group-hover:opacity-100 scale-100 group-hover:scale-103 transition-transform"
+                  />
+                </div>
                 <div className="p-5 flex-1 flex flex-col justify-between">
                   <div>
                     <div className="flex items-center justify-between mb-3">
