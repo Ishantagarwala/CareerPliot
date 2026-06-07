@@ -30,6 +30,9 @@ export default function AIHubLayout() {
   const [isLeftOpen, setIsLeftOpen] = useState(false);
   const [isRightOpen, setIsRightOpen] = useState(false);
 
+  // Custom delete confirmation state
+  const [threadToDeleteId, setThreadToDeleteId] = useState<string | null>(null);
+
   const fetchDocuments = useCallback(async () => {
     try {
       const res = await fetch("/api/ai-hub/documents");
@@ -251,9 +254,7 @@ export default function AIHubLayout() {
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
-                          if (confirm("Delete this conversation?")) {
-                            handleDeleteThread(thread._id);
-                          }
+                          setThreadToDeleteId(thread._id);
                         }}
                         className="hover:text-red-500 text-[#8e9192] p-0.5"
                       >
@@ -314,6 +315,48 @@ export default function AIHubLayout() {
           />
         </aside>
       </div>
+
+      {/* Custom Modal for deleting thread */}
+      {threadToDeleteId && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+          {/* Backdrop */}
+          <div 
+            className="fixed inset-0 bg-black/80 backdrop-blur-sm transition-opacity"
+            onClick={() => setThreadToDeleteId(null)}
+          />
+          {/* Modal Container */}
+          <div className="relative w-full max-w-sm bg-[#0A0A0A] border border-[#262626] p-6 animate-fade-in-up z-[101]">
+            <h3 className="text-base font-bold text-white uppercase tracking-wider font-mono mb-3">
+              Delete Conversation?
+            </h3>
+            <p className="text-xs text-[#8e9192] leading-relaxed mb-6">
+              This will permanently delete this conversation history. This action cannot be undone.
+            </p>
+            
+            <div className="flex items-center justify-end gap-3">
+              <button
+                onClick={() => setThreadToDeleteId(null)}
+                className="px-4 py-2 text-xs font-bold text-[#8e9192] border border-[#262626] bg-[#0A0A0A] hover:bg-[#1A1A1A] hover:text-white transition-colors"
+                style={{ fontFamily: "'JetBrains Mono', monospace" }}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => {
+                  if (threadToDeleteId) {
+                    handleDeleteThread(threadToDeleteId);
+                    setThreadToDeleteId(null);
+                  }
+                }}
+                className="px-4 py-2 text-xs font-bold bg-red-600 text-white hover:bg-red-700 transition-colors"
+                style={{ fontFamily: "'JetBrains Mono', monospace" }}
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
