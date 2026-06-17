@@ -2,13 +2,13 @@
 
 [![Brainware AI Hackathon 2026](https://img.shields.io/badge/Brainware%20AI%20Hackathon-2026-blueviolet?style=for-the-badge)](https://github.com/aritraio/bwu-ai-hackathon-2026)
 [![Made By](https://img.shields.io/badge/Made%20By-Career%20Wallah-orange?style=for-the-badge)](#)
-[![Tech Stack](https://img.shields.io/badge/Stack-React%20%7C%20Node%20%7C%20Postgres-blue?style=for-the-badge)](#-tech-stack)
+[![Tech Stack](https://img.shields.io/badge/Stack-Next.js%20%7C%20MongoDB%20%7C%20Tailwind-blue?style=for-the-badge)](#-tech-stack)
 
 Welcome to the official repository for **Career Pilot**, an AI-powered career guidance and personalized learning assistant developed by **Career Wallah** for the **Brainware AI Hackathon 2026**.
 
 Career Pilot is designed to eliminate the uncertainty in career planning for students. By combining interest profiling, customized roadmaps, smart course curations, interactive document analysis, and a 24/7 AI tutor, Career Pilot helps students navigate their professional journey from initial discovery to industry readiness.
 
-> For the comprehensive project charter, milestone trackers, and sprint details, see the [Full Project Specification (CAREER_PILOT.md)](file:///Users/aritra/Dev/Hackathon/bwu-ai-hackathon-2026/CAREER_PILOT.md).
+> For the comprehensive project charter, milestone trackers, and sprint details, see the [Full Project Specification (CAREER_PILOT.md)](file:///home/pacific/Downloads/test/career-pilot/CAREER_PILOT.md).
 
 ---
 
@@ -28,8 +28,12 @@ Career Pilot is designed to eliminate the uncertainty in career planning for stu
 *   **🧭 AI Career Discovery Engine:** Analyzes user interests, favorite academic subjects, skills, and goals to match them with the most compatible career paths.
 *   **🗺️ Personalized Career Roadmaps:** Generates a structured, stage-wise learning path (Beginner → Intermediate → Advanced) for the selected career path.
 *   **📚 Smart Course Recommendation:** Curates free and paid courses across YouTube, Coursera, Udemy, freeCodeCamp, and Kaggle based on goals and budget constraints.
-*   **📄 Interactive PDF & Notes Assistant:** Allows students to upload PDFs/notes to extract summaries, generate flashcards, and create practice MCQs.
+*   **📄 Interactive PDF & Notes Assistant:** Powered by **PDF.co API** (with local PDF.js fallback), allows students to upload PDFs/notes to extract summaries, generate flashcards, and create practice MCQs.
 *   **🤖 24/7 AI Tutor Chatbot:** Direct interface for real-time concept explanation, code debugging, and step-by-step guidance.
+*   **📝 Standalone Resume ATS Analyzer:** Analyze your resume's formatting, keyword density, and overall ATS compatibility, mapping them against custom job descriptions.
+*   **💼 Job Board & Skill Matcher:** Real-time SDE and tech jobs fetched via **Remotive API** featuring a custom Match Score highlighting your matched profile skills.
+*   **🏆 HackerEarth & Devfolio Hub:** Real-time hackathon discovery and coding challenges.
+*   **📰 India Tech News Feed:** Live tech industry news aggregated from **Entrackr**, **Moneycontrol**, and **Livemint** to keep students up-to-date with the tech ecosystem.
 *   **📊 Progress Tracking Dashboard:** Keeps tabs on completed course milestones, study streaks, document uploads, and overall job readiness.
 
 ---
@@ -40,7 +44,7 @@ Career Pilot is designed to eliminate the uncertainty in career planning for stu
 ┌─────────────────────────────────────────────────────────────────┐
 │                        CLIENT (Browser)                         │
 │                                                                 │
-│   React.js + Bootstrap + React Router + Axios                   │
+│   Next.js 15 (App Router) + React Server Components             │
 │   ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌──────────────────┐  │
 │   │  Auth UI  │ │ Career   │ │ Roadmap  │ │ Course/PDF/Tutor │  │
 │   │  Module   │ │ Discovery│ │ Viewer   │ │    Modules       │  │
@@ -50,23 +54,23 @@ Career Pilot is designed to eliminate the uncertainty in career planning for stu
          │             │            │                 │
          ▼             ▼            ▼                 ▼
    ╔═══════════════════════════════════════════════════════════╗
-   ║                   REST API LAYER                          ║
-   ║              Node.js + Express.js Server                  ║
+   ║              NEXT.JS API ROUTES LAYER                     ║
+   ║         /app/api/* (Route Handlers + Server Actions)      ║
    ║                                                           ║
    ║  ┌─────────────┐  ┌─────────────┐  ┌─────────────────┐   ║
    ║  │ Auth Routes  │  │ Career API  │  │ AI Integration  │   ║
-   ║  │ (JWT+bcrypt) │  │   Routes    │  │   Controller    │   ║
+   ║  │ (NextAuth)   │  │   Routes    │  │    Service       │   ║
    ║  └──────┬──────┘  └──────┬──────┘  └────────┬────────┘   ║
    ║         │                │                   │            ║
    ╚═════════╪════════════════╪═══════════════════╪════════════╝
              │                │                   │
       ┌──────▼──────┐  ┌─────▼──────┐   ┌────────▼────────┐
-      │  PostgreSQL  │  │  PostgreSQL │   │   OpenAI API    │
+      │   MongoDB    │  │   MongoDB   │   │   OpenAI API    │
       │  (Users,     │  │  (Careers,  │   │  (GPT-4/3.5)    │
       │   Auth)      │  │  Roadmaps,  │   │                 │
-      │              │  │  Courses,   │   │  ┌────────────┐ │
-      │              │  │  Progress)  │   │  │ pdf-parse  │ │
-      │              │  │             │   │  │ multer     │ │
+      │  [Mongoose]  │  │  Courses,   │   │  ┌────────────┐ │
+      │              │  │  Progress)  │   │  │ PDF.co API │ │
+      │              │  │ [Mongoose]  │   │  │ pdf-parse  │ │
       │              │  │             │   │  └────────────┘ │
       └──────────────┘  └─────────────┘   └─────────────────┘
 ```
@@ -77,37 +81,36 @@ Career Pilot is designed to eliminate the uncertainty in career planning for stu
 
 | Layer | Technology | Description / Use Case |
 | :--- | :--- | :--- |
-| **Frontend** | **React.js** | Interactive and component-driven user interface |
-| **UI Styling** | **Bootstrap 5** | Responsive layout and pre-styled UI components |
-| **Routing** | **React Router v6** | Client-side routing with protected dashboard views |
-| **HTTP Client** | **Axios** | API request orchestration and JWT authentication header insertion |
-| **Backend** | **Node.js + Express.js** | Lightweight REST API server development |
-| **Database** | **PostgreSQL** | Structured relational store for profiles, progress, and history |
-| **Auth** | **JWT & bcrypt** | Industry-standard token-based session handling & password security |
+| **Framework** | **Next.js 15 (App Router)** | Unified frontend rendering, React Server Components, and secure API routes |
+| **UI Styling** | **Tailwind CSS 4 + shadcn/ui** | Utility-first responsive design coupled with modern, accessible UI components |
+| **Database** | **MongoDB (Atlas)** | Document-based flexible cloud database ideal for rapid feature expansion |
+| **ODM** | **Mongoose 8** | Schema validation, middleware hooks, and structured MongoDB queries |
+| **Auth** | **NextAuth.js (Auth.js v5)** | Session management, credential login, CSRF protection, and middleware route security |
 | **AI Engine** | **OpenAI API** | High-quality reasoning models (GPT-4 / GPT-3.5-turbo) |
-| **PDF Extraction**| **pdf-parse & multer** | File upload orchestration and text extraction pipelines |
+| **PDF Extraction**| **PDF.co API & pdf-parse** | Multi-page PDF text extraction with local PDF.js fallback |
+| **External APIs** | **Remotive, Devfolio, HackerEarth** | Real-time jobs list, challenges, and hackathon discovery integrations |
+| **News Aggregators**| **Entrackr, Moneycontrol, Livemint** | Aggregated India tech ecosystem news feeds |
 
 ---
 
 ## 📂 Project Structure
 
-The project code is divided into three main logical directories:
-
 ```
 career-pilot/
-├── client/                     # React Frontend
-│   ├── src/
-│   │   ├── components/         # Modular interface components (Auth, Career, PDF, Tutor, Dashboard)
-│   │   ├── context/            # AuthContext & User state management
-│   │   └── services/           # Axios-based backend integrations
-├── server/                     # Node.js Express Backend
-│   ├── config/                 # Database connectors and environments
-│   ├── controllers/            # Controller layers handling core business logic
-│   ├── middleware/             # Security middlewares (JWT verification, rate limiters)
-│   ├── routes/                 # Express API endpoints
-│   └── uploads/                # Local staging for notes & PDFs
-└── database/
-    └── schema.sql              # Database setup and DDL schema scripts
+├── app/                          # Next.js App Router (Pages, Layouts, & API Routes)
+│   ├── (auth)/                   # Authentication route group (login, register)
+│   ├── (dashboard)/              # Protected dashboard pages (career, roadmap, pdf, tutor, jobs)
+│   └── api/                      # Backend API Route Handlers
+├── components/                   # Reusable React UI Components
+│   ├── ui/                       # shadcn/ui primitive component library
+│   ├── layout/                   # Navbar, Sidebar, and Footer
+│   ├── career/                   # Assessment forms and recommendations
+│   ├── pdf/                      # PDF uploaders and summary views
+│   └── tutor/                    # AI Chat interface elements
+├── lib/                          # Shared utilities (DB connection, auth config, pdf services)
+├── models/                       # Mongoose Schemas (User, Roadmap, Document, Resume, etc.)
+├── public/                       # Static assets
+└── tsconfig.json                 # TypeScript configuration
 ```
 
 ---
@@ -116,52 +119,39 @@ career-pilot/
 
 ### Prerequisites
 Make sure you have the following installed:
-*   [Node.js](https://nodejs.org/) (v16+ recommended)
-*   [PostgreSQL](https://www.postgresql.org/) (running locally or cloud instances like Supabase/Railway)
+*   [Node.js](https://nodejs.org/) (v18+ recommended)
+*   [MongoDB Atlas](https://www.mongodb.com/atlas) (or local MongoDB server instance)
 *   [OpenAI API Key](https://platform.openai.com/)
 
-### Backend Installation (`/server`)
-1. Navigate to the server folder:
+### Installation & Run
+
+1. Clone the repository and navigate to the project directory:
    ```bash
-   cd server
+   cd career-pilot
    ```
-2. Install dependencies:
+
+2. Install the project dependencies:
    ```bash
    npm install
    ```
-3. Set up your `.env` file using the configuration schema:
-   ```env
-   PORT=5000
-   DATABASE_URL=postgresql://username:password@localhost:5432/career_pilot
-   JWT_SECRET=your_jwt_signing_secret
-   OPENAI_API_KEY=your_openai_api_key
-   ```
-4. Initialize the PostgreSQL schema:
-   ```bash
-   psql -U username -d career_pilot -f ../database/schema.sql
-   ```
-5. Start the backend developer server:
+
+3. Set up your environment variables in `.env.local` using the template below:
+    ```env
+    AUTH_SECRET=your_auth_secret_here
+    MONGODB_URI=your_mongodb_connection_string
+    ZENMUX_API_KEY=your_zenmux_api_key_here
+    ZENMUX_BASE_URL=https://zenmux.ai/api/v1
+    ZENMUX_MODEL=openai/gpt-4o-mini
+    ZENMUX_PDF_MODEL=openai/gpt-4o
+    PDF_CO_API_KEY=your_pdf_co_api_key
+    ```
+
+4. Start the local development server:
    ```bash
    npm run dev
    ```
 
-### Frontend Installation (`/client`)
-1. Navigate to the client folder:
-   ```bash
-   cd client
-   ```
-2. Install dependencies:
-   ```bash
-   npm install
-   ```
-3. Set up the development proxy or environment variable in `.env`:
-   ```env
-   REACT_APP_API_URL=http://localhost:5000
-   ```
-4. Start the frontend developer server:
-   ```bash
-   npm start
-   ```
+5. Open [http://localhost:3000](http://localhost:3000) in your browser to view the application.
 
 ---
 
@@ -169,9 +159,9 @@ Make sure you have the following installed:
 
 ### 👥 Developed by Career Wallah
 *   **Frontend Lead:** UI/UX, Component Routing, API Integrations
-*   **Backend Lead:** Server Orchestration, JWT Auth, Database Architecture
-*   **AI Engineer:** OpenAI API Prompt Engineering, Document Processing Pipelines
-*   **Database & DevOps:** Deployment (Supabase/Vercel/Render), DB schemas, Environment setups
+*   **Backend Lead:** Server Orchestration, NextAuth Config, Database Architecture
+*   **AI Engineer:** OpenAI API Prompt Engineering, PDF.co Extraction Pipelines
+*   **Database & DevOps:** Deployment (Vercel/MongoDB Atlas), DB schemas, Environment setups
 *   **UI/UX & Presenter:** Wireframes, pitch deck, live demo preparation
 
 ### 🗓️ Important Deadlines
@@ -185,5 +175,5 @@ Make sure you have the following installed:
 ## 📞 Contact & Queries
 
 For any general queries or clarification regarding the hackathon guidelines, reach out to the university organizers:
-*   **Dr. Subhankar Saha** | [dss.me@brainwareuniversity.ac.in](mailto:dss.me@brainwareuniversity.ac.in) | +91-9957593969
-*   **Dr. Indrani Paul** | [dip.bt@brainwareuniversity.ac.in](mailto:dip.bt@brainwareuniversity.ac.in) | +91-9614597629
+*   **Dr. Subhankar Saha** | dss.me@brainwareuniversity.ac.in | +91-9957593969
+*   **Dr. Indrani Paul** | dip.bt@brainwareuniversity.ac.in | +91-9614597629
