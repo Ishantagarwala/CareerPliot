@@ -263,7 +263,7 @@ An on-demand document intelligence system:
 
 **Processing Flow:**
 ```
-File Upload (formidable in API route) → Text Extraction (pdf-parse) → 
+File Upload (formidable in API route) → Text Extraction (PDF.co API / pdf-parse fallback) → 
 Prompt Engineering → OpenAI API → Structured Output 
 (Summary / Questions / Explanations)
 ```
