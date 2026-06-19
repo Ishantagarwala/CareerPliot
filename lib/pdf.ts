@@ -1,3 +1,4 @@
+// @ts-ignore
 import pdf from "pdf-parse";
 
 // Polyfill global atob/btoa for Node environment to handle binary streams in pdf-parse
