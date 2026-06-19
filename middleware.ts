@@ -1,6 +1,6 @@
 import { auth } from "@/lib/auth";
 
-export const proxy = auth((req) => {
+export default auth((req) => {
   const isLoggedIn = !!req.auth;
   const { nextUrl } = req;
 
