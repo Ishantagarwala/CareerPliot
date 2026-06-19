@@ -1,4 +1,4 @@
-import { PDFParse } from "pdf-parse";
+import pdf from "pdf-parse";
 
 // Polyfill global atob/btoa for Node environment to handle binary streams in pdf-parse
 if (typeof global !== "undefined") {
@@ -96,10 +96,8 @@ export async function extractTextFromPdf(buffer: Buffer, filename: string): Prom
   } catch (error: any) {
     console.warn(`[PDF.co] Extraction failed, falling back to local pdf.js:`, error.message || error);
 
-    // Fallback using local PDFParse (pdf.js)
-    const parser = new PDFParse({ data: new Uint8Array(buffer) });
-    const result = await parser.getText();
-    await parser.destroy();
+    // Fallback using local pdf-parse
+    const result = await pdf(buffer);
 
     if (!result.text || !result.text.trim()) {
       throw new Error("Both PDF.co and backup pdf.js failed to extract text (empty result).");
