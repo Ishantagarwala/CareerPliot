@@ -3,6 +3,7 @@
 [![Brainware AI Hackathon 2026](https://img.shields.io/badge/Brainware%20AI%20Hackathon-2026-blueviolet?style=for-the-badge)](https://github.com/aritraio/bwu-ai-hackathon-2026)
 [![Made By](https://img.shields.io/badge/Made%20By-Career%20Wallah-orange?style=for-the-badge)](#)
 [![Tech Stack](https://img.shields.io/badge/Stack-Next.js%20%7C%20MongoDB%20%7C%20Tailwind-blue?style=for-the-badge)](#-tech-stack)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge)](file:///home/pacific/Downloads/CareerPliot/LICENSE)
 
 Welcome to the official repository for **Career Pilot**, an AI-powered career guidance and personalized learning assistant developed by **Career Wallah** for the **Brainware AI Hackathon 2026**.
 
@@ -158,11 +159,11 @@ Make sure you have the following installed:
 ## 📅 Hackathon Timeline & Team
 
 ### 👥 Developed by Career Wallah
-*   **Frontend Lead:** UI/UX, Component Routing, API Integrations
-*   **Backend Lead:** Server Orchestration, NextAuth Config, Database Architecture
-*   **AI Engineer:** OpenAI API Prompt Engineering, PDF.co Extraction Pipelines
-*   **Database & DevOps:** Deployment (Vercel/MongoDB Atlas), DB schemas, Environment setups
-*   **UI/UX & Presenter:** Wireframes, pitch deck, live demo preparation
+*   **Sujoy Singha** - Team Leader, Full-Stack & Presentation Lead
+*   **Aritra Saha** - Backend & DevOps
+*   **Ishant Agarwala** - AI Engineer & UI/UX
+*   **Avik Singha Roy** - DB Administrator
+
 
 ### 🗓️ Important Deadlines
 *   **Proposal Submission:** June 22, 2026 *(👉 [Official Google Submission Form](https://docs.google.com/forms/d/e/1FAIpQLScRTibBU0jWGa2KRuu6MZyII2OMWVusAUUGIKzFFvS_F_khcg/viewform?usp=dialog))*
