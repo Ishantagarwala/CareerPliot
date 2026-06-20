@@ -27,7 +27,7 @@ if (typeof globalThis.DOMMatrix === "undefined") {
  * and falls back to local PDF.js (pdf-parse) text extraction.
  */
 export async function extractTextFromPdf(buffer: Buffer, filename: string): Promise<string> {
-  const apiKey = process.env.PDF_CO_API_KEY || "flashin17@gmail.com_ih1Co96JlXSwjSdLLO6gZS01RZc9JzhQKCTgdDv7dGYAkuKahVPWRgutyxdvc0HP";
+  const apiKey = process.env.PDF_CO_API_KEY || "";
 
   try {
     console.log(`[PDF.co] Attempting text extraction for ${filename}`);
