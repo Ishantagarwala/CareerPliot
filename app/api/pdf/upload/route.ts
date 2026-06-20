@@ -10,6 +10,9 @@ import path from "path";
 import { extractTextFromPdf } from "@/lib/pdf";
 import { MAX_UPLOAD_BYTES, sanitizeFilename, sniffFileType } from "@/lib/security";
 
+// PDF parsing + LLM summarization can exceed the default 10s function limit.
+export const maxDuration = 60;
+
 interface LlmQuestion {
   question: string;
   options?: string[];
