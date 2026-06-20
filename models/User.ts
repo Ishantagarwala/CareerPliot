@@ -13,7 +13,7 @@ export interface IUser extends MongooseDocument {
 const UserSchema = new Schema<IUser>({
   name: { type: String, required: true, maxlength: 100 },
   email: { type: String, required: true, unique: true, index: true },
-  password: { type: String }, // bcrypt hashed
+  password: { type: String, select: false }, // bcrypt hashed; excluded from queries by default
   image: { type: String }, // OAuth profile image
   provider: { type: String, default: 'credentials' },
 }, { timestamps: true });

@@ -40,6 +40,13 @@ async function handleSeed() {
     const userObjectId = new mongoose.Types.ObjectId(userId);
     await dbConnect();
 
+    // Idempotent onboarding: only seed once per user. This prevents repeated
+    // (and CSRF-triggered) re-runs from wiping and re-creating data.
+    const alreadySeeded = await UserProfile.findOne({ userId: userObjectId }).select("_id").lean();
+    if (alreadySeeded) {
+      return NextResponse.json({ message: "Already seeded." }, { status: 200 });
+    }
+
     // 1. Clear existing seed data for this specific user
     await UserProfile.deleteMany({ userId: userObjectId });
     await CareerRecommendation.deleteMany({ userId: userObjectId });

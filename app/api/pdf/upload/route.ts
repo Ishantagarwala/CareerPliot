@@ -8,6 +8,7 @@ import { mkdir, writeFile } from "fs/promises";
 import path from "path";
 
 import { extractTextFromPdf } from "@/lib/pdf";
+import { MAX_UPLOAD_BYTES, sanitizeFilename, sniffFileType } from "@/lib/security";
 
 interface LlmQuestion {
   question: string;
@@ -39,6 +40,21 @@ export async function POST(req: Request) {
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
 
+    if (buffer.byteLength > MAX_UPLOAD_BYTES) {
+      return NextResponse.json(
+        { message: "File too large. Maximum size is 10 MB." },
+        { status: 413 }
+      );
+    }
+
+    // Validate true file type from magic bytes, not the client-supplied name/type.
+    if (sniffFileType(buffer) !== "pdf") {
+      return NextResponse.json(
+        { message: "Only PDF files are accepted." },
+        { status: 415 }
+      );
+    }
+
     // 1. Extract text from PDF using extractTextFromPdf (PDF.co with PDF.js fallback)
     let pdfText = "";
     try {
@@ -65,9 +81,9 @@ export async function POST(req: Request) {
       : pdfText;
 
     // 2. Save file locally inside public/uploads (skip writing to disk in production/Vercel serverless environment to prevent EROFS)
-    const uniqueFilename = `${Date.now()}-${file.name.replace(/\s+/g, "_")}`;
+    const uniqueFilename = `${Date.now()}-${sanitizeFilename(file.name)}`;
     const fileUrl = `/uploads/${uniqueFilename}`;
-    
+
     if (!process.env.VERCEL && process.env.NODE_ENV !== "production") {
       try {
         const uploadDir = path.join(process.cwd(), "public", "uploads");
@@ -157,10 +173,10 @@ ${textToAnalyze}`;
         questions: newDoc.questions,
       },
     });
-  } catch (error: any) {
+  } catch (error) {
     console.error("PDF upload error:", error);
     return NextResponse.json(
-      { message: "Internal Server Error", error: error.message },
+      { message: "Internal Server Error" },
       { status: 500 }
     );
   }

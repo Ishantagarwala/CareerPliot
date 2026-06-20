@@ -3,6 +3,7 @@ import { auth } from "@/lib/auth";
 import dbConnect from "@/lib/db";
 import JobListing from "@/models/JobListing";
 import UserProfile from "@/models/UserProfile";
+import { escapeRegExp } from "@/lib/security";
 
 export const dynamic = "force-dynamic";
 
@@ -28,10 +29,11 @@ export async function GET(req: Request) {
       query.type = type;
     }
     if (search) {
+      const safeSearch = escapeRegExp(search);
       query.$or = [
-        { title: { $regex: search, $options: "i" } },
-        { company: { $regex: search, $options: "i" } },
-        { skills: { $regex: search, $options: "i" } }
+        { title: { $regex: safeSearch, $options: "i" } },
+        { company: { $regex: safeSearch, $options: "i" } },
+        { skills: { $regex: safeSearch, $options: "i" } }
       ];
     }
 
