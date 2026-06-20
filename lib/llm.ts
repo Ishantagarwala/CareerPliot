@@ -13,14 +13,20 @@ export function getLlmClient(): OpenAI {
   const geminiKey = process.env.GEMINI_API_KEY?.trim();
   const openAiKey = process.env.OPENAI_API_KEY?.trim();
 
-  if (zenMuxKey) {
+  const isPlaceholder = (val?: string) => 
+    !val || 
+    val.includes("your_") || 
+    val.includes("_here") || 
+    val === "dummy-key";
+
+  if (zenMuxKey && !isPlaceholder(zenMuxKey)) {
     return new OpenAI({
       apiKey: zenMuxKey,
       baseURL: zenMuxBaseUrl,
     });
   }
 
-  if (geminiKey) {
+  if (geminiKey && !isPlaceholder(geminiKey)) {
     return new OpenAI({
       apiKey: geminiKey,
       baseURL: "https://generativelanguage.googleapis.com/v1beta/openai/",
@@ -28,7 +34,7 @@ export function getLlmClient(): OpenAI {
   }
 
   return new OpenAI({
-    apiKey: openAiKey || "dummy-key",
+    apiKey: isPlaceholder(openAiKey) ? "dummy-key" : openAiKey!,
   });
 }
 
@@ -38,24 +44,38 @@ export function getLlmClient(): OpenAI {
  * "gemini-3.1-flash-lite" (or "gemini-3-flash" for PDF) if GEMINI_API_KEY is present,
  * or "gpt-4o-mini" (or "gpt-4o" for PDF) if using OpenAI. Can be overridden via environment variables.
  */
-export function getLlmModel(isPdf = false): string {
-  if (process.env.ZENMUX_API_KEY) {
-    if (isPdf) {
-      return process.env.ZENMUX_PDF_MODEL || process.env.ZENMUX_MODEL || "openai/gpt-4o";
+export function getLlmModel(isPdf = false, modelSelection?: "primary" | "opus" | "gemini"): string {
+  const zenMuxKey = process.env.ZENMUX_API_KEY?.trim();
+  const geminiKey = process.env.GEMINI_API_KEY?.trim();
+
+  const isPlaceholder = (val?: string) => 
+    !val || 
+    val.includes("your_") || 
+    val.includes("_here");
+
+  if (zenMuxKey && !isPlaceholder(zenMuxKey)) {
+    if (modelSelection === "opus") {
+      return "anthropic/claude-opus-4.6";
     }
-    return process.env.ZENMUX_MODEL || "openai/gpt-4o-mini";
+    if (modelSelection === "gemini") {
+      return "google/gemini-3.5-flash";
+    }
+    if (isPdf) {
+      return process.env.ZENMUX_PDF_MODEL || process.env.ZENMUX_MODEL || "openai/gpt-5.5";
+    }
+    return process.env.ZENMUX_MODEL || "openai/gpt-5.5";
   }
 
-  if (process.env.GEMINI_API_KEY) {
+  if (geminiKey && !isPlaceholder(geminiKey)) {
     if (isPdf) {
       return process.env.GEMINI_PDF_MODEL || "gemini-3.5-flash";
     }
-    return process.env.GEMINI_MODEL || "gemini-3.1-flash-lite";
+    return process.env.GEMINI_MODEL || "gemini-3.5-flash";
   }
   if (isPdf) {
-    return process.env.OPENAI_PDF_MODEL || "gpt-4o";
+    return process.env.OPENAI_PDF_MODEL || "gpt-5.5";
   }
-  return process.env.OPENAI_MODEL || "gpt-4o-mini";
+  return process.env.OPENAI_MODEL || "gpt-5.5";
 }
 
 function extractJsonContent(content: string): string {
