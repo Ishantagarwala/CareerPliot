@@ -3,9 +3,12 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   serverExternalPackages: ["pdfjs-dist", "pdf-parse"],
   outputFileTracingIncludes: {
-    "/api/pdf/upload": ["./node_modules/pdf-parse/dist/pdf-parse/cjs/pdf.worker.mjs"],
-    "/api/ai-hub/upload": ["./node_modules/pdf-parse/dist/pdf-parse/cjs/pdf.worker.mjs"],
-    "/api/resume/ats-analyze": ["./node_modules/pdf-parse/dist/pdf-parse/cjs/pdf.worker.mjs"],
+    // pdf-parse v2 runs pdf.js, whose Node worker is loaded via a bundler-opaque
+    // dynamic import. Force the worker (and its sibling build files) into the
+    // serverless trace so it resolves at runtime on Vercel.
+    "/api/pdf/upload": ["./node_modules/pdfjs-dist/legacy/build/**"],
+    "/api/ai-hub/upload": ["./node_modules/pdfjs-dist/legacy/build/**"],
+    "/api/resume/ats-analyze": ["./node_modules/pdfjs-dist/legacy/build/**"],
   },
 };
 
