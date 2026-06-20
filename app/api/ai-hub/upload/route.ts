@@ -7,6 +7,7 @@ import { generateStructuredJson } from "@/lib/llm";
 import { mkdir, writeFile } from "fs/promises";
 import path from "path";
 import { extractTextFromPdf } from "@/lib/pdf";
+import { MAX_UPLOAD_BYTES, sanitizeFilename, sniffFileType } from "@/lib/security";
 
 export const dynamic = "force-dynamic";
 
@@ -40,7 +41,22 @@ export async function POST(req: Request) {
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
 
-    const uniqueFilename = `${Date.now()}-${file.name.replace(/\s+/g, "_")}`;
+    if (buffer.byteLength > MAX_UPLOAD_BYTES) {
+      return NextResponse.json(
+        { message: "File too large. Maximum size is 10 MB." },
+        { status: 413 }
+      );
+    }
+
+    // Determine the true file type from magic bytes rather than trusting the
+    // client-supplied file.type / extension (which can smuggle SVG/HTML and
+    // other stored-XSS payloads into the public uploads directory).
+    const sniffedType = sniffFileType(buffer);
+    if (!sniffedType) {
+      return NextResponse.json({ message: "Unsupported file type" }, { status: 415 });
+    }
+
+    const uniqueFilename = `${Date.now()}-${sanitizeFilename(file.name)}`;
     const fileUrl = `/uploads/${uniqueFilename}`;
 
     // Write file locally if in dev mode
@@ -58,7 +74,7 @@ export async function POST(req: Request) {
     await dbConnect();
 
     // 1. Process PDF file
-    if (file.type === "application/pdf" || file.name.endsWith(".pdf")) {
+    if (sniffedType === "pdf") {
       let pdfText = "";
       try {
         pdfText = await extractTextFromPdf(buffer, file.name);
@@ -149,20 +165,16 @@ Return your response ONLY as a JSON object matching this schema:
       });
     }
 
-    // 2. Process Image file
-    if (file.type.startsWith("image/")) {
-      return NextResponse.json({
-        type: "image",
-        filename: file.name,
-        fileUrl,
-      });
-    }
-
-    return NextResponse.json({ message: "Unsupported file type" }, { status: 400 });
-  } catch (error: any) {
+    // 2. Process Image file (png/jpeg/gif/webp, validated by magic bytes above)
+    return NextResponse.json({
+      type: "image",
+      filename: file.name,
+      fileUrl,
+    });
+  } catch (error) {
     console.error("AI Hub upload error:", error);
     return NextResponse.json(
-      { message: "Internal Server Error", error: error.message },
+      { message: "Internal Server Error" },
       { status: 500 }
     );
   }

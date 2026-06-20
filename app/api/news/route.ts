@@ -1,13 +1,20 @@
 import { NextResponse } from "next/server";
+import { auth } from "@/lib/auth";
 import dbConnect from "@/lib/db";
 import News from "@/models/News";
 import { fetchAndCacheNews, isCacheStale } from "@/lib/newsFetcher";
+import { escapeRegExp } from "@/lib/security";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
 export async function GET(req: Request) {
   try {
+    const session = await auth();
+    if (!session?.user?.id) {
+      return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+    }
+
     const url = new URL(req.url);
     const tag = url.searchParams.get("tag");
     const q = url.searchParams.get("q");
@@ -30,16 +37,17 @@ export async function GET(req: Request) {
     const query: any = {};
 
     if (tag) {
-      // Filter by tag case-insensitively
-      query.tags = { $regex: new RegExp(`^${tag}$`, "i") };
+      // Filter by tag case-insensitively (escaped to prevent ReDoS)
+      query.tags = { $regex: new RegExp(`^${escapeRegExp(tag)}$`, "i") };
     }
 
     if (q) {
-      // Simple keyword match in title, summary, or content
+      // Simple keyword match in title, summary, or content (escaped)
+      const safeQ = escapeRegExp(q);
       query.$or = [
-        { title: { $regex: q, $options: "i" } },
-        { summary: { $regex: q, $options: "i" } },
-        { content: { $regex: q, $options: "i" } }
+        { title: { $regex: safeQ, $options: "i" } },
+        { summary: { $regex: safeQ, $options: "i" } },
+        { content: { $regex: safeQ, $options: "i" } }
       ];
     }
 
@@ -49,10 +57,10 @@ export async function GET(req: Request) {
       .lean();
 
     return NextResponse.json(newsItems);
-  } catch (error: any) {
+  } catch (error) {
     console.error("News GET route error:", error);
     return NextResponse.json(
-      { message: "Internal Server Error", error: error.message },
+      { message: "Internal Server Error" },
       { status: 500 }
     );
   }

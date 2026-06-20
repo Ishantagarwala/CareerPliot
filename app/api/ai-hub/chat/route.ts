@@ -7,6 +7,7 @@ import Document from "@/models/Document";
 import UserProgress from "@/models/UserProgress";
 import { buildAiHubSystemPrompt, buildDocumentContext } from "@/lib/aiHub";
 import { getLlmClient, getLlmModel } from "@/lib/llm";
+import { resolveUploadPath } from "@/lib/security";
 import fs from "fs";
 import path from "path";
 
@@ -96,7 +97,10 @@ export async function POST(req: Request) {
     
     if (imageAttachment) {
       try {
-        const localPath = path.join(process.cwd(), "public", imageAttachment.fileUrl);
+        const localPath = resolveUploadPath(imageAttachment.fileUrl);
+        if (!localPath) {
+          throw new Error("Invalid attachment path");
+        }
         const ext = path.extname(localPath).toLowerCase().replace(".", "");
         const mimeType = ext === "png" ? "image/png" : "image/jpeg";
         const base64Data = fs.readFileSync(localPath).toString("base64");

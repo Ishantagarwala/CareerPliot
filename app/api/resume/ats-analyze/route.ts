@@ -5,6 +5,7 @@ import Resume from "@/models/Resume";
 import { generateStructuredJson } from "@/lib/llm";
 import { resumeToPlainText } from "@/lib/resume";
 import { extractTextFromPdf } from "@/lib/pdf";
+import { MAX_UPLOAD_BYTES, sniffFileType } from "@/lib/security";
 
 export const dynamic = "force-dynamic";
 
@@ -58,6 +59,21 @@ export async function POST(req: Request) {
       } else if (file) {
         const bytes = await file.arrayBuffer();
         const buffer = Buffer.from(bytes);
+
+        if (buffer.byteLength > MAX_UPLOAD_BYTES) {
+          return NextResponse.json(
+            { message: "File too large. Maximum size is 10 MB." },
+            { status: 413 }
+          );
+        }
+
+        if (sniffFileType(buffer) !== "pdf") {
+          return NextResponse.json(
+            { message: "Only PDF resumes are accepted." },
+            { status: 415 }
+          );
+        }
+
         try {
           resumeText = await extractTextFromPdf(buffer, file.name);
         } catch (parseError: any) {
@@ -138,10 +154,10 @@ Compare the resume against the job description. Evaluate keyword density/coverag
     const result = await generateStructuredJson<AtsAnalysisResult>(systemPrompt, userPrompt, true);
 
     return NextResponse.json(result);
-  } catch (error: any) {
+  } catch (error) {
     console.error("ATS Analyzer API Error:", error);
     return NextResponse.json(
-      { message: "Internal Server Error", error: error.message },
+      { message: "Internal Server Error" },
       { status: 500 }
     );
   }
