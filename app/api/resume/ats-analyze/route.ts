@@ -8,6 +8,8 @@ import { extractTextFromPdf } from "@/lib/pdf";
 import { MAX_UPLOAD_BYTES, sniffFileType } from "@/lib/security";
 
 export const dynamic = "force-dynamic";
+// PDF parsing + LLM analysis can exceed the default 10s function limit.
+export const maxDuration = 60;
 
 interface AtsAnalysisResult {
   matchScore: number;
