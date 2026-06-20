@@ -3,27 +3,15 @@ import { auth } from "@/lib/auth";
 import dbConnect from "@/lib/db";
 import Document from "@/models/Document";
 import UserProgress from "@/models/UserProgress";
-import { generateStructuredJson } from "@/lib/llm";
 import { mkdir, writeFile } from "fs/promises";
 import path from "path";
 
 import { extractTextFromPdf } from "@/lib/pdf";
 import { MAX_UPLOAD_BYTES, sanitizeFilename, sniffFileType } from "@/lib/security";
 
-// PDF parsing + LLM summarization can exceed the default 10s function limit.
-export const maxDuration = 60;
-
-interface LlmQuestion {
-  question: string;
-  options?: string[];
-  answer: string;
-  type: "mcq" | "flashcard";
-}
-
-interface LlmResponse {
-  summary: string;
-  questions: LlmQuestion[];
-}
+// Text extraction only — summary/quiz are generated later via chat. No LLM
+// call here, so the function stays well under the limit.
+export const maxDuration = 30;
 
 export async function POST(req: Request) {
   try {
@@ -77,12 +65,6 @@ export async function POST(req: Request) {
       );
     }
 
-    // Truncate to limit token usage (16,000 characters is about 2.5k-3k words)
-    const maxChars = 16000;
-    const textToAnalyze = pdfText.length > maxChars 
-      ? pdfText.substring(0, maxChars) + "\n\n[Content truncated for length limits...]"
-      : pdfText;
-
     // 2. Save file locally inside public/uploads (skip writing to disk in production/Vercel serverless environment to prevent EROFS)
     const uniqueFilename = `${Date.now()}-${sanitizeFilename(file.name)}`;
     const fileUrl = `/uploads/${uniqueFilename}`;
@@ -101,73 +83,30 @@ export async function POST(req: Request) {
     // 3. Connect to Database
     await dbConnect();
 
-    // 4. Generate structured summary and Q&A from LLM
-    const systemPrompt = `You are an expert AI learning assistant. Your task is to analyze the text extracted from a student's study document (syllabus, notes, textbook chapter) and generate:
-1. A detailed, structured summary using Markdown (with clear headings, bullet points, and key takeaways).
-2. Exactly 6 study questions:
-   - 3 Multiple Choice Questions (type: "mcq"), each with a question, exactly 4 options, and the correct answer (which must match one of the options exactly).
-   - 3 Flashcards (type: "flashcard"), each with a question/front-side and a brief, clear answer/back-side.
-
-Return your response ONLY as a JSON object matching this schema:
-{
-  "summary": "Detailed markdown summary...",
-  "questions": [
-    {
-      "question": "What is ...?",
-      "options": ["Option A", "Option B", "Option C", "Option D"],
-      "answer": "Option A",
-      "type": "mcq"
-    },
-    {
-      "question": "Question/concept for front of flashcard?",
-      "answer": "Brief, clear explanation/answer for back of flashcard",
-      "type": "flashcard"
-    }
-  ]
-}`;
-
-    const userPrompt = `Document Filename: ${file.name}
-Extracted Text:
-${textToAnalyze}`;
-
-    const llmResponse = await generateStructuredJson<LlmResponse>(systemPrompt, userPrompt, true);
-
-    if (!llmResponse || !llmResponse.summary || !Array.isArray(llmResponse.questions)) {
-      throw new Error("Invalid output format from LLM");
-    }
-
-    // Ensure questions match our IQuestion schema
-    const formattedQuestions = llmResponse.questions.map((q) => ({
-      question: q.question,
-      options: q.type === "mcq" ? q.options || [] : [],
-      answer: q.answer,
-      type: q.type,
-    }));
-
-    // 5. Save document in MongoDB
+    // 4. Save document with extracted text. Summary and quiz are generated
+    // on demand later via chat, so they start empty here.
     const newDoc = new Document({
       userId,
       filename: file.name,
       fileUrl,
-      contentText: textToAnalyze,
-      summary: llmResponse.summary,
-      questions: formattedQuestions,
+      contentText: pdfText,
+      questions: [],
     });
 
     await newDoc.save();
 
-    // 6. Update user progress (increment pdfsAnalyzed, update lastActive)
+    // 5. Update user progress (increment pdfsAnalyzed, update lastActive)
     await UserProgress.findOneAndUpdate(
       { userId },
-      { 
-        $inc: { pdfsAnalyzed: 1 }, 
-        $set: { lastActive: new Date() } 
+      {
+        $inc: { pdfsAnalyzed: 1 },
+        $set: { lastActive: new Date() }
       },
       { upsert: true, new: true }
     );
 
     return NextResponse.json({
-      message: "File uploaded and analyzed successfully",
+      message: "File uploaded successfully",
       document: {
         id: newDoc._id,
         filename: newDoc.filename,
