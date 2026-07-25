@@ -11,6 +11,8 @@ interface Course {
   skillLevel: "beginner" | "intermediate" | "advanced";
   isFree: boolean;
   rating?: number;
+  sourceTopic?: string;
+  thumbnailUrl?: string;
 }
 
 interface CourseCardProps {
@@ -67,7 +69,17 @@ export default function CourseCard({ course }: CourseCardProps) {
           : "bg-[#1A1A1A] border border-[#262626] hover:border-[#404040]"
       }`}
     >
-      {/* Header chips */}
+      {course.thumbnailUrl && (
+        <a href={course.url} target="_blank" rel="noopener noreferrer" className="block border-b border-[#262626]">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={course.thumbnailUrl}
+            alt=""
+            className="w-full h-36 object-cover bg-[#0A0A0A]"
+          />
+        </a>
+      )}
+
       <div className="p-5 pb-0">
         <div className="flex justify-between items-start gap-2 mb-4">
           <span
@@ -95,24 +107,29 @@ export default function CourseCard({ course }: CourseCardProps) {
         </div>
 
         <h3
-          className="font-bold text-base text-white leading-snug line-clamp-2 mb-3"
+          className="font-bold text-base text-white leading-snug line-clamp-2 mb-2"
           style={{ fontFamily: "'Hanken Grotesk', system-ui, sans-serif" }}
         >
           {course.title}
         </h3>
+
+        {course.sourceTopic && (
+          <p className="text-[11px] text-[#8e9192] mb-3 line-clamp-2">
+            Matched to milestone: <span className="text-[#c4c7c8]">{course.sourceTopic}</span>
+          </p>
+        )}
       </div>
 
-      {/* Rating row */}
       <div className="px-5 pb-4">
         <div className="flex justify-between items-center">
-          {course.rating && (
+          {course.rating != null && (
             <div className="flex items-center gap-2">
               <span className="material-symbols-outlined text-[16px] text-white" style={{ fontVariationSettings: "'FILL' 1" }}>star</span>
               <span
                 className="text-xs font-bold text-white"
                 style={{ fontFamily: "'JetBrains Mono', monospace" }}
               >
-                {course.rating.toFixed(1)}
+                {Number(course.rating).toFixed(1)}
               </span>
             </div>
           )}
@@ -128,7 +145,6 @@ export default function CourseCard({ course }: CourseCardProps) {
         </div>
       </div>
 
-      {/* Footer actions */}
       <div className="border-t border-[#262626] px-5 py-3 flex gap-2 mt-auto">
         <a
           href={course.url}

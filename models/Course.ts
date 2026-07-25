@@ -8,6 +8,12 @@ export interface ICourse extends MongooseDocument {
   skillLevel: 'beginner' | 'intermediate' | 'advanced';
   isFree: boolean;
   rating?: number;
+  sourceTopic?: string;
+  thumbnailUrl?: string;
+  externalId?: string;
+  roadmapHash?: string;
+  userId?: mongoose.Types.ObjectId;
+  fetchedAt?: Date;
 }
 
 const CourseSchema = new Schema<ICourse>({
@@ -18,6 +24,14 @@ const CourseSchema = new Schema<ICourse>({
   skillLevel: { type: String, enum: ['beginner', 'intermediate', 'advanced'], required: true },
   isFree: { type: Boolean, default: true },
   rating: { type: Number, min: 0, max: 5 },
+  sourceTopic: { type: String },
+  thumbnailUrl: { type: String },
+  externalId: { type: String },
+  roadmapHash: { type: String, index: true },
+  userId: { type: Schema.Types.ObjectId, ref: 'User', index: true },
+  fetchedAt: { type: Date },
 });
+
+CourseSchema.index({ userId: 1, careerPath: 1, roadmapHash: 1 });
 
 export default mongoose.models.Course || mongoose.model<ICourse>('Course', CourseSchema);
