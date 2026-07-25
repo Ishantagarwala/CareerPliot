@@ -2,21 +2,16 @@ import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import dbConnect from "@/lib/db";
 import Resume from "@/models/Resume";
-import { buildAtsAnalysisPrompts, resumeToPlainText } from "@/lib/resume";
+import {
+  buildHackerRankAnalysisPrompts,
+  normalizeHackerRankAnalysis,
+  resumeToPlainText,
+  type HackerRankAnalysis,
+} from "@/lib/resume";
 import { generateStructuredJson } from "@/lib/llm";
 
 interface RouteContext {
   params: Promise<{ id: string }>;
-}
-
-interface AtsAnalysis {
-  score: number;
-  keywordDensity: number;
-  formatting: number;
-  readability: number;
-  impact: number;
-  strengths: string[];
-  suggestions: string[];
 }
 
 export async function POST(req: Request, { params }: RouteContext) {
@@ -39,17 +34,25 @@ export async function POST(req: Request, { params }: RouteContext) {
       return NextResponse.json({ message: "Resume content is empty" }, { status: 400 });
     }
 
-    const { systemPrompt, userPrompt } = buildAtsAnalysisPrompts(resumeText);
-    const analysis = await generateStructuredJson<AtsAnalysis>(systemPrompt, userPrompt);
+    const { systemPrompt, userPrompt } = buildHackerRankAnalysisPrompts(resumeText);
+    const raw = await generateStructuredJson<HackerRankAnalysis>(systemPrompt, userPrompt);
+    const analysis = normalizeHackerRankAnalysis(raw);
 
     resume.atsAnalysis = {
       score: analysis.score,
-      keywordDensity: analysis.keywordDensity,
-      formatting: analysis.formatting,
-      readability: analysis.readability,
-      impact: analysis.impact,
-      strengths: analysis.strengths || [],
-      suggestions: analysis.suggestions || [],
+      openSource: analysis.openSource,
+      selfProjects: analysis.selfProjects,
+      production: analysis.production,
+      technicalSkills: analysis.technicalSkills,
+      bonus: analysis.bonus,
+      deductions: analysis.deductions,
+      tier: analysis.tier,
+      evidence: analysis.evidence,
+      bonusItems: analysis.bonusItems,
+      deductionItems: analysis.deductionItems,
+      summary: analysis.summary,
+      strengths: analysis.strengths,
+      suggestions: analysis.suggestions,
       analyzedAt: new Date(),
     };
 
@@ -57,7 +60,7 @@ export async function POST(req: Request, { params }: RouteContext) {
 
     return NextResponse.json(resume.atsAnalysis);
   } catch (error: any) {
-    console.error("Resume ATS analysis error:", error);
+    console.error("Resume HackerRank analysis error:", error);
     return NextResponse.json(
       { message: "Internal Server Error", error: error.message },
       { status: 500 }

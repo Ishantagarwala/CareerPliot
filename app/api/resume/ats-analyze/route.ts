@@ -3,36 +3,18 @@ import { auth } from "@/lib/auth";
 import dbConnect from "@/lib/db";
 import Resume from "@/models/Resume";
 import { generateStructuredJson } from "@/lib/llm";
-import { resumeToPlainText } from "@/lib/resume";
+import {
+  buildHackerRankAnalysisPrompts,
+  normalizeHackerRankAnalysis,
+  resumeToPlainText,
+  type HackerRankAnalysis,
+} from "@/lib/resume";
 import { extractTextFromPdf } from "@/lib/pdf";
 import { MAX_UPLOAD_BYTES, sniffFileType } from "@/lib/security";
 
 export const dynamic = "force-dynamic";
 // PDF parsing + LLM analysis can exceed the default 10s function limit.
 export const maxDuration = 60;
-
-interface AtsAnalysisResult {
-  matchScore: number;
-  keywordMatching: {
-    score: number;
-    matched: string[];
-    missing: string[];
-  };
-  formatting: {
-    score: number;
-    feedback: string[];
-  };
-  readability: {
-    score: number;
-    feedback: string[];
-  };
-  impact: {
-    score: number;
-    feedback: string[];
-  };
-  recommendedEdits: string[];
-  summary: string;
-}
 
 export async function POST(req: Request) {
   try {
@@ -43,11 +25,9 @@ export async function POST(req: Request) {
 
     const contentType = req.headers.get("content-type") || "";
     let resumeText = "";
-    let jobDescription = "";
 
     if (contentType.includes("multipart/form-data")) {
       const formData = await req.formData();
-      jobDescription = (formData.get("jobDescription") as string) || "";
       const resumeId = formData.get("resumeId") as string;
       const rawText = formData.get("resumeText") as string;
       const file = formData.get("file") as File;
@@ -88,9 +68,7 @@ export async function POST(req: Request) {
         resumeText = rawText;
       }
     } else {
-      // JSON request
       const body = await req.json().catch(() => ({}));
-      jobDescription = body.jobDescription || "";
       const resumeId = body.resumeId;
       const rawText = body.resumeText;
 
@@ -106,58 +84,20 @@ export async function POST(req: Request) {
     }
 
     if (!resumeText.trim()) {
-      return NextResponse.json({ message: "Resume content is empty. Please select a resume, upload a PDF, or paste text." }, { status: 400 });
+      return NextResponse.json(
+        { message: "Resume content is empty. Please select a resume, upload a PDF, or paste text." },
+        { status: 400 }
+      );
     }
 
-    if (!jobDescription.trim()) {
-      return NextResponse.json({ message: "Job Description is required for ATS matching analysis." }, { status: 400 });
-    }
-
-    // Truncate inputs to prevent excessive token usage
     const truncatedResume = resumeText.substring(0, 15000);
-    const truncatedJd = jobDescription.substring(0, 15000);
-
-    const systemPrompt = `You are an expert Applicant Tracking System (ATS) optimization tool and recruiter.
-Analyze the provided resume against the job description and output a highly detailed, professional analysis.
-Return your response ONLY as a JSON object matching this exact structure:
-{
-  "matchScore": 0,
-  "keywordMatching": {
-    "score": 0,
-    "matched": ["keyword"],
-    "missing": ["keyword"]
-  },
-  "formatting": {
-    "score": 0,
-    "feedback": ["feedback point"]
-  },
-  "readability": {
-    "score": 0,
-    "feedback": ["feedback point"]
-  },
-  "impact": {
-    "score": 0,
-    "feedback": ["feedback point"]
-  },
-  "recommendedEdits": ["action item"],
-  "summary": "overall summary of match alignment"
-}
-
-All scores must be integers between 0 and 100. Be honest, professional, and constructive in the feedback.`;
-
-    const userPrompt = `RESUME:
-${truncatedResume}
-
-JOB DESCRIPTION:
-${truncatedJd}
-
-Compare the resume against the job description. Evaluate keyword density/coverage, format, readability, and outcome/impact metrics.`;
-
-    const result = await generateStructuredJson<AtsAnalysisResult>(systemPrompt, userPrompt, true);
+    const { systemPrompt, userPrompt } = buildHackerRankAnalysisPrompts(truncatedResume);
+    const raw = await generateStructuredJson<HackerRankAnalysis>(systemPrompt, userPrompt, true);
+    const result = normalizeHackerRankAnalysis(raw);
 
     return NextResponse.json(result);
   } catch (error) {
-    console.error("ATS Analyzer API Error:", error);
+    console.error("HackerRank resume analysis error:", error);
     return NextResponse.json(
       { message: "Internal Server Error" },
       { status: 500 }

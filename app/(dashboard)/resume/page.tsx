@@ -101,10 +101,10 @@ export default function ResumePage() {
                 <span className="material-symbols-outlined text-[#8e9192]">arrow_forward</span>
               </div>
               <div className="mt-5 border border-[#262626] p-3">
-                <p className="text-[11px] text-[#636565] uppercase tracking-[0.12em]">ATS Score</p>
+                <p className="text-[11px] text-[#636565] uppercase tracking-[0.12em]">Eng Score</p>
                 <p className="text-2xl font-bold text-white mt-1">
                   {resume.atsAnalysis?.score ?? "--"}
-                  <span className="text-sm text-[#8e9192]">/100</span>
+                  <span className="text-sm text-[#8e9192]">/120</span>
                 </p>
               </div>
             </Link>

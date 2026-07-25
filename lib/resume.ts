@@ -40,22 +40,135 @@ export function resumeToPlainText(content: any): string {
   return sections.join("\n\n").trim();
 }
 
-export function buildAtsAnalysisPrompts(resumeText: string) {
-  const systemPrompt = `You are an ATS and resume review expert for student resumes.
-Return only JSON with this exact structure:
+/** HackerRank hiring-agent rubric (open-sourced ATS scoring weights). */
+export interface HackerRankAnalysis {
+  score: number;
+  openSource: number;
+  selfProjects: number;
+  production: number;
+  technicalSkills: number;
+  bonus: number;
+  deductions: number;
+  tier: "Excellent" | "Strong" | "Average" | "Needs Improvement";
+  strengths: string[];
+  suggestions: string[];
+  evidence: {
+    openSource: string[];
+    selfProjects: string[];
+    production: string[];
+    technicalSkills: string[];
+  };
+  bonusItems: string[];
+  deductionItems: string[];
+  summary: string;
+}
+
+export function tierFromScore(score: number): HackerRankAnalysis["tier"] {
+  if (score >= 90) return "Excellent";
+  if (score >= 70) return "Strong";
+  if (score >= 50) return "Average";
+  return "Needs Improvement";
+}
+
+export function normalizeHackerRankAnalysis(
+  raw: Partial<HackerRankAnalysis> & Record<string, any>
+): HackerRankAnalysis {
+  const openSource = clampInt(raw.openSource, 0, 35);
+  const selfProjects = clampInt(raw.selfProjects, 0, 30);
+  const production = clampInt(raw.production, 0, 25);
+  const technicalSkills = clampInt(raw.technicalSkills, 0, 10);
+  const bonus = clampInt(raw.bonus, 0, 20);
+  const deductions = clampInt(raw.deductions, 0, 20);
+  const computed = clampInt(
+    openSource + selfProjects + production + technicalSkills + bonus - deductions,
+    0,
+    120
+  );
+  const score = typeof raw.score === "number" ? clampInt(raw.score, 0, 120) : computed;
+
+  return {
+    score,
+    openSource,
+    selfProjects,
+    production,
+    technicalSkills,
+    bonus,
+    deductions,
+    tier: raw.tier && ["Excellent", "Strong", "Average", "Needs Improvement"].includes(raw.tier)
+      ? raw.tier
+      : tierFromScore(score),
+    strengths: asStringArray(raw.strengths),
+    suggestions: asStringArray(raw.suggestions || raw.improvements),
+    evidence: {
+      openSource: asStringArray(raw.evidence?.openSource),
+      selfProjects: asStringArray(raw.evidence?.selfProjects),
+      production: asStringArray(raw.evidence?.production),
+      technicalSkills: asStringArray(raw.evidence?.technicalSkills),
+    },
+    bonusItems: asStringArray(raw.bonusItems),
+    deductionItems: asStringArray(raw.deductionItems),
+    summary: typeof raw.summary === "string" ? raw.summary : "",
+  };
+}
+
+function clampInt(value: unknown, min: number, max: number): number {
+  const n = typeof value === "number" ? value : Number(value);
+  if (!Number.isFinite(n)) return min;
+  return Math.max(min, Math.min(max, Math.round(n)));
+}
+
+function asStringArray(value: unknown): string[] {
+  if (!Array.isArray(value)) return [];
+  return value.filter((item): item is string => typeof item === "string" && item.trim().length > 0);
+}
+
+export function buildHackerRankAnalysisPrompts(resumeText: string) {
+  const systemPrompt = `You are a senior engineering recruiter using HackerRank's hiring-agent resume rubric.
+Score what the candidate has BUILT and SHIPPED — not keyword stuffing or pedigree alone.
+
+Return ONLY JSON with this exact structure:
 {
   "score": 0,
-  "keywordDensity": 0,
-  "formatting": 0,
-  "readability": 0,
-  "impact": 0,
-  "strengths": ["specific strength"],
-  "suggestions": ["specific improvement"]
-}`;
+  "openSource": 0,
+  "selfProjects": 0,
+  "production": 0,
+  "technicalSkills": 0,
+  "bonus": 0,
+  "deductions": 0,
+  "tier": "Average",
+  "strengths": ["specific strength with evidence"],
+  "suggestions": ["specific actionable improvement"],
+  "evidence": {
+    "openSource": ["evidence bullet"],
+    "selfProjects": ["evidence bullet"],
+    "production": ["evidence bullet"],
+    "technicalSkills": ["evidence bullet"]
+  },
+  "bonusItems": ["bonus reason (+n)"],
+  "deductionItems": ["deduction reason (-n)"],
+  "summary": "2-3 sentence recruiter summary"
+}
 
-  const userPrompt = `Analyze this resume for ATS compatibility, keyword quality, formatting, readability, and impact metrics. Scores must be integers from 0 to 100.\n\n${resumeText}`;
+STRICT WEIGHTS (integers only):
+- openSource: 0–35 — contributions to external/open-source repos, PRs, community programs (GSoC, etc.)
+- selfProjects: 0–30 — personal projects with complexity, live demos, GitHub links, real impact (not tutorials)
+- production: 0–25 — internships/jobs/startups with ownership, shipped systems, measurable outcomes
+- technicalSkills: 0–10 — demonstrated depth via projects/experience (named tech alone scores low)
+- bonus: 0–20 — e.g. GSoC (+5), founder (+5), LinkedIn (+1), portfolio (+2), technical blogs (+3), GirlScript SoC (+3)
+- deductions: 0–20 — tutorial-only projects, missing/broken links, generic project names, no proof of work
+
+score = openSource + selfProjects + production + technicalSkills + bonus - deductions (clamp 0–120).
+tier: Excellent (≥90), Strong (70–89), Average (50–69), Needs Improvement (<50).
+Be honest and evidence-based. Prefer "what they built" over "what they claim".`;
+
+  const userPrompt = `Evaluate this resume with the HackerRank hiring rubric above.\n\nRESUME:\n${resumeText}`;
 
   return { systemPrompt, userPrompt };
+}
+
+/** @deprecated Prefer buildHackerRankAnalysisPrompts — kept as alias for callers. */
+export function buildAtsAnalysisPrompts(resumeText: string) {
+  return buildHackerRankAnalysisPrompts(resumeText);
 }
 
 export function buildJdMatchPrompts(resumeText: string, jobDescription: string) {

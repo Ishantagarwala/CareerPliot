@@ -30,10 +30,27 @@ export interface IResume extends MongooseDocument {
   };
   atsAnalysis?: {
     score: number;
-    keywordDensity: number;
-    formatting: number;
-    readability: number;
-    impact: number;
+    openSource?: number;
+    selfProjects?: number;
+    production?: number;
+    technicalSkills?: number;
+    bonus?: number;
+    deductions?: number;
+    tier?: string;
+    evidence?: {
+      openSource?: string[];
+      selfProjects?: string[];
+      production?: string[];
+      technicalSkills?: string[];
+    };
+    bonusItems?: string[];
+    deductionItems?: string[];
+    summary?: string;
+    // legacy fields (pre–HackerRank rubric)
+    keywordDensity?: number;
+    formatting?: number;
+    readability?: number;
+    impact?: number;
     suggestions: string[];
     strengths: string[];
     analyzedAt: Date;
@@ -110,6 +127,23 @@ const ResumeSchema = new Schema<IResume>({
   },
   atsAnalysis: {
     score: Number,
+    openSource: Number,
+    selfProjects: Number,
+    production: Number,
+    technicalSkills: Number,
+    bonus: Number,
+    deductions: Number,
+    tier: String,
+    evidence: {
+      openSource: [String],
+      selfProjects: [String],
+      production: [String],
+      technicalSkills: [String],
+    },
+    bonusItems: [String],
+    deductionItems: [String],
+    summary: String,
+    // legacy fields
     keywordDensity: Number,
     formatting: Number,
     readability: Number,
