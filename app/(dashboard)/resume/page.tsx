@@ -9,6 +9,8 @@ export default function ResumePage() {
   const [resumes, setResumes] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [creating, setCreating] = useState(false);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [resumeToDelete, setResumeToDelete] = useState<{ _id: string; title: string } | null>(null);
   const router = useRouter();
 
   useEffect(() => {
@@ -51,6 +53,26 @@ export default function ResumePage() {
     }
   };
 
+  const confirmDeleteResume = async () => {
+    if (!resumeToDelete) return;
+    const id = resumeToDelete._id;
+    setDeletingId(id);
+    try {
+      const res = await fetch(`/api/resume/${id}`, { method: "DELETE" });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.message || "Failed to delete resume");
+      }
+      setResumes((prev) => prev.filter((r) => r._id !== id));
+      toast.success("Resume deleted");
+      setResumeToDelete(null);
+    } catch (error: any) {
+      toast.error(error.message || "Failed to delete resume");
+    } finally {
+      setDeletingId(null);
+    }
+  };
+
   return (
     <div className="space-y-8">
       <div className="border-b border-[#262626] pb-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4 animate-fade-in-up">
@@ -86,29 +108,85 @@ export default function ResumePage() {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
           {resumes.map((resume) => (
-            <Link
+            <div
               key={resume._id}
-              href={`/resume/builder/${resume._id}`}
-              className="bg-[#1A1A1A] border border-[#262626] p-5 hover:border-[#404040] transition-colors"
+              className="bg-[#1A1A1A] border border-[#262626] p-5 hover:border-[#404040] transition-colors flex flex-col"
             >
               <div className="flex items-start justify-between gap-3">
-                <div>
-                  <h2 className="font-bold text-white">{resume.title}</h2>
+                <Link href={`/resume/builder/${resume._id}`} className="min-w-0 flex-1 group">
+                  <h2 className="font-bold text-white group-hover:text-primary transition-colors truncate">
+                    {resume.title}
+                  </h2>
                   <p className="text-xs text-[#8e9192] mt-1">
                     Updated {new Date(resume.updatedAt).toLocaleDateString()}
                   </p>
+                </Link>
+                <div className="flex items-center gap-1 shrink-0">
+                  <button
+                    type="button"
+                    onClick={() => setResumeToDelete({ _id: resume._id, title: resume.title })}
+                    disabled={deletingId === resume._id}
+                    className="p-1.5 text-[#8e9192] hover:text-rose-400 border border-transparent hover:border-rose-500/40 transition-colors disabled:opacity-40"
+                    title="Delete resume"
+                    aria-label={`Delete ${resume.title}`}
+                  >
+                    <span className="material-symbols-outlined text-[18px]">delete</span>
+                  </button>
+                  <Link
+                    href={`/resume/builder/${resume._id}`}
+                    className="p-1.5 text-[#8e9192] hover:text-white"
+                    title="Open resume"
+                  >
+                    <span className="material-symbols-outlined text-[18px]">arrow_forward</span>
+                  </Link>
                 </div>
-                <span className="material-symbols-outlined text-[#8e9192]">arrow_forward</span>
               </div>
-              <div className="mt-5 border border-[#262626] p-3">
+              <Link href={`/resume/builder/${resume._id}`} className="mt-5 border border-[#262626] p-3 block hover:border-[#404040]">
                 <p className="text-[11px] text-[#636565] uppercase tracking-[0.12em]">Eng Score</p>
                 <p className="text-2xl font-bold text-white mt-1">
                   {resume.atsAnalysis?.score ?? "--"}
                   <span className="text-sm text-[#8e9192]">/120</span>
                 </p>
-              </div>
-            </Link>
+              </Link>
+            </div>
           ))}
+        </div>
+      )}
+
+      {resumeToDelete && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+          <div
+            className="fixed inset-0 bg-black/80 backdrop-blur-sm"
+            onClick={() => !deletingId && setResumeToDelete(null)}
+          />
+          <div className="relative w-full max-w-sm bg-[#0A0A0A] border border-[#262626] p-6 z-[101]">
+            <h3 className="text-base font-bold text-white uppercase tracking-wider font-mono mb-3">
+              Delete Resume?
+            </h3>
+            <p className="text-xs text-[#8e9192] leading-relaxed mb-6">
+              This will permanently delete{" "}
+              <span className="text-white font-semibold">{resumeToDelete.title}</span>. This cannot be
+              undone.
+            </p>
+            <div className="flex items-center justify-end gap-3">
+              <button
+                onClick={() => setResumeToDelete(null)}
+                disabled={!!deletingId}
+                className="px-4 py-2 text-xs font-bold text-[#8e9192] border border-[#262626] hover:text-white disabled:opacity-40"
+                style={{ fontFamily: "'JetBrains Mono', monospace" }}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmDeleteResume}
+                disabled={!!deletingId}
+                className="px-4 py-2 text-xs font-bold bg-rose-600 text-white hover:bg-rose-700 disabled:opacity-40"
+                style={{ fontFamily: "'JetBrains Mono', monospace" }}
+              >
+                {deletingId ? "Deleting..." : "Delete"}
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>

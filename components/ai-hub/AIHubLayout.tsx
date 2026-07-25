@@ -32,6 +32,8 @@ export default function AIHubLayout() {
 
   // Custom delete confirmation state
   const [threadToDeleteId, setThreadToDeleteId] = useState<string | null>(null);
+  const [docToDelete, setDocToDelete] = useState<{ id: string; filename: string } | null>(null);
+  const [deletingDocId, setDeletingDocId] = useState<string | null>(null);
 
   const fetchDocuments = useCallback(async () => {
     try {
@@ -125,6 +127,27 @@ export default function AIHubLayout() {
     setSelectedDocumentIds((prev) =>
       prev.includes(id) ? prev.filter((docId) => docId !== id) : [...prev, id].slice(-3)
     );
+  };
+
+  const confirmDeleteDocument = async () => {
+    if (!docToDelete) return;
+    const { id } = docToDelete;
+    setDeletingDocId(id);
+    try {
+      const res = await fetch(`/api/ai-hub/documents/${id}`, { method: "DELETE" });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.message || "Failed to delete document");
+      }
+      setDocuments((prev) => prev.filter((d) => (d._id || d.id) !== id));
+      setSelectedDocumentIds((prev) => prev.filter((docId) => docId !== id));
+      toast.success("PDF deleted");
+      setDocToDelete(null);
+    } catch (error: any) {
+      toast.error(error.message || "Failed to delete PDF");
+    } finally {
+      setDeletingDocId(null);
+    }
   };
 
   return (
@@ -306,7 +329,9 @@ export default function AIHubLayout() {
             documents={documents}
             selectedDocumentIds={selectedDocumentIds}
             loading={loadingDocuments}
+            deletingId={deletingDocId}
             onToggleDocument={handleToggleDocument}
+            onDeleteDocument={(id, filename) => setDocToDelete({ id, filename })}
             onQuickPrompt={(prompt) => {
               setDraftPrompt(prompt);
               setIsRightOpen(false);
@@ -351,6 +376,43 @@ export default function AIHubLayout() {
                 style={{ fontFamily: "'JetBrains Mono', monospace" }}
               >
                 Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {docToDelete && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+          <div
+            className="fixed inset-0 bg-black/80 backdrop-blur-sm transition-opacity"
+            onClick={() => !deletingDocId && setDocToDelete(null)}
+          />
+          <div className="relative w-full max-w-sm bg-[#0A0A0A] border border-[#262626] p-6 animate-fade-in-up z-[101]">
+            <h3 className="text-base font-bold text-white uppercase tracking-wider font-mono mb-3">
+              Delete PDF?
+            </h3>
+            <p className="text-xs text-[#8e9192] leading-relaxed mb-6">
+              This will permanently remove{" "}
+              <span className="text-white font-semibold">{docToDelete.filename}</span> from your study
+              materials. This cannot be undone.
+            </p>
+            <div className="flex items-center justify-end gap-3">
+              <button
+                onClick={() => setDocToDelete(null)}
+                disabled={!!deletingDocId}
+                className="px-4 py-2 text-xs font-bold text-[#8e9192] border border-[#262626] bg-[#0A0A0A] hover:bg-[#1A1A1A] hover:text-white transition-colors disabled:opacity-40"
+                style={{ fontFamily: "'JetBrains Mono', monospace" }}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmDeleteDocument}
+                disabled={!!deletingDocId}
+                className="px-4 py-2 text-xs font-bold bg-red-600 text-white hover:bg-red-700 transition-colors disabled:opacity-40"
+                style={{ fontFamily: "'JetBrains Mono', monospace" }}
+              >
+                {deletingDocId ? "Deleting..." : "Delete"}
               </button>
             </div>
           </div>
