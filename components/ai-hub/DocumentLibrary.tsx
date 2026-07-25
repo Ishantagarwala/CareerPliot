@@ -23,19 +23,17 @@ export default function DocumentLibrary({
   onToggleDocument,
   onQuickPrompt,
 }: DocumentLibraryProps) {
+  const hasSelection = selectedDocumentIds.length > 0;
+
   return (
-    <aside className="bg-[#1A1A1A] border border-[#262626] h-full min-h-[420px] flex flex-col">
-      <div className="p-4 border-b border-[#262626]">
+    <aside className="bg-card border-2 border-black h-full min-h-[420px] flex flex-col">
+      <div className="p-4 border-b-2 border-black">
         <p
-          className="text-[11px] text-[#8e9192] uppercase tracking-[0.15em]"
-          style={{ fontFamily: "'JetBrains Mono', monospace" }}
+          className="text-[11px] text-muted-foreground uppercase tracking-[0.15em] font-label"
         >
           Document Context
         </p>
-        <h2
-          className="text-lg font-bold text-white mt-1"
-          style={{ fontFamily: "'Hanken Grotesk', system-ui, sans-serif" }}
-        >
+        <h2 className="text-lg font-bold text-foreground mt-1 font-display">
           Study Materials
         </h2>
       </div>
@@ -43,12 +41,12 @@ export default function DocumentLibrary({
       <div className="flex-1 overflow-y-auto p-3 space-y-2">
         {loading ? (
           [1, 2, 3].map((item) => (
-            <div key={item} className="h-20 border border-[#262626] bg-[#131313] animate-pulse" />
+            <div key={item} className="h-20 border-2 border-black/40 bg-muted animate-pulse" />
           ))
         ) : documents.length === 0 ? (
-          <div className="border border-dashed border-[#262626] p-5 text-center">
-            <p className="text-sm text-[#c4c7c8]">No PDFs yet.</p>
-            <p className="text-xs text-[#636565] mt-1">Upload one from the chat panel to ask document-aware questions.</p>
+          <div className="border-2 border-dashed border-black/50 p-5 text-center">
+            <p className="text-sm text-foreground">No PDFs yet.</p>
+            <p className="text-xs text-muted-foreground mt-1">Upload one from the chat panel to ask document-aware questions.</p>
           </div>
         ) : (
           documents.map((doc) => {
@@ -59,19 +57,19 @@ export default function DocumentLibrary({
               <button
                 key={id}
                 onClick={() => onToggleDocument(id)}
-                className={`w-full text-left border p-3 transition-colors ${
+                className={`w-full text-left border-2 p-3 transition-colors ${
                   selected
-                    ? "border-white/40 bg-white/10"
-                    : "border-[#262626] bg-[#131313] hover:border-[#404040]"
+                    ? "border-primary bg-primary/15"
+                    : "border-black/50 bg-background hover:border-primary/60"
                 }`}
               >
                 <div className="flex items-start gap-2">
-                  <span className={`material-symbols-outlined text-[18px] ${selected ? "text-white" : "text-[#8e9192]"}`}>
+                  <span className={`material-symbols-outlined text-[18px] ${selected ? "text-primary" : "text-muted-foreground"}`}>
                     description
                   </span>
                   <div className="min-w-0">
-                    <p className="text-sm font-medium text-white truncate">{doc.filename}</p>
-                    <p className="text-[11px] text-[#636565] mt-1 line-clamp-2">
+                    <p className="text-sm font-medium text-foreground truncate">{doc.filename}</p>
+                    <p className="text-[11px] text-muted-foreground mt-1 line-clamp-2">
                       {doc.summary || "Summary available after analysis."}
                     </p>
                   </div>
@@ -82,13 +80,15 @@ export default function DocumentLibrary({
         )}
       </div>
 
-      <div className="border-t border-[#262626] p-3 space-y-2">
-        <p
-          className="text-[10px] text-[#636565] uppercase tracking-[0.12em]"
-          style={{ fontFamily: "'JetBrains Mono', monospace" }}
-        >
+      <div className="border-t-2 border-black p-3 space-y-2">
+        <p className="text-[10px] text-muted-foreground uppercase tracking-[0.12em] font-label">
           Quick Actions
         </p>
+        {!hasSelection && (
+          <p className="text-[11px] text-primary/90 font-medium">
+            Select a document above to unlock these.
+          </p>
+        )}
         {[
           "Summarize the selected document in exam-ready notes.",
           "Generate a short quiz from the selected document.",
@@ -97,8 +97,12 @@ export default function DocumentLibrary({
           <button
             key={prompt}
             onClick={() => onQuickPrompt(prompt)}
-            disabled={selectedDocumentIds.length === 0}
-            className="w-full text-left text-xs text-[#c4c7c8] border border-[#262626] px-3 py-2 hover:text-white hover:border-[#404040] disabled:opacity-40 disabled:cursor-not-allowed"
+            disabled={!hasSelection}
+            className={`w-full text-left text-xs border-2 px-3 py-2.5 font-medium transition-colors ${
+              hasSelection
+                ? "text-foreground border-black bg-background hover:bg-primary hover:text-primary-foreground"
+                : "text-muted-foreground/70 border-black/40 bg-muted cursor-not-allowed"
+            }`}
           >
             {prompt}
           </button>

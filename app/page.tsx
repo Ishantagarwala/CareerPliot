@@ -145,7 +145,7 @@ export default function Home() {
             <div className="inline-block bg-cyan text-black px-4 py-1 border-2 border-black neo-shadow mb-6 font-label text-sm font-bold -rotate-2">
               AI-POWERED CAREER PLANNING
             </div>
-            <h1 className="font-display text-4xl sm:text-5xl md:text-6xl lg:text-[72px] font-extrabold leading-[1.1] tracking-[-0.02em] text-white mb-8">
+            <h1 className="font-display text-4xl sm:text-5xl md:text-6xl lg:text-[72px] font-extrabold leading-[1.1] tracking-[-0.02em] text-foreground mb-8">
               Chart Your Perfect Career with{" "}
               <span className="text-primary">Precision</span>
             </h1>
@@ -311,10 +311,10 @@ export default function Home() {
                   {m.icon}
                 </span>
               </div>
-              <h3 className="font-display text-2xl md:text-[32px] font-bold mb-4">
+              <h3 className="font-display text-2xl md:text-[32px] font-bold mb-4 text-foreground group-hover:text-[#f4f6e8]">
                 {m.title}
               </h3>
-              <p className="text-[color:var(--on-surface-variant)] flex-grow leading-relaxed">
+              <p className="text-[color:var(--on-surface-variant)] group-hover:text-[#c3caac] flex-grow leading-relaxed">
                 {m.description}
               </p>
             </div>
@@ -347,11 +347,11 @@ export default function Home() {
                 >
                   {item.n}
                 </span>
-                <h3 className="font-display text-xl md:text-2xl font-bold text-white group-hover:text-black">
+                <h3 className="font-display text-xl md:text-2xl font-bold text-[#f4f6e8] group-hover:text-black">
                   {item.q}
                 </h3>
               </div>
-              <p className="text-[color:var(--on-surface-variant)] group-hover:text-black/80 leading-relaxed">
+              <p className="text-[#c3caac] group-hover:text-black/80 leading-relaxed">
                 {item.a}
               </p>
             </div>
@@ -369,7 +369,7 @@ export default function Home() {
           </p>
           <Link
             href="/register"
-            className="inline-flex items-center justify-center bg-black text-white px-12 py-5 border-2 border-black shadow-[4px_4px_0_0_#000] rounded-[5px] font-display text-2xl font-bold transition-all hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-none"
+            className="inline-flex items-center justify-center bg-black text-[#ffffff] px-12 py-5 border-2 border-black shadow-[4px_4px_0_0_#000] rounded-[5px] font-display text-2xl font-bold transition-all hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-none"
           >
             Sign Up Now
           </Link>

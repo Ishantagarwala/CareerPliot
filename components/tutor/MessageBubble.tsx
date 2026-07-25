@@ -77,6 +77,11 @@ export default function MessageBubble({ message }: MessageBubbleProps) {
     }
   };
 
+  // Inherit bubble color for user (black on cyan); use light tokens for assistant.
+  const bodyText = isUser ? "text-inherit" : "text-foreground";
+  const strongText = isUser ? "text-inherit font-bold" : "font-bold text-foreground";
+  const mutedText = isUser ? "text-inherit opacity-80" : "text-muted-foreground";
+
   const formatInlineText = (text: string) => {
     const parts = text.split(/(`[^`]+`|\*\*[^*]+\*\*|\*[^*]+\*)/g);
     return parts.map((part, index) => {
@@ -84,7 +89,9 @@ export default function MessageBubble({ message }: MessageBubbleProps) {
         return (
           <code
             key={index}
-            className="px-1.5 py-0.5 text-[12px] border mx-0.5 bg-[#131313] border-[#262626] text-white"
+            className={`px-1.5 py-0.5 text-[12px] border mx-0.5 border-black ${
+              isUser ? "bg-black/10 text-inherit" : "bg-background text-foreground"
+            }`}
             style={{ fontFamily: "'JetBrains Mono', monospace" }}
           >
             {part.slice(1, -1)}
@@ -93,14 +100,14 @@ export default function MessageBubble({ message }: MessageBubbleProps) {
       }
       if (part.startsWith("**") && part.endsWith("**")) {
         return (
-          <strong key={index} className="font-bold text-white">
+          <strong key={index} className={strongText}>
             {part.slice(2, -2)}
           </strong>
         );
       }
       if (part.startsWith("*") && part.endsWith("*")) {
         return (
-          <em key={index} className="italic text-[#c4c7c8]">
+          <em key={index} className={`italic ${mutedText}`}>
             {part.slice(1, -1)}
           </em>
         );
@@ -143,7 +150,7 @@ export default function MessageBubble({ message }: MessageBubbleProps) {
           elements.push(
             <div
               key={lineIdx}
-              className={`${sizeClass} text-white`}
+              className={`${sizeClass} ${bodyText}`}
               style={{ fontFamily: "'Hanken Grotesk', system-ui, sans-serif" }}
             >
               {formatInlineText(headerText)}
@@ -155,7 +162,7 @@ export default function MessageBubble({ message }: MessageBubbleProps) {
         // Horizontal Rule
         if (trimmed === "---" || trimmed === "***" || trimmed === "___") {
           elements.push(
-            <hr key={lineIdx} className="my-4 border-t border-[#262626]" />
+            <hr key={lineIdx} className={`my-4 border-t ${isUser ? "border-black/30" : "border-border"}`} />
           );
           return;
         }
@@ -165,7 +172,7 @@ export default function MessageBubble({ message }: MessageBubbleProps) {
           elements.push(
             <blockquote
               key={lineIdx}
-              className="pl-4 border-l-2 border-[#404040] my-2 italic text-[#c4c7c8]"
+              className={`pl-4 border-l-2 my-2 italic ${isUser ? "border-black/40" : "border-border"} ${mutedText}`}
             >
               {formatInlineText(trimmed.substring(2))}
             </blockquote>
@@ -176,7 +183,7 @@ export default function MessageBubble({ message }: MessageBubbleProps) {
         // Unordered list
         if (trimmed.startsWith("- ") || trimmed.startsWith("* ")) {
           elements.push(
-            <li key={lineIdx} className="text-sm list-disc ml-5 mb-1.5 leading-relaxed text-[#c4c7c8]">
+            <li key={lineIdx} className={`text-sm list-disc ml-5 mb-1.5 leading-relaxed ${bodyText}`}>
               {formatInlineText(trimmed.substring(2))}
             </li>
           );
@@ -187,7 +194,7 @@ export default function MessageBubble({ message }: MessageBubbleProps) {
         const orderedMatch = trimmed.match(/^(\d+)\.\s+(.*)/);
         if (orderedMatch) {
           elements.push(
-            <li key={lineIdx} className="text-sm list-decimal ml-5 mb-1.5 leading-relaxed text-[#c4c7c8]" style={{ listStyleType: "decimal" }}>
+            <li key={lineIdx} className={`text-sm list-decimal ml-5 mb-1.5 leading-relaxed ${bodyText}`} style={{ listStyleType: "decimal" }}>
               {formatInlineText(orderedMatch[2])}
             </li>
           );
@@ -202,7 +209,7 @@ export default function MessageBubble({ message }: MessageBubbleProps) {
 
         // Paragraph
         elements.push(
-          <p key={lineIdx} className="text-sm leading-relaxed mb-2.5 text-[#c4c7c8]">
+          <p key={lineIdx} className={`text-sm leading-relaxed mb-2.5 ${bodyText}`}>
             {formatInlineText(line)}
           </p>
         );
@@ -220,16 +227,16 @@ export default function MessageBubble({ message }: MessageBubbleProps) {
     <div className={`flex w-full ${isUser ? "justify-end" : "justify-start"} mb-4 group`}>
       <div className={`flex items-start gap-2.5 max-w-[85%] sm:max-w-[75%] ${isUser ? "flex-row-reverse" : "flex-row"}`}>
         {/* Avatar */}
-        <div className={`h-8 w-8 flex items-center justify-center shrink-0 border ${
+        <div className={`h-8 w-8 flex items-center justify-center shrink-0 border-2 border-black ${
           isUser
-            ? "bg-white border-white text-[#0A0A0A]"
-            : "bg-[#1A1A1A] border-[#262626] text-white"
+            ? "bg-accent text-accent-foreground"
+            : "bg-card text-foreground"
         }`}>
           {isUser ? (
             <span className="material-symbols-outlined text-[16px]">person</span>
           ) : (
             <span
-              className="text-xs font-bold"
+              className="text-xs font-bold text-primary"
               style={{ fontFamily: "'JetBrains Mono', monospace" }}
             >
               AI
@@ -240,10 +247,10 @@ export default function MessageBubble({ message }: MessageBubbleProps) {
         {/* Bubble */}
         <div className="flex flex-col space-y-1">
           <div
-            className={`relative p-4 border transition-all ${
+            className={`relative p-4 border-2 border-black transition-all ${
               isUser
-                ? "bg-[#262626] border-[#404040] text-white"
-                : "bg-[#1A1A1A] border-[#262626] text-[#e5e2e1]"
+                ? "bg-accent text-accent-foreground"
+                : "bg-card text-foreground"
             }`}
           >
             {message.attachments && message.attachments.length > 0 && (

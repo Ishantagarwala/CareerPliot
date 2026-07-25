@@ -179,8 +179,7 @@ export default function AIHubLayout() {
                 setActiveThreadId(null);
                 setIsLeftOpen(false);
               }}
-              className="w-full flex items-center justify-between border border-dashed border-[#404040] hover:border-white p-3 text-xs font-bold text-[#8e9192] hover:text-white transition-all bg-[#0A0A0A] hover:bg-[#1A1A1A]"
-              style={{ fontFamily: "'JetBrains Mono', monospace", letterSpacing: "0.04em" }}
+              className="w-full flex items-center justify-between border-2 border-dashed border-primary/70 hover:border-primary p-3 text-xs font-bold text-primary hover:bg-primary/10 transition-all bg-background font-label"
             >
               <span>NEW CHAT</span>
               <span className="material-symbols-outlined text-[16px]">add</span>
@@ -225,10 +224,10 @@ export default function AIHubLayout() {
                 return (
                   <div
                     key={thread._id}
-                    className={`group flex items-center justify-between p-3 text-xs border transition-all cursor-pointer ${
+                    className={`group flex items-center justify-between p-3 text-xs border-2 transition-all cursor-pointer ${
                       isActive
-                        ? "bg-[#1A1A1A] border-white text-white font-bold"
-                        : "bg-[#0A0A0A] border-[#262626] text-[#8e9192] hover:bg-[#131313] hover:text-white"
+                        ? "bg-primary/15 border-primary text-foreground font-bold"
+                        : "bg-background border-black/50 text-muted-foreground hover:bg-card hover:text-foreground hover:border-primary/50"
                     }`}
                     onClick={() => {
                       setActiveThreadId(thread._id);

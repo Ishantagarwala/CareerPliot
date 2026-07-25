@@ -133,7 +133,7 @@
   --secondary: #0043eb;
   --secondary-foreground: #c6ceff;
   --muted: #191d10;
-  --muted-foreground: #c3caac;
+  --muted-foreground: #d5dcc0;
   --accent: #00f0ff;
   --accent-foreground: #000000;
   --destructive: #ffb4ab;
@@ -626,6 +626,8 @@ select:focus {
 }
 
 /* ===== MONOLITH LIGHT/DARK OVERRIDES FOR TAILWIND HEX-CLASSES ===== */
+/* #262626 / hover surfaces must stay NEUTRAL — never map to --accent (cyan),
+   or chat bubbles and secondary panels become illegible (white-on-cyan). */
 .bg-\[\#0A0A0A\] {
   background-color: var(--background) !important;
 }
@@ -642,16 +644,22 @@ select:focus {
   background-color: var(--sidebar-accent) !important;
 }
 .bg-\[\#262626\] {
-  background-color: var(--accent) !important;
+  background-color: var(--muted) !important;
+}
+.bg-\[\#0F0F0F\] {
+  background-color: var(--background) !important;
 }
 .hover\:bg-\[\#1A1A1A\]:hover {
-  background-color: var(--accent) !important;
+  background-color: var(--sidebar-accent) !important;
+}
+.hover\:bg-\[\#262626\]:hover {
+  background-color: var(--muted) !important;
 }
 .hover\:bg-\[\#201f1f\]:hover {
   background-color: var(--sidebar-accent) !important;
 }
 .hover\:bg-\[\#e2e2e2\]:hover {
-  background-color: var(--accent) !important;
+  background-color: var(--lime-dim) !important;
 }
 
 /* Gradients and opacity layers */
@@ -734,9 +742,18 @@ select:focus {
   color: var(--foreground) !important;
 }
 
-/* Light mode specific element style overrides to fix white-on-white issues */
+/* Light mode: remap bare text-white (old Monolith assumption) to foreground,
+   BUT keep real white on intentional dark surfaces (black / olive panels). */
 .light .text-white {
   color: var(--foreground) !important;
+}
+.light .bg-black.text-white,
+.light .bg-\[\#0A0A0A\].text-white,
+.light .bg-\[\#191d10\] .text-white,
+.light .bg-\[\#191d10\].text-white,
+.light .bg-\[\#272c1d\] .text-white,
+.light .bg-black .text-white {
+  color: #ffffff !important;
 }
 .light .border-white {
   border-color: var(--primary) !important;

@@ -268,8 +268,7 @@ export default function UnifiedChat({
           )}
           <button
             onClick={() => setShowUpload((value) => !value)}
-            className="inline-flex items-center gap-1.5 bg-white text-[#0A0A0A] px-3 py-2 text-xs font-bold hover:bg-[#e2e2e2]"
-            style={{ fontFamily: "'JetBrains Mono', monospace", letterSpacing: "0.04em" }}
+            className="inline-flex items-center gap-1.5 bg-primary text-primary-foreground border-2 border-black px-3 py-2 text-xs font-bold hover:translate-x-0.5 hover:translate-y-0.5 shadow-[3px_3px_0_0_#000] hover:shadow-none transition-all font-label"
           >
             <span className="material-symbols-outlined text-[16px]">attach_file</span>
             {showUpload ? "Close Upload" : "Upload PDF"}
@@ -381,13 +380,13 @@ export default function UnifiedChat({
             }
             disabled={loading || loadingHistory || uploadingAttachment}
             rows={1}
-            className="w-full bg-[#1A1A1A] border border-[#262626] text-white text-sm p-4 focus:border-white focus:outline-none resize-none placeholder:text-[#636565]"
+            className="w-full bg-card border-2 border-black text-foreground text-sm p-4 focus:border-primary focus:outline-none resize-none placeholder:text-muted-foreground"
             style={{ minHeight: "56px" }}
           />
           <button
             type="submit"
             disabled={(!input.trim() && attachments.length === 0) || loading || uploadingAttachment}
-            className="h-14 w-14 bg-white text-[#0A0A0A] flex items-center justify-center disabled:opacity-30 disabled:cursor-not-allowed"
+            className="h-14 w-14 bg-primary text-primary-foreground border-2 border-black flex items-center justify-center disabled:opacity-40 disabled:cursor-not-allowed shadow-[3px_3px_0_0_#000]"
           >
             <span className="material-symbols-outlined">arrow_upward</span>
           </button>
