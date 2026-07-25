@@ -45,31 +45,22 @@ export default function Sidebar({ className }: SidebarProps) {
   return (
     <aside
       className={cn(
-        "flex flex-col h-screen w-64 fixed left-0 top-0 bg-sidebar border-r border-sidebar-border py-8 z-40 transition-colors duration-300",
+        "flex flex-col h-screen w-64 fixed left-0 top-0 bg-sidebar border-r-2 border-black/60 py-8 z-40 transition-colors duration-300",
         className
       )}
     >
       {/* Brand Header */}
-      <div className="px-6 mb-8 pb-6 border-b border-sidebar-border">
+      <div className="px-6 mb-8 pb-6 border-b-2 border-black/80">
         <Link href="/dashboard" className="flex items-center gap-3">
-          <div
-            className="w-10 h-10 bg-primary flex items-center justify-center text-primary-foreground font-bold text-lg select-none shrink-0"
-            style={{ fontFamily: "'Hanken Grotesk', system-ui, sans-serif" }}
-          >
+          <div className="w-10 h-10 bg-primary border-2 border-black neo-shadow flex items-center justify-center text-primary-foreground font-display font-extrabold text-lg select-none shrink-0">
             C
           </div>
           <div>
-            <h1
-              className="text-base font-bold text-foreground tracking-tight leading-none"
-              style={{ fontFamily: "'Hanken Grotesk', system-ui, sans-serif" }}
-            >
+            <h1 className="text-base font-display font-extrabold text-primary tracking-tight leading-none uppercase">
               Career Pilot
             </h1>
-            <p
-              className="text-[10px] text-muted-foreground uppercase tracking-[0.15em] font-medium mt-1.5"
-              style={{ fontFamily: "'JetBrains Mono', monospace" }}
-            >
-              Executive Growth
+            <p className="text-[10px] text-muted-foreground uppercase tracking-[0.15em] font-label font-bold mt-1.5">
+              Bold Growth
             </p>
           </div>
         </Link>
@@ -87,7 +78,7 @@ export default function Sidebar({ className }: SidebarProps) {
               className={cn(
                 "flex items-center gap-3 px-4 py-3 rounded text-sm font-medium nav-link-monolith group transition-all duration-300",
                 isActive
-                  ? "bg-sidebar-accent text-foreground border-r-2 border-primary"
+                  ? "bg-primary/15 text-foreground border-r-4 border-primary"
                   : "text-muted-foreground hover:bg-sidebar-accent/50 hover:text-foreground"
               )}
               style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "13px", letterSpacing: "0.04em" }}
@@ -146,7 +137,7 @@ export default function Sidebar({ className }: SidebarProps) {
               className={cn(
                 "flex items-center gap-3 px-4 py-3 rounded text-sm font-medium nav-link-monolith group transition-all duration-300",
                 isActive
-                  ? "bg-sidebar-accent text-foreground border-r-2 border-primary"
+                  ? "bg-primary/15 text-foreground border-r-4 border-primary"
                   : "text-muted-foreground hover:bg-sidebar-accent/50 hover:text-foreground"
               )}
               style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "13px", letterSpacing: "0.04em" }}

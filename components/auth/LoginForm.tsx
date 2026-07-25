@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -23,13 +23,15 @@ export default function LoginForm() {
   const [loading, setLoading] = useState(false);
   const [demoLoading, setDemoLoading] = useState(false);
   const [demoStep, setDemoStep] = useState("");
+  const demoStarted = useRef(false);
 
   const handleDemoLogin = async () => {
+    if (demoLoading) return;
     setDemoLoading(true);
     setDemoStep("Creating demo account...");
     try {
-      // 1. Try to register demo user. If user already exists, it will throw a 400, which we can ignore.
-      await fetch("/api/auth/register", {
+      // 1. Ensure demo user exists (ignore "already registered" responses).
+      const registerRes = await fetch("/api/auth/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -39,8 +41,15 @@ export default function LoginForm() {
         }),
       });
 
+      if (!registerRes.ok && registerRes.status !== 400) {
+        const body = await registerRes.json().catch(() => ({}));
+        throw new Error(
+          body.message ||
+            "Could not create demo account. Check AUTH_SECRET and MONGODB_URI in .env.local."
+        );
+      }
+
       setDemoStep("Signing in...");
-      // 2. Perform sign in
       const res = await signIn("credentials", {
         email: "demo@careerpilot.com",
         password: "demo1234",
@@ -48,30 +57,47 @@ export default function LoginForm() {
       });
 
       if (res?.error) {
-        toast.error("Failed to sign in as demo user. Please try again.");
-        setDemoLoading(false);
-        setDemoStep("");
-        return;
+        throw new Error(
+          "Demo sign-in failed. Check AUTH_SECRET / MONGODB_URI in .env.local."
+        );
       }
 
       setDemoStep("Seeding demo data...");
-      toast.success("Successfully logged in! Seeding demo data...");
+      // Seed via POST so we stay in-app (GET /api/seed was dumping JSON in the browser).
+      const seedRes = await fetch("/api/seed", { method: "POST" });
+      if (!seedRes.ok && seedRes.status !== 200) {
+        const body = await seedRes.json().catch(() => ({}));
+        // Already seeded is fine — treat as success via status 200 above.
+        if (seedRes.status !== 401) {
+          console.warn("Seed warning:", body);
+        } else {
+          throw new Error(body.message || "Session not ready for seeding.");
+        }
+      }
 
-      // 3. Redirect to seed endpoint
-      window.location.href = "/api/seed";
+      toast.success("Demo ready — welcome aboard!");
+      router.replace("/dashboard");
+      router.refresh();
     } catch (err) {
       console.error(err);
-      toast.error("An unexpected error occurred during demo setup.");
+      const message =
+        err instanceof Error
+          ? err.message
+          : "An unexpected error occurred during demo setup.";
+      toast.error(message);
       setDemoLoading(false);
       setDemoStep("");
+      demoStarted.current = false;
     }
   };
 
   useEffect(() => {
-    if (searchParams && searchParams.get("demo") === "true") {
-      router.replace("/login");
-      handleDemoLogin();
-    }
+    if (searchParams?.get("demo") !== "true" || demoStarted.current) return;
+    demoStarted.current = true;
+    // Drop the query param without remounting mid-login.
+    router.replace("/login", { scroll: false });
+    void handleDemoLogin();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchParams]);
 
   const {

@@ -1,26 +1,33 @@
 import type { Metadata } from "next";
-import { Inter, JetBrains_Mono } from "next/font/google";
+import { Anybody, Hanken_Grotesk, Space_Grotesk } from "next/font/google";
 import "./globals.css";
 import { SessionProvider } from "next-auth/react";
 import { Toaster } from "@/components/ui/sonner";
+import { ThemeProvider } from "@/components/layout/ThemeProvider";
 
-const inter = Inter({
-  variable: "--font-inter",
+const anybody = Anybody({
+  variable: "--font-anybody",
   subsets: ["latin"],
+  weight: ["700", "800"],
 });
 
-const jetbrainsMono = JetBrains_Mono({
-  variable: "--font-jetbrains-mono",
+const hanken = Hanken_Grotesk({
+  variable: "--font-hanken",
   subsets: ["latin"],
-  weight: ["400", "500"],
+  weight: ["400", "600", "700"],
+});
+
+const spaceGrotesk = Space_Grotesk({
+  variable: "--font-space",
+  subsets: ["latin"],
+  weight: ["500", "700"],
 });
 
 export const metadata: Metadata = {
   title: "Career Pilot — AI-Powered Career Planning",
-  description: "Navigate your career path with AI-driven discovery, custom roadmaps, filtered courses, notes summarization, and interactive tutoring.",
+  description:
+    "Navigate your career path with AI-driven discovery, custom roadmaps, filtered courses, notes summarization, and interactive tutoring.",
 };
-
-import { ThemeProvider } from "@/components/layout/ThemeProvider";
 
 export default function RootLayout({
   children,
@@ -30,14 +37,10 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${inter.variable} ${jetbrainsMono.variable} h-full antialiased`}
+      className={`${anybody.variable} ${hanken.variable} ${spaceGrotesk.variable} h-full antialiased`}
       suppressHydrationWarning
     >
       <head>
-        <link
-          href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@600;700&display=swap"
-          rel="stylesheet"
-        />
         <link
           href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
           rel="stylesheet"

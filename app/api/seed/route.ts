@@ -22,6 +22,10 @@ export async function GET(req: Request) {
   if (response.status === 200) {
     return NextResponse.redirect(new URL("/dashboard", req.url));
   }
+  // Browser navigations to /api/seed should never dump raw JSON.
+  if (response.status === 401) {
+    return NextResponse.redirect(new URL("/login?demo=true", req.url));
+  }
   return response;
 }
 

@@ -1,32 +1,101 @@
 export default function Footer() {
   return (
-    <footer className="w-full border-t border-[#262626] bg-[#0A0A0A] py-8">
-      <div className="mx-auto max-w-[1280px] px-4 sm:px-6 lg:px-12 flex flex-col sm:flex-row items-center justify-between gap-4">
-        <div className="text-center sm:text-left">
-          <p
-            className="text-sm font-bold text-white tracking-tight"
-            style={{ fontFamily: "'Hanken Grotesk', system-ui, sans-serif" }}
-          >
-            Career Pilot
+    <footer className="bg-background border-t-4 border-black">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-10 py-16 md:py-20 px-4 md:px-16 max-w-[1280px] mx-auto w-full">
+        <div className="space-y-6">
+          <div className="font-display text-2xl md:text-[32px] font-extrabold text-primary uppercase">
+            CAREER PILOT
+          </div>
+          <p className="text-foreground/70 max-w-sm leading-relaxed">
+            Empowering students with personalized AI learning roadmaps and career
+            guidance. Unapologetically bold future planning.
           </p>
-          <p className="text-xs text-[#8e9192] mt-1">
-            Empowering students with personalized AI learning roadmaps and career guidance.
-          </p>
+          <div className="flex gap-4">
+            {[
+              { icon: "language", href: "#" },
+              { icon: "share", href: "#" },
+              { icon: "forum", href: "#" },
+            ].map((s) => (
+              <a
+                key={s.icon}
+                href={s.href}
+                className="w-10 h-10 bg-white border-2 border-black neo-shadow flex items-center justify-center hover:bg-cyan transition-colors"
+                aria-label={s.icon}
+              >
+                <span className="material-symbols-outlined text-black text-[20px]">
+                  {s.icon}
+                </span>
+              </a>
+            ))}
+          </div>
         </div>
-        <div className="text-center sm:text-right">
-          <p
-            className="text-[11px] text-[#636565] uppercase tracking-[0.1em]"
-            style={{ fontFamily: "'JetBrains Mono', monospace" }}
-          >
-            &copy; {new Date().getFullYear()} Career Wallah
-          </p>
-          <p
-            className="text-[11px] text-[#636565] mt-1 uppercase tracking-[0.1em]"
-            style={{ fontFamily: "'JetBrains Mono', monospace" }}
-          >
-            Built for Brainware AI Hackathon 2026
-          </p>
+        <div className="grid grid-cols-2 gap-8">
+          <div className="space-y-4">
+            <h5 className="font-label text-sm font-bold text-primary">Platform</h5>
+            <ul className="space-y-2">
+              <li>
+                <a
+                  href="#"
+                  className="text-foreground/70 hover:text-cyan transition-colors"
+                >
+                  Privacy Policy
+                </a>
+              </li>
+              <li>
+                <a
+                  href="#"
+                  className="text-foreground/70 hover:text-cyan transition-colors"
+                >
+                  Terms of Service
+                </a>
+              </li>
+              <li>
+                <a
+                  href="#"
+                  className="text-foreground/70 hover:text-cyan transition-colors"
+                >
+                  Discord Community
+                </a>
+              </li>
+            </ul>
+          </div>
+          <div className="space-y-4">
+            <h5 className="font-label text-sm font-bold text-primary">Support</h5>
+            <ul className="space-y-2">
+              <li>
+                <a
+                  href="#"
+                  className="text-foreground/70 hover:text-cyan transition-colors"
+                >
+                  Twitter
+                </a>
+              </li>
+              <li>
+                <a
+                  href="#"
+                  className="text-foreground/70 hover:text-cyan transition-colors"
+                >
+                  Support
+                </a>
+              </li>
+              <li>
+                <a
+                  href="#"
+                  className="text-foreground/70 hover:text-cyan transition-colors"
+                >
+                  Help Center
+                </a>
+              </li>
+            </ul>
+          </div>
         </div>
+      </div>
+      <div className="border-t-4 border-black py-8 px-4 md:px-16 max-w-[1280px] mx-auto flex flex-col md:flex-row justify-between items-center gap-4 text-xs font-label font-bold opacity-60">
+        <div>
+          © {new Date().getFullYear()} CAREER WALLAH. UNAPOLOGETICALLY BOLD FUTURE
+          PLANNING.
+        </div>
+        <div>BUILT FOR BRAINWARE AI HACKATHON 2026</div>
       </div>
     </footer>
   );

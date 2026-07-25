@@ -7,7 +7,7 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="flex min-h-screen bg-[#0A0A0A]">
+    <div className="flex min-h-screen bg-background">
       {/* Desktop Sidebar — hidden on mobile */}
       <Sidebar className="hidden md:flex" />
 
