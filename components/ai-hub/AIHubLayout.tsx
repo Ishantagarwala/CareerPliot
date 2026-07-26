@@ -165,11 +165,11 @@ export default function AIHubLayout() {
         </p>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-[260px_1fr_320px] gap-6 relative">
-        {/* Panel 1 Backdrop (Mobile) */}
+      <div className="grid grid-cols-1 xl:grid-cols-[240px_1fr_280px] gap-6 relative">
+        {/* Panel 1 Backdrop (Mobile & Tablet) */}
         {isLeftOpen && (
           <div
-            className="fixed inset-0 z-40 bg-black/60 lg:hidden"
+            className="fixed inset-0 z-40 bg-black/70 backdrop-blur-sm xl:hidden"
             onClick={() => setIsLeftOpen(false)}
           />
         )}
@@ -177,11 +177,16 @@ export default function AIHubLayout() {
         {/* Panel 1: Chats Sidebar */}
         <section
           className={`flex flex-col bg-[#0A0A0A] border border-[#262626] p-4
-            fixed inset-y-0 left-0 z-50 w-[260px] transition-transform duration-300 ease-in-out lg:static lg:z-0 lg:w-auto lg:h-[calc(100vh-220px)] lg:min-h-[560px]
-            ${isLeftOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}`}
+            fixed inset-y-0 left-0 z-50 w-[260px] transition-all duration-300 ease-in-out
+            xl:static xl:z-0 xl:w-auto xl:h-[calc(100vh-220px)] xl:min-h-[560px]
+            ${
+              isLeftOpen
+                ? "translate-x-0 opacity-100 pointer-events-auto"
+                : "-translate-x-full opacity-0 pointer-events-none xl:opacity-100 xl:pointer-events-auto xl:translate-x-0"
+            }`}
         >
           {/* Close button for Sidebar on mobile */}
-          <div className="flex justify-end lg:hidden mb-2">
+          <div className="flex justify-end xl:hidden mb-2">
             <button
               onClick={() => setIsLeftOpen(false)}
               className="p-1 text-white border border-[#262626] bg-[#1A1A1A] hover:bg-[#262626] flex items-center justify-center"
@@ -306,18 +311,24 @@ export default function AIHubLayout() {
         {/* Panel 3 Backdrop (Mobile) */}
         {isRightOpen && (
           <div
-            className="fixed inset-0 z-40 bg-black/60 lg:hidden"
+            className="fixed inset-0 z-40 bg-black/70 backdrop-blur-sm xl:hidden"
             onClick={() => setIsRightOpen(false)}
           />
         )}
 
         {/* Panel 3: Document Library */}
         <aside
-          className={`fixed inset-y-0 right-0 z-50 w-[300px] bg-[#0A0A0A] border-l border-[#262626] p-4 transition-transform duration-300 ease-in-out lg:static lg:z-0 lg:w-auto lg:border-l-0 lg:p-0 lg:h-[calc(100vh-220px)] lg:min-h-[560px]
-            ${isRightOpen ? "translate-x-0" : "translate-x-full lg:translate-x-0"}`}
+          className={`bg-[#0A0A0A] border border-[#262626] p-4
+            fixed inset-y-0 right-0 z-50 w-[300px] transition-all duration-300 ease-in-out
+            xl:static xl:z-0 xl:w-auto xl:border-0 xl:p-0 xl:h-[calc(100vh-220px)] xl:min-h-[560px]
+            ${
+              isRightOpen
+                ? "translate-x-0 opacity-100 pointer-events-auto"
+                : "translate-x-full opacity-0 pointer-events-none xl:opacity-100 xl:pointer-events-auto xl:translate-x-0"
+            }`}
         >
           {/* Close button for Right Sidebar on mobile */}
-          <div className="flex justify-end lg:hidden mb-2">
+          <div className="flex justify-end xl:hidden mb-2">
             <button
               onClick={() => setIsRightOpen(false)}
               className="p-1 text-white border border-[#262626] bg-[#1A1A1A] hover:bg-[#262626] flex items-center justify-center"

@@ -240,7 +240,7 @@ export default function UnifiedChat({
           {onToggleLeftSidebar && (
             <button
               onClick={onToggleLeftSidebar}
-              className="lg:hidden p-1.5 border border-[#262626] bg-[#1A1A1A] text-white hover:bg-[#262626] flex items-center justify-center"
+              className="xl:hidden p-1.5 border border-[#262626] bg-[#1A1A1A] text-white hover:bg-[#262626] flex items-center justify-center"
               title="Toggle Conversations"
             >
               <span className="material-symbols-outlined text-[18px]">menu</span>
@@ -260,7 +260,7 @@ export default function UnifiedChat({
           {onToggleRightSidebar && (
             <button
               onClick={onToggleRightSidebar}
-              className="lg:hidden p-1.5 border border-[#262626] bg-[#1A1A1A] text-white hover:bg-[#262626] flex items-center justify-center"
+              className="xl:hidden p-1.5 border border-[#262626] bg-[#1A1A1A] text-white hover:bg-[#262626] flex items-center justify-center"
               title="Toggle Documents"
             >
               <span className="material-symbols-outlined text-[18px]">description</span>
