@@ -65,6 +65,43 @@ function splitCsv(value: string) {
   return value.split(",").map((item) => item.trim()).filter(Boolean);
 }
 
+function CsvInput({
+  value,
+  onChange,
+  placeholder,
+  className,
+}: {
+  value: unknown;
+  onChange: (items: string[]) => void;
+  placeholder: string;
+  className?: string;
+}) {
+  const initialItems = Array.isArray(value)
+    ? value.map(String)
+    : typeof value === "string"
+      ? splitCsv(value)
+      : [];
+  const [draft, setDraft] = useState(initialItems.join(", "));
+
+  return (
+    <input
+      value={draft}
+      onChange={(event) => {
+        const nextDraft = event.target.value;
+        setDraft(nextDraft);
+        onChange(splitCsv(nextDraft));
+      }}
+      onBlur={() => {
+        const normalized = splitCsv(draft);
+        setDraft(normalized.join(", "));
+        onChange(normalized);
+      }}
+      placeholder={placeholder}
+      className={className}
+    />
+  );
+}
+
 export default function ResumeBuilder({ resumeId }: ResumeBuilderProps) {
   const [resume, setResume] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -281,11 +318,11 @@ export default function ResumeBuilder({ resumeId }: ResumeBuilderProps) {
                 placeholder="Project description"
                 className="w-full bg-[#131313] border border-[#262626] p-3 text-white text-sm"
               />
-              <input
-                value={(item.technologies || []).join(", ")}
-                onChange={(e) => {
+              <CsvInput
+                value={item.technologies}
+                onChange={(technologies) => {
                   const next = [...content.projects];
-                  next[index] = { ...next[index], technologies: splitCsv(e.target.value) };
+                  next[index] = { ...next[index], technologies };
                   updateContent(["projects"], next);
                 }}
                 placeholder="Technologies, comma separated"
@@ -325,10 +362,10 @@ export default function ResumeBuilder({ resumeId }: ResumeBuilderProps) {
           <h2 className="font-bold text-white">Skills</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             {["technical", "frameworks", "tools", "soft"].map((field) => (
-              <input
+              <CsvInput
                 key={field}
-                value={(content.skills[field] || []).join(", ")}
-                onChange={(e) => updateContent(["skills", field], splitCsv(e.target.value))}
+                value={content.skills[field]}
+                onChange={(items) => updateContent(["skills", field], items)}
                 placeholder={`${field} skills, comma separated`}
                 className="bg-[#131313] border border-[#262626] p-3 text-white text-sm"
               />
