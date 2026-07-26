@@ -1,5 +1,6 @@
 import Link from "next/link";
 import Footer from "@/components/layout/Footer";
+import LandingNav from "@/components/layout/LandingNav";
 
 const modules = [
   {
@@ -82,56 +83,7 @@ const shell = "w-full max-w-[1600px] mx-auto px-5 sm:px-8 lg:px-12 xl:px-16";
 export default function Home() {
   return (
     <div className="flex min-h-screen flex-col bg-background text-foreground">
-      <nav className="bg-background border-b-4 border-black sticky top-0 z-50">
-        <div className={`flex justify-between items-center h-16 md:h-[4.5rem] ${shell}`}>
-          <Link
-            href="/"
-            className="font-display text-xl sm:text-2xl md:text-[1.75rem] font-extrabold uppercase tracking-tighter text-primary"
-          >
-            CAREER PILOT
-          </Link>
-          <div className="hidden md:flex gap-6 lg:gap-10 items-center">
-            <a
-              href="#discovery"
-              className="text-primary font-label text-sm font-bold border-b-4 border-primary translate-y-1"
-            >
-              Discovery
-            </a>
-            <a
-              href="#modules"
-              className="text-foreground/80 hover:text-primary transition-colors font-label text-sm font-bold"
-            >
-              Roadmap
-            </a>
-            <a
-              href="#faq"
-              className="text-foreground/80 hover:text-primary transition-colors font-label text-sm font-bold"
-            >
-              Tutors
-            </a>
-            <a
-              href="#cta"
-              className="text-foreground/80 hover:text-primary transition-colors font-label text-sm font-bold"
-            >
-              About
-            </a>
-          </div>
-          <div className="flex gap-3 md:gap-4 items-center">
-            <Link
-              href="/login"
-              className="hidden sm:block font-label text-sm font-bold text-foreground/80 hover:text-primary transition-colors"
-            >
-              Log In
-            </Link>
-            <Link
-              href="/register"
-              className="inline-flex items-center justify-center bg-[#88aaee] text-black px-4 md:px-6 py-2 border-2 border-black shadow-[4px_4px_0_0_#000] rounded-[5px] font-label text-sm font-bold transition-all hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-none"
-            >
-              Sign Up
-            </Link>
-          </div>
-        </div>
-      </nav>
+      <LandingNav />
 
       {/* Hero fills viewport above the marquee */}
       <section className="relative flex flex-col justify-center min-h-[calc(100svh-4.5rem-3.5rem)] overflow-hidden">
@@ -144,33 +96,61 @@ export default function Home() {
           }}
           aria-hidden
         />
-        <div className={`relative z-10 py-10 md:py-14 ${shell}`}>
-          <p className="font-display text-[clamp(2.75rem,8vw,7.5rem)] font-extrabold uppercase leading-[0.9] tracking-tighter text-primary mb-4 md:mb-6">
-            Career Pilot
-          </p>
-          <h1 className="font-display text-[clamp(1.75rem,4.2vw,3.75rem)] font-extrabold leading-[1.05] tracking-tight text-foreground max-w-[22ch] mb-4 md:mb-5">
-            Chart your path with{" "}
-            <span className="text-primary">precision</span>
-          </h1>
-          <p className="text-base md:text-lg text-[color:var(--on-surface-variant)] max-w-xl mb-7 md:mb-8 leading-relaxed">
-            Smart assessments, stage-by-stage roadmaps, courses, PDF study tools,
-            and an AI tutor — one place to plan and build your career.
-          </p>
-          <div className="flex flex-wrap gap-3 md:gap-4">
-            <Link
-              href="/register"
-              className="inline-flex items-center justify-center gap-2 bg-[#88aaee] text-black px-6 md:px-8 py-3 md:py-3.5 border-2 border-black shadow-[4px_4px_0_0_#000] rounded-[5px] font-display text-lg md:text-xl font-bold transition-all hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-none"
-            >
-              Get Started Free
-              <span className="material-symbols-outlined">arrow_forward</span>
-            </Link>
-            <Link
-              href="/login?demo=true"
-              className="inline-flex items-center justify-center gap-2 bg-primary text-black px-6 md:px-8 py-3 md:py-3.5 border-2 border-black shadow-[4px_4px_0_0_#000] rounded-[5px] font-display text-lg md:text-xl font-bold transition-all hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-none"
-            >
-              Demo Login
-              <span className="material-symbols-outlined">bolt</span>
-            </Link>
+        <div
+          className={`relative z-10 py-10 md:py-14 ${shell} grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-12 items-center`}
+        >
+          <div className="lg:col-span-7">
+            <p className="font-display text-[clamp(2.75rem,8vw,7.5rem)] font-extrabold uppercase leading-[0.9] tracking-tighter text-primary mb-4 md:mb-6">
+              Career Pilot
+            </p>
+            <h1 className="font-display text-[clamp(1.75rem,4.2vw,3.75rem)] font-extrabold leading-[1.05] tracking-tight text-foreground max-w-[22ch] mb-4 md:mb-5">
+              Chart your path with{" "}
+              <span className="text-primary">precision</span>
+            </h1>
+            <p className="text-base md:text-lg text-[color:var(--on-surface-variant)] max-w-xl mb-7 md:mb-8 leading-relaxed">
+              Smart assessments, stage-by-stage roadmaps, courses, PDF study tools,
+              and an AI tutor — one place to plan and build your career.
+            </p>
+            <div className="flex flex-wrap gap-3 md:gap-4">
+              <Link
+                href="/register"
+                className="inline-flex items-center justify-center gap-2 bg-[#88aaee] text-black px-6 md:px-8 py-3 md:py-3.5 border-2 border-black shadow-[4px_4px_0_0_#000] rounded-[5px] font-display text-lg md:text-xl font-bold transition-all hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-none"
+              >
+                Get Started Free
+                <span className="material-symbols-outlined">arrow_forward</span>
+              </Link>
+              <Link
+                href="/login?demo=true"
+                className="inline-flex items-center justify-center gap-2 bg-primary text-black px-6 md:px-8 py-3 md:py-3.5 border-2 border-black shadow-[4px_4px_0_0_#000] rounded-[5px] font-display text-lg md:text-xl font-bold transition-all hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-none"
+              >
+                Demo Login
+                <span className="material-symbols-outlined">bolt</span>
+              </Link>
+            </div>
+          </div>
+
+          {/* Typographic feature stack — fills the empty right side without a stock mockup */}
+          <div className="lg:col-span-5 hidden lg:block">
+            <ul className="border-4 border-black bg-card divide-y-4 divide-black shadow-[8px_8px_0_0_#000]">
+              {[
+                { n: "01", label: "Discover your match" },
+                { n: "02", label: "Build a live roadmap" },
+                { n: "03", label: "Learn with AI tools" },
+                { n: "04", label: "Ship resumes & jobs" },
+              ].map((step) => (
+                <li
+                  key={step.n}
+                  className="flex items-center gap-4 px-5 py-4 hover:bg-primary transition-colors group"
+                >
+                  <span className="font-display text-2xl font-extrabold text-primary group-hover:text-black tabular-nums">
+                    {step.n}
+                  </span>
+                  <span className="font-display text-xl font-bold text-foreground group-hover:text-black">
+                    {step.label}
+                  </span>
+                </li>
+              ))}
+            </ul>
           </div>
         </div>
       </section>
