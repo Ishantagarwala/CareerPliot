@@ -197,27 +197,27 @@ export default function ChatInterface() {
             </div>
           </>
         ) : (
-          <div className="w-full max-w-3xl space-y-4">
+          <div className="w-full space-y-1">
             {messages.map((msg, index) => (
               <MessageBubble key={index} message={msg} />
             ))}
 
             {/* Typing Indicator */}
             {loading && (
-              <div className="flex w-full justify-start mb-4">
-                <div className="flex items-start gap-2.5 max-w-[75%]">
-                  <div className="h-8 w-8 border border-[#262626] bg-[#1A1A1A] flex items-center justify-center shrink-0">
+              <div className="flex w-full justify-start mb-3">
+                <div className="flex items-start gap-2.5 w-full">
+                  <div className="h-8 w-8 border-2 border-black bg-card flex items-center justify-center shrink-0">
                     <span
-                      className="text-xs font-bold text-white"
+                      className="text-xs font-bold text-primary"
                       style={{ fontFamily: "'JetBrains Mono', monospace" }}
                     >
                       AI
                     </span>
                   </div>
-                  <div className="bg-[#1A1A1A] border border-[#262626] p-4 flex items-center gap-1.5 py-3 px-4">
-                    <span className="h-2 w-2 bg-white/30 rounded-full animate-bounce" style={{ animationDelay: "0ms" }} />
-                    <span className="h-2 w-2 bg-white/50 rounded-full animate-bounce" style={{ animationDelay: "150ms" }} />
-                    <span className="h-2 w-2 bg-white/70 rounded-full animate-bounce" style={{ animationDelay: "300ms" }} />
+                  <div className="bg-card border-2 border-black p-4 flex items-center gap-1.5 py-3 px-4">
+                    <span className="h-2 w-2 bg-foreground/30 rounded-full animate-bounce" style={{ animationDelay: "0ms" }} />
+                    <span className="h-2 w-2 bg-foreground/50 rounded-full animate-bounce" style={{ animationDelay: "150ms" }} />
+                    <span className="h-2 w-2 bg-foreground/70 rounded-full animate-bounce" style={{ animationDelay: "300ms" }} />
                   </div>
                 </div>
               </div>

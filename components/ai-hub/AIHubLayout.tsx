@@ -165,7 +165,7 @@ export default function AIHubLayout() {
         </p>
       </div>
 
-      <div className="grid grid-cols-1 xl:grid-cols-[240px_1fr_280px] gap-6 relative">
+      <div className="grid grid-cols-1 xl:grid-cols-[220px_minmax(0,1fr)_260px] gap-4 relative">
         {/* Panel 1 Backdrop (Mobile & Tablet) */}
         {isLeftOpen && (
           <div
@@ -176,9 +176,9 @@ export default function AIHubLayout() {
 
         {/* Panel 1: Chats Sidebar */}
         <section
-          className={`flex flex-col bg-[#0A0A0A] border border-[#262626] p-4
+          className={`flex flex-col bg-card border-2 border-black p-4
             fixed inset-y-0 left-0 z-50 w-[260px] transition-all duration-300 ease-in-out
-            xl:static xl:z-0 xl:w-auto xl:h-[calc(100vh-220px)] xl:min-h-[560px]
+            xl:static xl:z-0 xl:w-auto xl:h-[calc(100svh-11rem)] xl:min-h-[520px]
             ${
               isLeftOpen
                 ? "translate-x-0 opacity-100 pointer-events-auto"
@@ -320,7 +320,7 @@ export default function AIHubLayout() {
         <aside
           className={`bg-[#0A0A0A] border border-[#262626] p-4
             fixed inset-y-0 right-0 z-50 w-[300px] transition-all duration-300 ease-in-out
-            xl:static xl:z-0 xl:w-auto xl:border-0 xl:p-0 xl:h-[calc(100vh-220px)] xl:min-h-[560px]
+            xl:static xl:z-0 xl:w-auto xl:border-0 xl:p-0 xl:h-[calc(100svh-11rem)] xl:min-h-[520px]
             ${
               isRightOpen
                 ? "translate-x-0 opacity-100 pointer-events-auto"

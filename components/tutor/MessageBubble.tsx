@@ -224,8 +224,14 @@ export default function MessageBubble({ message }: MessageBubbleProps) {
     : "";
 
   return (
-    <div className={`flex w-full ${isUser ? "justify-end" : "justify-start"} mb-4 group`}>
-      <div className={`flex items-start gap-2.5 max-w-[85%] sm:max-w-[75%] ${isUser ? "flex-row-reverse" : "flex-row"}`}>
+    <div className={`flex w-full ${isUser ? "justify-end" : "justify-start"} mb-3 group`}>
+      <div
+        className={`flex items-start gap-2.5 min-w-0 ${
+          isUser
+            ? "flex-row-reverse max-w-[min(100%,42rem)]"
+            : "flex-row w-full max-w-none"
+        }`}
+      >
         {/* Avatar */}
         <div className={`h-8 w-8 flex items-center justify-center shrink-0 border-2 border-black ${
           isUser
@@ -245,9 +251,9 @@ export default function MessageBubble({ message }: MessageBubbleProps) {
         </div>
 
         {/* Bubble */}
-        <div className="flex flex-col space-y-1">
+        <div className="flex flex-col space-y-1 min-w-0 flex-1">
           <div
-            className={`relative p-4 border-2 border-black transition-all ${
+            className={`relative p-4 border-2 border-black transition-all w-full ${
               isUser
                 ? "bg-accent text-accent-foreground"
                 : "bg-card text-foreground"
