@@ -30,7 +30,7 @@ export default function DocumentLibrary({
   const hasSelection = selectedDocumentIds.length > 0;
 
   return (
-    <aside className="bg-card border-2 border-black h-full min-h-[420px] flex flex-col">
+    <aside className="bg-card border-2 border-black h-full flex flex-col overflow-hidden">
       <div className="p-4 border-b-2 border-black">
         <p className="text-[11px] text-muted-foreground uppercase tracking-[0.15em] font-label">
           Document Context
@@ -40,7 +40,7 @@ export default function DocumentLibrary({
         </h2>
       </div>
 
-      <div className="flex-1 overflow-y-auto p-3 space-y-2">
+      <div className="flex-1 overflow-y-auto p-3 space-y-2 custom-scrollbar">
         {loading ? (
           [1, 2, 3].map((item) => (
             <div key={item} className="h-20 border-2 border-black/40 bg-muted animate-pulse" />

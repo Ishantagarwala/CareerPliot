@@ -313,7 +313,7 @@ export default function AIHubLayout() {
 
         {/* Panel 3: Document Library */}
         <aside
-          className={`fixed inset-y-0 right-0 z-50 w-[300px] bg-[#0A0A0A] border-l border-[#262626] p-4 transition-transform duration-300 ease-in-out lg:static lg:z-0 lg:w-auto lg:border-l-0 lg:p-0 lg:h-auto
+          className={`fixed inset-y-0 right-0 z-50 w-[300px] bg-[#0A0A0A] border-l border-[#262626] p-4 transition-transform duration-300 ease-in-out lg:static lg:z-0 lg:w-auto lg:border-l-0 lg:p-0 lg:h-[calc(100vh-220px)] lg:min-h-[560px]
             ${isRightOpen ? "translate-x-0" : "translate-x-full lg:translate-x-0"}`}
         >
           {/* Close button for Right Sidebar on mobile */}
