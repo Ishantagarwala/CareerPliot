@@ -395,6 +395,55 @@
   animation: gradientShift 4s ease infinite;
 }
 
+/* ===== PAGE LOADER ===== */
+
+@keyframes cpSpin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+@keyframes cpPulse {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(0.75);
+    opacity: 0.6;
+  }
+}
+@keyframes cpBounce {
+  0%,
+  100% {
+    transform: translateY(0);
+    opacity: 0.4;
+  }
+  50% {
+    transform: translateY(-6px);
+    opacity: 1;
+  }
+}
+.animate-cp-spin {
+  animation: cpSpin 1.4s cubic-bezier(0.65, 0, 0.35, 1) infinite;
+}
+.animate-cp-pulse {
+  animation: cpPulse 1.4s ease-in-out infinite;
+}
+.animate-cp-bounce {
+  animation: cpBounce 0.9s ease-in-out infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .animate-cp-spin,
+  .animate-cp-pulse,
+  .animate-cp-bounce {
+    animation-duration: 2.4s;
+  }
+}
+
 /* ===== STAGGER DELAY UTILITIES ===== */
 
 .delay-75 { animation-delay: 75ms; }
@@ -526,14 +575,14 @@
 /* ===== MONOLITH CARD HOVER ===== */
 
 .monolith-card {
-  background: #1A1A1A;
-  border: 1px solid #262626;
+  background: var(--card);
+  border: 1px solid var(--border);
   transition: border-color 0.3s ease, background-color 0.3s ease;
 }
 
 .monolith-card:hover {
-  border-color: #404040;
-  background: #1f1f1f;
+  border-color: var(--ring);
+  background: var(--sidebar-accent);
 }
 
 /* ===== MONOLITH NAV LINK ===== */
@@ -558,7 +607,7 @@
   top: 0;
   bottom: 0;
   width: 2px;
-  background-color: #2a2a2a;
+  background-color: var(--border);
 }
 
 @media (min-width: 768px) {
@@ -588,8 +637,8 @@
   height: 2px;
   background: repeating-linear-gradient(
     90deg,
-    #262626 0px,
-    #262626 8px,
+    var(--border) 0px,
+    var(--border) 8px,
     transparent 8px,
     transparent 16px
   );
@@ -629,10 +678,10 @@ select:focus {
 /* #262626 / hover surfaces must stay NEUTRAL — never map to --accent (cyan),
    or chat bubbles and secondary panels become illegible (white-on-cyan). */
 .bg-\[\#0A0A0A\] {
-  background-color: var(--background) !important;
+  background-color: var(--muted) !important;
 }
 .bg-\[\#131313\] {
-  background-color: var(--background) !important;
+  background-color: var(--card) !important;
 }
 .bg-\[\#1A1A1A\] {
   background-color: var(--card) !important;
@@ -647,7 +696,7 @@ select:focus {
   background-color: var(--muted) !important;
 }
 .bg-\[\#0F0F0F\] {
-  background-color: var(--background) !important;
+  background-color: var(--muted) !important;
 }
 .hover\:bg-\[\#1A1A1A\]:hover {
   background-color: var(--sidebar-accent) !important;
@@ -715,6 +764,14 @@ select:focus {
 .text-\[\#e5e2e1\] {
   color: var(--foreground) !important;
 }
+.text-\[\#0A0A0A\] {
+  color: var(--foreground) !important;
+}
+.placeholder-\[\#636565\]::placeholder,
+.placeholder\:text-\[\#636565\]::placeholder {
+  color: var(--muted-foreground) !important;
+  opacity: 1 !important;
+}
 
 /* Primary element overrides — lime CTA */
 .bg-white.text-\[\#0A0A0A\] {
@@ -732,29 +789,113 @@ select:focus {
 .light .bg-white\/10 {
   background-color: rgba(0, 0, 0, 0.1) !important;
 }
-.light .border-white\/30 {
-  border-color: rgba(0, 0, 0, 0.15) !important;
+.light .border-white\/30,
+.light .border-white\/20 {
+  border-color: rgba(0, 0, 0, 0.2) !important;
 }
-.light .bg-white\/5.text-white {
-  color: var(--foreground) !important;
-}
+.light .bg-white\/5.text-white,
 .light .border-white\/30.text-white {
   color: var(--foreground) !important;
 }
 
-/* Light mode: remap bare text-white (old Monolith assumption) to foreground,
-   BUT keep real white on intentional dark surfaces (black / olive panels). */
+/*
+ * Light mode: old Monolith UIs used text-white on near-black panels.
+ * Those panels remap to cream/white cards, so white text must become foreground.
+ * Keep true white ONLY on intentional dark surfaces that are NOT remapped
+ * (bg-black, olive #191d10 / #272c1d FAQ & marketing panels).
+ * Do NOT exempt remapped hex backgrounds (#0A0A0A etc.) — that caused
+ * white-on-cream invisibility across the app.
+ */
 .light .text-white {
   color: var(--foreground) !important;
 }
 .light .bg-black.text-white,
-.light .bg-\[\#0A0A0A\].text-white,
-.light .bg-\[\#191d10\] .text-white,
+.light .bg-black .text-white,
 .light .bg-\[\#191d10\].text-white,
+.light .bg-\[\#191d10\] .text-white,
+.light .bg-\[\#272c1d\].text-white,
 .light .bg-\[\#272c1d\] .text-white,
-.light .bg-black .text-white {
+.light .hover\:bg-\[\#272c1d\]:hover .text-white,
+.light .bg-red-600.text-white,
+.light .bg-red-700.text-white,
+.light .bg-destructive.text-white,
+.light .btn-reverse,
+.light .btn-reverse .text-white {
   color: #ffffff !important;
 }
+
+/* Soft Tailwind status colors are too light on cream */
+.light .text-indigo-300,
+.light .text-indigo-400,
+.light .text-blue-300,
+.light .text-blue-400,
+.light .text-purple-300,
+.light .text-purple-400,
+.light .text-violet-400,
+.light .text-cyan-300,
+.light .text-cyan-400 {
+  color: var(--secondary) !important;
+}
+.light .text-green-300,
+.light .text-green-400,
+.light .text-emerald-300,
+.light .text-emerald-400 {
+  color: #3d5c00 !important;
+}
+.light .text-yellow-300,
+.light .text-yellow-400,
+.light .text-amber-300,
+.light .text-amber-400 {
+  color: #7a5a00 !important;
+}
+.light .text-orange-300,
+.light .text-orange-400 {
+  color: #9a3412 !important;
+}
+.light .text-red-300,
+.light .text-red-400,
+.light .text-rose-300,
+.light .text-rose-400 {
+  color: #9f1239 !important;
+}
+.light .text-zinc-300,
+.light .text-zinc-400,
+.light .text-gray-300,
+.light .text-gray-400,
+.light .text-neutral-300,
+.light .text-neutral-400,
+.light .text-slate-300,
+.light .text-slate-400 {
+  color: var(--muted-foreground) !important;
+}
+
+/* Lime primary as body/label text is hard to read on cream — darken it.
+   CTAs use text-primary-foreground, so they stay correct. */
+.light .text-primary {
+  color: #3d5c00 !important;
+}
+.light .bg-primary.text-primary {
+  color: var(--primary-foreground) !important;
+}
+
+/* Native form controls in light mode */
+.light input,
+.light textarea,
+.light select {
+  color: var(--foreground);
+  background-color: var(--card);
+  color-scheme: light;
+}
+.light input::placeholder,
+.light textarea::placeholder {
+  color: var(--muted-foreground);
+  opacity: 1;
+}
+.light select option {
+  color: var(--foreground);
+  background-color: var(--card);
+}
+
 .light .border-white {
   border-color: var(--primary) !important;
 }
@@ -772,10 +913,10 @@ select:focus {
   background-color: var(--primary) !important;
 }
 .light .rounded-full.bg-\[\#0A0A0A\] {
-  background-color: var(--background) !important;
+  background-color: var(--muted) !important;
 }
 .light .border-4.border-\[\#0A0A0A\] {
-  border-color: var(--background) !important;
+  border-color: var(--border) !important;
 }
 .light .border-2.border-\[\#404040\] {
   border-color: var(--ring) !important;
@@ -791,4 +932,14 @@ select:focus {
 }
 .light .focus\:border-white:focus {
   border-color: var(--primary) !important;
+}
+
+/* Hover white text in light mode should darken, not disappear */
+.light .hover\:text-white:hover {
+  color: var(--foreground) !important;
+}
+.light .bg-black .hover\:text-white:hover,
+.light .bg-\[\#191d10\] .hover\:text-white:hover,
+.light .bg-\[\#272c1d\] .hover\:text-white:hover {
+  color: #ffffff !important;
 }
