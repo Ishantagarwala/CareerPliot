@@ -364,11 +364,17 @@ export default function NewsPage() {
               rel="noopener noreferrer"
               className="block border border-border bg-card flex flex-col group h-full transition-colors duration-300 hover:border-muted-foreground cursor-pointer no-underline"
             >
-              <div className="h-[300px] sm:h-[380px] w-full bg-accent relative overflow-hidden">
+                <div className="h-[300px] sm:h-[380px] w-full bg-accent relative overflow-hidden">
                 <img
                   src={featuredArticle.imageUrl || getFallbackImage(featuredArticle.tags)}
                   alt={featuredArticle.imageAlt || "Featured image"}
+                  referrerPolicy="no-referrer"
                   className="w-full h-full object-cover opacity-90 group-hover:opacity-100 transition-opacity duration-500 scale-100 group-hover:scale-105"
+                  onError={(e) => {
+                    const img = e.currentTarget;
+                    const fallback = getFallbackImage(featuredArticle.tags);
+                    if (img.src !== fallback) img.src = fallback;
+                  }}
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-transparent pointer-events-none" />
                 <div className="absolute top-4 left-4 flex items-center gap-2">
@@ -559,7 +565,13 @@ export default function NewsPage() {
                   <img
                     src={article.imageUrl || getFallbackImage(article.tags)}
                     alt={article.imageAlt || "Analysis cover image"}
+                    referrerPolicy="no-referrer"
                     className="w-full h-full object-cover opacity-90 group-hover:opacity-100 scale-100 group-hover:scale-103 transition-transform"
+                    onError={(e) => {
+                      const img = e.currentTarget;
+                      const fallback = getFallbackImage(article.tags);
+                      if (img.src !== fallback) img.src = fallback;
+                    }}
                   />
                 </div>
                 <div className="p-5 flex-1 flex flex-col justify-between">

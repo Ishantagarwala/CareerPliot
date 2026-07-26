@@ -16,7 +16,8 @@ export default auth((req) => {
     '/resume',
     '/study',
     '/news',
-    '/profile'
+    '/profile',
+    '/jobs',
   ];
 
   const isProtectedRoute = protectedRoutes.some((route) =>
@@ -42,5 +43,6 @@ export const config = {
     '/study/:path*',
     '/news/:path*',
     '/profile/:path*',
+    '/jobs/:path*',
   ],
 };

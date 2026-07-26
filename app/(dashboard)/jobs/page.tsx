@@ -5,25 +5,22 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import {
   Briefcase,
-  Building,
   MapPin,
   DollarSign,
   Search,
   Plus,
   Loader2,
-  Calendar,
-  Layers,
-  Check,
   ChevronRight,
-  Notebook
+  Check,
 } from "lucide-react";
+import SafeImage from "@/components/ui/SafeImage";
 
 interface JobListing {
   _id: string;
   title: string;
   company: string;
   companyLogo?: string;
-  type: 'internship' | 'full-time' | 'part-time' | 'contract';
+  type: "internship" | "full-time" | "part-time" | "contract";
   location: string;
   remote: boolean;
   salary?: {
@@ -35,6 +32,7 @@ interface JobListing {
   requirements: string[];
   skills: string[];
   applyUrl: string;
+  source?: string;
   matchScore?: number;
   matchedSkills?: string[];
 }
@@ -42,36 +40,46 @@ interface JobListing {
 interface Application {
   _id: string;
   jobId?: JobListing;
+  externalJobKey?: string;
   customJob?: {
     title: string;
     company: string;
     url?: string;
   };
-  status: 'saved' | 'applied' | 'screening' | 'interview' | 'offer' | 'rejected' | 'withdrawn';
+  status: "saved" | "applied" | "screening" | "interview" | "offer" | "rejected" | "withdrawn";
   appliedDate?: string;
   notes?: string;
   updatedAt: string;
 }
 
+interface JobsMeta {
+  query?: string;
+  careerPath?: string | null;
+  count?: number;
+  sources?: Record<string, number>;
+  enabledProviders?: string[];
+  note?: string;
+}
+
 const statusColumns = [
-  { id: 'saved', name: 'Saved', color: 'border-blue-500/30 text-blue-400 bg-blue-500/5' },
-  { id: 'applied', name: 'Applied', color: 'border-yellow-500/30 text-yellow-400 bg-yellow-500/5' },
-  { id: 'screening', name: 'Screening', color: 'border-orange-500/30 text-orange-400 bg-orange-500/5' },
-  { id: 'interview', name: 'Interviewing', color: 'border-purple-500/30 text-purple-400 bg-purple-500/5' },
-  { id: 'offer', name: 'Offers', color: 'border-green-500/30 text-green-400 bg-green-500/5' },
-  { id: 'rejected', name: 'Archived', color: 'border-red-500/30 text-red-400 bg-red-500/5' }
+  { id: "saved", name: "Saved", color: "border-blue-500/30 text-blue-400 bg-blue-500/5" },
+  { id: "applied", name: "Applied", color: "border-yellow-500/30 text-yellow-400 bg-yellow-500/5" },
+  { id: "screening", name: "Screening", color: "border-orange-500/30 text-orange-400 bg-orange-500/5" },
+  { id: "interview", name: "Interviewing", color: "border-purple-500/30 text-purple-400 bg-purple-500/5" },
+  { id: "offer", name: "Offers", color: "border-green-500/30 text-green-400 bg-green-500/5" },
+  { id: "rejected", name: "Archived", color: "border-red-500/30 text-red-400 bg-red-500/5" },
 ];
 
 export default function JobsPage() {
-  const [activeTab, setActiveTab] = useState<'board' | 'tracker'>('board');
+  const [activeTab, setActiveTab] = useState<"board" | "tracker">("board");
   const [listings, setListings] = useState<JobListing[]>([]);
+  const [meta, setMeta] = useState<JobsMeta | null>(null);
   const [applications, setApplications] = useState<Application[]>([]);
   const [loading, setLoading] = useState(true);
   const [trackerLoading, setTrackerLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedType, setSelectedType] = useState<string>("all");
 
-  // Custom job entry modal states
   const [showCustomModal, setShowCustomModal] = useState(false);
   const [customTitle, setCustomTitle] = useState("");
   const [customCompany, setCustomCompany] = useState("");
@@ -84,14 +92,22 @@ export default function JobsPage() {
       if (selectedType !== "all") {
         url.searchParams.append("type", selectedType);
       }
-      if (searchQuery) {
-        url.searchParams.append("search", searchQuery);
+      if (searchQuery.trim()) {
+        url.searchParams.append("search", searchQuery.trim());
       }
       const res = await fetch(url.toString());
-      if (!res.ok) throw new Error("Failed to load jobs");
-      const data = await res.json();
-      setListings(data);
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        throw new Error(data?.message || "Failed to load jobs");
+      }
+
+      // Support { jobs, meta } and legacy array responses.
+      const list = Array.isArray(data) ? data : Array.isArray(data?.jobs) ? data.jobs : [];
+      setListings(list);
+      setMeta(Array.isArray(data) ? null : data?.meta || null);
     } catch (err: any) {
+      setListings([]);
+      setMeta(null);
       toast.error(err.message || "Failed to load jobs");
     } finally {
       setLoading(false);
@@ -104,7 +120,7 @@ export default function JobsPage() {
       const res = await fetch("/api/jobs/applications");
       if (!res.ok) throw new Error("Failed to load tracker");
       const data = await res.json();
-      setApplications(data);
+      setApplications(Array.isArray(data) ? data : []);
     } catch (err: any) {
       toast.error(err.message || "Failed to load applications");
     } finally {
@@ -117,12 +133,29 @@ export default function JobsPage() {
     fetchApplications();
   }, [fetchJobs, fetchApplications]);
 
-  const handleSaveJob = async (jobId: string) => {
+  const isTracked = (job: JobListing) =>
+    applications.some(
+      (app) =>
+        app.externalJobKey === job._id ||
+        app.jobId?._id === job._id ||
+        (app.customJob?.url && app.customJob.url === job.applyUrl)
+    );
+
+  const handleSaveJob = async (job: JobListing) => {
     try {
       const res = await fetch("/api/jobs/applications", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ jobId, status: "saved" }),
+        body: JSON.stringify({
+          // Live IDs are not Mongo ObjectIds — store as custom + external key.
+          externalJobKey: job._id,
+          customJob: {
+            title: job.title,
+            company: job.company,
+            url: job.applyUrl,
+          },
+          status: "saved",
+        }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.message || "Failed to track job");
@@ -160,7 +193,7 @@ export default function JobsPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           customJob: { title: customTitle, company: customCompany, url: customUrl },
-          status: "saved"
+          status: "saved",
         }),
       });
       if (!res.ok) throw new Error("Failed to save custom application");
@@ -177,7 +210,6 @@ export default function JobsPage() {
 
   return (
     <div className="space-y-8 animate-fade-in-up">
-      {/* Header */}
       <div className="border-b border-[#262626] pb-6 flex flex-col md:flex-row md:items-end justify-between gap-6">
         <div>
           <h1
@@ -187,26 +219,35 @@ export default function JobsPage() {
             <span className="material-symbols-outlined text-[28px]">work</span>
             Internship & Job Center
           </h1>
-          <p className="text-sm text-[#8e9192] mt-2">
-            Browse targeted internship openings and map your applications onto a visual tracking board.
+          <p className="text-sm text-[#8e9192] mt-2 max-w-2xl">
+            Live openings from Remotive, Arbeitnow, RemoteOK
+            {meta?.enabledProviders?.some((p) => p.includes("JSearch"))
+              ? ", plus LinkedIn/Indeed via JSearch"
+              : ""}
+            {meta?.careerPath ? (
+              <>
+                {" "}
+                · tailored to <span className="text-[#c4c7c8]">{meta.careerPath}</span>
+              </>
+            ) : null}
+            .
           </p>
         </div>
 
-        {/* Tab Switcher */}
         <div className="flex bg-[#131313] border border-[#262626] p-1 shrink-0">
           <button
-            onClick={() => setActiveTab('board')}
+            onClick={() => setActiveTab("board")}
             className={`px-4 py-2 text-xs font-bold tracking-wider uppercase transition-colors rounded-none ${
-              activeTab === 'board' ? 'bg-white text-black' : 'text-muted-foreground hover:text-white'
+              activeTab === "board" ? "bg-white text-black" : "text-muted-foreground hover:text-white"
             }`}
             style={{ fontFamily: "'JetBrains Mono', monospace" }}
           >
             Job Board
           </button>
           <button
-            onClick={() => setActiveTab('tracker')}
+            onClick={() => setActiveTab("tracker")}
             className={`px-4 py-2 text-xs font-bold tracking-wider uppercase transition-colors rounded-none flex items-center gap-2 ${
-              activeTab === 'tracker' ? 'bg-white text-black' : 'text-muted-foreground hover:text-white'
+              activeTab === "tracker" ? "bg-white text-black" : "text-muted-foreground hover:text-white"
             }`}
             style={{ fontFamily: "'JetBrains Mono', monospace" }}
           >
@@ -216,10 +257,8 @@ export default function JobsPage() {
         </div>
       </div>
 
-      {/* Main Tab Views */}
-      {activeTab === 'board' ? (
+      {activeTab === "board" ? (
         <div className="space-y-6">
-          {/* Filters Bar */}
           <div className="flex flex-col sm:flex-row gap-4 justify-between items-center bg-[#131313] border border-[#262626] p-4">
             <div className="relative w-full sm:max-w-xs">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#636565]" />
@@ -237,9 +276,7 @@ export default function JobsPage() {
             <div className="flex items-center gap-3 w-full sm:w-auto justify-end">
               <select
                 value={selectedType}
-                onChange={(e) => {
-                  setSelectedType(e.target.value);
-                }}
+                onChange={(e) => setSelectedType(e.target.value)}
                 className="bg-[#0A0A0A] border border-[#262626] py-2 px-3 text-xs font-bold text-white uppercase focus:outline-none"
                 style={{ fontFamily: "'JetBrains Mono', monospace" }}
               >
@@ -247,6 +284,7 @@ export default function JobsPage() {
                 <option value="internship">Internship</option>
                 <option value="full-time">Full-Time</option>
                 <option value="part-time">Part-Time</option>
+                <option value="contract">Contract</option>
               </select>
 
               <button
@@ -254,52 +292,84 @@ export default function JobsPage() {
                 className="px-4 py-2 bg-white text-black text-xs font-bold uppercase tracking-wider hover:bg-[#e2e2e2] transition-colors"
                 style={{ fontFamily: "'JetBrains Mono', monospace" }}
               >
-                Apply Filters
+                Search
               </button>
             </div>
           </div>
 
-          {/* Job Listings Grid */}
+          {meta && (
+            <div className="flex flex-wrap gap-2 text-[10px] text-[#8e9192]" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
+              <span className="border border-[#262626] px-2 py-1">
+                Query: {meta.query || "—"}
+              </span>
+              <span className="border border-[#262626] px-2 py-1">
+                {meta.count ?? listings.length} results
+              </span>
+              {meta.sources &&
+                Object.entries(meta.sources)
+                  .filter(([, n]) => n > 0)
+                  .map(([name, n]) => (
+                    <span key={name} className="border border-[#262626] px-2 py-1">
+                      {name}: {n}
+                    </span>
+                  ))}
+            </div>
+          )}
+
+          {meta?.note && (
+            <p className="text-[11px] text-[#8e9192] border border-dashed border-[#262626] p-3 bg-[#131313]">
+              {meta.note} Add <code className="text-[#c4c7c8]">RAPIDAPI_KEY</code> to{" "}
+              <code className="text-[#c4c7c8]">.env.local</code> for LinkedIn/Indeed-sourced roles via JSearch.
+            </p>
+          )}
+
           {loading ? (
             <div className="flex flex-col items-center justify-center py-20 space-y-4">
               <Loader2 className="h-8 w-8 animate-spin text-white" />
               <span className="text-xs text-[#8e9192]" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
-                Scanning opportunities...
+                Scanning Remotive, Arbeitnow, RemoteOK…
               </span>
             </div>
           ) : listings.length === 0 ? (
             <div className="text-center py-16 border border-dashed border-[#262626] bg-[#131313] space-y-4">
               <Briefcase className="h-8 w-8 mx-auto text-[#636565]" />
               <p className="text-sm text-[#8e9192]" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
-                No job matching criteria found.
+                No jobs matched. Try a broader search or switch type to All.
               </p>
+              <button
+                onClick={() => {
+                  setSelectedType("all");
+                  setSearchQuery("");
+                }}
+                className="px-4 py-2 bg-white text-black text-xs font-bold uppercase"
+                style={{ fontFamily: "'JetBrains Mono', monospace" }}
+              >
+                Reset filters
+              </button>
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {listings.map((job) => {
-                const isAlreadyTracked = applications.some(app => app.jobId?._id === job._id);
+                const tracked = isTracked(job);
+                const skills = Array.isArray(job.skills) ? job.skills : [];
                 return (
                   <div
                     key={job._id}
                     className="bg-[#131313] border border-[#262626] hover:border-[#404040] transition-colors p-6 flex flex-col justify-between space-y-6"
                   >
                     <div className="space-y-4">
-                      {/* Logo + Company */}
                       <div className="flex items-start gap-4">
-                        {job.companyLogo ? (
-                          <img
-                            src={job.companyLogo}
-                            alt={job.company}
-                            className="h-10 w-10 object-contain bg-white p-1 border border-[#262626]"
-                          />
-                        ) : (
-                          <div className="h-10 w-10 border border-[#262626] bg-[#0A0A0A] flex items-center justify-center text-white shrink-0">
-                            <Building className="h-5 w-5" />
-                          </div>
-                        )}
+                        <SafeImage
+                          src={job.companyLogo}
+                          alt={job.company}
+                          fallbackName={job.company}
+                          className="h-10 w-10 object-contain bg-[#0A0A0A] p-0.5 border border-[#262626] shrink-0"
+                        />
                         <div className="flex-1 min-w-0">
                           <div className="flex items-start justify-between gap-3">
-                            <h3 className="font-bold text-base text-white leading-tight truncate">{job.title}</h3>
+                            <h3 className="font-bold text-base text-white leading-tight line-clamp-2">
+                              {job.title}
+                            </h3>
                             {job.matchScore !== undefined && (
                               <span
                                 className={cn(
@@ -307,8 +377,8 @@ export default function JobsPage() {
                                   job.matchScore >= 80
                                     ? "border-green-500/30 text-green-400 bg-green-500/5"
                                     : job.matchScore >= 65
-                                    ? "border-yellow-500/30 text-yellow-400 bg-yellow-500/5"
-                                    : "border-zinc-500/30 text-zinc-400 bg-zinc-500/5"
+                                      ? "border-yellow-500/30 text-yellow-400 bg-yellow-500/5"
+                                      : "border-zinc-500/30 text-zinc-400 bg-zinc-500/5"
                                 )}
                               >
                                 {job.matchScore}% MATCH
@@ -316,20 +386,27 @@ export default function JobsPage() {
                             )}
                           </div>
                           <p className="text-xs text-muted-foreground font-semibold mt-1">{job.company}</p>
+                          {job.source && (
+                            <p className="text-[10px] text-primary mt-1 font-mono uppercase tracking-wider">
+                              via {job.source}
+                            </p>
+                          )}
                         </div>
                       </div>
 
-                      {/* Meta Details */}
-                      <div className="flex flex-wrap gap-x-4 gap-y-2 text-[11px] text-[#8e9192]" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
+                      <div
+                        className="flex flex-wrap gap-x-4 gap-y-2 text-[11px] text-[#8e9192]"
+                        style={{ fontFamily: "'JetBrains Mono', monospace" }}
+                      >
                         <span className="flex items-center gap-1">
                           <MapPin className="h-3 w-3" />
-                          {job.location} {job.remote && "(Remote)"}
+                          {job.location} {job.remote ? "(Remote)" : ""}
                         </span>
-                        {job.salary && (
+                        {job.salary && (job.salary.min || job.salary.max) && (
                           <span className="flex items-center gap-1">
                             <DollarSign className="h-3 w-3" />
-                            {job.salary.min ? `₹${job.salary.min.toLocaleString()}` : ""}
-                            {job.salary.max ? ` - ₹${job.salary.max.toLocaleString()}` : ""} /mo
+                            {job.salary.min ? `${job.salary.currency || ""} ${job.salary.min.toLocaleString()}` : ""}
+                            {job.salary.max ? ` – ${job.salary.max.toLocaleString()}` : ""}
                           </span>
                         )}
                         <span className="capitalize border border-[#262626] px-1.5 py-0.2 ml-auto text-[9px] font-bold text-white bg-[#0A0A0A]">
@@ -337,12 +414,10 @@ export default function JobsPage() {
                         </span>
                       </div>
 
-                      {/* Description */}
                       <p className="text-xs text-[#c4c7c8] leading-relaxed line-clamp-3">
-                        {job.description}
+                        {job.description || "No description provided."}
                       </p>
 
-                      {/* Matched Skills Highlight */}
                       {job.matchedSkills && job.matchedSkills.length > 0 && (
                         <p className="text-[10px] text-green-400 font-mono flex items-center gap-1.5 pt-1.5">
                           <Check className="h-3 w-3 text-green-400 shrink-0" />
@@ -350,18 +425,19 @@ export default function JobsPage() {
                         </p>
                       )}
 
-                      {/* Skills Tags */}
-                      <div className="flex flex-wrap gap-1.5 pt-2">
-                        {job.skills.map(skill => (
-                          <span
-                            key={skill}
-                            className="text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 border border-[#262626] bg-[#0A0A0A] text-[#8e9192]"
-                            style={{ fontFamily: "'JetBrains Mono', monospace" }}
-                          >
-                            {skill}
-                          </span>
-                        ))}
-                      </div>
+                      {skills.length > 0 && (
+                        <div className="flex flex-wrap gap-1.5 pt-2">
+                          {skills.slice(0, 8).map((skill) => (
+                            <span
+                              key={skill}
+                              className="text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 border border-[#262626] bg-[#0A0A0A] text-[#8e9192]"
+                              style={{ fontFamily: "'JetBrains Mono', monospace" }}
+                            >
+                              {skill}
+                            </span>
+                          ))}
+                        </div>
+                      )}
                     </div>
 
                     <div className="flex items-center gap-3 border-t border-[#262626] pt-4 mt-auto">
@@ -375,16 +451,16 @@ export default function JobsPage() {
                         Apply Directly
                       </a>
                       <button
-                        onClick={() => handleSaveJob(job._id)}
-                        disabled={isAlreadyTracked}
+                        onClick={() => handleSaveJob(job)}
+                        disabled={tracked}
                         className={`px-3 py-2 border text-xs font-bold transition-all ${
-                          isAlreadyTracked
-                            ? 'border-[#262626] text-[#636565] cursor-not-allowed'
-                            : 'border-indigo-500/30 text-indigo-400 hover:bg-indigo-500/10 hover:border-indigo-500'
+                          tracked
+                            ? "border-[#262626] text-[#636565] cursor-not-allowed"
+                            : "border-indigo-500/30 text-indigo-400 hover:bg-indigo-500/10 hover:border-indigo-500"
                         }`}
                         style={{ fontFamily: "'JetBrains Mono', monospace" }}
                       >
-                        {isAlreadyTracked ? "Tracked" : "Track Application"}
+                        {tracked ? "Tracked" : "Track"}
                       </button>
                     </div>
                   </div>
@@ -394,10 +470,12 @@ export default function JobsPage() {
           )}
         </div>
       ) : (
-        /* Tracker Kanban View */
         <div className="space-y-6">
           <div className="flex justify-between items-center bg-[#131313] border border-[#262626] p-4">
-            <div className="text-xs font-bold text-white uppercase tracking-wider" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
+            <div
+              className="text-xs font-bold text-white uppercase tracking-wider"
+              style={{ fontFamily: "'JetBrains Mono', monospace" }}
+            >
               Visual Job Pipeline
             </div>
             <button
@@ -417,30 +495,30 @@ export default function JobsPage() {
           ) : (
             <div className="flex gap-4 overflow-x-auto pb-4 items-start select-none">
               {statusColumns.map((col) => {
-                const colApps = applications.filter(app => app.status === col.id);
+                const colApps = applications.filter((app) => app.status === col.id);
                 return (
                   <div
                     key={col.id}
                     className="w-72 shrink-0 bg-[#131313] border border-[#262626] p-4 space-y-4"
                   >
-                    {/* Column Header */}
                     <div className="flex justify-between items-center border-b border-[#262626] pb-2">
-                      <span className={`text-[10px] uppercase font-bold tracking-widest px-2 py-0.5 border ${col.color}`} style={{ fontFamily: "'JetBrains Mono', monospace" }}>
+                      <span
+                        className={`text-[10px] uppercase font-bold tracking-widest px-2 py-0.5 border ${col.color}`}
+                        style={{ fontFamily: "'JetBrains Mono', monospace" }}
+                      >
                         {col.name}
                       </span>
                       <span className="text-xs text-muted-foreground font-bold">{colApps.length}</span>
                     </div>
 
-                    {/* Column Items */}
                     <div className="space-y-3 min-h-[300px] overflow-y-auto max-h-[500px]">
                       {colApps.length === 0 ? (
-                        <div className="text-center py-8 text-[11px] text-[#636565] italic">
-                          No items here
-                        </div>
+                        <div className="text-center py-8 text-[11px] text-[#636565] italic">No items here</div>
                       ) : (
                         colApps.map((app) => {
                           const title = app.jobId?.title || app.customJob?.title || "Untitled Job";
-                          const company = app.jobId?.company || app.customJob?.company || "Unknown Company";
+                          const company =
+                            app.jobId?.company || app.customJob?.company || "Unknown Company";
                           const link = app.jobId?.applyUrl || app.customJob?.url;
 
                           return (
@@ -460,8 +538,10 @@ export default function JobsPage() {
                                   className="bg-[#131313] border border-[#262626] py-1 px-1.5 text-[9px] font-bold text-[#8e9192] uppercase focus:outline-none"
                                   style={{ fontFamily: "'JetBrains Mono', monospace" }}
                                 >
-                                  {statusColumns.map(s => (
-                                    <option key={s.id} value={s.id}>{s.name}</option>
+                                  {statusColumns.map((s) => (
+                                    <option key={s.id} value={s.id}>
+                                      {s.name}
+                                    </option>
                                   ))}
                                   <option value="withdrawn">Withdrawn</option>
                                 </select>
@@ -474,7 +554,7 @@ export default function JobsPage() {
                                     className="text-[10px] text-indigo-400 hover:text-white flex items-center gap-0.5"
                                     style={{ fontFamily: "'JetBrains Mono', monospace" }}
                                   >
-                                    Links
+                                    Link
                                     <ChevronRight className="h-3 w-3" />
                                   </a>
                                 )}
@@ -492,25 +572,27 @@ export default function JobsPage() {
         </div>
       )}
 
-      {/* Custom Job Entry Modal */}
       {showCustomModal && (
         <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
           <div className="bg-[#1A1A1A] border border-[#262626] w-full max-w-md overflow-hidden animate-scale-in">
             <div className="p-6 border-b border-[#262626] flex justify-between items-center">
-              <h3 className="font-bold text-lg text-white" style={{ fontFamily: "'Hanken Grotesk', system-ui, sans-serif" }}>
+              <h3
+                className="font-bold text-lg text-white"
+                style={{ fontFamily: "'Hanken Grotesk', system-ui, sans-serif" }}
+              >
                 Add Custom Job to Tracker
               </h3>
-              <button
-                onClick={() => setShowCustomModal(false)}
-                className="text-muted-foreground hover:text-white"
-              >
+              <button onClick={() => setShowCustomModal(false)} className="text-muted-foreground hover:text-white">
                 <span className="material-symbols-outlined text-[18px]">close</span>
               </button>
             </div>
 
             <form onSubmit={handleAddCustomJob} className="p-6 space-y-4">
               <div className="space-y-2">
-                <label className="text-[10px] uppercase font-bold tracking-wider text-[#8e9192]" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
+                <label
+                  className="text-[10px] uppercase font-bold tracking-wider text-[#8e9192]"
+                  style={{ fontFamily: "'JetBrains Mono', monospace" }}
+                >
                   Job Title *
                 </label>
                 <input
@@ -523,7 +605,10 @@ export default function JobsPage() {
               </div>
 
               <div className="space-y-2">
-                <label className="text-[10px] uppercase font-bold tracking-wider text-[#8e9192]" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
+                <label
+                  className="text-[10px] uppercase font-bold tracking-wider text-[#8e9192]"
+                  style={{ fontFamily: "'JetBrains Mono', monospace" }}
+                >
                   Company Name *
                 </label>
                 <input
@@ -536,7 +621,10 @@ export default function JobsPage() {
               </div>
 
               <div className="space-y-2">
-                <label className="text-[10px] uppercase font-bold tracking-wider text-[#8e9192]" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
+                <label
+                  className="text-[10px] uppercase font-bold tracking-wider text-[#8e9192]"
+                  style={{ fontFamily: "'JetBrains Mono', monospace" }}
+                >
                   Job URL (Optional)
                 </label>
                 <input

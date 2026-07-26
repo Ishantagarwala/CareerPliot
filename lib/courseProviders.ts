@@ -1,3 +1,5 @@
+import { normalizeImageUrl } from "@/lib/imageUrl";
+
 /**
  * Live course providers keyed off roadmap milestones.
  * - Coursera: public catalog API (list + local keyword filter, cached)
@@ -237,7 +239,7 @@ export async function searchCoursera(
       isFree: false, // Coursera often has audit/free options; mark paid by default
       rating: 4.5,
       sourceTopic: query,
-      thumbnailUrl: c.photoUrl,
+      thumbnailUrl: normalizeImageUrl(c.photoUrl),
       externalId: `coursera:${c.id || c.slug}`,
     }));
   } catch (err) {

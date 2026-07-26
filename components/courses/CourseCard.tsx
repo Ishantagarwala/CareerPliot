@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import { toast } from "sonner";
+import SafeImage from "@/components/ui/SafeImage";
 
 interface Course {
   _id: string;
@@ -69,16 +70,14 @@ export default function CourseCard({ course }: CourseCardProps) {
           : "bg-[#1A1A1A] border border-[#262626] hover:border-[#404040]"
       }`}
     >
-      {course.thumbnailUrl && (
-        <a href={course.url} target="_blank" rel="noopener noreferrer" className="block border-b border-[#262626]">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={course.thumbnailUrl}
-            alt=""
-            className="w-full h-36 object-cover bg-[#0A0A0A]"
-          />
-        </a>
-      )}
+      <a href={course.url} target="_blank" rel="noopener noreferrer" className="block border-b border-[#262626]">
+        <SafeImage
+          src={course.thumbnailUrl}
+          alt={course.title}
+          fallbackName={course.platform || course.title}
+          className="w-full h-36 object-cover bg-[#0A0A0A]"
+        />
+      </a>
 
       <div className="p-5 pb-0">
         <div className="flex justify-between items-start gap-2 mb-4">
