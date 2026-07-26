@@ -2,6 +2,14 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
+import { useSession, signOut } from "next-auth/react";
+import Link from "next/link";
+import { useTheme } from "next-themes";
+import {
+  ACCENT_STORAGE_KEY,
+  applyAccent,
+  DEFAULT_ACCENT,
+} from "@/components/layout/AccentColor";
 import DocumentLibrary from "./DocumentLibrary";
 import UnifiedChat from "./UnifiedChat";
 
@@ -13,27 +21,56 @@ interface HubDocument {
   createdAt?: string;
 }
 
+const CareerPilotIcon = () => (
+  <img
+    src="/logo.png"
+    alt="Career Pilot Logo"
+    className="w-6 h-6 object-cover rounded-md border border-border shrink-0 transition-transform hover:scale-105 duration-200"
+  />
+);
+
+const THEME_ACCENTS = [
+  { id: "lime", name: "Lime Green", primary: "#baf600", foreground: "#151f00" },
+  { id: "blue", name: "Electric Blue", primary: "#0043eb", foreground: "#ffffff" },
+  { id: "pink", name: "Vibrant Pink", primary: "#ec4899", foreground: "#ffffff" },
+  { id: "orange", name: "Vibrant Orange", primary: "#f97316", foreground: "#ffffff" },
+  { id: "cyan", name: "Teal/Cyan", primary: "#00f0ff", foreground: "#151f00" },
+  { id: "mono", name: "Monochrome", primary: "#e1e5cf", foreground: "#111508" },
+];
+
+function resolveAccentHex(id: string, isDark: boolean): string {
+  if (id === "mono") return isDark ? "#e1e5cf" : "#151f00";
+  if (id === "cyan" && !isDark) return "#008ba3";
+  const match = THEME_ACCENTS.find((a) => a.id === id);
+  return match?.primary || DEFAULT_ACCENT;
+}
+
 export default function AIHubLayout() {
+  const { data: session } = useSession();
+  const { resolvedTheme } = useTheme();
   const [documents, setDocuments] = useState<HubDocument[]>([]);
   const [selectedDocumentIds, setSelectedDocumentIds] = useState<string[]>([]);
   const [loadingDocuments, setLoadingDocuments] = useState(true);
   const [draftPrompt, setDraftPrompt] = useState("");
 
-  // Threads state
+  const [themeColor, setThemeColor] = useState<string>("lime");
+
   const [threads, setThreads] = useState<any[]>([]);
   const [activeThreadId, setActiveThreadId] = useState<string | null>(null);
   const [loadingThreads, setLoadingThreads] = useState(true);
   const [editingThreadId, setEditingThreadId] = useState<string | null>(null);
   const [editingTitle, setEditingTitle] = useState("");
+  const [newChatNonce, setNewChatNonce] = useState(0);
 
-  // Mobile sidebars toggles
-  const [isLeftOpen, setIsLeftOpen] = useState(false);
+  const [isLeftOpen, setIsLeftOpen] = useState(true);
   const [isRightOpen, setIsRightOpen] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
 
-  // Custom delete confirmation state
   const [threadToDeleteId, setThreadToDeleteId] = useState<string | null>(null);
   const [docToDelete, setDocToDelete] = useState<{ id: string; filename: string } | null>(null);
   const [deletingDocId, setDeletingDocId] = useState<string | null>(null);
+
+  const isDark = resolvedTheme === "dark";
 
   const fetchDocuments = useCallback(async () => {
     try {
@@ -73,6 +110,56 @@ export default function AIHubLayout() {
     fetchThreads();
   }, [fetchDocuments, fetchThreads]);
 
+  useEffect(() => {
+    try {
+      const savedHex = localStorage.getItem(ACCENT_STORAGE_KEY);
+      if (savedHex) {
+        applyAccent(savedHex);
+        const preset = THEME_ACCENTS.find(
+          (a) => a.primary.toLowerCase() === savedHex.toLowerCase()
+        );
+        if (preset) setThemeColor(preset.id);
+      }
+    } catch {
+      /* ignore */
+    }
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const handleResize = () => {
+      const mobile = window.innerWidth < 1024;
+      setIsMobile(mobile);
+      setIsLeftOpen(!mobile);
+    };
+    handleResize();
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  useEffect(() => {
+    const onKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "i") {
+        e.preventDefault();
+        setActiveThreadId(null);
+        setNewChatNonce((prev) => prev + 1);
+      }
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, []);
+
+  const handleAccentChange = (id: string) => {
+    setThemeColor(id);
+    const hex = resolveAccentHex(id, isDark);
+    applyAccent(hex);
+    try {
+      localStorage.setItem(ACCENT_STORAGE_KEY, hex);
+    } catch {
+      /* ignore */
+    }
+  };
+
   const handleRenameThread = async (id: string, newTitle: string) => {
     if (!newTitle.trim()) return;
     try {
@@ -88,7 +175,7 @@ export default function AIHubLayout() {
         );
         toast.success("Conversation renamed");
       }
-    } catch (error) {
+    } catch {
       toast.error("Failed to rename conversation");
     }
   };
@@ -105,7 +192,7 @@ export default function AIHubLayout() {
         }
         toast.success("Conversation deleted");
       }
-    } catch (error) {
+    } catch {
       toast.error("Failed to delete conversation");
     }
   };
@@ -150,75 +237,126 @@ export default function AIHubLayout() {
     }
   };
 
+  const startNewThread = () => {
+    setActiveThreadId(null);
+    setNewChatNonce((prev) => prev + 1);
+    if (isMobile) setIsLeftOpen(false);
+  };
+
   return (
-    <div className="space-y-6">
-      <div className="border-b border-[#262626] pb-6 animate-fade-in-up">
-        <h1
-          className="text-3xl font-bold text-white tracking-tight flex items-center gap-3"
-          style={{ fontFamily: "'Hanken Grotesk', system-ui, sans-serif" }}
-        >
-          <span className="material-symbols-outlined text-[28px]">auto_awesome</span>
-          AI Study Hub
-        </h1>
-        <p className="text-sm text-[#8e9192] mt-2">
-          Chat with your AI tutor, upload PDFs, and ask questions with your study material as context.
-        </p>
-      </div>
-
-      <div className="grid grid-cols-1 xl:grid-cols-[220px_minmax(0,1fr)_260px] gap-4 relative">
-        {/* Panel 1 Backdrop (Mobile & Tablet) */}
-        {isLeftOpen && (
-          <div
-            className="fixed inset-0 z-40 bg-black/70 backdrop-blur-sm xl:hidden"
+    <div className="fixed inset-0 z-50 flex bg-background text-foreground font-sans select-none overflow-hidden">
+      <aside
+        className={`flex flex-col bg-sidebar border-r border-border w-[240px] h-full shrink-0 transition-transform duration-300 z-50
+          fixed lg:static inset-y-0 left-0
+          ${isLeftOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0 lg:w-0 lg:border-r-0 lg:overflow-hidden"}
+        `}
+      >
+        <div className="p-4 flex items-center justify-between border-b border-border/40">
+          <Link href="/dashboard" className="flex items-center gap-2.5 hover:opacity-85 transition-opacity">
+            <CareerPilotIcon />
+            <div>
+              <span className="font-heading font-extrabold text-foreground tracking-tight text-sm uppercase">
+                Career Pilot
+              </span>
+              <span className="block text-[9px] text-muted-foreground font-label uppercase tracking-widest font-bold">
+                AI STUDY HUB
+              </span>
+            </div>
+          </Link>
+          <button
             onClick={() => setIsLeftOpen(false)}
-          />
-        )}
+            className="lg:hidden p-1 text-muted-foreground hover:text-foreground"
+            type="button"
+          >
+            <span className="material-symbols-outlined text-[20px]">close</span>
+          </button>
+        </div>
 
-        {/* Panel 1: Chats Sidebar */}
-        <section
-          className={`flex flex-col bg-card border-2 border-black p-4
-            fixed inset-y-0 left-0 z-50 w-[260px] transition-all duration-300 ease-in-out
-            xl:static xl:z-0 xl:w-auto xl:h-[calc(100svh-11rem)] xl:min-h-[520px]
-            ${
-              isLeftOpen
-                ? "translate-x-0 opacity-100 pointer-events-auto"
-                : "-translate-x-full opacity-0 pointer-events-none xl:opacity-100 xl:pointer-events-auto xl:translate-x-0"
-            }`}
-        >
-          {/* Close button for Sidebar on mobile */}
-          <div className="flex justify-end xl:hidden mb-2">
-            <button
-              onClick={() => setIsLeftOpen(false)}
-              className="p-1 text-white border border-[#262626] bg-[#1A1A1A] hover:bg-[#262626] flex items-center justify-center"
-            >
-              <span className="material-symbols-outlined text-[18px]">close</span>
-            </button>
-          </div>
-
-          <div className="pb-3 border-b border-[#262626] mb-4">
-            <p
-              className="text-[11px] text-[#8e9192] uppercase tracking-[0.15em] mb-2"
-              style={{ fontFamily: "'JetBrains Mono', monospace" }}
-            >
-              Conversations
-            </p>
-            <button
-              onClick={() => {
-                setActiveThreadId(null);
-                setIsLeftOpen(false);
-              }}
-              className="w-full flex items-center justify-between border-2 border-dashed border-primary/70 hover:border-primary p-3 text-xs font-bold text-primary hover:bg-primary/10 transition-all bg-background font-label"
-            >
-              <span>NEW CHAT</span>
+        <div className="px-3 py-4">
+          <button
+            type="button"
+            onClick={startNewThread}
+            className="w-full flex items-center justify-between bg-primary hover:bg-primary/90 border-2 border-border rounded-lg px-4 py-2.5 text-xs font-extrabold text-primary-foreground transition-all cursor-pointer shadow-[3px_3px_0_0_rgba(0,0,0,0.15)] active:translate-x-0.5 active:translate-y-0.5 active:shadow-none"
+          >
+            <span className="flex items-center gap-2">
               <span className="material-symbols-outlined text-[16px]">add</span>
-            </button>
-          </div>
+              New Thread
+            </span>
+            <span className="text-[10px] text-primary bg-primary-foreground/15 px-1.5 py-0.5 rounded font-bold font-mono">
+              Ctrl I
+            </span>
+          </button>
+        </div>
 
-          <div className="flex-1 overflow-y-auto space-y-1.5 pr-1 custom-scrollbar">
+        <nav className="px-3 py-1 flex flex-col gap-1 text-xs font-semibold text-muted-foreground">
+          <Link
+            href="/dashboard"
+            className="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-card hover:text-foreground border border-transparent transition-all"
+            style={{ fontFamily: "'Space Grotesk', system-ui, sans-serif" }}
+          >
+            <span className="material-symbols-outlined text-[18px]">home</span>
+            Dashboard
+          </Link>
+          <button
+            type="button"
+            onClick={() => setIsRightOpen((prev) => !prev)}
+            className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg hover:bg-card hover:text-foreground border border-transparent transition-all cursor-pointer ${
+              isRightOpen ? "bg-card text-primary font-bold border-border" : ""
+            }`}
+            style={{ fontFamily: "'Space Grotesk', system-ui, sans-serif" }}
+          >
+            <span className="flex items-center gap-3">
+              <span className="material-symbols-outlined text-[18px]">description</span>
+              Study Materials
+            </span>
+            <span className="text-[10px] bg-primary/20 px-2 py-0.5 rounded-full text-primary border border-primary/20 font-bold">
+              {documents.length}
+            </span>
+          </button>
+        </nav>
+
+        <div className="px-3 py-4 border-t border-border/40 mt-2">
+          <div className="flex items-center gap-1.5 px-3 py-1 text-[10px] font-bold text-muted-foreground uppercase tracking-widest font-label mb-2">
+            <span className="material-symbols-outlined text-[14px]">palette</span>
+            Accent Color
+          </div>
+          <div className="flex items-center gap-2 px-3 flex-wrap">
+            {THEME_ACCENTS.map((accent) => {
+              const active = themeColor === accent.id;
+              let displayBg = accent.primary;
+              if (accent.id === "mono") {
+                displayBg = isDark ? "#ffffff" : "#151f00";
+              }
+              return (
+                <button
+                  key={accent.id}
+                  type="button"
+                  onClick={() => handleAccentChange(accent.id)}
+                  title={accent.name}
+                  className={`w-5 h-5 rounded-full border transition-all cursor-pointer hover:scale-110 active:scale-95 ${
+                    active
+                      ? "border-foreground ring-2 ring-primary/40 scale-105"
+                      : "border-border/60 hover:border-foreground"
+                  }`}
+                  style={{ backgroundColor: displayBg }}
+                />
+              );
+            })}
+          </div>
+        </div>
+
+        <div className="flex-1 overflow-y-auto px-3 py-4 border-t border-border/40 mt-3 custom-scrollbar">
+          <div className="flex items-center gap-2 px-3 py-1 text-[10px] font-bold text-muted-foreground uppercase tracking-widest font-label">
+            <span className="material-symbols-outlined text-[14px]">history</span>
+            History
+          </div>
+          <div className="space-y-1 mt-2">
             {loadingThreads ? (
-              <div className="text-xs text-[#8e9192] p-2 italic">Loading chats...</div>
+              <div className="text-[11px] text-muted-foreground px-3 py-2 italic">Loading threads...</div>
             ) : threads.length === 0 ? (
-              <div className="text-xs text-[#8e9192] p-2 italic">No conversations</div>
+              <div className="text-[11px] text-muted-foreground px-3 py-4 text-center italic">
+                No recent sessions
+              </div>
             ) : (
               threads.map((thread) => {
                 const isActive = activeThreadId === thread._id;
@@ -226,7 +364,7 @@ export default function AIHubLayout() {
 
                 if (isEditing) {
                   return (
-                    <div key={thread._id} className="p-1 border border-white">
+                    <div key={thread._id} className="px-2 py-1 bg-card rounded-lg border border-primary">
                       <input
                         value={editingTitle}
                         onChange={(e) => setEditingTitle(e.target.value)}
@@ -242,7 +380,7 @@ export default function AIHubLayout() {
                           handleRenameThread(thread._id, editingTitle);
                           setEditingThreadId(null);
                         }}
-                        className="bg-[#131313] text-xs text-white px-2 py-1 w-full focus:outline-none"
+                        className="bg-transparent text-[11px] text-foreground w-full focus:outline-none"
                         autoFocus
                       />
                     </div>
@@ -252,40 +390,42 @@ export default function AIHubLayout() {
                 return (
                   <div
                     key={thread._id}
-                    className={`group flex items-center justify-between p-3 text-xs border-2 transition-all cursor-pointer ${
+                    className={`group flex items-center justify-between px-3 py-2 rounded-lg text-[11px] border border-transparent transition-all cursor-pointer ${
                       isActive
-                        ? "bg-primary/15 border-primary text-foreground font-bold"
-                        : "bg-background border-black/50 text-muted-foreground hover:bg-card hover:text-foreground hover:border-primary/50"
+                        ? "bg-card text-primary font-bold border-border/30"
+                        : "text-muted-foreground hover:bg-card hover:text-foreground"
                     }`}
                     onClick={() => {
                       setActiveThreadId(thread._id);
-                      setIsLeftOpen(false);
+                      if (isMobile) setIsLeftOpen(false);
                     }}
                   >
                     <div className="flex items-center gap-2 truncate">
-                      <span className="material-symbols-outlined text-[15px]">chat_bubble</span>
-                      <span className="truncate max-w-[120px]">{thread.threadTitle || "AI Chat"}</span>
+                      <span className="material-symbols-outlined text-[14px] shrink-0">chat_bubble</span>
+                      <span className="truncate">{thread.threadTitle || "AI Chat"}</span>
                     </div>
 
-                    <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
                       <button
+                        type="button"
                         onClick={(e) => {
                           e.stopPropagation();
                           setEditingThreadId(thread._id);
                           setEditingTitle(thread.threadTitle || "");
                         }}
-                        className="hover:text-white text-[#8e9192] p-0.5"
+                        className="hover:text-foreground text-muted-foreground p-0.5"
                       >
-                        <span className="material-symbols-outlined text-[14px]">edit</span>
+                        <span className="material-symbols-outlined text-[12px]">edit</span>
                       </button>
                       <button
+                        type="button"
                         onClick={(e) => {
                           e.stopPropagation();
                           setThreadToDeleteId(thread._id);
                         }}
-                        className="hover:text-red-500 text-[#8e9192] p-0.5"
+                        className="hover:text-red-500 text-muted-foreground p-0.5"
                       >
-                        <span className="material-symbols-outlined text-[14px]">delete</span>
+                        <span className="material-symbols-outlined text-[12px]">delete</span>
                       </button>
                     </div>
                   </div>
@@ -293,9 +433,41 @@ export default function AIHubLayout() {
               })
             )}
           </div>
-        </section>
+        </div>
 
-        {/* Panel 2: Unified Chat */}
+        <div className="p-3 border-t border-border/40 bg-sidebar flex items-center justify-between">
+          <div className="flex items-center gap-2.5 min-w-0">
+            <div className="w-7 h-7 bg-primary text-primary-foreground border border-border flex items-center justify-center font-bold text-xs uppercase rounded-lg select-none shrink-0">
+              {session?.user?.name ? session.user.name[0] : "U"}
+            </div>
+            <div className="truncate">
+              <p className="text-xs font-semibold text-foreground truncate">
+                {session?.user?.name || "User"}
+              </p>
+              <p className="text-[9px] text-muted-foreground truncate">
+                {session?.user?.email || "Signed In"}
+              </p>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={() => signOut({ callbackUrl: "/" })}
+            className="p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-card transition-colors cursor-pointer"
+            title="Sign Out"
+          >
+            <span className="material-symbols-outlined text-[18px]">logout</span>
+          </button>
+        </div>
+      </aside>
+
+      {isLeftOpen && isMobile && (
+        <div
+          className="fixed inset-0 z-40 bg-black/50 lg:hidden"
+          onClick={() => setIsLeftOpen(false)}
+        />
+      )}
+
+      <main className="flex-1 flex flex-col min-w-0 h-full relative bg-background">
         <UnifiedChat
           activeThreadId={activeThreadId}
           setActiveThreadId={setActiveThreadId}
@@ -306,36 +478,38 @@ export default function AIHubLayout() {
           onDraftPromptConsumed={() => setDraftPrompt("")}
           onToggleLeftSidebar={() => setIsLeftOpen((prev) => !prev)}
           onToggleRightSidebar={() => setIsRightOpen((prev) => !prev)}
+          isLeftSidebarOpen={isLeftOpen}
+          isRightSidebarOpen={isRightOpen}
+          newChatNonce={newChatNonce}
         />
+      </main>
 
-        {/* Panel 3 Backdrop (Mobile) */}
-        {isRightOpen && (
-          <div
-            className="fixed inset-0 z-40 bg-black/70 backdrop-blur-sm xl:hidden"
+      {isRightOpen && isMobile && (
+        <div
+          className="fixed inset-0 z-40 bg-black/50 lg:hidden"
+          onClick={() => setIsRightOpen(false)}
+        />
+      )}
+
+      <aside
+        className={`bg-sidebar border-l border-border flex flex-col h-full shrink-0 transition-all duration-300 z-40
+          fixed lg:static inset-y-0 right-0
+          ${isRightOpen ? "w-[280px] translate-x-0" : "w-0 translate-x-full lg:translate-x-0 lg:w-0 lg:border-l-0 lg:overflow-hidden"}
+        `}
+      >
+        <div className="p-4 border-b border-border flex items-center justify-between bg-sidebar">
+          <span className="text-xs font-bold text-foreground uppercase tracking-widest font-label">
+            Study Materials
+          </span>
+          <button
+            type="button"
             onClick={() => setIsRightOpen(false)}
-          />
-        )}
-
-        {/* Panel 3: Document Library */}
-        <aside
-          className={`bg-[#0A0A0A] border border-[#262626] p-4
-            fixed inset-y-0 right-0 z-50 w-[300px] transition-all duration-300 ease-in-out
-            xl:static xl:z-0 xl:w-auto xl:border-0 xl:p-0 xl:h-[calc(100svh-11rem)] xl:min-h-[520px]
-            ${
-              isRightOpen
-                ? "translate-x-0 opacity-100 pointer-events-auto"
-                : "translate-x-full opacity-0 pointer-events-none xl:opacity-100 xl:pointer-events-auto xl:translate-x-0"
-            }`}
-        >
-          {/* Close button for Right Sidebar on mobile */}
-          <div className="flex justify-end xl:hidden mb-2">
-            <button
-              onClick={() => setIsRightOpen(false)}
-              className="p-1 text-white border border-[#262626] bg-[#1A1A1A] hover:bg-[#262626] flex items-center justify-center"
-            >
-              <span className="material-symbols-outlined text-[18px]">close</span>
-            </button>
-          </div>
+            className="p-1 text-muted-foreground hover:text-foreground cursor-pointer"
+          >
+            <span className="material-symbols-outlined text-[18px]">close</span>
+          </button>
+        </div>
+        <div className="flex-1 overflow-hidden bg-sidebar">
           <DocumentLibrary
             documents={documents}
             selectedDocumentIds={selectedDocumentIds}
@@ -348,43 +522,39 @@ export default function AIHubLayout() {
               setIsRightOpen(false);
             }}
           />
-        </aside>
-      </div>
+        </div>
+      </aside>
 
-      {/* Custom Modal for deleting thread */}
       {threadToDeleteId && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-          {/* Backdrop */}
-          <div 
-            className="fixed inset-0 bg-black/80 backdrop-blur-sm transition-opacity"
+          <div
+            className="fixed inset-0 bg-black/60 backdrop-blur-xs"
             onClick={() => setThreadToDeleteId(null)}
           />
-          {/* Modal Container */}
-          <div className="relative w-full max-w-sm bg-[#0A0A0A] border border-[#262626] p-6 animate-fade-in-up z-[101]">
-            <h3 className="text-base font-bold text-white uppercase tracking-wider font-mono mb-3">
+          <div className="relative w-full max-w-sm bg-card border-2 border-border p-6 rounded-xl animate-fade-in-up z-[101]">
+            <h3 className="text-sm font-bold text-foreground uppercase tracking-wider font-mono mb-2">
               Delete Conversation?
             </h3>
-            <p className="text-xs text-[#8e9192] leading-relaxed mb-6">
+            <p className="text-xs text-muted-foreground leading-relaxed mb-6">
               This will permanently delete this conversation history. This action cannot be undone.
             </p>
-            
             <div className="flex items-center justify-end gap-3">
               <button
+                type="button"
                 onClick={() => setThreadToDeleteId(null)}
-                className="px-4 py-2 text-xs font-bold text-[#8e9192] border border-[#262626] bg-[#0A0A0A] hover:bg-[#1A1A1A] hover:text-white transition-colors"
-                style={{ fontFamily: "'JetBrains Mono', monospace" }}
+                className="px-4 py-2 text-xs font-bold text-muted-foreground border border-border rounded-lg hover:bg-sidebar transition-colors cursor-pointer"
               >
                 Cancel
               </button>
               <button
+                type="button"
                 onClick={() => {
                   if (threadToDeleteId) {
                     handleDeleteThread(threadToDeleteId);
                     setThreadToDeleteId(null);
                   }
                 }}
-                className="px-4 py-2 text-xs font-bold bg-red-600 text-white hover:bg-red-700 transition-colors"
-                style={{ fontFamily: "'JetBrains Mono', monospace" }}
+                className="px-4 py-2 text-xs font-bold bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors cursor-pointer"
               >
                 Delete
               </button>
@@ -396,32 +566,32 @@ export default function AIHubLayout() {
       {docToDelete && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
           <div
-            className="fixed inset-0 bg-black/80 backdrop-blur-sm transition-opacity"
+            className="fixed inset-0 bg-black/60 backdrop-blur-xs"
             onClick={() => !deletingDocId && setDocToDelete(null)}
           />
-          <div className="relative w-full max-w-sm bg-[#0A0A0A] border border-[#262626] p-6 animate-fade-in-up z-[101]">
-            <h3 className="text-base font-bold text-white uppercase tracking-wider font-mono mb-3">
+          <div className="relative w-full max-w-sm bg-card border-2 border-border p-6 rounded-xl animate-fade-in-up z-[101]">
+            <h3 className="text-sm font-bold text-foreground uppercase tracking-wider font-mono mb-2">
               Delete PDF?
             </h3>
-            <p className="text-xs text-[#8e9192] leading-relaxed mb-6">
+            <p className="text-xs text-muted-foreground leading-relaxed mb-6">
               This will permanently remove{" "}
-              <span className="text-white font-semibold">{docToDelete.filename}</span> from your study
-              materials. This cannot be undone.
+              <span className="text-foreground font-semibold">{docToDelete.filename}</span> from your
+              study materials.
             </p>
             <div className="flex items-center justify-end gap-3">
               <button
+                type="button"
                 onClick={() => setDocToDelete(null)}
                 disabled={!!deletingDocId}
-                className="px-4 py-2 text-xs font-bold text-[#8e9192] border border-[#262626] bg-[#0A0A0A] hover:bg-[#1A1A1A] hover:text-white transition-colors disabled:opacity-40"
-                style={{ fontFamily: "'JetBrains Mono', monospace" }}
+                className="px-4 py-2 text-xs font-bold text-muted-foreground border border-border rounded-lg hover:bg-sidebar transition-colors disabled:opacity-40 cursor-pointer"
               >
                 Cancel
               </button>
               <button
+                type="button"
                 onClick={confirmDeleteDocument}
                 disabled={!!deletingDocId}
-                className="px-4 py-2 text-xs font-bold bg-red-600 text-white hover:bg-red-700 transition-colors disabled:opacity-40"
-                style={{ fontFamily: "'JetBrains Mono', monospace" }}
+                className="px-4 py-2 text-xs font-bold bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors disabled:opacity-40 cursor-pointer"
               >
                 {deletingDocId ? "Deleting..." : "Delete"}
               </button>

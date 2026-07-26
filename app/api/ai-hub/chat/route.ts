@@ -19,7 +19,7 @@ export async function POST(req: Request) {
     }
 
     const userId = session.user.id;
-    const { message, documentIds = [], threadId, attachments = [] } = await req.json();
+    const { message, documentIds = [], threadId, attachments = [], modelSelection } = await req.json();
 
     if (!message || !message.trim()) {
       return NextResponse.json({ message: "Message is required" }, { status: 400 });
@@ -128,7 +128,7 @@ export async function POST(req: Request) {
     }
 
     const client = getLlmClient();
-    const model = getLlmModel();
+    const model = getLlmModel(false, modelSelection);
 
     const completion = await client.chat.completions.create({
       model,

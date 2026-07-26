@@ -17,6 +17,8 @@ interface Message {
   sentAt?: Date | string;
 }
 
+type ModelSelection = "primary" | "opus" | "gemini";
+
 interface UnifiedChatProps {
   activeThreadId: string | null;
   setActiveThreadId: (id: string | null) => void;
@@ -27,6 +29,70 @@ interface UnifiedChatProps {
   onDraftPromptConsumed: () => void;
   onToggleLeftSidebar?: () => void;
   onToggleRightSidebar?: () => void;
+  isLeftSidebarOpen?: boolean;
+  isRightSidebarOpen?: boolean;
+  newChatNonce?: number;
+}
+
+const MODEL_LABELS: Record<ModelSelection, string> = {
+  gemini: "Gemini 3.5 Flash",
+  opus: "Claude 4.6 Opus",
+  primary: "Default Model",
+};
+
+function ModelPicker({
+  selectedModel,
+  setSelectedModel,
+  showModelDropdown,
+  setShowModelDropdown,
+  placement = "up",
+}: {
+  selectedModel: ModelSelection;
+  setSelectedModel: (m: ModelSelection) => void;
+  showModelDropdown: boolean;
+  setShowModelDropdown: (v: boolean | ((prev: boolean) => boolean)) => void;
+  placement?: "up" | "down";
+}) {
+  return (
+    <div className="relative">
+      <button
+        type="button"
+        onClick={() => setShowModelDropdown((prev) => !prev)}
+        className="bg-background hover:bg-card border border-border px-3 py-1.5 rounded-full flex items-center gap-1 text-[10px] font-bold text-foreground transition-all cursor-pointer"
+      >
+        {MODEL_LABELS[selectedModel]}
+        <span className="material-symbols-outlined text-[12px] text-primary">expand_more</span>
+      </button>
+      {showModelDropdown && (
+        <>
+          <div className="fixed inset-0 z-10" onClick={() => setShowModelDropdown(false)} />
+          <div
+            className={`absolute right-0 z-20 w-44 bg-card border-2 border-border rounded-xl shadow-lg p-1.5 flex flex-col gap-0.5 animate-fade-in-up ${
+              placement === "up" ? "bottom-full mb-2" : "top-full mt-2"
+            }`}
+          >
+            {(Object.keys(MODEL_LABELS) as ModelSelection[]).map((id) => (
+              <button
+                key={id}
+                type="button"
+                onClick={() => {
+                  setSelectedModel(id);
+                  setShowModelDropdown(false);
+                }}
+                className={`w-full text-left px-3 py-2 rounded-lg text-xs transition-colors cursor-pointer ${
+                  selectedModel === id
+                    ? "bg-primary text-primary-foreground font-bold"
+                    : "text-foreground hover:bg-sidebar"
+                }`}
+              >
+                {MODEL_LABELS[id]}
+              </button>
+            ))}
+          </div>
+        </>
+      )}
+    </div>
+  );
 }
 
 export default function UnifiedChat({
@@ -39,6 +105,9 @@ export default function UnifiedChat({
   onDraftPromptConsumed,
   onToggleLeftSidebar,
   onToggleRightSidebar,
+  isLeftSidebarOpen,
+  isRightSidebarOpen,
+  newChatNonce,
 }: UnifiedChatProps) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
@@ -46,7 +115,11 @@ export default function UnifiedChat({
   const [loadingHistory, setLoadingHistory] = useState(false);
   const [showUpload, setShowUpload] = useState(false);
 
-  // File attachments states
+  const [isMobile, setIsMobile] = useState(false);
+
+  const [selectedModel, setSelectedModel] = useState<ModelSelection>("gemini");
+  const [showModelDropdown, setShowModelDropdown] = useState(false);
+
   const [attachments, setAttachments] = useState<any[]>([]);
   const [uploadingAttachment, setUploadingAttachment] = useState(false);
 
@@ -54,10 +127,18 @@ export default function UnifiedChat({
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Sync with activeThreadId
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    setIsMobile(window.innerWidth < 1024);
+    const handleResize = () => setIsMobile(window.innerWidth < 1024);
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
   useEffect(() => {
     if (!activeThreadId) {
       setMessages([]);
+      setInput("");
       setLoadingHistory(false);
       return;
     }
@@ -81,7 +162,7 @@ export default function UnifiedChat({
     }
 
     fetchHistory();
-  }, [activeThreadId]);
+  }, [activeThreadId, newChatNonce]);
 
   useEffect(() => {
     if (draftPrompt) {
@@ -130,7 +211,6 @@ export default function UnifiedChat({
 
       const uploaded = await res.json();
 
-      // If it is a PDF, also register in main document library
       if (uploaded.type === "pdf") {
         onUploadSuccess(uploaded);
       }
@@ -160,8 +240,8 @@ export default function UnifiedChat({
     setAttachments((prev) => prev.filter((_, i) => i !== index));
   };
 
-  const handleSend = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSend = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
     if ((!input.trim() && attachments.length === 0) || loading) {
       return;
     }
@@ -172,15 +252,18 @@ export default function UnifiedChat({
     setInput("");
     setAttachments([]);
     if (textareaRef.current) {
-      textareaRef.current.style.height = "56px";
+      textareaRef.current.style.height = "auto";
     }
 
-    // Optimistically update message bubble with attachment info
     setMessages((prev) => [
       ...prev,
       {
         role: "user",
-        content: userMessageText || (currentAttachments.length > 0 ? `[Attached ${currentAttachments[0].type}: ${currentAttachments[0].filename}]` : ""),
+        content:
+          userMessageText ||
+          (currentAttachments.length > 0
+            ? `[Attached ${currentAttachments[0].type}: ${currentAttachments[0].filename}]`
+            : ""),
         attachments: currentAttachments,
         sentAt: new Date().toISOString(),
       },
@@ -192,10 +275,15 @@ export default function UnifiedChat({
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          message: userMessageText || (currentAttachments.length > 0 ? `Analyze the attached ${currentAttachments[0].type}` : "Analyze the attached file"),
+          message:
+            userMessageText ||
+            (currentAttachments.length > 0
+              ? `Analyze the attached ${currentAttachments[0].type}`
+              : "Analyze the attached file"),
           documentIds: selectedDocumentIds,
           threadId: activeThreadId,
           attachments: currentAttachments,
+          modelSelection: selectedModel,
         }),
       });
 
@@ -228,198 +316,320 @@ export default function UnifiedChat({
   const handleTextareaInput = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setInput(e.target.value);
     if (textareaRef.current) {
-      textareaRef.current.style.height = "56px";
+      textareaRef.current.style.height = "auto";
       textareaRef.current.style.height = `${Math.min(textareaRef.current.scrollHeight, 200)}px`;
     }
   };
 
   return (
-    <section className="flex flex-col h-[calc(100svh-11rem)] min-h-[520px] bg-card border-2 border-black">
-      <div className="border-b-2 border-black p-3 md:p-4 flex items-center justify-between gap-3">
-        <div className="flex items-center gap-2 min-w-0">
-          {onToggleLeftSidebar && (
+    <div className="flex-1 flex flex-col h-full overflow-hidden bg-background text-foreground">
+      <header className="h-14 border-b border-border/40 px-4 flex items-center justify-between shrink-0 bg-background/85 backdrop-blur-md">
+        <div className="flex items-center gap-3">
+          {(!isLeftSidebarOpen || isMobile) && onToggleLeftSidebar && (
             <button
+              type="button"
               onClick={onToggleLeftSidebar}
-              className="xl:hidden p-1.5 border-2 border-black bg-background text-foreground hover:bg-muted flex items-center justify-center shrink-0"
-              title="Toggle Conversations"
+              className="p-1.5 text-muted-foreground hover:text-foreground rounded-lg hover:bg-card transition-colors cursor-pointer"
+              title="Toggle sidebar"
             >
               <span className="material-symbols-outlined text-[18px]">menu</span>
             </button>
           )}
-          <div className="min-w-0">
-            <p className="text-[11px] text-muted-foreground uppercase tracking-[0.15em] font-label">
-              Unified Tutor + Notes
-            </p>
-            <h2 className="font-bold text-foreground truncate">AI Study Hub Chat</h2>
-          </div>
+          <span className="text-xs font-bold text-foreground font-label uppercase tracking-wider">
+            {activeThreadId ? "Active Thread" : "New Thread"}
+          </span>
         </div>
-        <div className="flex items-center gap-2 shrink-0">
+
+        <div className="flex items-center gap-2">
           {onToggleRightSidebar && (
             <button
+              type="button"
               onClick={onToggleRightSidebar}
-              className="xl:hidden p-1.5 border-2 border-black bg-background text-foreground hover:bg-muted flex items-center justify-center"
-              title="Toggle Documents"
+              className={`p-1.5 rounded-lg transition-colors text-muted-foreground hover:text-foreground hover:bg-card cursor-pointer ${
+                isRightSidebarOpen ? "bg-card text-primary font-bold" : ""
+              }`}
+              title="Toggle Library"
             >
-              <span className="material-symbols-outlined text-[18px]">description</span>
+              <span className="material-symbols-outlined text-[18px]">library_books</span>
             </button>
           )}
           <button
+            type="button"
             onClick={() => setShowUpload((value) => !value)}
-            className="inline-flex items-center gap-1.5 bg-primary text-primary-foreground border-2 border-black px-3 py-2 text-xs font-bold hover:translate-x-0.5 hover:translate-y-0.5 shadow-[3px_3px_0_0_#000] hover:shadow-none transition-all font-label"
+            className="inline-flex items-center gap-1.5 bg-primary text-primary-foreground px-3 py-1.5 text-xs font-bold rounded-lg border-2 border-border hover:bg-primary/95 transition-colors cursor-pointer"
           >
-            <span className="material-symbols-outlined text-[16px]">attach_file</span>
-            {showUpload ? "Close Upload" : "Upload PDF"}
+            <span className="material-symbols-outlined text-[14px]">upload_file</span>
+            Upload PDF
           </button>
         </div>
-      </div>
+      </header>
 
-      <div ref={scrollRef} className="flex-1 overflow-y-auto p-3 md:p-4">
+      <div ref={scrollRef} className="flex-1 overflow-y-auto custom-scrollbar bg-background">
         {loadingHistory ? (
-          <div className="flex h-full items-center justify-center text-sm text-muted-foreground">
+          <div className="flex h-full items-center justify-center text-sm text-muted-foreground italic">
+            <span className="animate-spin material-symbols-outlined mr-2">progress_activity</span>
             Loading conversation...
           </div>
         ) : messages.length === 0 ? (
-          <div className="h-full flex flex-col items-center justify-center text-center px-4">
-            <div className="h-14 w-14 border-2 border-black bg-card flex items-center justify-center text-foreground mb-4">
-              <span className="material-symbols-outlined text-[28px]">auto_awesome</span>
+          <div className="min-h-full flex flex-col items-center justify-center px-4 py-12 max-w-4xl mx-auto w-full">
+            <h1 className="text-4xl md:text-5xl font-heading font-extrabold text-foreground text-center mb-8 tracking-tight uppercase">
+              What do you want to know?
+            </h1>
+
+            <div className="w-full bg-card border-2 border-border rounded-2xl flex flex-col p-3 shadow-[4px_4px_0_0_rgba(0,0,0,0.15)] focus-within:border-primary transition-colors">
+              <textarea
+                ref={textareaRef}
+                value={input}
+                onChange={handleTextareaInput}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && !e.shiftKey) {
+                    e.preventDefault();
+                    handleSend();
+                  }
+                }}
+                placeholder="Ask the AI Study Hub..."
+                rows={1}
+                className="w-full bg-transparent border-0 outline-none text-foreground text-sm placeholder:text-muted-foreground resize-none focus:ring-0 px-2 pt-1 pb-1 min-h-[56px] focus:outline-none"
+                style={{
+                  backgroundColor: "transparent",
+                  color: "inherit",
+                  border: "none",
+                  outline: "none",
+                  boxShadow: "none",
+                }}
+              />
+
+              <div className="flex items-center justify-between mt-2 pt-2 border-t border-border/40 px-1 gap-2 flex-wrap">
+                <div className="flex items-center gap-1.5 flex-wrap">
+                  <input
+                    type="file"
+                    ref={fileInputRef}
+                    onChange={handleFileChange}
+                    accept="image/*,application/pdf"
+                    className="hidden"
+                  />
+                  <button
+                    type="button"
+                    onClick={handleFileSelectClick}
+                    className="bg-background hover:bg-card border border-border px-3 py-1.5 rounded-full flex items-center gap-1.5 text-[11px] font-bold text-foreground transition-all cursor-pointer"
+                  >
+                    <span className="material-symbols-outlined text-[13px] text-primary">attach_file</span>
+                    Attach
+                  </button>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <ModelPicker
+                    selectedModel={selectedModel}
+                    setSelectedModel={setSelectedModel}
+                    showModelDropdown={showModelDropdown}
+                    setShowModelDropdown={setShowModelDropdown}
+                    placement="up"
+                  />
+
+                  <button
+                    type="button"
+                    onClick={() => handleSend()}
+                    disabled={(!input.trim() && attachments.length === 0) || loading || uploadingAttachment}
+                    className="h-8 w-8 bg-primary hover:bg-primary/95 text-primary-foreground flex items-center justify-center rounded-full disabled:opacity-30 border border-border transition-colors shrink-0 cursor-pointer"
+                  >
+                    <span className="material-symbols-outlined text-[16px]">arrow_upward</span>
+                  </button>
+                </div>
+              </div>
             </div>
-            <h3 className="text-xl md:text-2xl font-bold text-foreground">Ask anything, with or without notes.</h3>
-            <p className="text-sm text-muted-foreground mt-2 max-w-lg">
-              Upload PDFs, select them as context, then ask for explanations, summaries, quizzes, or general tutor help.
-            </p>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full mt-8">
+              <button
+                type="button"
+                onClick={() => {
+                  setInput("Summarize my study materials");
+                  textareaRef.current?.focus();
+                }}
+                className="flex items-start gap-3 p-4 bg-card/45 border-2 border-border hover:border-primary hover:bg-card rounded-xl text-left transition-all cursor-pointer shadow-[3px_3px_0_0_rgba(0,0,0,0.05)] active:translate-x-0.5 active:translate-y-0.5 active:shadow-none"
+              >
+                <div className="h-9 w-9 rounded-lg bg-primary/10 text-primary border border-primary/20 flex items-center justify-center shrink-0">
+                  <span className="material-symbols-outlined text-[20px]">search</span>
+                </div>
+                <div>
+                  <h4 className="text-sm font-extrabold text-foreground font-label">Search anything</h4>
+                  <p className="text-xs text-muted-foreground mt-1 leading-normal">
+                    Get fast answers grounded in your uploaded study materials.
+                  </p>
+                </div>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setInput("Create a customized project template");
+                  textareaRef.current?.focus();
+                }}
+                className="flex items-start gap-3 p-4 bg-card/45 border-2 border-border hover:border-primary hover:bg-card rounded-xl text-left transition-all cursor-pointer shadow-[3px_3px_0_0_rgba(0,0,0,0.05)] active:translate-x-0.5 active:translate-y-0.5 active:shadow-none"
+              >
+                <div className="h-9 w-9 rounded-lg bg-primary/10 text-primary border border-primary/20 flex items-center justify-center shrink-0">
+                  <span className="material-symbols-outlined text-[20px]">laptop_mac</span>
+                </div>
+                <div>
+                  <h4 className="text-sm font-extrabold text-foreground flex items-center gap-1.5 font-label">
+                    Get work done
+                    <span className="text-[9px] bg-primary/25 text-primary px-1 rounded-sm uppercase tracking-wider font-extrabold">
+                      NEW
+                    </span>
+                  </h4>
+                  <p className="text-xs text-muted-foreground mt-1 leading-normal">
+                    Hand off study tasks for quizzes, notes, and project outlines.
+                  </p>
+                </div>
+              </button>
+            </div>
           </div>
         ) : (
-          <div className="w-full space-y-1">
+          <div className="max-w-4xl mx-auto w-full px-4 py-6 space-y-6">
             {messages
               .filter((message) => message.role !== "system")
               .map((message, index) => (
                 <MessageBubble key={index} message={message as any} />
               ))}
             {loading && (
-              <div className="text-sm text-muted-foreground px-2 py-2 font-label">AI is thinking...</div>
+              <div className="flex items-center gap-2 text-xs text-muted-foreground px-2 italic">
+                <span className="animate-spin material-symbols-outlined text-[14px]">progress_activity</span>
+                AI is thinking...
+              </div>
             )}
           </div>
         )}
       </div>
 
-      {/* Attachments inline preview */}
       {(attachments.length > 0 || uploadingAttachment) && (
-        <div className="px-4 py-2.5 border-t border-[#262626] flex flex-wrap gap-2.5 bg-[#0F0F0F]">
-          {attachments.map((att, idx) => (
-            <div
-              key={idx}
-              className="relative flex items-center gap-2 bg-[#1A1A1A] border border-[#262626] p-2 pr-8 text-xs text-white"
-            >
-              {att.type === "image" ? (
-                <div className="h-8 w-8 relative overflow-hidden bg-black border border-[#404040]">
-                  <img src={att.fileUrl} alt={att.filename} className="h-full w-full object-cover" />
-                </div>
-              ) : (
-                <span className="material-symbols-outlined text-red-500 text-[18px]">description</span>
-              )}
-              <span className="truncate max-w-[150px] font-mono text-[11px]" title={att.filename}>
-                {att.filename}
-              </span>
-              <button
-                type="button"
-                onClick={() => removeAttachment(idx)}
-                className="absolute top-1/2 -translate-y-1/2 right-2 text-[#8e9192] hover:text-white transition-colors"
+        <div className="bg-sidebar border-t border-border/40">
+          <div className="max-w-4xl mx-auto px-4 py-2 flex flex-wrap gap-2">
+            {attachments.map((att, idx) => (
+              <div
+                key={idx}
+                className="relative flex items-center gap-2 bg-card border border-border p-1.5 pr-8 rounded-lg text-xs text-foreground"
               >
-                <span className="material-symbols-outlined text-[16px]">close</span>
-              </button>
-            </div>
-          ))}
-
-          {uploadingAttachment && (
-            <div className="flex items-center gap-2 bg-[#1A1A1A] border border-dashed border-[#404040] p-2 text-xs text-[#8e9192]">
-              <span className="animate-spin material-symbols-outlined text-[16px]">progress_activity</span>
-              <span className="font-mono text-[11px]">Uploading file...</span>
-            </div>
-          )}
-        </div>
-      )}
-
-      <form onSubmit={handleSend} className="border-t border-[#262626] p-4">
-        <div className="flex items-end gap-2">
-          {/* File Input and Button */}
-          <input
-            type="file"
-            ref={fileInputRef}
-            onChange={handleFileChange}
-            accept="image/*,application/pdf"
-            className="hidden"
-          />
-          <button
-            type="button"
-            disabled={loading || uploadingAttachment}
-            onClick={handleFileSelectClick}
-            className="h-14 w-14 border border-[#262626] bg-[#1A1A1A] hover:bg-[#262626] disabled:opacity-30 text-[#8e9192] hover:text-white flex items-center justify-center transition-colors"
-            title="Attach file (image or PDF)"
-          >
-            <span className="material-symbols-outlined text-[20px]">attach_file</span>
-          </button>
-
-          <textarea
-            ref={textareaRef}
-            value={input}
-            onChange={handleTextareaInput}
-            onKeyDown={(e) => {
-              if (e.key === "Enter" && !e.shiftKey) {
-                e.preventDefault();
-                handleSend(e);
-              }
-            }}
-            placeholder={
-              selectedDocumentIds.length > 0
-                ? "Ask about the selected document..."
-                : "Ask the AI Study Hub..."
-            }
-            disabled={loading || loadingHistory || uploadingAttachment}
-            rows={1}
-            className="w-full bg-card border-2 border-black text-foreground text-sm p-4 focus:border-primary focus:outline-none resize-none placeholder:text-muted-foreground"
-            style={{ minHeight: "56px" }}
-          />
-          <button
-            type="submit"
-            disabled={(!input.trim() && attachments.length === 0) || loading || uploadingAttachment}
-            className="h-14 w-14 bg-primary text-primary-foreground border-2 border-black flex items-center justify-center disabled:opacity-40 disabled:cursor-not-allowed shadow-[3px_3px_0_0_#000]"
-          >
-            <span className="material-symbols-outlined">arrow_upward</span>
-          </button>
-        </div>
-      </form>
-
-      {/* Modal / Popup for Upload PDF */}
-      {showUpload && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-          {/* Backdrop */}
-          <div 
-            className="fixed inset-0 bg-black/80 backdrop-blur-sm transition-opacity"
-            onClick={() => setShowUpload(false)}
-          />
-          {/* Modal content */}
-          <div className="relative w-full max-w-xl bg-[#0A0A0A] border border-[#262626] p-6 animate-fade-in-up z-[101]">
-            <div className="flex items-center justify-between pb-4 border-b border-[#262626] mb-5">
-              <h3 className="text-base font-bold text-white uppercase tracking-wider font-mono">
-                Upload PDF Document
-              </h3>
-              <button 
-                onClick={() => setShowUpload(false)}
-                className="text-[#8e9192] hover:text-white transition-colors flex items-center justify-center p-1.5 hover:bg-[#1A1A1A] border border-transparent hover:border-[#262626]"
-                title="Close"
-              >
-                <span className="material-symbols-outlined text-[20px]">close</span>
-              </button>
-            </div>
-            
-            <UploadDropzone onUploadSuccess={handleUploadSuccess} />
-            
-            <p className="text-[11px] text-[#636565] mt-4 text-center font-mono">
-              The PDF will be parsed and registered to your active study materials list.
-            </p>
+                {att.type === "image" ? (
+                  <img
+                    src={att.fileUrl}
+                    alt={att.filename}
+                    className="h-6 w-6 object-cover rounded border border-border"
+                  />
+                ) : (
+                  <span className="material-symbols-outlined text-red-500 text-[16px]">description</span>
+                )}
+                <span className="truncate max-w-[120px] font-mono text-[10px]">{att.filename}</span>
+                <button
+                  type="button"
+                  onClick={() => removeAttachment(idx)}
+                  className="absolute top-1/2 -translate-y-1/2 right-1.5 text-muted-foreground hover:text-foreground cursor-pointer"
+                >
+                  <span className="material-symbols-outlined text-[14px]">close</span>
+                </button>
+              </div>
+            ))}
+            {uploadingAttachment && (
+              <div className="flex items-center gap-2 bg-card border border-dashed border-border p-1.5 rounded-lg text-xs text-muted-foreground">
+                <span className="animate-spin material-symbols-outlined text-[14px]">progress_activity</span>
+                <span className="font-mono text-[10px]">Uploading...</span>
+              </div>
+            )}
           </div>
         </div>
       )}
-    </section>
+
+      {messages.length > 0 && (
+        <div className="p-4 bg-background border-t border-border/40 shrink-0">
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              handleSend();
+            }}
+            className="max-w-4xl mx-auto w-full bg-card border-2 border-border rounded-2xl flex flex-col p-2 focus-within:border-primary transition-colors shadow-[3px_3px_0_0_rgba(0,0,0,0.1)]"
+          >
+            <textarea
+              ref={textareaRef}
+              value={input}
+              onChange={handleTextareaInput}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && !e.shiftKey) {
+                  e.preventDefault();
+                  handleSend();
+                }
+              }}
+              placeholder={
+                selectedDocumentIds.length > 0
+                  ? "Ask about the selected document..."
+                  : "Ask follow-up..."
+              }
+              rows={1}
+              className="w-full bg-transparent border-0 outline-none text-foreground text-sm placeholder:text-muted-foreground resize-none focus:ring-0 px-2 pt-1 pb-1 min-h-[38px] focus:outline-none"
+              style={{
+                backgroundColor: "transparent",
+                color: "inherit",
+                border: "none",
+                outline: "none",
+                boxShadow: "none",
+              }}
+            />
+            <div className="flex items-center justify-between mt-1 px-1">
+              <div className="flex items-center gap-1.5">
+                <input
+                  type="file"
+                  ref={fileInputRef}
+                  onChange={handleFileChange}
+                  accept="image/*,application/pdf"
+                  className="hidden"
+                />
+                <button
+                  type="button"
+                  onClick={handleFileSelectClick}
+                  className="p-1.5 text-muted-foreground hover:text-foreground hover:bg-background rounded-full transition-colors cursor-pointer"
+                  title="Attach file"
+                >
+                  <span className="material-symbols-outlined text-[16px]">attach_file</span>
+                </button>
+                <ModelPicker
+                  selectedModel={selectedModel}
+                  setSelectedModel={setSelectedModel}
+                  showModelDropdown={showModelDropdown}
+                  setShowModelDropdown={setShowModelDropdown}
+                  placement="up"
+                />
+              </div>
+
+              <button
+                type="submit"
+                disabled={(!input.trim() && attachments.length === 0) || loading || uploadingAttachment}
+                className="h-7 w-7 bg-primary hover:bg-primary/95 text-primary-foreground flex items-center justify-center rounded-full border border-border disabled:opacity-30 transition-colors shrink-0 cursor-pointer"
+              >
+                <span className="material-symbols-outlined text-[14px]">arrow_upward</span>
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
+
+      {showUpload && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+          <div className="fixed inset-0 bg-black/60 backdrop-blur-xs" onClick={() => setShowUpload(false)} />
+          <div className="relative w-full max-w-xl bg-card border-2 border-border p-6 rounded-2xl animate-fade-in-up z-[101]">
+            <div className="flex items-center justify-between pb-4 border-b border-border/40 mb-5">
+              <h3 className="text-sm font-bold text-foreground uppercase tracking-widest font-label">
+                Upload PDF Document
+              </h3>
+              <button
+                type="button"
+                onClick={() => setShowUpload(false)}
+                className="text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+              >
+                <span className="material-symbols-outlined text-[18px]">close</span>
+              </button>
+            </div>
+            <UploadDropzone onUploadSuccess={handleUploadSuccess} />
+          </div>
+        </div>
+      )}
+    </div>
   );
 }

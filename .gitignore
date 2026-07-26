@@ -1,6 +1,6 @@
 # See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 
-# dependencies
+# ===== dependencies =====
 /node_modules
 /.pnp
 .pnp.*
@@ -10,36 +10,80 @@
 !.yarn/releases
 !.yarn/versions
 
-# testing
+# ===== testing / coverage =====
 /coverage
+/playwright-report
+/test-results
+/blob-report
+*.lcov
 
-# next.js
+# ===== next.js / build =====
 /.next/
 /out/
-
-# production
 /build
+/dist
+.turbo
+.next
 
-# misc
-.DS_Store
+# ===== env & secrets =====
+.env
+.env.*
+!.env.example
 *.pem
+*.key
+credentials.json
+service-account*.json
 
-# debug
+# ===== vercel / deploy =====
+.vercel
+
+# ===== typescript / tooling caches =====
+*.tsbuildinfo
+next-env.d.ts
+.eslintcache
+.stylelintcache
+*.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 
-# env files (can opt-in for committing if needed)
-.env*
-!.env.example
+# ===== OS / editor =====
+.DS_Store
+Thumbs.db
+Desktop.ini
+.idea/
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json.example
+.cursor/
+*.swp
+*.swo
+*~
 
-# vercel
-.vercel
+# ===== local / temp artifacts =====
+.tmp/
+.tmp-shots/
+tmp/
+temp/
+*.tmp
+*.temp
+.cache/
 
-# typescript
-*.tsbuildinfo
-next-env.d.ts
-# uploaded files (local dev artifacts) — keep the dir, ignore contents
+# ===== uploaded user files (local/dev) — keep folder =====
 public/uploads/*
 !public/uploads/.gitkeep
+
+# ===== design exports / mockups (not needed to run the app) =====
+design/stitch/
+*.psd
+*.fig
+*.sketch
+
+# ===== sample / fixture binaries =====
+test/data/
+
+# ===== misc generated =====
+*.map
+.parcel-cache
+.sass-cache

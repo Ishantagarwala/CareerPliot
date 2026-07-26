@@ -1,15 +1,15 @@
-# 🚀 Career Pilot — AI Career Guidance & Learning Assistant
+# 🚀 Career Pilot — AI Career Guidance, Learning & Job Platform
 
 [![Brainware AI Hackathon 2026](https://img.shields.io/badge/Brainware%20AI%20Hackathon-2026-blueviolet?style=for-the-badge)](https://github.com/aritraio/bwu-ai-hackathon-2026)
 [![Made By](https://img.shields.io/badge/Made%20By-Career%20Wallah-orange?style=for-the-badge)](#)
-[![Tech Stack](https://img.shields.io/badge/Stack-Next.js%20%7C%20MongoDB%20%7C%20Tailwind-blue?style=for-the-badge)](#-tech-stack)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge)](file:///home/pacific/Downloads/CareerPliot/LICENSE)
+[![Tech Stack](https://img.shields.io/badge/Stack-Next.js%2016%20%7C%20React%2019%20%7C%20MongoDB-blue?style=for-the-badge)](#-tech-stack)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge)](LICENSE)
 
 Welcome to the official repository for **Career Pilot**, an AI-powered career guidance and personalized learning assistant developed by **Career Wallah** for the **Brainware AI Hackathon 2026**.
 
-Career Pilot is designed to eliminate the uncertainty in career planning for students. By combining interest profiling, customized roadmaps, smart course curations, interactive document analysis, and a 24/7 AI tutor, Career Pilot helps students navigate their professional journey from initial discovery to industry readiness.
+Career Pilot reduces uncertainty in career planning for students. It combines career assessment, generated roadmaps, live course and job discovery, document-aware tutoring, resume building, HackerRank-inspired resume scoring, and progress tracking in one responsive platform.
 
-> For the comprehensive project charter, milestone trackers, and sprint details, see the [Full Project Specification (CAREER_PILOT.md)](file:///home/pacific/Downloads/test/career-pilot/CAREER_PILOT.md).
+The interface uses a light-first neo-brutalist design, supports dark mode, includes a user-selectable accent color, responsive hamburger navigation, resilient image fallbacks, and visible loading states during route transitions and data fetches.
 
 ---
 
@@ -19,61 +19,46 @@ Career Pilot is designed to eliminate the uncertainty in career planning for stu
 3. [Tech Stack](#-tech-stack)
 4. [Project Structure](#-project-structure)
 5. [Getting Started & Setup](#-getting-started--setup)
-6. [Hackathon Timeline & Team](#-hackathon-timeline--team)
-7. [Contact & Queries](#-contact--queries)
+6. [Team](#-team)
 
 ---
 
 ## 🌟 Core Features
 
-*   **🧭 AI Career Discovery Engine:** Analyzes user interests, favorite academic subjects, skills, and goals to match them with the most compatible career paths.
-*   **🗺️ Personalized Career Roadmaps:** Generates a structured, stage-wise learning path (Beginner → Intermediate → Advanced) for the selected career path.
-*   **📚 Smart Course Recommendation:** Curates free and paid courses across YouTube, Coursera, Udemy, freeCodeCamp, and Kaggle based on goals and budget constraints.
-*   **📄 Interactive PDF & Notes Assistant:** Powered by **PDF.co API** (with local PDF.js fallback), allows students to upload PDFs/notes to extract summaries, generate flashcards, and create practice MCQs.
-*   **🤖 24/7 AI Tutor Chatbot:** Direct interface for real-time concept explanation, code debugging, and step-by-step guidance.
-*   **📝 Standalone Resume ATS Analyzer:** Analyze your resume's formatting, keyword density, and overall ATS compatibility, mapping them against custom job descriptions.
-*   **💼 Job Board & Skill Matcher:** Real-time SDE and tech jobs fetched via **Remotive API** featuring a custom Match Score highlighting your matched profile skills.
-*   **🏆 HackerEarth & Devfolio Hub:** Real-time hackathon discovery and coding challenges.
-*   **📰 India Tech News Feed:** Live tech industry news aggregated from **Entrackr**, **Moneycontrol**, and **Livemint** to keep students up-to-date with the tech ecosystem.
-*   **📊 Progress Tracking Dashboard:** Keeps tabs on completed course milestones, study streaks, document uploads, and overall job readiness.
+* **🧭 AI Career Discovery:** Assesses interests, academic preferences, existing skills, and goals to recommend compatible career paths.
+* **🗺️ Personalized Roadmaps:** Generates Beginner → Intermediate → Advanced milestones and tracks completion and readiness.
+* **📚 Live Course Recommendations:** Uses roadmap milestones to find relevant Coursera catalog courses, optional long-form YouTube results, and provider search links.
+* **📄 AI Study Hub:** Upload PDFs, extract text locally, summarize documents, generate questions, and use selected documents as chat context. Uploaded documents can also be deleted from the library.
+* **🤖 Context-Aware AI Tutor:** Supports general tutoring, document-aware questions, code help, attachments, persistent threads, and renamed conversations.
+* **📝 Resume Builder:** Builds printable resumes with personal details, education, experience, projects, skills, certifications, custom sections, LaTeX export, and reliable comma-separated skill/technology entry.
+* **🎯 Resume Score:** Uses a HackerRank hiring-agent-inspired rubric (open source, self-projects, production impact, technical skills, bonuses, and deductions) with a score out of 120.
+* **🔎 Job Description Matching:** Keeps job-description keyword matching separate from the general resume score.
+* **💼 Live Job Board:** Aggregates Remotive, Arbeitnow, and RemoteOK without API keys, with optional Adzuna and JSearch/RapidAPI results (including LinkedIn/Indeed/Glassdoor-sourced listings).
+* **📌 Application Tracker:** Saves live jobs, adds custom opportunities, and moves applications through saved, applied, screening, interview, offer, and archived stages.
+* **🏆 Projects & Hackathons:** Surfaces project ideas, hackathon opportunities, and team collaboration posts.
+* **📰 Tech News:** Aggregates India-focused technology, hiring, startup, funding, cloud, and cybersecurity RSS feeds with MongoDB caching.
+* **📊 Progress Dashboard:** Tracks roadmap milestones, completed courses, analyzed documents, tutor sessions, readiness, and study streaks.
+* **🎨 Accessible UI:** Light mode by default, optional dark mode, persistent accent-color picker, responsive hamburger drawers, full-width dashboard layouts, and branded loading animations.
 
 ---
 
 ## 🏗️ System Architecture
 
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                        CLIENT (Browser)                         │
-│                                                                 │
-│   Next.js 15 (App Router) + React Server Components             │
-│   ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌──────────────────┐  │
-│   │  Auth UI  │ │ Career   │ │ Roadmap  │ │ Course/PDF/Tutor │  │
-│   │  Module   │ │ Discovery│ │ Viewer   │ │    Modules       │  │
-│   └────┬─────┘ └────┬─────┘ └────┬─────┘ └────────┬─────────┘  │
-│        │             │            │                 │            │
-└────────┼─────────────┼────────────┼─────────────────┼────────────┘
-         │             │            │                 │
-         ▼             ▼            ▼                 ▼
-   ╔═══════════════════════════════════════════════════════════╗
-   ║              NEXT.JS API ROUTES LAYER                     ║
-   ║         /app/api/* (Route Handlers + Server Actions)      ║
-   ║                                                           ║
-   ║  ┌─────────────┐  ┌─────────────┐  ┌─────────────────┐   ║
-   ║  │ Auth Routes  │  │ Career API  │  │ AI Integration  │   ║
-   ║  │ (NextAuth)   │  │   Routes    │  │    Service       │   ║
-   ║  └──────┬──────┘  └──────┬──────┘  └────────┬────────┘   ║
-   ║         │                │                   │            ║
-   ╚═════════╪════════════════╪═══════════════════╪════════════╝
-             │                │                   │
-      ┌──────▼──────┐  ┌─────▼──────┐   ┌────────▼────────┐
-      │   MongoDB    │  │   MongoDB   │   │   OpenAI API    │
-      │  (Users,     │  │  (Careers,  │   │  (GPT-4/3.5)    │
-      │   Auth)      │  │  Roadmaps,  │   │                 │
-      │  [Mongoose]  │  │  Courses,   │   │  ┌────────────┐ │
-      │              │  │  Progress)  │   │  │ PDF.co API │ │
-      │              │  │ [Mongoose]  │   │  │ pdf-parse  │ │
-      │              │  │             │   │  └────────────┘ │
-      └──────────────┘  └─────────────┘   └─────────────────┘
+```text
+Browser
+  └─ Next.js 16 App Router + React 19 + Tailwind CSS 4
+       ├─ Public landing and Auth.js credential flows
+       ├─ Protected dashboard pages and client-side data fetching
+       └─ Route handlers under app/api
+            ├─ MongoDB Atlas / Mongoose
+            │    users, profiles, roadmaps, progress, resumes,
+            │    documents, chat threads, applications and cached news
+            ├─ OpenAI-compatible AI layer
+            │    ZenMux, Gemini or OpenAI
+            ├─ PDF extraction
+            │    pdf-parse locally; optional PDF.co OCR fallback
+            └─ External providers
+                 jobs, courses, YouTube and RSS news feeds
 ```
 
 ---
@@ -82,36 +67,42 @@ Career Pilot is designed to eliminate the uncertainty in career planning for stu
 
 | Layer | Technology | Description / Use Case |
 | :--- | :--- | :--- |
-| **Framework** | **Next.js 15 (App Router)** | Unified frontend rendering, React Server Components, and secure API routes |
+| **Framework** | **Next.js 16.2 + React 19** | App Router pages, server/client components, route handlers, and streaming loading boundaries |
 | **UI Styling** | **Tailwind CSS 4 + shadcn/ui** | Utility-first responsive design coupled with modern, accessible UI components |
 | **Database** | **MongoDB (Atlas)** | Document-based flexible cloud database ideal for rapid feature expansion |
-| **ODM** | **Mongoose 8** | Schema validation, middleware hooks, and structured MongoDB queries |
+| **ODM** | **Mongoose 9** | Schema validation and structured MongoDB queries |
 | **Auth** | **NextAuth.js (Auth.js v5)** | Session management, credential login, CSRF protection, and middleware route security |
-| **AI Engine** | **OpenAI API** | High-quality reasoning models (GPT-4 / GPT-3.5-turbo) |
-| **PDF Extraction**| **PDF.co API & pdf-parse** | Multi-page PDF text extraction with local PDF.js fallback |
-| **External APIs** | **Remotive, Devfolio, HackerEarth** | Real-time jobs list, challenges, and hackathon discovery integrations |
-| **News Aggregators**| **Entrackr, Moneycontrol, Livemint** | Aggregated India tech ecosystem news feeds |
+| **AI Engine** | **ZenMux / Gemini / OpenAI** | OpenAI-compatible client with configurable primary and PDF models |
+| **PDF Extraction** | **pdf-parse + optional PDF.co** | Local serverless-compatible extraction with OCR fallback |
+| **Job Providers** | **Remotive, Arbeitnow, RemoteOK, Adzuna, JSearch** | Multi-source live jobs with optional premium providers |
+| **Course Providers** | **Coursera + YouTube Data API** | Roadmap-driven live recommendations and provider deep links |
+| **News Sources** | **TechCrunch, Inc42, YourStory, Entrackr, Moneycontrol, Livemint and more** | Cached technology and hiring RSS feeds |
 
 ---
 
 ## 📂 Project Structure
 
 ```
-career-pilot/
-├── app/                          # Next.js App Router (Pages, Layouts, & API Routes)
-│   ├── (auth)/                   # Authentication route group (login, register)
-│   ├── (dashboard)/              # Protected dashboard pages (career, roadmap, pdf, tutor, jobs)
-│   └── api/                      # Backend API Route Handlers
-├── components/                   # Reusable React UI Components
-│   ├── ui/                       # shadcn/ui primitive component library
-│   ├── layout/                   # Navbar, Sidebar, and Footer
-│   ├── career/                   # Assessment forms and recommendations
-│   ├── pdf/                      # PDF uploaders and summary views
-│   └── tutor/                    # AI Chat interface elements
-├── lib/                          # Shared utilities (DB connection, auth config, pdf services)
-├── models/                       # Mongoose Schemas (User, Roadmap, Document, Resume, etc.)
+CareerPliot/
+├── app/
+│   ├── (auth)/                   # Login and registration
+│   ├── (dashboard)/              # Protected application pages
+│   └── api/                      # 35 route handlers
+├── components/
+│   ├── ai-hub/                   # Document library and unified chat
+│   ├── career/                   # Assessment and recommendations
+│   ├── courses/                  # Filters and course cards
+│   ├── dashboard/                # Metrics and streak widgets
+│   ├── layout/                   # App shell, drawers, theme/accent UI
+│   ├── pdf/                      # Upload, summary and quiz UI
+│   ├── resume/                   # Builder, preview, ATS and JD matching
+│   ├── roadmap/                  # Roadmap viewer and milestones
+│   ├── tutor/                    # Chat interface and message rendering
+│   └── ui/                       # Shared UI primitives
+├── lib/                          # Auth, DB, AI, PDF and provider integrations
+├── models/                       # Mongoose models
 ├── public/                       # Static assets
-└── tsconfig.json                 # TypeScript configuration
+└── middleware.ts                 # Protected-route middleware
 ```
 
 ---
@@ -120,15 +111,16 @@ career-pilot/
 
 ### Prerequisites
 Make sure you have the following installed:
-*   [Node.js](https://nodejs.org/) (v18+ recommended)
+* [Node.js](https://nodejs.org/) 20+ recommended
 *   [MongoDB Atlas](https://www.mongodb.com/atlas) (or local MongoDB server instance)
-*   [OpenAI API Key](https://platform.openai.com/)
+* At least one supported AI key: ZenMux, Gemini, or OpenAI
 
 ### Installation & Run
 
 1. Clone the repository and navigate to the project directory:
    ```bash
-   cd career-pilot
+   git clone https://github.com/Ishantagarwala/CareerPliot.git
+   cd CareerPliot
    ```
 
 2. Install the project dependencies:
@@ -136,16 +128,35 @@ Make sure you have the following installed:
    npm install
    ```
 
-3. Set up your environment variables in `.env.local` using the template below:
+3. Copy the environment template and fill in the required values:
+   ```bash
+   cp .env.example .env.local
+   ```
+
+   Minimum configuration:
     ```env
     AUTH_SECRET=your_auth_secret_here
-    MONGODB_URI=your_mongodb_connection_string
+    MONGODB_URI=mongodb+srv://user:password@cluster.mongodb.net/careerpilot
     ZENMUX_API_KEY=your_zenmux_api_key_here
     ZENMUX_BASE_URL=https://zenmux.ai/api/v1
     ZENMUX_MODEL=openai/gpt-4o-mini
     ZENMUX_PDF_MODEL=openai/gpt-4o
-    PDF_CO_API_KEY=your_pdf_co_api_key
     ```
+
+   Generate an Auth.js secret with:
+   ```bash
+   openssl rand -base64 32
+   ```
+
+   Optional integrations:
+
+   | Variable | Purpose |
+   | :--- | :--- |
+   | `GEMINI_API_KEY` or `OPENAI_API_KEY` | Alternative AI provider |
+   | `PDF_CO_API_KEY` | OCR fallback for scanned/image-only PDFs |
+   | `YOUTUBE_API_KEY` | Long-form YouTube course recommendations |
+   | `RAPIDAPI_KEY` | JSearch jobs sourced from LinkedIn, Indeed and Glassdoor |
+   | `ADZUNA_APP_ID`, `ADZUNA_APP_KEY` | Adzuna job listings |
 
 4. Start the local development server:
    ```bash
@@ -154,27 +165,22 @@ Make sure you have the following installed:
 
 5. Open [http://localhost:3000](http://localhost:3000) in your browser to view the application.
 
----
+### Deployment on Vercel
 
-## 📅 Hackathon Timeline & Team
+1. Import this GitHub repository into Vercel.
+2. Add `AUTH_SECRET`, `MONGODB_URI`, and an AI provider key under **Project Settings → Environment Variables**.
+3. Add optional provider keys as needed.
+4. Deploy. The PDF worker is statically bundled for Vercel serverless compatibility.
 
-### 👥 Developed by Career Wallah
-*   **Sujoy Singha** - Team Leader, Full-Stack & Presentation Lead
-*   **Aritra Saha** - Backend & DevOps
-*   **Ishant Agarwala** - AI Engineer & UI/UX
-*   **Avik Singha Roy** - DB Administrator
-
-
-### 🗓️ Important Deadlines
-*   **Proposal Submission:** June 22, 2026 *(👉 [Official Google Submission Form](https://docs.google.com/forms/d/e/1FAIpQLScRTibBU0jWGa2KRuu6MZyII2OMWVusAUUGIKzFFvS_F_khcg/viewform?usp=dialog))*
-*   **Prototype Screening:** 2nd Week of July 2026
-*   **Prototype Shortlisting:** 4th Week of July 2026
-*   **Final Presentation:** August 2026
+> Never commit `.env.local` or real credentials.
 
 ---
 
-## 📞 Contact & Queries
+## 👥 Team
 
-For any general queries or clarification regarding the hackathon guidelines, reach out to the university organizers:
-*   **Dr. Subhankar Saha** | dss.me@brainwareuniversity.ac.in | +91-9957593969
-*   **Dr. Indrani Paul** | dip.bt@brainwareuniversity.ac.in | +91-9614597629
+### Developed by Career Wallah
+* **Sujoy Singha** — Team Leader, Full-Stack & Presentation Lead
+* **Aritra Saha** — Backend & DevOps
+* **Ishant Agarwala** — AI Engineer & UI/UX
+* **Avik Singha Roy** — Database Administrator
+* **Prathama Roy** — Presenter
