@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import BrandLogo from "@/components/layout/BrandLogo";
 
 const links = [
   { label: "Discovery", href: "#discovery" },
@@ -29,9 +28,8 @@ export default function LandingNav() {
         <div className={`flex justify-between items-center h-16 md:h-[4.5rem] ${shell}`}>
           <Link
             href="/"
-            className="flex items-center gap-2.5 font-display text-xl sm:text-2xl md:text-[1.75rem] font-extrabold uppercase tracking-tighter text-primary"
+            className="font-display text-xl sm:text-2xl md:text-[1.75rem] font-extrabold uppercase tracking-tighter text-primary"
           >
-            <BrandLogo size="sm" />
             CAREER PILOT
           </Link>
 
@@ -71,8 +69,7 @@ export default function LandingNav() {
         aria-hidden={!open}
       >
         <div className="flex items-center justify-between mb-8 pb-4 border-b-2 border-black">
-          <span className="flex items-center gap-2 font-display text-lg font-extrabold uppercase text-primary">
-            <BrandLogo size="sm" />
+          <span className="font-display text-lg font-extrabold uppercase text-primary">
             Menu
           </span>
           <button
