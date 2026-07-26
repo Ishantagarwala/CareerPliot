@@ -21,7 +21,21 @@ const navigation = [
   { name: "Projects & Hackathons", href: "/projects", icon: "hub" },
   { name: "Study With Me", href: "/study", icon: "group" },
   { name: "Tech News", href: "/news", icon: "newspaper" },
+  { name: "Profile", href: "/profile", icon: "person" },
 ];
+
+function isNavActive(pathname: string, href: string) {
+  const matches = pathname === href || pathname.startsWith(`${href}/`);
+  if (!matches) return false;
+  const longerMatch = navigation.some(
+    (other) =>
+      other.href !== href &&
+      other.href.length > href.length &&
+      (other.href === href || other.href.startsWith(`${href}/`)) &&
+      (pathname === other.href || pathname.startsWith(`${other.href}/`))
+  );
+  return !longerMatch;
+}
 
 export default function Navbar({ showLinks = true }: { showLinks?: boolean }) {
   const { data: session, status } = useSession();
@@ -111,7 +125,7 @@ export default function Navbar({ showLinks = true }: { showLinks?: boolean }) {
         <div className="md:hidden fixed inset-x-0 top-16 z-40 bg-sidebar border-b border-sidebar-border animate-fade-in-down">
           <nav className="px-4 py-4 space-y-1">
             {navigation.map((item) => {
-              const isActive = pathname.startsWith(item.href);
+              const isActive = isNavActive(pathname, item.href);
               return (
                 <Link
                   key={item.name}
