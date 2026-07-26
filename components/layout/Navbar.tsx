@@ -7,6 +7,7 @@ import { useState, useEffect } from "react";
 import { useTheme } from "next-themes";
 import { Sun, Moon } from "lucide-react";
 import { cn } from "@/lib/utils";
+import BrandLogo from "@/components/layout/BrandLogo";
 
 const navigation = [
   { name: "Dashboard", href: "/dashboard", icon: "dashboard" },
@@ -41,12 +42,7 @@ export default function Navbar({ showLinks = true }: { showLinks?: boolean }) {
       {/* Mobile Top Bar — hidden on desktop */}
       <header className="md:hidden flex justify-between items-center w-full px-4 h-16 bg-background border-b border-border sticky top-0 z-50 transition-colors duration-300">
         <Link href="/dashboard" className="flex items-center gap-2.5">
-          <div
-            className="w-8 h-8 bg-primary flex items-center justify-center text-primary-foreground font-bold text-sm select-none shrink-0"
-            style={{ fontFamily: "'Hanken Grotesk', system-ui, sans-serif" }}
-          >
-            C
-          </div>
+          <BrandLogo size="sm" />
           <h1
             className="text-base font-bold text-foreground tracking-tight"
             style={{ fontFamily: "'Hanken Grotesk', system-ui, sans-serif" }}

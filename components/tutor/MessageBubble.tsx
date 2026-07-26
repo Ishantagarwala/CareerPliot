@@ -228,7 +228,7 @@ export default function MessageBubble({ message }: MessageBubbleProps) {
       <div
         className={`flex items-start gap-2.5 min-w-0 ${
           isUser
-            ? "flex-row-reverse max-w-[min(100%,42rem)]"
+            ? "flex-row-reverse max-w-[min(100%,56rem)]"
             : "flex-row w-full max-w-none"
         }`}
       >

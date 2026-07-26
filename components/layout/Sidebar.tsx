@@ -7,6 +7,7 @@ import { cn } from "@/lib/utils";
 import { useTheme } from "next-themes";
 import { useState, useEffect } from "react";
 import { Sun, Moon } from "lucide-react";
+import BrandLogo from "@/components/layout/BrandLogo";
 
 interface SidebarProps {
   className?: string;
@@ -52,9 +53,7 @@ export default function Sidebar({ className }: SidebarProps) {
       {/* Brand Header */}
       <div className="px-6 mb-8 pb-6 border-b-2 border-black/80">
         <Link href="/dashboard" className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-primary border-2 border-black neo-shadow flex items-center justify-center text-primary-foreground font-display font-extrabold text-lg select-none shrink-0">
-            C
-          </div>
+          <BrandLogo size="md" className="neo-shadow" />
           <div>
             <h1 className="text-base font-display font-extrabold text-primary tracking-tight leading-none uppercase">
               Career Pilot

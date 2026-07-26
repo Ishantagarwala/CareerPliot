@@ -9,6 +9,7 @@ import { signIn } from "next-auth/react";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
 import Link from "next/link";
+import BrandLogo from "@/components/layout/BrandLogo";
 
 const registerSchema = z.object({
   name: z.string().min(2, { message: "Name must be at least 2 characters" }),
@@ -93,7 +94,10 @@ export default function RegisterForm() {
 
   return (
     <div className="w-full max-w-md bg-[#1A1A1A] border border-[#262626] overflow-hidden">
-      <div className="p-6 border-b border-[#262626] text-center space-y-2">
+      <div className="p-6 border-b border-[#262626] text-center space-y-3">
+        <div className="flex justify-center">
+          <BrandLogo size="lg" />
+        </div>
         <h1
           className="text-2xl font-bold text-white tracking-tight"
           style={{ fontFamily: "'Hanken Grotesk', system-ui, sans-serif" }}

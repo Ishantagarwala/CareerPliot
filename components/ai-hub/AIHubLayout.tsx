@@ -10,6 +10,7 @@ import {
   applyAccent,
   DEFAULT_ACCENT,
 } from "@/components/layout/AccentColor";
+import BrandLogo from "@/components/layout/BrandLogo";
 import DocumentLibrary from "./DocumentLibrary";
 import UnifiedChat from "./UnifiedChat";
 
@@ -20,14 +21,6 @@ interface HubDocument {
   summary?: string;
   createdAt?: string;
 }
-
-const CareerPilotIcon = () => (
-  <img
-    src="/logo.png"
-    alt="Career Pilot Logo"
-    className="w-6 h-6 object-cover rounded-md border border-border shrink-0 transition-transform hover:scale-105 duration-200"
-  />
-);
 
 const THEME_ACCENTS = [
   { id: "lime", name: "Lime Green", primary: "#baf600", foreground: "#151f00" },
@@ -253,7 +246,7 @@ export default function AIHubLayout() {
       >
         <div className="p-4 flex items-center justify-between border-b border-border/40">
           <Link href="/dashboard" className="flex items-center gap-2.5 hover:opacity-85 transition-opacity">
-            <CareerPilotIcon />
+            <BrandLogo size="sm" className="rounded-md border-border transition-transform hover:scale-105 duration-200" />
             <div>
               <span className="font-heading font-extrabold text-foreground tracking-tight text-sm uppercase">
                 Career Pilot

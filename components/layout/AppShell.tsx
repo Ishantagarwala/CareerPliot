@@ -8,6 +8,7 @@ import { useTheme } from "next-themes";
 import { useEffect, useState } from "react";
 import { Sun, Moon } from "lucide-react";
 import { AccentColorPicker } from "@/components/layout/AccentColor";
+import BrandLogo from "@/components/layout/BrandLogo";
 
 const menuItems = [
   { name: "Dashboard", href: "/dashboard", icon: "dashboard" },
@@ -86,9 +87,7 @@ export default function AppShell({ children }: AppShellProps) {
             <span className="material-symbols-outlined text-[22px]">menu</span>
           </button>
           <Link href="/dashboard" className="flex items-center gap-2.5 min-w-0">
-            <div className="hidden sm:flex w-8 h-8 bg-primary border-2 border-black items-center justify-center text-primary-foreground font-display font-extrabold text-sm select-none shrink-0">
-              C
-            </div>
+            <BrandLogo size="sm" className="hidden sm:inline-flex" />
             <div className="min-w-0">
               <h1 className="text-sm md:text-base font-display font-extrabold text-primary tracking-tight leading-none uppercase truncate">
                 Career Pilot
@@ -153,9 +152,7 @@ export default function AppShell({ children }: AppShellProps) {
       >
         <div className="px-5 mb-6 pb-5 border-b-2 border-black flex items-start justify-between gap-3">
           <Link href="/dashboard" className="flex items-center gap-3" onClick={() => setMenuOpen(false)}>
-            <div className="w-10 h-10 bg-primary border-2 border-black neo-shadow flex items-center justify-center text-primary-foreground font-display font-extrabold text-lg select-none shrink-0">
-              C
-            </div>
+            <BrandLogo size="md" className="neo-shadow" />
             <div>
               <h2 className="text-base font-display font-extrabold text-primary tracking-tight leading-none uppercase">
                 Career Pilot

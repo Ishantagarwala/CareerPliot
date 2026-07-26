@@ -371,7 +371,7 @@ export default function UnifiedChat({
             Loading conversation...
           </div>
         ) : messages.length === 0 ? (
-          <div className="min-h-full flex flex-col items-center justify-center px-4 py-12 max-w-4xl mx-auto w-full">
+          <div className="min-h-full flex flex-col items-center justify-center px-4 sm:px-8 py-12 max-w-5xl mx-auto w-full">
             <h1 className="text-4xl md:text-5xl font-heading font-extrabold text-foreground text-center mb-8 tracking-tight uppercase">
               What do you want to know?
             </h1>
@@ -485,7 +485,7 @@ export default function UnifiedChat({
             </div>
           </div>
         ) : (
-          <div className="max-w-4xl mx-auto w-full px-4 py-6 space-y-6">
+          <div className="w-full px-4 sm:px-8 lg:px-10 xl:px-12 py-6 space-y-6">
             {messages
               .filter((message) => message.role !== "system")
               .map((message, index) => (
@@ -503,7 +503,7 @@ export default function UnifiedChat({
 
       {(attachments.length > 0 || uploadingAttachment) && (
         <div className="bg-sidebar border-t border-border/40">
-          <div className="max-w-4xl mx-auto px-4 py-2 flex flex-wrap gap-2">
+          <div className="w-full px-4 sm:px-8 lg:px-10 xl:px-12 py-2 flex flex-wrap gap-2">
             {attachments.map((att, idx) => (
               <div
                 key={idx}
@@ -539,13 +539,13 @@ export default function UnifiedChat({
       )}
 
       {messages.length > 0 && (
-        <div className="p-4 bg-background border-t border-border/40 shrink-0">
+        <div className="p-4 sm:px-8 lg:px-10 xl:px-12 bg-background border-t border-border/40 shrink-0">
           <form
             onSubmit={(e) => {
               e.preventDefault();
               handleSend();
             }}
-            className="max-w-4xl mx-auto w-full bg-card border-2 border-border rounded-2xl flex flex-col p-2 focus-within:border-primary transition-colors shadow-[3px_3px_0_0_rgba(0,0,0,0.1)]"
+            className="w-full bg-card border-2 border-border rounded-2xl flex flex-col p-2 focus-within:border-primary transition-colors shadow-[3px_3px_0_0_rgba(0,0,0,0.1)]"
           >
             <textarea
               ref={textareaRef}

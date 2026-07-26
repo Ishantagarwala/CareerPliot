@@ -1,9 +1,12 @@
+import BrandLogo from "@/components/layout/BrandLogo";
+
 export default function Footer() {
   return (
     <footer className="bg-background border-t-4 border-black">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-10 py-12 md:py-14 px-5 sm:px-8 lg:px-12 xl:px-16 max-w-[1600px] mx-auto w-full">
         <div className="space-y-6">
-          <div className="font-display text-2xl md:text-[32px] font-extrabold text-primary uppercase">
+          <div className="flex items-center gap-3 font-display text-2xl md:text-[32px] font-extrabold text-primary uppercase">
+            <BrandLogo size="md" />
             CAREER PILOT
           </div>
           <p className="text-foreground/70 max-w-sm leading-relaxed">

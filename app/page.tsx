@@ -1,6 +1,7 @@
 import Link from "next/link";
 import Footer from "@/components/layout/Footer";
 import LandingNav from "@/components/layout/LandingNav";
+import BrandLogo from "@/components/layout/BrandLogo";
 
 const modules = [
   {
@@ -100,9 +101,12 @@ export default function Home() {
           className={`relative z-10 py-10 md:py-14 ${shell} grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-12 items-center`}
         >
           <div className="lg:col-span-7">
-            <p className="font-display text-[clamp(2.75rem,8vw,7.5rem)] font-extrabold uppercase leading-[0.9] tracking-tighter text-primary mb-4 md:mb-6">
-              Career Pilot
-            </p>
+            <div className="mb-5 md:mb-6 flex items-center gap-3 md:gap-4">
+              <BrandLogo size="lg" className="h-14 w-14 md:h-16 md:w-16 border-4" />
+              <p className="font-display text-[clamp(2.75rem,8vw,7.5rem)] font-extrabold uppercase leading-[0.9] tracking-tighter text-primary">
+                Career Pilot
+              </p>
+            </div>
             <h1 className="font-display text-[clamp(1.75rem,4.2vw,3.75rem)] font-extrabold leading-[1.05] tracking-tight text-foreground max-w-[22ch] mb-4 md:mb-5">
               Chart your path with{" "}
               <span className="text-primary">precision</span>

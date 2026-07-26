@@ -205,26 +205,26 @@ export default function AssessmentForm({ onSuccess }: AssessmentFormProps) {
   };
 
   return (
-    <div className="w-full max-w-2xl mx-auto bg-[#1A1A1A] border border-[#262626] overflow-hidden animate-fade-in-up">
+    <div className="w-full bg-card border-2 border-border overflow-hidden animate-fade-in-up">
       {/* Header */}
-      <div className="p-6 border-b border-[#262626]">
-        <div className="flex justify-between items-center mb-4">
+      <div className="p-6 sm:p-8 border-b border-border">
+        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 mb-4">
           <span
-            className="text-[11px] text-[#8e9192] uppercase tracking-[0.15em]"
+            className="text-[11px] text-muted-foreground uppercase tracking-[0.15em]"
             style={{ fontFamily: "'JetBrains Mono', monospace" }}
           >
             Step {step} of 4
           </span>
           {/* Progress bar */}
-          <div className="w-2/3 h-1 bg-[#262626] overflow-hidden">
+          <div className="w-full sm:w-2/3 h-1.5 bg-muted overflow-hidden">
             <div
-              className="h-full bg-white transition-all duration-500 ease-out"
+              className="h-full bg-primary transition-all duration-500 ease-out"
               style={{ width: `${(step / 4) * 100}%` }}
             />
           </div>
         </div>
         <h2
-          className="text-2xl font-bold text-white tracking-tight"
+          className="text-2xl sm:text-3xl font-bold text-foreground tracking-tight"
           style={{ fontFamily: "'Hanken Grotesk', system-ui, sans-serif" }}
         >
           {step === 1 && "What are your core interests?"}
@@ -232,7 +232,7 @@ export default function AssessmentForm({ onSuccess }: AssessmentFormProps) {
           {step === 3 && "What are your favorite subjects?"}
           {step === 4 && "Highlight your current skills"}
         </h2>
-        <p className="text-sm text-[#8e9192] mt-2">
+        <p className="text-sm text-muted-foreground mt-2 max-w-3xl">
           {step === 1 && "Select the domains and topics that excite you the most."}
           {step === 2 && "Describe your aspirations, dream job, or fields you want to work in."}
           {step === 3 && "Which academic/technical subjects do you feel strongest or most interested in?"}
@@ -241,10 +241,10 @@ export default function AssessmentForm({ onSuccess }: AssessmentFormProps) {
       </div>
 
       <form onSubmit={(e) => e.preventDefault()}>
-        <div className="p-6 min-h-[240px]">
+        <div className="p-6 sm:p-8 min-h-[320px]">
           {/* STEP 1: Interests */}
           {step === 1 && (
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3">
               {interestsOptions.map((interest) => {
                 const isSelected = selectedInterests.includes(interest);
                 return (
@@ -252,10 +252,10 @@ export default function AssessmentForm({ onSuccess }: AssessmentFormProps) {
                     key={interest}
                     type="button"
                     onClick={() => toggleInterest(interest)}
-                    className={`flex items-center justify-center p-3 border text-sm font-medium transition-all ${
+                    className={`flex items-center justify-center p-3.5 border-2 text-sm font-medium transition-all text-center ${
                       isSelected
-                        ? "bg-white text-[#0A0A0A] border-white"
-                        : "bg-transparent border-[#262626] text-[#c4c7c8] hover:border-[#404040] hover:text-white"
+                        ? "bg-primary text-primary-foreground border-primary"
+                        : "bg-background border-border text-foreground hover:border-primary/60"
                     }`}
                   >
                     {interest}
@@ -267,10 +267,10 @@ export default function AssessmentForm({ onSuccess }: AssessmentFormProps) {
 
           {/* STEP 2: Goals */}
           {step === 2 && (
-            <div className="space-y-4">
+            <div className="space-y-4 max-w-4xl">
               <label
                 htmlFor="goals"
-                className="text-[11px] text-[#8e9192] uppercase tracking-[0.1em] font-medium block"
+                className="text-[11px] text-muted-foreground uppercase tracking-[0.1em] font-medium block"
                 style={{ fontFamily: "'JetBrains Mono', monospace" }}
               >
                 Career Aspirations
@@ -278,18 +278,18 @@ export default function AssessmentForm({ onSuccess }: AssessmentFormProps) {
               <textarea
                 id="goals"
                 placeholder="Example: I want to build a career in technology, specifically working with AI. My dream is to work as an AI researcher or machine learning engineer..."
-                className="w-full min-h-[160px] border border-[#262626] bg-[#131313] p-4 text-sm text-white placeholder:text-[#636565] focus:border-white focus:ring-0 focus:outline-none transition-colors resize-none"
+                className="w-full min-h-[220px] border-2 border-border bg-background p-4 text-sm text-foreground placeholder:text-muted-foreground focus:border-primary focus:ring-0 focus:outline-none transition-colors resize-none"
                 {...register("goals")}
               />
               {errors.goals && (
-                <p className="text-xs text-[#ffb4ab] mt-1">{errors.goals.message}</p>
+                <p className="text-xs text-destructive mt-1">{errors.goals.message}</p>
               )}
             </div>
           )}
 
           {/* STEP 3: Subjects */}
           {step === 3 && (
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3">
               {subjectsOptions.map((subject) => {
                 const isSelected = selectedSubjects.includes(subject);
                 return (
@@ -297,10 +297,10 @@ export default function AssessmentForm({ onSuccess }: AssessmentFormProps) {
                     key={subject}
                     type="button"
                     onClick={() => toggleSubject(subject)}
-                    className={`flex items-center justify-center p-3 border text-sm font-medium transition-all ${
+                    className={`flex items-center justify-center p-3.5 border-2 text-sm font-medium transition-all text-center ${
                       isSelected
-                        ? "bg-white text-[#0A0A0A] border-white"
-                        : "bg-transparent border-[#262626] text-[#c4c7c8] hover:border-[#404040] hover:text-white"
+                        ? "bg-primary text-primary-foreground border-primary"
+                        : "bg-background border-border text-foreground hover:border-primary/60"
                     }`}
                   >
                     {subject}
@@ -314,11 +314,11 @@ export default function AssessmentForm({ onSuccess }: AssessmentFormProps) {
           {step === 4 && (
             <div className="space-y-6">
               {/* Skill Input */}
-              <div className="flex gap-2 flex-wrap sm:flex-nowrap items-end p-4 border border-[#262626] bg-[#131313]">
+              <div className="flex gap-3 flex-wrap sm:flex-nowrap items-end p-4 sm:p-5 border-2 border-border bg-background">
                 <div className="flex-1 space-y-1.5 min-w-[200px]">
                   <label
                     htmlFor="skillName"
-                    className="text-[11px] text-[#8e9192] uppercase tracking-[0.1em] font-medium block"
+                    className="text-[11px] text-muted-foreground uppercase tracking-[0.1em] font-medium block"
                     style={{ fontFamily: "'JetBrains Mono', monospace" }}
                   >
                     Skill Name
@@ -335,13 +335,13 @@ export default function AssessmentForm({ onSuccess }: AssessmentFormProps) {
                         addSkill();
                       }
                     }}
-                    className="w-full border border-[#262626] bg-transparent px-3 py-1.5 text-sm text-white placeholder:text-[#636565] focus:border-white focus:ring-0 focus:outline-none"
+                    className="w-full border-2 border-border bg-transparent px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:border-primary focus:ring-0 focus:outline-none"
                   />
                 </div>
-                <div className="space-y-1.5 w-full sm:w-36">
+                <div className="space-y-1.5 w-full sm:w-40">
                   <label
                     htmlFor="skillLevel"
-                    className="text-[11px] text-[#8e9192] uppercase tracking-[0.1em] font-medium block"
+                    className="text-[11px] text-muted-foreground uppercase tracking-[0.1em] font-medium block"
                     style={{ fontFamily: "'JetBrains Mono', monospace" }}
                   >
                     Level
@@ -350,7 +350,7 @@ export default function AssessmentForm({ onSuccess }: AssessmentFormProps) {
                     id="skillLevel"
                     value={newSkillLevel}
                     onChange={(e) => setNewSkillLevel(e.target.value as any)}
-                    className="w-full border border-[#262626] bg-[#131313] px-3 py-1.5 text-sm text-white focus:border-white focus:ring-0 focus:outline-none"
+                    className="w-full border-2 border-border bg-background px-3 py-2 text-sm text-foreground focus:border-primary focus:ring-0 focus:outline-none"
                   >
                     <option value="beginner">Beginner</option>
                     <option value="intermediate">Intermediate</option>
@@ -360,7 +360,7 @@ export default function AssessmentForm({ onSuccess }: AssessmentFormProps) {
                 <button
                   type="button"
                   onClick={addSkill}
-                  className="w-full sm:w-auto h-9 px-4 bg-white text-[#0A0A0A] font-bold text-xs hover:bg-[#e2e2e2] transition-colors flex items-center justify-center gap-1"
+                  className="w-full sm:w-auto h-10 px-5 bg-primary text-primary-foreground font-bold text-xs hover:bg-primary/90 transition-colors flex items-center justify-center gap-1 border-2 border-border"
                   style={{ fontFamily: "'JetBrains Mono', monospace" }}
                 >
                   <span className="material-symbols-outlined text-[16px]">add</span>
@@ -369,25 +369,25 @@ export default function AssessmentForm({ onSuccess }: AssessmentFormProps) {
               </div>
 
               {/* Skills List */}
-              <div className="space-y-2 max-h-[220px] overflow-y-auto pr-1">
+              <div className="space-y-2 max-h-[280px] overflow-y-auto pr-1">
                 <span
-                  className="text-[11px] text-[#8e9192] uppercase tracking-[0.1em] font-medium block"
+                  className="text-[11px] text-muted-foreground uppercase tracking-[0.1em] font-medium block"
                   style={{ fontFamily: "'JetBrains Mono', monospace" }}
                 >
                   Your Skills ({skills.length})
                 </span>
                 {skills.length === 0 ? (
-                  <p className="text-sm text-[#636565]">No skills listed yet.</p>
+                  <p className="text-sm text-muted-foreground">No skills listed yet.</p>
                 ) : (
                   <div className="flex flex-wrap gap-2">
                     {skills.map((skill, index) => (
                       <span
                         key={index}
-                        className="inline-flex items-center gap-1.5 border border-[#262626] px-3 py-1 text-sm text-[#c4c7c8]"
+                        className="inline-flex items-center gap-1.5 border-2 border-border bg-background px-3 py-1.5 text-sm text-foreground"
                       >
                         <span>{skill.name}</span>
                         <span
-                          className="text-[10px] text-white bg-[#262626] px-1.5 py-0.5"
+                          className="text-[10px] text-primary-foreground bg-primary px-1.5 py-0.5"
                           style={{ fontFamily: "'JetBrains Mono', monospace", letterSpacing: "0.05em" }}
                         >
                           {skill.level}
@@ -395,7 +395,7 @@ export default function AssessmentForm({ onSuccess }: AssessmentFormProps) {
                         <button
                           type="button"
                           onClick={() => removeSkill(index)}
-                          className="text-[#636565] hover:text-[#ffb4ab] transition-colors ml-1"
+                          className="text-muted-foreground hover:text-destructive transition-colors ml-1"
                         >
                           <span className="material-symbols-outlined text-[14px]">close</span>
                         </button>
@@ -409,13 +409,13 @@ export default function AssessmentForm({ onSuccess }: AssessmentFormProps) {
         </div>
 
         {/* Footer */}
-        <div className="flex justify-between border-t border-[#262626] p-6">
+        <div className="flex justify-between border-t border-border p-6 sm:px-8">
           {step > 1 ? (
             <button
               type="button"
               onClick={handleBack}
               disabled={loading}
-              className="inline-flex items-center px-5 py-2 border border-[#262626] text-[#c4c7c8] hover:border-white hover:text-white transition-colors text-xs"
+              className="inline-flex items-center px-5 py-2.5 border-2 border-border text-foreground hover:border-primary transition-colors text-xs"
               style={{ fontFamily: "'JetBrains Mono', monospace", letterSpacing: "0.04em" }}
             >
               <span className="material-symbols-outlined text-[16px] mr-1">arrow_back</span>
@@ -429,7 +429,7 @@ export default function AssessmentForm({ onSuccess }: AssessmentFormProps) {
             <button
               type="button"
               onClick={handleNext}
-              className="inline-flex items-center px-5 py-2 bg-white text-[#0A0A0A] font-bold hover:bg-[#e2e2e2] transition-colors text-xs"
+              className="inline-flex items-center px-5 py-2.5 bg-primary text-primary-foreground font-bold hover:bg-primary/90 transition-colors text-xs border-2 border-border"
               style={{ fontFamily: "'JetBrains Mono', monospace", letterSpacing: "0.04em" }}
             >
               Next
@@ -440,7 +440,7 @@ export default function AssessmentForm({ onSuccess }: AssessmentFormProps) {
               type="button"
               onClick={handleSubmit(onSubmit)}
               disabled={loading}
-              className="inline-flex items-center px-6 py-2.5 bg-white text-[#0A0A0A] font-bold hover:bg-[#e2e2e2] transition-colors text-xs disabled:opacity-50"
+              className="inline-flex items-center px-6 py-2.5 bg-primary text-primary-foreground font-bold hover:bg-primary/90 transition-colors text-xs disabled:opacity-50 border-2 border-border"
               style={{ fontFamily: "'JetBrains Mono', monospace", letterSpacing: "0.04em" }}
             >
               {loading ? (

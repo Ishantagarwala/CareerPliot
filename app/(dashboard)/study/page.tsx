@@ -22,21 +22,53 @@ const trackList: Track[] = [
     title: "Lo-Fi Structuralism Vol. 1",
     artist: "Focus Ambient",
     url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3",
-    coverUrl: "https://lh3.googleusercontent.com/aida-public/AB6AXuCFZkTQcbRxChRbnPrST56m2ZH8qPalUYpqlWFli7FFhb-Dwlk8nQmvRaF2stcr_hPyWR-ewYOJhZwW2akHgSXw1tDgSFmdFLe1QHZXemFjhExoZbb1XsvLUapPtMtz8aLC1spm2M1pbT6as_X19XcyA9NwaNBVyLGQFgsTcbrL2rjSP5Bo1rHx59_Mza0MLyECbIuc-oe3e3ghTxGbOqlzuoZRdXNccCHlILRxvLiUHBBS_nGCWzV5njmF6rYJ-I0p7BsAMQd5G2Mt"
+    coverUrl: "/logo.png",
   },
   {
     title: "Brutalist Beat Loop",
     artist: "Minimalist Soundlabs",
     url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3",
-    coverUrl: "https://lh3.googleusercontent.com/aida-public/AB6AXuAQ5MIWTViNFT0K7f4QsKJpByBCfzU_t9CGACcwjjfDgXB4dN7Uzx9xi-84KawL2gfmZ_oTb8BmDH-F5XvDfxiyySOkMhOuEbJlJAgcv-xYiU1tCGZOndEQhGbYWCWr_6IjO8uMLjamqbWf52K0MS6-VVJ4yhpvLzur8focF0ngqO2DQA7LzRSrvz_069jE03Z97vJnY1-PX4SPoau6j2cBCjyW3yHgLjDOgccgulYAMxXx3mJMV3JKk98Oo0HOyw1K6YFqv9KxdqTa"
+    coverUrl: "/logo.png",
   },
   {
     title: "Cozy Concrete Room",
     artist: "Study Ambient",
     url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3",
-    coverUrl: "https://lh3.googleusercontent.com/aida-public/AB6AXuCf0wob8XHFLM1Mmu3Td3le_qZ-QK_buDwasDiX1brob_4b8mA1TTEZT_GwV_E8gq42qaxyMqE4GaJD2IoTsb4191CGiaH5Pa3HlPd6qTqISGiAOsW6uLvVwUUx2teMvdE7m5IklypbZmKu4EiMylA9EMKIpqDD2eDY_pQBohU_ocUNSpoprt9VA7I5Anro7Y4HiZEA471FCPdBQd02GxtX5YfQIcC4nAKB8vlYEoK7K3Q36bSSd29IwWt2v1JBDtWTamX1ZiGwdPTc"
-  }
+    coverUrl: "/logo.png",
+  },
 ];
+
+type ChartPoint = { label: string; value: number };
+
+const emptyWeek = (): ChartPoint[] => {
+  const out: ChartPoint[] = [];
+  const today = new Date();
+  for (let i = 6; i >= 0; i--) {
+    const d = new Date(today);
+    d.setDate(d.getDate() - i);
+    out.push({
+      label: d.toLocaleDateString("en-US", { weekday: "short" }),
+      value: 0,
+    });
+  }
+  return out;
+};
+
+const emptyMonth = (): ChartPoint[] =>
+  ["Wk 1", "Wk 2", "Wk 3", "Wk 4"].map((label) => ({ label, value: 0 }));
+
+const emptyYear = (): ChartPoint[] => {
+  const out: ChartPoint[] = [];
+  const now = new Date();
+  for (let i = 11; i >= 0; i--) {
+    const m = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    out.push({
+      label: m.toLocaleDateString("en-US", { month: "short" }),
+      value: 0,
+    });
+  }
+  return out;
+};
 
 export default function StudyPage() {
   // To-Do state
@@ -49,6 +81,8 @@ export default function StudyPage() {
   const [secondsLeft, setSecondsLeft] = useState(25 * 60);
   const [timerRunning, setTimerRunning] = useState(false);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
+  const focusRunStartedAt = useRef<number | null>(null);
+  const loggedCompleteRef = useRef(false);
 
   // Lo-Fi Audio player state
   const [currentTrackIdx, setCurrentTrackIdx] = useState(0);
@@ -57,9 +91,20 @@ export default function StudyPage() {
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
   // Focus progress timeframe state
-  const [timeframe, setTimeframe] = useState<"week" | "month" | "year">("year");
+  const [timeframe, setTimeframe] = useState<"week" | "month" | "year">("week");
+  const [chartData, setChartData] = useState<{
+    week: ChartPoint[];
+    month: ChartPoint[];
+    year: ChartPoint[];
+  }>({
+    week: emptyWeek(),
+    month: emptyMonth(),
+    year: emptyYear(),
+  });
+  const [sessionsCompleted, setSessionsCompleted] = useState(0);
+  const [metricsLoading, setMetricsLoading] = useState(true);
 
-  // Load Todos on Mount
+  // Load Todos + focus metrics on Mount
   useEffect(() => {
     async function loadTodos() {
       try {
@@ -67,14 +112,48 @@ export default function StudyPage() {
         if (!res.ok) throw new Error();
         const data = await res.json();
         setTodos(data);
-      } catch (err) {
+      } catch {
         toast.error("Failed to load your daily to-do items");
       } finally {
         setTodosLoading(false);
       }
     }
     loadTodos();
+    loadFocusMetrics();
   }, []);
+
+  const loadFocusMetrics = async () => {
+    try {
+      const res = await fetch("/api/study/focus");
+      if (!res.ok) throw new Error();
+      const data = await res.json();
+      setChartData({
+        week: data.week?.length ? data.week : emptyWeek(),
+        month: data.month?.length ? data.month : emptyMonth(),
+        year: data.year?.length ? data.year : emptyYear(),
+      });
+      setSessionsCompleted(data.sessionsCompleted || 0);
+    } catch {
+      // Keep empty charts if API unavailable
+    } finally {
+      setMetricsLoading(false);
+    }
+  };
+
+  const logFocusMinutes = async (minutes: number, mode: typeof timerMode = "focus") => {
+    if (mode !== "focus" || minutes < 0.25) return;
+    try {
+      const res = await fetch("/api/study/focus", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ minutes, mode }),
+      });
+      if (!res.ok) throw new Error();
+      await loadFocusMetrics();
+    } catch {
+      toast.error("Could not save focus session");
+    }
+  };
 
   // Timer intervals
   const getInitialSeconds = (mode: typeof timerMode) => {
@@ -83,12 +162,44 @@ export default function StudyPage() {
     return 15 * 60;
   };
 
+  const flushPartialFocus = async () => {
+    if (timerMode !== "focus" || !focusRunStartedAt.current) return;
+    const elapsedSec = Math.floor((Date.now() - focusRunStartedAt.current) / 1000);
+    focusRunStartedAt.current = null;
+    if (elapsedSec >= 30) {
+      await logFocusMinutes(elapsedSec / 60, "focus");
+    }
+  };
+
   // Switch modes
-  const handleSwitchMode = (mode: typeof timerMode) => {
+  const handleSwitchMode = async (mode: typeof timerMode) => {
+    if (timerRunning && timerMode === "focus") {
+      await flushPartialFocus();
+    }
     setTimerRunning(false);
     if (timerRef.current) clearInterval(timerRef.current);
+    focusRunStartedAt.current = null;
+    loggedCompleteRef.current = false;
     setTimerMode(mode);
     setSecondsLeft(getInitialSeconds(mode));
+  };
+
+  const handleToggleTimer = async () => {
+    if (timerRunning) {
+      // Pausing
+      setTimerRunning(false);
+      if (timerMode === "focus") {
+        await flushPartialFocus();
+      }
+      return;
+    }
+
+    // Starting
+    if (timerMode === "focus") {
+      focusRunStartedAt.current = Date.now();
+      loggedCompleteRef.current = false;
+    }
+    setTimerRunning(true);
   };
 
   // Pomodoro TICK logic
@@ -99,10 +210,23 @@ export default function StudyPage() {
           if (prev <= 1) {
             setTimerRunning(false);
             if (timerRef.current) clearInterval(timerRef.current);
-            // Play alert sound or trigger toast
+
+            if (timerMode === "focus" && !loggedCompleteRef.current) {
+              loggedCompleteRef.current = true;
+              const planned = getInitialSeconds("focus");
+              const started = focusRunStartedAt.current;
+              focusRunStartedAt.current = null;
+              const elapsed = started
+                ? Math.max(planned, Math.floor((Date.now() - started) / 1000))
+                : planned;
+              void logFocusMinutes(elapsed / 60, "focus");
+            } else {
+              focusRunStartedAt.current = null;
+            }
+
             toast.success(
-              timerMode === "focus" 
-                ? "Focus interval complete! Take a break." 
+              timerMode === "focus"
+                ? "Focus interval complete! Take a break."
                 : "Break complete! Time to focus."
             );
             return 0;
@@ -130,7 +254,14 @@ export default function StudyPage() {
         audioRef.current.pause();
       }
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- volume applied separately
   }, [currentTrackIdx]);
+
+  useEffect(() => {
+    if (audioRef.current) {
+      audioRef.current.volume = volume;
+    }
+  }, [volume]);
 
   // Play/Pause audio toggle
   const handleTogglePlay = () => {
@@ -242,41 +373,12 @@ export default function StudyPage() {
   // Completed todos count
   const completedCount = todos.filter((t) => t.completed).length;
 
-  // Progress chart datasets
-  const chartData = {
-    week: [
-      { label: "Mon", value: 3.5 },
-      { label: "Tue", value: 4.2 },
-      { label: "Wed", value: 2.8 },
-      { label: "Thu", value: 5.1 },
-      { label: "Fri", value: 4.5 },
-      { label: "Sat", value: 2.0 },
-      { label: "Sun", value: 1.5 }
-    ],
-    month: [
-      { label: "Wk 1", value: 15.2 },
-      { label: "Wk 2", value: 18.5 },
-      { label: "Wk 3", value: 22.0 },
-      { label: "Wk 4", value: 16.8 }
-    ],
-    year: [
-      { label: "Jan", value: 45 },
-      { label: "Feb", value: 52 },
-      { label: "Mar", value: 60 },
-      { label: "Apr", value: 40 },
-      { label: "May", value: 55 },
-      { label: "Jun", value: 65 },
-      { label: "Jul", value: 48 },
-      { label: "Aug", value: 50 },
-      { label: "Sep", value: 58 },
-      { label: "Oct", value: 62 },
-      { label: "Nov", value: 54 },
-      { label: "Dec", value: 68 }
-    ]
-  };
-
   const activeChart = chartData[timeframe];
-  const maxVal = Math.max(...activeChart.map((d) => d.value));
+  const maxVal = Math.max(...activeChart.map((d) => d.value), 0.1);
+  const totalHours = activeChart.reduce((acc, curr) => acc + curr.value, 0);
+  const avgHours = activeChart.length ? totalHours / activeChart.length : 0;
+  const completionRate =
+    todos.length > 0 ? Math.round((completedCount / todos.length) * 100) : sessionsCompleted > 0 ? 100 : 0;
 
   return (
     <div className="space-y-8 animate-fade-in-up">
@@ -314,19 +416,19 @@ export default function StudyPage() {
           {/* Pomodoro Tabs */}
           <div className="flex border-b border-border text-xs z-10 font-bold uppercase tracking-wider" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
             <button
-              onClick={() => handleSwitchMode("focus")}
+              onClick={() => void handleSwitchMode("focus")}
               className={`flex-1 py-3 text-center border-r border-border hover:bg-background transition-colors ${timerMode === "focus" ? "bg-background text-foreground" : "text-muted-foreground"}`}
             >
               Focus (25m)
             </button>
             <button
-              onClick={() => handleSwitchMode("shortBreak")}
+              onClick={() => void handleSwitchMode("shortBreak")}
               className={`flex-1 py-3 text-center border-r border-border hover:bg-background transition-colors ${timerMode === "shortBreak" ? "bg-background text-foreground" : "text-muted-foreground"}`}
             >
               Short Break (5m)
             </button>
             <button
-              onClick={() => handleSwitchMode("longBreak")}
+              onClick={() => void handleSwitchMode("longBreak")}
               className={`flex-1 py-3 text-center hover:bg-background transition-colors ${timerMode === "longBreak" ? "bg-background text-foreground" : "text-muted-foreground"}`}
             >
               Long Break (15m)
@@ -352,7 +454,7 @@ export default function StudyPage() {
             {/* Controls */}
             <div className="flex items-center gap-4 mt-10">
               <button
-                onClick={() => setTimerRunning(!timerRunning)}
+                onClick={() => void handleToggleTimer()}
                 className="bg-primary text-primary-foreground px-8 py-3 font-bold text-xs tracking-wider transition-opacity hover:opacity-90 flex items-center gap-2"
                 style={{ fontFamily: "'JetBrains Mono', monospace" }}
               >
@@ -369,7 +471,7 @@ export default function StudyPage() {
                 )}
               </button>
               <button
-                onClick={() => handleSwitchMode(timerMode)}
+                onClick={() => void handleSwitchMode(timerMode)}
                 className="text-muted-foreground hover:text-foreground px-4 py-3 text-xs font-semibold tracking-wider transition-colors flex items-center gap-2 border border-border bg-background"
                 style={{ fontFamily: "'JetBrains Mono', monospace" }}
               >
@@ -584,9 +686,11 @@ export default function StudyPage() {
 
                     {/* Animated Bar */}
                     <div
-                      className="w-full max-w-[28px] bg-primary group-hover:opacity-85 transition-all duration-700 ease-out origin-bottom"
-                      style={{ height: `${percentage}%` }}
-                    />
+                  className={`w-full max-w-[28px] bg-primary group-hover:opacity-85 transition-all duration-700 ease-out origin-bottom ${
+                    d.value <= 0 ? "min-h-0 opacity-20" : ""
+                  }`}
+                  style={{ height: `${Math.max(percentage, d.value > 0 ? 4 : 0)}%` }}
+                />
                     
                     {/* Bottom labels */}
                     <div
@@ -606,20 +710,34 @@ export default function StudyPage() {
               <div>
                 <span className="text-[10px] text-muted-foreground uppercase tracking-widest block" style={{ fontFamily: "'JetBrains Mono', monospace" }}>Accumulated Focus Time</span>
                 <span className="text-xl font-bold text-foreground mt-1 block">
-                  {activeChart.reduce((acc, curr) => acc + curr.value, 0).toFixed(1)} Hours
+                  {metricsLoading ? "…" : `${totalHours.toFixed(1)} Hours`}
                 </span>
               </div>
               <div>
                 <span className="text-[10px] text-muted-foreground uppercase tracking-widest block" style={{ fontFamily: "'JetBrains Mono', monospace" }}>Avg. Daily Focus</span>
                 <span className="text-xl font-bold text-foreground mt-1 block">
-                  {(activeChart.reduce((acc, curr) => acc + curr.value, 0) / activeChart.length).toFixed(1)} Hours
+                  {metricsLoading ? "…" : `${avgHours.toFixed(1)} Hours`}
                 </span>
               </div>
               <div>
-                <span className="text-[10px] text-muted-foreground uppercase tracking-widest block" style={{ fontFamily: "'JetBrains Mono', monospace" }}>Productivity Ratio</span>
-                <span className="text-xl font-bold text-foreground mt-1 block">94% Efficiency</span>
+                <span className="text-[10px] text-muted-foreground uppercase tracking-widest block" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
+                  {todos.length > 0 ? "Directive Completion" : "Focus Sessions"}
+                </span>
+                <span className="text-xl font-bold text-foreground mt-1 block">
+                  {metricsLoading
+                    ? "…"
+                    : todos.length > 0
+                      ? `${completionRate}%`
+                      : `${sessionsCompleted} logged`}
+                </span>
               </div>
             </div>
+
+            {!metricsLoading && totalHours === 0 && (
+              <p className="text-xs text-muted-foreground text-center pt-2">
+                No focus time logged yet. Start a Focus session and it will show up here.
+              </p>
+            )}
 
           </div>
 
