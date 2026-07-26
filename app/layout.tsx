@@ -4,6 +4,7 @@ import "./globals.css";
 import { SessionProvider } from "next-auth/react";
 import { Toaster } from "@/components/ui/sonner";
 import { ThemeProvider } from "@/components/layout/ThemeProvider";
+import { AccentColorProvider } from "@/components/layout/AccentColor";
 
 const anybody = Anybody({
   variable: "--font-anybody",
@@ -54,8 +55,10 @@ export default function RootLayout({
             enableSystem={false}
             storageKey="cp-theme"
           >
-            {children}
-            <Toaster position="top-right" richColors />
+            <AccentColorProvider>
+              {children}
+              <Toaster position="top-right" richColors />
+            </AccentColorProvider>
           </ThemeProvider>
         </SessionProvider>
       </body>

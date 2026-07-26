@@ -7,6 +7,7 @@ import { cn } from "@/lib/utils";
 import { useTheme } from "next-themes";
 import { useEffect, useState } from "react";
 import { Sun, Moon } from "lucide-react";
+import { AccentColorPicker } from "@/components/layout/AccentColor";
 
 const menuItems = [
   { name: "Dashboard", href: "/dashboard", icon: "dashboard" },
@@ -23,6 +24,23 @@ const menuItems = [
 ];
 
 const bottomItems = [{ name: "Profile", href: "/profile", icon: "person" }];
+
+const allNavHrefs = [...menuItems, ...bottomItems].map((i) => i.href);
+
+/** Prefer the longest matching nav href so /resume/ats doesn't also light up /resume. */
+function isNavActive(pathname: string, href: string) {
+  const matches =
+    pathname === href || pathname.startsWith(`${href}/`);
+  if (!matches) return false;
+  const longerMatch = allNavHrefs.some(
+    (other) =>
+      other !== href &&
+      other.length > href.length &&
+      (other === href || other.startsWith(`${href}/`)) &&
+      (pathname === other || pathname.startsWith(`${other}/`))
+  );
+  return !longerMatch;
+}
 
 interface AppShellProps {
   children: React.ReactNode;
@@ -83,6 +101,7 @@ export default function AppShell({ children }: AppShellProps) {
         </div>
 
         <div className="flex items-center gap-2">
+          {mounted && <AccentColorPicker />}
           {mounted && (
             <button
               type="button"
@@ -158,8 +177,7 @@ export default function AppShell({ children }: AppShellProps) {
 
         <nav className="flex-1 flex flex-col gap-0.5 px-2 overflow-y-auto">
           {menuItems.map((item) => {
-            const isActive =
-              pathname === item.href || pathname.startsWith(item.href + "/");
+            const isActive = isNavActive(pathname, item.href);
             return (
               <Link
                 key={item.name}
@@ -198,8 +216,7 @@ export default function AppShell({ children }: AppShellProps) {
 
         <div className="mt-auto px-2 flex flex-col gap-0.5 pt-4 border-t-2 border-black mx-3">
           {bottomItems.map((item) => {
-            const isActive =
-              pathname === item.href || pathname.startsWith(item.href + "/");
+            const isActive = isNavActive(pathname, item.href);
             return (
               <Link
                 key={item.name}
