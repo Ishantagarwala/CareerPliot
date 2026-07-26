@@ -10,6 +10,7 @@ import {
   MessageSquare,
   ArrowRight,
 } from "lucide-react";
+import PageLoader from "@/components/layout/PageLoader";
 import StatsCard from "@/components/dashboard/StatsCard";
 import ProgressChart from "@/components/dashboard/ProgressChart";
 import StreakTracker from "@/components/dashboard/StreakTracker";
@@ -81,24 +82,7 @@ export default function DashboardHome() {
   }, []);
 
   if (loading) {
-    return (
-      <div className="space-y-8 animate-fade-in-up">
-        {/* Skeleton */}
-        <div className="border-b border-[#262626] pb-6">
-          <div className="h-8 w-48 bg-[#1A1A1A] mb-2" />
-          <div className="h-4 w-80 bg-[#1A1A1A]" />
-        </div>
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div className="lg:col-span-2 bg-[#1A1A1A] border border-[#262626] h-48" />
-          <div className="bg-[#1A1A1A] border border-[#262626] h-48" />
-        </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          {[1, 2, 3, 4].map((i) => (
-            <div key={i} className="bg-[#1A1A1A] border border-[#262626] h-28" />
-          ))}
-        </div>
-      </div>
-    );
+    return <PageLoader label="Loading dashboard" />;
   }
 
   // Circular gauge calculations

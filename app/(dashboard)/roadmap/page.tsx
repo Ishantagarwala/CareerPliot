@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import PageLoader from "@/components/layout/PageLoader";
 import RoadmapViewer from "@/components/roadmap/RoadmapViewer";
 import { toast } from "sonner";
 
@@ -79,23 +80,7 @@ export default function RoadmapPage() {
   };
 
   if (loading) {
-    return (
-      <div className="space-y-8 animate-fade-in-up">
-        <div className="border-b border-[#262626] pb-6">
-          <div className="h-8 w-48 bg-[#1A1A1A] mb-2" />
-          <div className="h-4 w-80 bg-[#1A1A1A]" />
-        </div>
-
-        {/* Loading spinner */}
-        <div className="flex flex-col items-center justify-center py-16 space-y-4">
-          <div className="h-10 w-10 border-2 border-[#262626] border-t-white animate-spin" style={{ borderRadius: 0 }} />
-          <div className="text-center space-y-1">
-            <p className="text-sm font-bold text-white">Loading your learning roadmap...</p>
-            <p className="text-xs text-[#8e9192]">This may take a moment if your roadmap is being generated for the first time.</p>
-          </div>
-        </div>
-      </div>
-    );
+    return <PageLoader label="Building your roadmap" />;
   }
 
   return (

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import PageLoader from "@/components/layout/PageLoader";
 import AssessmentForm from "@/components/career/AssessmentForm";
 import RecommendationCard from "@/components/career/RecommendationCard";
 import { toast } from "sonner";
@@ -68,28 +69,7 @@ export default function CareerPage() {
   };
 
   if (loading) {
-    return (
-      <div className="space-y-8 animate-fade-in-up">
-        <div className="border-b border-[#262626] pb-6">
-          <div className="h-8 w-48 bg-[#1A1A1A] mb-2" />
-          <div className="h-4 w-96 bg-[#1A1A1A]" />
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {[1, 2, 3].map((i) => (
-            <div key={i} className="bg-[#1A1A1A] border border-[#262626] p-6 space-y-4 animate-fade-in-up" style={{ animationDelay: `${i * 100}ms` }}>
-              <div className="flex justify-between items-center">
-                <div className="h-6 w-32 bg-[#262626]" />
-                <div className="h-6 w-16 bg-[#262626]" />
-              </div>
-              <div className="h-20 w-full bg-[#262626]" />
-              <div className="border-t border-[#262626] pt-4">
-                <div className="h-9 w-full bg-[#262626]" />
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-    );
+    return <PageLoader label="Loading career matches" />;
   }
 
   const hasRecommendations = recommendations.length > 0;

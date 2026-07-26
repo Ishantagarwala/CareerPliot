@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
+import PageLoader from "@/components/layout/PageLoader";
 import { toast } from "sonner";
 import { Plus, Trash2, Edit2, CheckCircle2 } from "lucide-react";
 
@@ -169,21 +170,7 @@ export default function ProfilePage() {
   };
 
   if (loading) {
-    return (
-      <div className="space-y-8 animate-fade-in-up">
-        <div className="border-b border-[#262626] pb-6">
-          <div className="h-8 w-48 bg-[#1A1A1A] mb-2 animate-pulse" />
-          <div className="h-4 w-80 bg-[#1A1A1A] animate-pulse" />
-        </div>
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div className="lg:col-span-1 bg-[#1A1A1A] border border-[#262626] h-96 animate-pulse" />
-          <div className="lg:col-span-2 space-y-6">
-            <div className="bg-[#1A1A1A] border border-[#262626] h-48 animate-pulse" />
-            <div className="bg-[#1A1A1A] border border-[#262626] h-48 animate-pulse" />
-          </div>
-        </div>
-      </div>
-    );
+    return <PageLoader label="Loading profile" />;
   }
 
   return (

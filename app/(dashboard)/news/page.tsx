@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import PageLoader from "@/components/layout/PageLoader";
 import { toast } from "sonner";
 import {
   Search,
@@ -181,27 +182,7 @@ export default function NewsPage() {
   ).length;
 
   if (loading) {
-    return (
-      <div className="space-y-8 animate-fade-in-up">
-        <div className="border-b border-border pb-6">
-          <div className="h-8 w-48 bg-card mb-2 animate-pulse" />
-          <div className="h-4 w-80 bg-card animate-pulse" />
-        </div>
-        {/* Stats skeleton */}
-        <div className="grid grid-cols-3 gap-4">
-          {[1, 2, 3].map((i) => (
-            <div
-              key={i}
-              className="h-16 bg-card border border-border animate-pulse"
-            />
-          ))}
-        </div>
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-          <div className="lg:col-span-8 bg-card border border-border h-[500px] animate-pulse" />
-          <div className="lg:col-span-4 bg-card border border-border h-[500px] animate-pulse" />
-        </div>
-      </div>
-    );
+    return <PageLoader label="Loading news" />;
   }
 
   return (

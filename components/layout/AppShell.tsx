@@ -240,7 +240,7 @@ export default function AppShell({ children }: AppShellProps) {
 
       {/* Main content — full width */}
       <main className="pt-14 md:pt-16 min-h-screen overflow-y-auto">
-        <div className="w-full max-w-[1400px] mx-auto px-4 sm:px-6 md:px-10 py-6 md:py-10">
+        <div className="w-full max-w-[1800px] mx-auto px-4 sm:px-6 lg:px-8 xl:px-10 py-5 md:py-7">
           {children}
         </div>
       </main>
