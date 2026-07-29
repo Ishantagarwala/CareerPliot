@@ -5,6 +5,7 @@ import ProjectIdea from "@/models/ProjectIdea";
 import Hackathon from "@/models/Hackathon";
 import UserProfile from "@/models/UserProfile";
 import { generateStructuredJson } from "@/lib/llm";
+import { formatHackathonPrize } from "@/lib/formatHackathonPrize";
 
 export const dynamic = "force-dynamic";
 
@@ -57,9 +58,11 @@ export async function GET(req: Request) {
                   endDate: ends.toISOString(),
                   mode: item.is_online ? "online" : "offline",
                   location: item.location || item.city || "Online",
-                  prizes: Array.isArray(item.prizes) && item.prizes.length > 0
-                    ? item.prizes.map((p: any) => `${p.name}: ${p.desc}`).join(" | ").substring(0, 150)
-                    : "Refer to platform for prize details",
+                  prizes: formatHackathonPrize(
+                    Array.isArray(item.prizes) && item.prizes.length > 0
+                      ? item.prizes.map((p: any) => `${p.name}: ${p.desc}`).join(" | ").substring(0, 150)
+                      : "Refer to platform for prize details"
+                  ),
                   themes: Array.isArray(item.themes) ? item.themes.map((t: any) => t.name) : ["Technology"],
                   status,
                 };
@@ -116,11 +119,12 @@ export async function GET(req: Request) {
       const devfolioHackathons = results[0].status === "fulfilled" ? results[0].value : [];
       const hackerEarthHackathons = results[1].status === "fulfilled" ? results[1].value : [];
 
-      return NextResponse.json([
-        ...localHackathons,
-        ...devfolioHackathons,
-        ...hackerEarthHackathons
-      ]);
+      return NextResponse.json(
+        [...localHackathons, ...devfolioHackathons, ...hackerEarthHackathons].map((hack) => ({
+          ...hack,
+          prizes: formatHackathonPrize(String(hack.prizes || "")),
+        }))
+      );
     }
 
     // Default to listing ideas

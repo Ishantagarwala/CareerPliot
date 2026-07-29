@@ -477,7 +477,7 @@ async function handleSeed(req: Request) {
         endDate: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000),
         mode: "hybrid",
         location: "Bangalore, India",
-        prizes: "$50,000 USD",
+        prizes: "₹41,50,000",
         themes: ["Blockchain", "Web3", "DeFi"],
         status: "upcoming"
       },
@@ -490,7 +490,7 @@ async function handleSeed(req: Request) {
         startDate: new Date(Date.now() + 20 * 24 * 60 * 60 * 1000),
         endDate: new Date(Date.now() + 45 * 24 * 60 * 60 * 1000),
         mode: "online",
-        prizes: "$1,000,000 USD Grand Prize + Custom Trophy",
+        prizes: "₹8,30,00,000 Grand Prize + Custom Trophy",
         themes: ["AI/ML", "Creative Apps", "Open Source"],
         status: "upcoming"
       },
@@ -504,7 +504,7 @@ async function handleSeed(req: Request) {
         endDate: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000),
         mode: "hybrid",
         location: "Redmond, WA",
-        prizes: "$100,000 USD + Mentorship from Satya Nadella",
+        prizes: "₹83,00,000 + Mentorship from Satya Nadella",
         themes: ["Social Good", "Technology", "Cloud computing"],
         status: "upcoming"
       },
@@ -518,7 +518,7 @@ async function handleSeed(req: Request) {
         endDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
         mode: "hybrid",
         location: "San Francisco, CA",
-        prizes: "$150,000 API Credits + GPU access",
+        prizes: "₹1,24,50,000 API Credits + GPU access",
         themes: ["Generative AI", "Agents", "DevTools"],
         status: "upcoming"
       },
@@ -532,7 +532,7 @@ async function handleSeed(req: Request) {
         endDate: new Date(Date.now() + 27 * 24 * 60 * 60 * 1000),
         mode: "offline",
         location: "Cambridge, MA",
-        prizes: "$20,000 USD",
+        prizes: "₹16,60,000",
         themes: ["General Hacks", "Hardware", "BioTech"],
         status: "upcoming"
       },
@@ -546,7 +546,7 @@ async function handleSeed(req: Request) {
         endDate: new Date(Date.now() + 20 * 24 * 60 * 60 * 1000),
         mode: "offline",
         location: "Philadelphia, PA",
-        prizes: "$15,000 USD",
+        prizes: "₹12,45,000",
         themes: ["HealthTech", "FinTech", "EdTech"],
         status: "upcoming"
       },
@@ -560,7 +560,7 @@ async function handleSeed(req: Request) {
         endDate: new Date(Date.now() + 42 * 24 * 60 * 60 * 1000),
         mode: "offline",
         location: "San Francisco, CA",
-        prizes: "$25,000 USD",
+        prizes: "₹20,75,000",
         themes: ["AI", "Cybersecurity", "Developer Tools"],
         status: "upcoming"
       },
@@ -574,7 +574,7 @@ async function handleSeed(req: Request) {
         endDate: new Date(Date.now() + 17 * 24 * 60 * 60 * 1000),
         mode: "hybrid",
         location: "London, UK",
-        prizes: "$325,000 USD",
+        prizes: "₹2,69,75,000",
         themes: ["Web3", "Solidity", "Cryptography"],
         status: "upcoming"
       },

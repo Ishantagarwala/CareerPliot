@@ -15,6 +15,7 @@ import {
   Layers,
   Link as LinkIcon
 } from "lucide-react";
+import { formatHackathonPrize } from "@/lib/formatHackathonPrize";
 
 interface ProjectIdea {
   _id: string;
@@ -380,7 +381,7 @@ export default function ProjectsPage() {
                         {hack.mode === "online" ? "Online" : `${hack.location || "Offline"}`}
                       </span>
                       <span className="flex items-center gap-1 font-bold text-white">
-                        Prizes: {hack.prizes}
+                        Prizes: {formatHackathonPrize(hack.prizes)}
                       </span>
                     </div>
 
