@@ -62,7 +62,7 @@ export async function POST(req: Request, { params }: RouteContext) {
   } catch (error: any) {
     console.error("Resume HackerRank analysis error:", error);
     return NextResponse.json(
-      { message: "Internal Server Error", error: error.message },
+      { message: "Internal Server Error" },
       { status: 500 }
     );
   }

@@ -4,16 +4,10 @@ import path from "path";
 import { auth } from "@/lib/auth";
 import dbConnect from "@/lib/db";
 import Document from "@/models/Document";
+import { resolveLegacyUploadPath, resolveUploadPath } from "@/lib/security";
 
 interface RouteContext {
   params: Promise<{ id: string }>;
-}
-
-function resolveLocalUploadPath(fileUrl: string): string | null {
-  if (!fileUrl?.startsWith("/uploads/")) return null;
-  const filename = path.basename(fileUrl);
-  if (!filename || filename.includes("..")) return null;
-  return path.join(process.cwd(), "public", "uploads", filename);
 }
 
 export async function DELETE(_req: Request, { params }: RouteContext) {
@@ -36,21 +30,26 @@ export async function DELETE(_req: Request, { params }: RouteContext) {
     }
 
     // Best-effort local file cleanup (Vercel / ephemeral FS will ignore this).
-    const localPath = resolveLocalUploadPath(doc.fileUrl);
-    if (localPath && !process.env.VERCEL) {
-      try {
-        await unlink(localPath);
-      } catch {
-        // File may already be gone — DB delete still succeeded.
+    if (!process.env.VERCEL) {
+      const candidates = [
+        resolveUploadPath(doc.fileUrl),
+        resolveLegacyUploadPath(doc.fileUrl),
+        resolveLegacyUploadPath(`/uploads/${path.basename(String(doc.fileUrl || ""))}`),
+      ].filter(Boolean) as string[];
+
+      for (const localPath of candidates) {
+        try {
+          await unlink(localPath);
+          break;
+        } catch {
+          // File may already be gone — DB delete still succeeded.
+        }
       }
     }
 
     return NextResponse.json({ message: "Document deleted", id });
-  } catch (error: any) {
+  } catch (error) {
     console.error("AI Hub document DELETE error:", error);
-    return NextResponse.json(
-      { message: "Internal Server Error", error: error.message },
-      { status: 500 }
-    );
+    return NextResponse.json({ message: "Internal Server Error" }, { status: 500 });
   }
 }

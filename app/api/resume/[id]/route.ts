@@ -26,7 +26,7 @@ export async function GET(req: Request, { params }: RouteContext) {
   } catch (error: any) {
     console.error("Resume detail GET error:", error);
     return NextResponse.json(
-      { message: "Internal Server Error", error: error.message },
+      { message: "Internal Server Error" },
       { status: 500 }
     );
   }
@@ -63,7 +63,7 @@ export async function PUT(req: Request, { params }: RouteContext) {
   } catch (error: any) {
     console.error("Resume detail PUT error:", error);
     return NextResponse.json(
-      { message: "Internal Server Error", error: error.message },
+      { message: "Internal Server Error" },
       { status: 500 }
     );
   }
@@ -88,7 +88,7 @@ export async function DELETE(req: Request, { params }: RouteContext) {
   } catch (error: any) {
     console.error("Resume detail DELETE error:", error);
     return NextResponse.json(
-      { message: "Internal Server Error", error: error.message },
+      { message: "Internal Server Error" },
       { status: 500 }
     );
   }

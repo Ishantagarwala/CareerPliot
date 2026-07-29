@@ -23,7 +23,7 @@ export async function GET(req: Request, props: { params: Promise<{ id: string }>
   } catch (error: any) {
     console.error("Thread GET API error:", error);
     return NextResponse.json(
-      { message: "Internal Server Error", error: error.message },
+      { message: "Internal Server Error" },
       { status: 500 }
     );
   }
@@ -55,7 +55,7 @@ export async function PUT(req: Request, props: { params: Promise<{ id: string }>
   } catch (error: any) {
     console.error("Thread PUT API error:", error);
     return NextResponse.json(
-      { message: "Internal Server Error", error: error.message },
+      { message: "Internal Server Error" },
       { status: 500 }
     );
   }
@@ -79,7 +79,7 @@ export async function DELETE(req: Request, props: { params: Promise<{ id: string
   } catch (error: any) {
     console.error("Thread DELETE API error:", error);
     return NextResponse.json(
-      { message: "Internal Server Error", error: error.message },
+      { message: "Internal Server Error" },
       { status: 500 }
     );
   }

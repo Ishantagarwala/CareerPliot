@@ -7,7 +7,14 @@ import { generateStructuredJson } from "@/lib/llm";
 import { mkdir, writeFile } from "fs/promises";
 import path from "path";
 import { extractTextFromPdf } from "@/lib/pdf";
-import { MAX_UPLOAD_BYTES, sanitizeFilename, sniffFileType } from "@/lib/security";
+import {
+  MAX_UPLOAD_BYTES,
+  UPLOADS_DIR,
+  buildOwnedUploadFilename,
+  rateLimit,
+  sniffFileType,
+  toUploadFileUrl,
+} from "@/lib/security";
 
 export const dynamic = "force-dynamic";
 // PDF parsing + LLM summarization can exceed the default 10s function limit.
@@ -33,6 +40,10 @@ export async function POST(req: Request) {
     }
 
     const userId = session.user.id;
+    if (!rateLimit(`ai-upload:${userId}`, 30, 60 * 60 * 1000)) {
+      return NextResponse.json({ message: "Too many uploads. Try again later." }, { status: 429 });
+    }
+
     const formData = await req.formData();
     const file = formData.get("file") as File;
 
@@ -52,22 +63,20 @@ export async function POST(req: Request) {
 
     // Determine the true file type from magic bytes rather than trusting the
     // client-supplied file.type / extension (which can smuggle SVG/HTML and
-    // other stored-XSS payloads into the public uploads directory).
+    // other stored-XSS payloads into a public uploads directory).
     const sniffedType = sniffFileType(buffer);
     if (!sniffedType) {
       return NextResponse.json({ message: "Unsupported file type" }, { status: 415 });
     }
 
-    const uniqueFilename = `${Date.now()}-${sanitizeFilename(file.name)}`;
-    const fileUrl = `/uploads/${uniqueFilename}`;
+    const uniqueFilename = buildOwnedUploadFilename(userId, file.name);
+    const fileUrl = toUploadFileUrl(uniqueFilename);
 
-    // Write file locally if in dev mode
+    // Write file to private storage in local/dev
     if (!process.env.VERCEL && process.env.NODE_ENV !== "production") {
       try {
-        const uploadDir = path.join(process.cwd(), "public", "uploads");
-        await mkdir(uploadDir, { recursive: true });
-        const filePath = path.join(uploadDir, uniqueFilename);
-        await writeFile(filePath, buffer);
+        await mkdir(UPLOADS_DIR, { recursive: true });
+        await writeFile(path.join(UPLOADS_DIR, uniqueFilename), buffer);
       } catch (writeError) {
         console.error("Local file write error (non-fatal):", writeError);
       }
@@ -80,10 +89,10 @@ export async function POST(req: Request) {
       let pdfText = "";
       try {
         pdfText = await extractTextFromPdf(buffer, file.name);
-      } catch (parseError: any) {
+      } catch (parseError) {
         console.error("PDF Parsing Error:", parseError);
         return NextResponse.json(
-          { message: `Failed to parse PDF document: ${parseError.message || parseError}` },
+          { message: "Failed to parse PDF document." },
           { status: 422 }
         );
       }

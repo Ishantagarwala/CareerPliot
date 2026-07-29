@@ -114,7 +114,7 @@ Generate a personalized roadmap tailored for this student.`;
   } catch (error: any) {
     console.error("Roadmap GET route error:", error);
     return NextResponse.json(
-      { message: "Internal Server Error", error: error.message },
+      { message: "Internal Server Error" },
       { status: 500 }
     );
   }

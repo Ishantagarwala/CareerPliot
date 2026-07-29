@@ -16,9 +16,10 @@ import ProjectIdea from "@/models/ProjectIdea";
 import Hackathon from "@/models/Hackathon";
 import TeamPost from "@/models/TeamPost";
 import Application from "@/models/Application";
+import { rateLimit } from "@/lib/security";
 
 export async function GET(req: Request) {
-  const response = await handleSeed();
+  const response = await handleSeed(req);
   if (response.status === 200) {
     return NextResponse.redirect(new URL("/dashboard", req.url));
   }
@@ -26,21 +27,43 @@ export async function GET(req: Request) {
   if (response.status === 401) {
     return NextResponse.redirect(new URL("/login?demo=true", req.url));
   }
+  if (response.status === 403) {
+    return NextResponse.redirect(new URL("/dashboard", req.url));
+  }
   return response;
 }
 
-export async function POST() {
-  return handleSeed();
+export async function POST(req: Request) {
+  return handleSeed(req);
 }
 
-async function handleSeed() {
+function seedAllowedInEnvironment(req: Request): boolean {
+  // Non-production: allow for local/demo onboarding.
+  if (process.env.NODE_ENV !== "production") {
+    return true;
+  }
+  // Production: require an explicit SEED_SECRET header match.
+  const expected = process.env.SEED_SECRET;
+  if (!expected) return false;
+  return req.headers.get("x-seed-secret") === expected;
+}
+
+async function handleSeed(req: Request) {
   try {
+    if (!seedAllowedInEnvironment(req)) {
+      return NextResponse.json({ message: "Forbidden" }, { status: 403 });
+    }
+
     const session = await auth();
     if (!session || !session.user || !session.user.id) {
       return NextResponse.json({ message: "Unauthorized. Please log in first." }, { status: 401 });
     }
 
     const userId = session.user.id;
+    if (!rateLimit(`seed:${userId}`, 3, 60 * 60 * 1000)) {
+      return NextResponse.json({ message: "Too many seed requests. Try again later." }, { status: 429 });
+    }
+
     const userObjectId = new mongoose.Types.ObjectId(userId);
     await dbConnect();
 
@@ -51,7 +74,8 @@ async function handleSeed() {
       return NextResponse.json({ message: "Already seeded." }, { status: 200 });
     }
 
-    // 1. Clear existing seed data for this specific user
+    // 1. Clear existing seed data for this specific user only.
+    // Never wipe shared/catalog collections (jobs, hackathons, news, etc.).
     await UserProfile.deleteMany({ userId: userObjectId });
     await CareerRecommendation.deleteMany({ userId: userObjectId });
     await Roadmap.deleteMany({ userId: userObjectId });
@@ -59,14 +83,9 @@ async function handleSeed() {
     await ChatHistory.deleteMany({ userId: userObjectId });
     await UserProgress.deleteMany({ userId: userObjectId });
     await Todo.deleteMany({ userId: userObjectId });
-    await JobListing.deleteMany({});
-    await ProjectIdea.deleteMany({});
-    await Hackathon.deleteMany({});
-    await TeamPost.deleteMany({});
+    await ProjectIdea.deleteMany({ userId: userObjectId });
+    await TeamPost.deleteMany({ userId: userObjectId });
     await Application.deleteMany({ userId: userObjectId });
-    
-    // Clear and rebuild public Tech News
-    await News.deleteMany({});
 
     // 2. Create User Profile
     const profile = new UserProfile({
@@ -198,7 +217,7 @@ async function handleSeed() {
     const document = new Document({
       userId,
       filename: "Web_Dev_Syllabus.pdf",
-      fileUrl: "/uploads/Web_Dev_Syllabus.pdf",
+      fileUrl: "/api/uploads/demo-Web_Dev_Syllabus.pdf",
       summary: "### Course Overview\nThis syllabus outlines the foundational components of modern Full-Stack Web Development, focusing on React, Next.js, Node.js, and MongoDB database integration.\n\n### Key Learning Outcomes\n- Understand Client-Server architecture and RESTful APIs.\n- Learn state management and React hook lifecycles.\n- Integrate server-side rendering (SSR) and routing configurations.\n\n### Grading Policies\n- 40% Practical assignments and mini-projects.\n- 60% Final term project and evaluation.",
       questions: [
         {
@@ -273,14 +292,7 @@ async function handleSeed() {
     ];
     await Todo.insertMany(defaultTodos);
 
-    // 10. Seed high-signal Tech News (or let live fetch handle it)
-    // Drop the News collection cleanly to avoid unique index conflicts
-    try {
-      await News.collection.drop();
-    } catch {
-      // Collection might not exist yet — that's fine
-    }
-
+    // 10. Seed high-signal Tech News only when the catalog is empty
     const seededNewsFetchedAt = new Date(Date.now() - 10 * 60 * 1000); // 10 minutes ago to make cache immediately stale
     const techNewsData = [
       {
@@ -376,9 +388,13 @@ async function handleSeed() {
         publishedAt: new Date(Date.now() - 345600000)
       }
     ];
-    await News.insertMany(techNewsData);
+    let newsSeededCount = 0;
+    if ((await News.countDocuments()) === 0) {
+      await News.insertMany(techNewsData);
+      newsSeededCount = techNewsData.length;
+    }
 
-    // 11. Seed Job Listings
+    // 11. Seed Job Listings only when the catalog is empty
     const mockJobs = [
       {
         title: "Frontend Engineer Intern",
@@ -429,9 +445,13 @@ async function handleSeed() {
         deadline: new Date(Date.now() + 10 * 24 * 60 * 60 * 1000)
       }
     ];
-    await JobListing.insertMany(mockJobs);
+    let jobsSeededCount = 0;
+    if ((await JobListing.countDocuments()) === 0) {
+      await JobListing.insertMany(mockJobs);
+      jobsSeededCount = mockJobs.length;
+    }
 
-    // 12. Seed Hackathons
+    // 12. Seed Hackathons only when the catalog is empty
     const mockHackathons = [
       {
         title: "Smart India Hackathon 2026",
@@ -572,11 +592,23 @@ async function handleSeed() {
         status: "upcoming"
       }
     ];
-    const seededHackathons = await Hackathon.insertMany(mockHackathons);
+    let hackathonsSeededCount = 0;
+    let seededHackathons: Array<{ _id: mongoose.Types.ObjectId }> = [];
+    if ((await Hackathon.countDocuments()) === 0) {
+      seededHackathons = (await Hackathon.insertMany(mockHackathons)) as Array<{
+        _id: mongoose.Types.ObjectId;
+      }>;
+      hackathonsSeededCount = mockHackathons.length;
+    } else {
+      seededHackathons = (await Hackathon.find({}).limit(1).select("_id").lean()) as Array<{
+        _id: mongoose.Types.ObjectId;
+      }>;
+    }
 
-    // 13. Seed Project Ideas
+    // 13. Seed Project Ideas scoped to this user
     const mockProjectIdeas = [
       {
+        userId: userObjectId,
         title: "TaskPilot Kanban System",
         description: "A collaborative project planning app featuring a drag-and-drop Kanban interface, user workspaces, and status updates.",
         difficulty: "intermediate",
@@ -586,6 +618,7 @@ async function handleSeed() {
         features: ["Drag and drop task boards", "Multi-user collaboration", "Interactive milestones"]
       },
       {
+        userId: userObjectId,
         title: "AI-Powered PDF Flashcard Generator",
         description: "An educational application that parses syllabus/study PDFs, extracts core concepts, and leverages an LLM to generate interactive revision flashcards and quizzes.",
         difficulty: "advanced",
@@ -597,11 +630,11 @@ async function handleSeed() {
     ];
     await ProjectIdea.insertMany(mockProjectIdeas);
 
-    // 14. Seed Team Posts
+    // 14. Seed Team Posts for this user only
     const mockTeamPosts = [
       {
         userId,
-        hackathonId: seededHackathons[0]._id,
+        hackathonId: seededHackathons[0]?._id,
         title: "Looking for a React developer for SIH 2026",
         description: "We are building an offline healthcare monitoring dashboard. Need someone skilled in Tailwind and React chart libraries.",
         lookingFor: ["React", "Tailwind CSS", "Charts"],
@@ -625,17 +658,17 @@ async function handleSeed() {
         chatMessagesCount: 4,
         habitStreakDays: 5,
         todosSeededCount: defaultTodos.length,
-        newsSeededCount: techNewsData.length,
-        jobsSeededCount: mockJobs.length,
-        hackathonsSeededCount: mockHackathons.length,
+        newsSeededCount,
+        jobsSeededCount,
+        hackathonsSeededCount,
         projectIdeasSeededCount: mockProjectIdeas.length,
         teamPostsSeededCount: mockTeamPosts.length
       },
     });
-  } catch (error: any) {
+  } catch (error) {
     console.error("Database seed error:", error);
     return NextResponse.json(
-      { message: "Seeding failed.", error: error.message },
+      { message: "Seeding failed." },
       { status: 500 }
     );
   }

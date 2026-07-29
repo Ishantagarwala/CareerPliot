@@ -20,7 +20,7 @@ export async function GET() {
   } catch (error: any) {
     console.error("Todo GET route error:", error);
     return NextResponse.json(
-      { message: "Internal Server Error", error: error.message },
+      { message: "Internal Server Error" },
       { status: 500 }
     );
   }
@@ -53,7 +53,7 @@ export async function POST(req: Request) {
   } catch (error: any) {
     console.error("Todo POST route error:", error);
     return NextResponse.json(
-      { message: "Internal Server Error", error: error.message },
+      { message: "Internal Server Error" },
       { status: 500 }
     );
   }
@@ -93,7 +93,7 @@ export async function PUT(req: Request) {
   } catch (error: any) {
     console.error("Todo PUT route error:", error);
     return NextResponse.json(
-      { message: "Internal Server Error", error: error.message },
+      { message: "Internal Server Error" },
       { status: 500 }
     );
   }
@@ -126,7 +126,7 @@ export async function DELETE(req: Request) {
   } catch (error: any) {
     console.error("Todo DELETE route error:", error);
     return NextResponse.json(
-      { message: "Internal Server Error", error: error.message },
+      { message: "Internal Server Error" },
       { status: 500 }
     );
   }

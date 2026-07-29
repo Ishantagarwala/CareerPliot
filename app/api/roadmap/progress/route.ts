@@ -85,7 +85,7 @@ export async function PUT(req: Request) {
   } catch (error: any) {
     console.error("Roadmap progress update error:", error);
     return NextResponse.json(
-      { message: "Internal Server Error", error: error.message },
+      { message: "Internal Server Error" },
       { status: 500 }
     );
   }

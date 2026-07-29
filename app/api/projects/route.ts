@@ -136,7 +136,7 @@ export async function GET(req: Request) {
   } catch (error: any) {
     console.error("Projects GET API error:", error);
     return NextResponse.json(
-      { message: "Internal Server Error", error: error.message },
+      { message: "Internal Server Error" },
       { status: 500 }
     );
   }
@@ -193,7 +193,7 @@ Return your response ONLY as a JSON array matching this schema:
   } catch (error: any) {
     console.error("Projects POST API error:", error);
     return NextResponse.json(
-      { message: "Internal Server Error", error: error.message },
+      { message: "Internal Server Error" },
       { status: 500 }
     );
   }

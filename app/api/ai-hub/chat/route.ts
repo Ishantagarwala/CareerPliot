@@ -7,7 +7,12 @@ import Document from "@/models/Document";
 import UserProgress from "@/models/UserProgress";
 import { buildAiHubSystemPrompt, buildDocumentContext } from "@/lib/aiHub";
 import { getLlmClient, getLlmModel } from "@/lib/llm";
-import { resolveUploadPath } from "@/lib/security";
+import {
+  isOwnedUploadFilename,
+  rateLimit,
+  resolveLegacyUploadPath,
+  resolveUploadPath,
+} from "@/lib/security";
 import fs from "fs";
 import path from "path";
 
@@ -19,6 +24,10 @@ export async function POST(req: Request) {
     }
 
     const userId = session.user.id;
+    if (!rateLimit(`ai-chat:${userId}`, 60, 60 * 60 * 1000)) {
+      return NextResponse.json({ message: "Too many chat requests. Try again later." }, { status: 429 });
+    }
+
     const { message, documentIds = [], threadId, attachments = [], modelSelection } = await req.json();
 
     if (!message || !message.trim()) {
@@ -36,9 +45,8 @@ export async function POST(req: Request) {
       ? `The student's selected career path is "${selectedRecommendation.careerPath}". Adapt explanations, examples, and recommendations to that path when relevant.`
       : "The student has not selected an active career path yet. Help them explore options or answer general learning questions.";
 
-    // Gather PDF document contexts if any
     const safeDocumentIds = Array.isArray(documentIds)
-      ? documentIds.filter((id) => typeof id === "string" && id.trim())
+      ? documentIds.filter((id: unknown) => typeof id === "string" && id.trim())
       : [];
 
     const documents = safeDocumentIds.length
@@ -47,58 +55,67 @@ export async function POST(req: Request) {
           .limit(3)
       : [];
 
-    // Find or create thread
     let chat;
     if (threadId) {
       chat = await ChatHistory.findOne({ _id: threadId, userId });
     }
-    
+
     if (!chat) {
       const title = message.length > 30 ? message.substring(0, 30) + "..." : message;
       chat = new ChatHistory({
         userId,
         threadTitle: title,
         threadType: safeDocumentIds.length > 0 ? "document" : "general",
-        messages: []
+        messages: [],
       });
     }
 
     const historyLimit = 15;
     const recentHistory = chat.messages.slice(-historyLimit);
     const documentContext = buildDocumentContext(documents);
-    const systemPrompt = buildAiHubSystemPrompt(careerContext, documentContext);
+    // Keep untrusted PDF text out of the system prompt — attach it to the user turn.
+    const systemPrompt = buildAiHubSystemPrompt(careerContext);
+    const userTurnContent = documentContext
+      ? `${documentContext}\n\n---\n\nUser question:\n${message}`
+      : message;
 
-    // Build the user message for database
-    const userMessage: any = {
+    chat.messages.push({
       role: "user",
       content: message,
       documentIds: safeDocumentIds,
       attachments: attachments,
       sentAt: new Date(),
-    };
-    
-    chat.messages.push(userMessage);
+    });
 
-    // Build API messages payload
-    const apiMessages: any[] = [
-      { role: "system", content: systemPrompt }
-    ];
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const apiMessages: any[] = [{ role: "system", content: systemPrompt }];
 
-    // Add recent history to context (simplify to text for history)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     recentHistory.forEach((msg: any) => {
       apiMessages.push({
         role: msg.role,
-        content: msg.content
+        content: msg.content,
       });
     });
 
-    // Handle current user message (could be text or multi-modal if image is attached)
-    const imageAttachment = attachments.find((att: any) => att.type === "image");
-    
-    if (imageAttachment) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const imageAttachment = Array.isArray(attachments)
+      ? attachments.find((att: any) => att.type === "image")
+      : null;
+
+    if (imageAttachment?.fileUrl) {
       try {
-        const localPath = resolveUploadPath(imageAttachment.fileUrl);
-        if (!localPath) {
+        const attachmentUrl = String(imageAttachment.fileUrl);
+        const filename = path.basename(attachmentUrl);
+        if (!isOwnedUploadFilename(filename, userId)) {
+          throw new Error("Attachment ownership check failed");
+        }
+
+        let localPath = resolveUploadPath(attachmentUrl);
+        if (!localPath || !fs.existsSync(localPath)) {
+          localPath = resolveLegacyUploadPath(`/uploads/${filename}`);
+        }
+        if (!localPath || !fs.existsSync(localPath)) {
           throw new Error("Invalid attachment path");
         }
         const ext = path.extname(localPath).toLowerCase().replace(".", "");
@@ -109,22 +126,19 @@ export async function POST(req: Request) {
         apiMessages.push({
           role: "user",
           content: [
-            { type: "text", text: message },
+            { type: "text", text: userTurnContent },
             {
               type: "image_url",
-              image_url: {
-                url: dataUrl
-              }
-            }
-          ]
+              image_url: { url: dataUrl },
+            },
+          ],
         });
-      } catch (err: any) {
+      } catch (err) {
         console.error("Failed to load local image for vision API:", err);
-        // Fallback to text prompt
-        apiMessages.push({ role: "user", content: message });
+        apiMessages.push({ role: "user", content: userTurnContent });
       }
     } else {
-      apiMessages.push({ role: "user", content: message });
+      apiMessages.push({ role: "user", content: userTurnContent });
     }
 
     const client = getLlmClient();
@@ -140,7 +154,6 @@ export async function POST(req: Request) {
       completion.choices[0]?.message?.content ||
       "I'm sorry, I encountered an issue generating a response. Please try again.";
 
-    // Save assistant reply
     chat.messages.push({
       role: "assistant",
       content: reply,
@@ -148,7 +161,6 @@ export async function POST(req: Request) {
       sentAt: new Date(),
     });
 
-    // Update thread title if it was default
     if (chat.messages.length === 2 && chat.threadTitle === "AI Study Hub") {
       chat.threadTitle = message.length > 30 ? message.substring(0, 30) + "..." : message;
     }
@@ -168,16 +180,14 @@ export async function POST(req: Request) {
       reply,
       threadId: chat._id,
       messages: chat.messages,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       documentsUsed: documents.map((doc: any) => ({
         id: doc._id,
         filename: doc.filename,
       })),
     });
-  } catch (error: any) {
+  } catch (error) {
     console.error("AI Hub chat route error:", error);
-    return NextResponse.json(
-      { message: "Internal Server Error", error: error.message },
-      { status: 500 }
-    );
+    return NextResponse.json({ message: "Internal Server Error" }, { status: 500 });
   }
 }

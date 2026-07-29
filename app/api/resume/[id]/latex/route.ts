@@ -35,7 +35,7 @@ export async function GET(req: Request, { params }: RouteContext) {
   } catch (error: any) {
     console.error("Resume LaTeX export error:", error);
     return NextResponse.json(
-      { message: "Internal Server Error", error: error.message },
+      { message: "Internal Server Error" },
       { status: 500 }
     );
   }

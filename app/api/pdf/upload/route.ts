@@ -7,7 +7,14 @@ import { mkdir, writeFile } from "fs/promises";
 import path from "path";
 
 import { extractTextFromPdf } from "@/lib/pdf";
-import { MAX_UPLOAD_BYTES, sanitizeFilename, sniffFileType } from "@/lib/security";
+import {
+  MAX_UPLOAD_BYTES,
+  UPLOADS_DIR,
+  buildOwnedUploadFilename,
+  rateLimit,
+  sniffFileType,
+  toUploadFileUrl,
+} from "@/lib/security";
 
 // Text extraction only — summary/quiz are generated later via chat. No LLM
 // call here, so the function stays well under the limit.
@@ -21,6 +28,10 @@ export async function POST(req: Request) {
     }
 
     const userId = session.user.id;
+    if (!rateLimit(`pdf-upload:${userId}`, 20, 60 * 60 * 1000)) {
+      return NextResponse.json({ message: "Too many uploads. Try again later." }, { status: 429 });
+    }
+
     const formData = await req.formData();
     const file = formData.get("file") as File;
 
@@ -50,10 +61,10 @@ export async function POST(req: Request) {
     let pdfText = "";
     try {
       pdfText = await extractTextFromPdf(buffer, file.name);
-    } catch (parseError: any) {
+    } catch (parseError: unknown) {
       console.error("PDF Parsing Error:", parseError);
       return NextResponse.json(
-        { message: `Failed to parse PDF document: ${parseError.message || parseError}` },
+        { message: "Failed to parse PDF document." },
         { status: 422 }
       );
     }
@@ -65,16 +76,14 @@ export async function POST(req: Request) {
       );
     }
 
-    // 2. Save file locally inside public/uploads (skip writing to disk in production/Vercel serverless environment to prevent EROFS)
-    const uniqueFilename = `${Date.now()}-${sanitizeFilename(file.name)}`;
-    const fileUrl = `/uploads/${uniqueFilename}`;
+    // 2. Save file to private storage (not under public/)
+    const uniqueFilename = buildOwnedUploadFilename(userId, file.name);
+    const fileUrl = toUploadFileUrl(uniqueFilename);
 
     if (!process.env.VERCEL && process.env.NODE_ENV !== "production") {
       try {
-        const uploadDir = path.join(process.cwd(), "public", "uploads");
-        await mkdir(uploadDir, { recursive: true });
-        const filePath = path.join(uploadDir, uniqueFilename);
-        await writeFile(filePath, buffer);
+        await mkdir(UPLOADS_DIR, { recursive: true });
+        await writeFile(path.join(UPLOADS_DIR, uniqueFilename), buffer);
       } catch (writeError) {
         console.error("Local file write error (non-fatal):", writeError);
       }
@@ -137,10 +146,10 @@ export async function GET() {
       .select("filename fileUrl createdAt summary");
 
     return NextResponse.json(documents);
-  } catch (error: any) {
+  } catch (error) {
     console.error("PDF GET error:", error);
     return NextResponse.json(
-      { message: "Internal Server Error", error: error.message },
+      { message: "Internal Server Error" },
       { status: 500 }
     );
   }
