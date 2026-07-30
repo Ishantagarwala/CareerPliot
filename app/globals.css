@@ -943,3 +943,12 @@ select:focus {
 .light .bg-\[\#272c1d\] .hover\:text-white:hover {
   color: #ffffff !important;
 }
+
+/* Voice AI Spinners & Keyframes */
+@keyframes spin-slow {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+.animate-spin-slow {
+  animation: spin-slow 8s linear infinite;
+}

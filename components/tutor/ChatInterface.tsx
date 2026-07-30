@@ -3,6 +3,8 @@
 import React, { useState, useEffect, useRef } from "react";
 import MessageBubble from "./MessageBubble";
 import { toast } from "sonner";
+import { useVoice } from "@/components/voice/useVoice";
+import VoiceHUD from "@/components/voice/VoiceHUD";
 
 interface Message {
   role: "user" | "assistant";
@@ -15,6 +17,11 @@ export default function ChatInterface() {
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [loadingHistory, setLoadingHistory] = useState(true);
+
+  // Voice Chat States
+  const [isVoiceChatActive, setIsVoiceChatActive] = useState(false);
+  const [voiceHUDOpen, setVoiceHUDOpen] = useState(false);
+  const voice = useVoice();
 
   const scrollRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -48,11 +55,12 @@ export default function ChatInterface() {
     scrollToBottom();
   }, [messages, loading]);
 
-  const handleSend = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!input.trim() || loading) return;
+  const handleSend = async (e?: React.FormEvent, customText?: string) => {
+    if (e) e.preventDefault();
+    const textToSend = customText !== undefined ? customText : input;
+    if (!textToSend.trim() || loading) return;
 
-    const userMessageText = input;
+    const userMessageText = textToSend;
     setInput("");
     if (textareaRef.current) {
       textareaRef.current.style.height = "56px";
@@ -79,8 +87,13 @@ export default function ChatInterface() {
 
       const data = await res.json();
 
+      let replyText = "";
       if (data.messages) {
         setMessages(data.messages);
+        const lastMsg = data.messages[data.messages.length - 1];
+        if (lastMsg && lastMsg.role === "assistant") {
+          replyText = lastMsg.content;
+        }
       } else {
         const botMessage: Message = {
           role: "assistant",
@@ -88,6 +101,11 @@ export default function ChatInterface() {
           sentAt: new Date().toISOString(),
         };
         setMessages((prev) => [...prev, botMessage]);
+        replyText = data.reply;
+      }
+
+      if (isVoiceChatActive && replyText) {
+        voice.speakText(replyText);
       }
     } catch (err: any) {
       console.error(err);
@@ -204,20 +222,25 @@ export default function ChatInterface() {
 
             {/* Typing Indicator */}
             {loading && (
-              <div className="flex w-full justify-start mb-3">
-                <div className="flex items-start gap-2.5 w-full">
-                  <div className="h-8 w-8 border-2 border-black bg-card flex items-center justify-center shrink-0">
-                    <span
-                      className="text-xs font-bold text-primary"
-                      style={{ fontFamily: "'JetBrains Mono', monospace" }}
-                    >
-                      AI
-                    </span>
+              <div className="flex w-full justify-start mb-3 animate-fade-in-up">
+                <div className="flex items-start gap-3.5 w-full max-w-lg">
+                  <div className="h-8 w-8 bg-[#1A1A1A] border border-cyan-500/50 flex items-center justify-center shrink-0 shadow-[0_0_8px_rgba(6,182,212,0.3)] animate-pulse">
+                    <span className="material-symbols-outlined text-[18px] text-cyan-400">psychology</span>
                   </div>
-                  <div className="bg-card border-2 border-black p-4 flex items-center gap-1.5 py-3 px-4">
-                    <span className="h-2 w-2 bg-foreground/30 rounded-full animate-bounce" style={{ animationDelay: "0ms" }} />
-                    <span className="h-2 w-2 bg-foreground/50 rounded-full animate-bounce" style={{ animationDelay: "150ms" }} />
-                    <span className="h-2 w-2 bg-foreground/70 rounded-full animate-bounce" style={{ animationDelay: "300ms" }} />
+                  <div className="bg-[#101012] border border-[#262626] p-4 flex items-center gap-3.5 rounded-[6px] shadow-lg">
+                    {/* Glowing concentric rotating web spinner */}
+                    <div className="relative h-6 w-6 animate-spin-slow">
+                      <svg viewBox="0 0 40 40" className="w-full h-full text-cyan-500 fill-none stroke-current" strokeWidth="1.5">
+                        <circle cx="20" cy="20" r="16" strokeDasharray="6,4" className="opacity-80" />
+                        <circle cx="20" cy="20" r="10" strokeDasharray="4,3" className="opacity-60" />
+                        <circle cx="20" cy="20" r="4" className="opacity-40" />
+                        <path d="M20,0 L20,40 M0,20 L40,20 M6,6 L34,34 M6,34 L34,6" className="opacity-30" strokeWidth="0.5" />
+                      </svg>
+                      <div className="absolute inset-0 rounded-full border border-red-500/30 animate-ping opacity-60" />
+                    </div>
+                    <span className="text-xs text-[#8e9192] font-mono tracking-wide">
+                      CareerPilot AI is analysing your career path...
+                    </span>
                   </div>
                 </div>
               </div>
@@ -250,9 +273,22 @@ export default function ChatInterface() {
             />
             <div className="absolute right-2 bottom-2 flex items-center gap-2">
               <button
+                type="button"
+                onClick={() => {
+                  setIsVoiceChatActive(true);
+                  setVoiceHUDOpen(true);
+                  voice.startRecording();
+                }}
+                disabled={loading || loadingHistory}
+                className="p-2 bg-[#1C1C22] border border-cyan-500/50 hover:border-cyan-400 text-cyan-400 transition-colors flex items-center justify-center h-10 w-10 disabled:opacity-30 disabled:cursor-not-allowed rounded-full cursor-pointer"
+                title="Speak instead"
+              >
+                <span className="material-symbols-outlined text-[20px]">mic</span>
+              </button>
+              <button
                 type="submit"
                 disabled={!input.trim() || loading}
-                className="p-2 bg-white text-[#0A0A0A] hover:bg-[#e2e2e2] transition-colors flex items-center justify-center h-10 w-10 disabled:opacity-30 disabled:cursor-not-allowed"
+                className="p-2 bg-white text-[#0A0A0A] hover:bg-[#e2e2e2] transition-colors flex items-center justify-center h-10 w-10 disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
               >
                 <span className="material-symbols-outlined text-[20px]" style={{ fontVariationSettings: "'FILL' 1" }}>
                   arrow_upward
@@ -271,7 +307,7 @@ export default function ChatInterface() {
           {messages.length > 0 && (
             <button
               onClick={handleClearHistory}
-              className="text-[10px] text-[#636565] hover:text-[#ffb4ab] transition-colors flex items-center gap-1"
+              className="text-[10px] text-[#636565] hover:text-[#ffb4ab] transition-colors flex items-center gap-1 cursor-pointer"
               style={{ fontFamily: "'JetBrains Mono', monospace", letterSpacing: "0.05em" }}
             >
               <span className="material-symbols-outlined text-[12px]">delete</span>
@@ -280,6 +316,28 @@ export default function ChatInterface() {
           )}
         </div>
       </div>
+
+      {voiceHUDOpen && (
+        <VoiceHUD
+          status={voice.status}
+          transcript={voice.transcript}
+          onTranscriptChange={(t) => voice.setTranscript(t)}
+          onStartRecord={voice.startRecording}
+          onStopRecord={voice.stopRecording}
+          onSubmit={(text) => {
+            setVoiceHUDOpen(false);
+            handleSend(undefined, text);
+          }}
+          onCancel={() => {
+            voice.stopSpeech();
+            setVoiceHUDOpen(false);
+            setIsVoiceChatActive(false);
+          }}
+          languages={voice.languages}
+          selectedLanguage={voice.selectedLanguage}
+          onLanguageChange={(l) => voice.setSelectedLanguage(l)}
+        />
+      )}
     </div>
   );
 }

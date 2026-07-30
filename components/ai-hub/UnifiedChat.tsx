@@ -4,6 +4,8 @@ import React, { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import MessageBubble from "@/components/tutor/MessageBubble";
 import UploadDropzone from "./UploadDropzone";
+import { useVoice } from "@/components/voice/useVoice";
+import VoiceHUD from "@/components/voice/VoiceHUD";
 
 interface Message {
   role: "user" | "assistant" | "system";
@@ -48,30 +50,31 @@ function ModelPicker({
   placement = "up",
 }: {
   selectedModel: ModelSelection;
-  setSelectedModel: (m: ModelSelection) => void;
+  setSelectedModel: (model: ModelSelection) => void;
   showModelDropdown: boolean;
-  setShowModelDropdown: (v: boolean | ((prev: boolean) => boolean)) => void;
+  setShowModelDropdown: (show: boolean) => void;
   placement?: "up" | "down";
 }) {
   return (
     <div className="relative">
       <button
         type="button"
-        onClick={() => setShowModelDropdown((prev) => !prev)}
-        className="bg-background hover:bg-card border border-border px-3 py-1.5 rounded-full flex items-center gap-1 text-[10px] font-bold text-foreground transition-all cursor-pointer"
+        onClick={() => setShowModelDropdown(!showModelDropdown)}
+        className="bg-background hover:bg-card border border-border px-3 py-1.5 rounded-full flex items-center gap-1.5 text-[11px] font-bold text-foreground transition-all cursor-pointer"
       >
+        <span className="material-symbols-outlined text-[13px] text-primary">psychology</span>
         {MODEL_LABELS[selectedModel]}
-        <span className="material-symbols-outlined text-[12px] text-primary">expand_more</span>
       </button>
+
       {showModelDropdown && (
         <>
-          <div className="fixed inset-0 z-10" onClick={() => setShowModelDropdown(false)} />
+          <div className="fixed inset-0 z-40" onClick={() => setShowModelDropdown(false)} />
           <div
-            className={`absolute right-0 z-20 w-44 bg-card border-2 border-border rounded-xl shadow-lg p-1.5 flex flex-col gap-0.5 animate-fade-in-up ${
+            className={`absolute z-50 min-w-[140px] bg-card border-2 border-border p-1 shadow-lg rounded-xl flex flex-col gap-0.5 ${
               placement === "up" ? "bottom-full mb-2" : "top-full mt-2"
             }`}
           >
-            {(Object.keys(MODEL_LABELS) as ModelSelection[]).map((id) => (
+            {(["primary", "opus", "gemini"] as ModelSelection[]).map((id) => (
               <button
                 key={id}
                 type="button"
@@ -114,6 +117,11 @@ export default function UnifiedChat({
   const [loading, setLoading] = useState(false);
   const [loadingHistory, setLoadingHistory] = useState(false);
   const [showUpload, setShowUpload] = useState(false);
+
+  // Voice Chat States
+  const [isVoiceChatActive, setIsVoiceChatActive] = useState(false);
+  const [voiceHUDOpen, setVoiceHUDOpen] = useState(false);
+  const voice = useVoice();
 
   const [isMobile, setIsMobile] = useState(false);
 
@@ -240,13 +248,14 @@ export default function UnifiedChat({
     setAttachments((prev) => prev.filter((_, i) => i !== index));
   };
 
-  const handleSend = async (e?: React.FormEvent) => {
+  const handleSend = async (e?: React.FormEvent, customText?: string) => {
     if (e) e.preventDefault();
-    if ((!input.trim() && attachments.length === 0) || loading) {
+    const textToSend = customText !== undefined ? customText : input;
+    if ((!textToSend.trim() && attachments.length === 0) || loading) {
       return;
     }
 
-    const userMessageText = input;
+    const userMessageText = textToSend;
     const currentAttachments = [...attachments];
 
     setInput("");
@@ -298,6 +307,14 @@ export default function UnifiedChat({
       if (!activeThreadId && data.threadId) {
         setActiveThreadId(data.threadId);
         onThreadCreated();
+      }
+
+      // Vocalize AI response
+      if (isVoiceChatActive && data.messages && data.messages.length > 0) {
+        const lastMsg = data.messages[data.messages.length - 1];
+        if (lastMsg && lastMsg.role === "assistant") {
+          voice.speakText(lastMsg.content);
+        }
       }
     } catch (error: any) {
       console.error(error);
@@ -598,13 +615,28 @@ export default function UnifiedChat({
                 />
               </div>
 
-              <button
-                type="submit"
-                disabled={(!input.trim() && attachments.length === 0) || loading || uploadingAttachment}
-                className="h-7 w-7 bg-primary hover:bg-primary/95 text-primary-foreground flex items-center justify-center rounded-full border border-border disabled:opacity-30 transition-colors shrink-0 cursor-pointer"
-              >
-                <span className="material-symbols-outlined text-[14px]">arrow_upward</span>
-              </button>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsVoiceChatActive(true);
+                    setVoiceHUDOpen(true);
+                    voice.startRecording();
+                  }}
+                  disabled={loading || uploadingAttachment}
+                  className="h-7 w-7 bg-[#1C1C22] border border-cyan-500/50 hover:border-cyan-400 text-cyan-400 flex items-center justify-center rounded-full disabled:opacity-30 transition-colors shrink-0 cursor-pointer"
+                  title="Speak instead"
+                >
+                  <span className="material-symbols-outlined text-[14px]">mic</span>
+                </button>
+                <button
+                  type="submit"
+                  disabled={(!input.trim() && attachments.length === 0) || loading || uploadingAttachment}
+                  className="h-7 w-7 bg-primary hover:bg-primary/95 text-primary-foreground flex items-center justify-center rounded-full border border-border disabled:opacity-30 transition-colors shrink-0 cursor-pointer"
+                >
+                  <span className="material-symbols-outlined text-[14px]">arrow_upward</span>
+                </button>
+              </div>
             </div>
           </form>
         </div>
@@ -629,6 +661,28 @@ export default function UnifiedChat({
             <UploadDropzone onUploadSuccess={handleUploadSuccess} />
           </div>
         </div>
+      )}
+
+      {voiceHUDOpen && (
+        <VoiceHUD
+          status={voice.status}
+          transcript={voice.transcript}
+          onTranscriptChange={(t) => voice.setTranscript(t)}
+          onStartRecord={voice.startRecording}
+          onStopRecord={voice.stopRecording}
+          onSubmit={(text) => {
+            setVoiceHUDOpen(false);
+            handleSend(undefined, text);
+          }}
+          onCancel={() => {
+            voice.stopSpeech();
+            setVoiceHUDOpen(false);
+            setIsVoiceChatActive(false);
+          }}
+          languages={voice.languages}
+          selectedLanguage={voice.selectedLanguage}
+          onLanguageChange={(l) => voice.setSelectedLanguage(l)}
+        />
       )}
     </div>
   );
