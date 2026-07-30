@@ -1,4 +1,9 @@
 import type { NextConfig } from "next";
+import dns from "dns";
+
+try {
+  dns.setDefaultResultOrder("ipv4first");
+} catch {}
 
 const nextConfig: NextConfig = {
   serverExternalPackages: ["pdfjs-dist", "pdf-parse"],

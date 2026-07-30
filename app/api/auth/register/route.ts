@@ -3,6 +3,7 @@ import dbConnect from '@/lib/db';
 import User from '@/models/User';
 import bcrypt from 'bcryptjs';
 import { getClientIp, rateLimit } from '@/lib/security';
+import dns from 'dns';
 
 export async function POST(req: Request) {
   try {
@@ -46,6 +47,10 @@ export async function POST(req: Request) {
         { status: 429 }
       );
     }
+
+    try {
+      dns.setDefaultResultOrder('ipv4first');
+    } catch {}
 
     await dbConnect();
 
