@@ -1,4 +1,14 @@
 import mongoose from 'mongoose';
+import dns from 'dns';
+
+// Force DNS resolution to prefer IPv4 first.
+// This resolves the MongoDB connection timeout/handshake errors (SSL Alert 80)
+// on dual-stack networks (e.g. Jio) where IPv6 whitelisting is not supported by Atlas.
+try {
+  dns.setDefaultResultOrder('ipv4first');
+} catch (error) {
+  console.warn('Failed to set default DNS result order to ipv4first:', error);
+}
 
 const MONGODB_URI = process.env.MONGODB_URI;
 
