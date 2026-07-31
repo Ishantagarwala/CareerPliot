@@ -27,12 +27,16 @@ export function useVoice() {
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
   const activeAudioRef = useRef<HTMLAudioElement | null>(null);
+  const recognitionRef = useRef<any>(null);
 
   // Stop any active audio playbacks when unmounted
   useEffect(() => {
     return () => {
       if (activeAudioRef.current) {
         activeAudioRef.current.pause();
+      }
+      if (recognitionRef.current) {
+        recognitionRef.current.abort();
       }
     };
   }, []);
@@ -44,6 +48,64 @@ export function useVoice() {
     setTranscript("");
     audioChunksRef.current = [];
 
+    // 1. Try browser native Speech Recognition for real-time transcription and infinite duration support
+    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    if (SpeechRecognition) {
+      try {
+        const recognition = new SpeechRecognition();
+        recognition.continuous = true;
+        recognition.interimResults = true;
+        recognition.lang = selectedLanguage.code;
+
+        recognition.onstart = () => {
+          setStatus("listening");
+        };
+
+        recognition.onresult = (event: any) => {
+          let interimTranscript = "";
+          let finalTranscript = "";
+          for (let i = event.resultIndex; i < event.results.length; ++i) {
+            if (event.results[i].isFinal) {
+              finalTranscript += event.results[i][0].transcript;
+            } else {
+              interimTranscript += event.results[i][0].transcript;
+            }
+          }
+          const text = finalTranscript || interimTranscript;
+          if (text) {
+            setTranscript(text);
+          }
+        };
+
+        recognition.onerror = (err: any) => {
+          // Ignore expected/normal events to prevent triggering Next.js error overlays
+          if (err.error === "aborted" || err.error === "no-speech") {
+            setStatus("idle");
+            return;
+          }
+
+          console.warn("Speech Recognition Event:", err.error || err);
+          if (err.error === "not-allowed" || err.error === "service-not-allowed") {
+            toast.error("Microphone access denied or service unavailable.");
+            setStatus("error");
+          } else {
+            setStatus("error");
+          }
+        };
+
+        recognition.onend = () => {
+          setStatus("idle");
+        };
+
+        recognitionRef.current = recognition;
+        recognition.start();
+        return;
+      } catch (err) {
+        console.warn("SpeechRecognition start failed, falling back to MediaRecorder", err);
+      }
+    }
+
+    // 2. Fallback to MediaRecorder + Server-side Sarvam API Transcription
     try {
       if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
         throw new Error("Microphone access is not supported by this browser.");
@@ -86,6 +148,12 @@ export function useVoice() {
   };
 
   const stopRecording = () => {
+    if (recognitionRef.current) {
+      recognitionRef.current.stop();
+      recognitionRef.current = null;
+      setStatus("idle");
+      return;
+    }
     if (mediaRecorderRef.current && mediaRecorderRef.current.state === "recording") {
       mediaRecorderRef.current.stop();
       setStatus("processing");

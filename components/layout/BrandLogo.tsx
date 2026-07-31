@@ -31,7 +31,7 @@ export default function BrandLogo({
       <img
         src="/logo.png"
         alt={alt}
-        className={cn("h-full w-full object-cover", imgClassName)}
+        className={cn("h-full w-full object-contain", imgClassName)}
       />
     </span>
   );

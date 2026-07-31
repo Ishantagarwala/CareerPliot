@@ -44,7 +44,7 @@ export function getLlmClient(): OpenAI {
  * "gemini-3.1-flash-lite" (or "gemini-3-flash" for PDF) if GEMINI_API_KEY is present,
  * or "gpt-4o-mini" (or "gpt-4o" for PDF) if using OpenAI. Can be overridden via environment variables.
  */
-export function getLlmModel(isPdf = false, modelSelection?: "primary" | "opus" | "gemini"): string {
+export function getLlmModel(isPdf = false, modelSelection?: string): string {
   const zenMuxKey = process.env.ZENMUX_API_KEY?.trim();
   const geminiKey = process.env.GEMINI_API_KEY?.trim();
 
@@ -52,6 +52,10 @@ export function getLlmModel(isPdf = false, modelSelection?: "primary" | "opus" |
     !val || 
     val.includes("your_") || 
     val.includes("_here");
+
+  if (modelSelection && modelSelection !== "primary" && modelSelection !== "opus" && modelSelection !== "gemini") {
+    return modelSelection;
+  }
 
   if (zenMuxKey && !isPlaceholder(zenMuxKey)) {
     if (modelSelection === "opus") {

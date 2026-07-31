@@ -36,25 +36,37 @@ interface UnifiedChatProps {
   newChatNonce?: number;
 }
 
-const MODEL_LABELS: Record<ModelSelection, string> = {
-  gemini: "Gemini 3.5 Flash",
-  opus: "Claude 4.6 Opus",
-  primary: "Default Model",
-};
-
 function ModelPicker({
   selectedModel,
   setSelectedModel,
   showModelDropdown,
   setShowModelDropdown,
+  availableModels,
   placement = "up",
 }: {
-  selectedModel: ModelSelection;
-  setSelectedModel: (model: ModelSelection) => void;
+  selectedModel: string;
+  setSelectedModel: (model: string) => void;
   showModelDropdown: boolean;
   setShowModelDropdown: (show: boolean) => void;
+  availableModels: string[];
   placement?: "up" | "down";
 }) {
+  const getDisplayName = (id: string) => {
+    if (id === "primary") return "Default Model";
+    if (id === "opus") return "Claude 4.6 Opus";
+    if (id === "gemini") return "Gemini 3.5 Flash";
+    const parts = id.split("/");
+    const mainName = parts[1] || parts[0];
+    return mainName
+      .split("-")
+      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(" ");
+  };
+
+  const modelsList = availableModels.length > 0 
+    ? availableModels 
+    : ["primary", "opus", "gemini"];
+
   return (
     <div className="relative">
       <button
@@ -63,18 +75,18 @@ function ModelPicker({
         className="bg-background hover:bg-card border border-border px-3 py-1.5 rounded-full flex items-center gap-1.5 text-[11px] font-bold text-foreground transition-all cursor-pointer"
       >
         <span className="material-symbols-outlined text-[13px] text-primary">psychology</span>
-        {MODEL_LABELS[selectedModel]}
+        {getDisplayName(selectedModel)}
       </button>
 
       {showModelDropdown && (
         <>
           <div className="fixed inset-0 z-40" onClick={() => setShowModelDropdown(false)} />
           <div
-            className={`absolute z-50 min-w-[140px] bg-card border-2 border-border p-1 shadow-lg rounded-xl flex flex-col gap-0.5 ${
+            className={`absolute z-50 min-w-[160px] bg-card border-2 border-border p-1 shadow-lg rounded-xl flex flex-col gap-0.5 max-h-[250px] overflow-y-auto ${
               placement === "up" ? "bottom-full mb-2" : "top-full mt-2"
             }`}
           >
-            {(["primary", "opus", "gemini"] as ModelSelection[]).map((id) => (
+            {modelsList.map((id) => (
               <button
                 key={id}
                 type="button"
@@ -88,7 +100,7 @@ function ModelPicker({
                     : "text-foreground hover:bg-sidebar"
                 }`}
               >
-                {MODEL_LABELS[id]}
+                {getDisplayName(id)}
               </button>
             ))}
           </div>
@@ -125,8 +137,9 @@ export default function UnifiedChat({
 
   const [isMobile, setIsMobile] = useState(false);
 
-  const [selectedModel, setSelectedModel] = useState<ModelSelection>("gemini");
+  const [selectedModel, setSelectedModel] = useState<string>("primary");
   const [showModelDropdown, setShowModelDropdown] = useState(false);
+  const [availableModels, setAvailableModels] = useState<string[]>([]);
 
   const [attachments, setAttachments] = useState<any[]>([]);
   const [uploadingAttachment, setUploadingAttachment] = useState(false);
@@ -141,6 +154,28 @@ export default function UnifiedChat({
     const handleResize = () => setIsMobile(window.innerWidth < 1024);
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  useEffect(() => {
+    async function fetchModels() {
+      try {
+        const res = await fetch("/api/ai-hub/models");
+        if (res.ok) {
+          const data = await res.json();
+          if (data.models && data.models.length > 0) {
+            setAvailableModels(data.models);
+            // Default to 'zeus/claude-opus-5' if available, otherwise first model
+            const defaultModel = data.models.includes("zeus/claude-opus-5")
+              ? "zeus/claude-opus-5"
+              : data.models[0];
+            setSelectedModel(defaultModel);
+          }
+        }
+      } catch (err) {
+        console.error("Failed to fetch custom router models:", err);
+      }
+    }
+    fetchModels();
   }, []);
 
   useEffect(() => {
@@ -436,11 +471,26 @@ export default function UnifiedChat({
                 </div>
 
                 <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsVoiceChatActive(true);
+                      setVoiceHUDOpen(true);
+                      voice.startRecording();
+                    }}
+                    disabled={loading || uploadingAttachment}
+                    className="h-8 w-8 bg-[#1C1C22] border border-cyan-500/50 hover:border-cyan-400 text-cyan-400 flex items-center justify-center rounded-full disabled:opacity-30 transition-colors shrink-0 cursor-pointer"
+                    title="Speak instead"
+                  >
+                    <span className="material-symbols-outlined text-[16px]">mic</span>
+                  </button>
+
                   <ModelPicker
                     selectedModel={selectedModel}
                     setSelectedModel={setSelectedModel}
                     showModelDropdown={showModelDropdown}
                     setShowModelDropdown={setShowModelDropdown}
+                    availableModels={availableModels}
                     placement="up"
                   />
 
@@ -611,6 +661,7 @@ export default function UnifiedChat({
                   setSelectedModel={setSelectedModel}
                   showModelDropdown={showModelDropdown}
                   setShowModelDropdown={setShowModelDropdown}
+                  availableModels={availableModels}
                   placement="up"
                 />
               </div>
