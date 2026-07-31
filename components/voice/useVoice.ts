@@ -13,9 +13,9 @@ export interface SupportedLanguage {
 }
 
 export const SUPPORTED_LANGUAGES: SupportedLanguage[] = [
-  { code: "en-IN", name: "English", nativeName: "English", speaker: "meera" },
+  { code: "en-IN", name: "English", nativeName: "English", speaker: "ritu" },
   { code: "hi-IN", name: "Hindi", nativeName: "हिन्दी", speaker: "shubh" },
-  { code: "bn-IN", name: "Bengali", nativeName: "বাংলা", speaker: "meera" },
+  { code: "bn-IN", name: "Bengali", nativeName: "বাংলা", speaker: "ritu" },
 ];
 
 export function useVoice() {
@@ -145,7 +145,7 @@ export function useVoice() {
 
       // Play base64 audio
       return new Promise((resolve, reject) => {
-        const audioUrl = `data:audio/mp3;base64,${data.audio}`;
+        const audioUrl = `data:audio/wav;base64,${data.audio}`;
         const audio = new Audio(audioUrl);
         activeAudioRef.current = audio;
         setStatus("speaking");
