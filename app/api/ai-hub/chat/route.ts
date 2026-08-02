@@ -17,6 +17,68 @@ import {
 import fs from "fs";
 import path from "path";
 
+export const maxDuration = 120;
+
+function sseEncode(payload: unknown): Uint8Array {
+  return new TextEncoder().encode(`data: ${JSON.stringify(payload)}\n\n`);
+}
+
+function providerErrorMessage(error: unknown): {
+  status?: number;
+  message: string;
+} {
+  const status =
+    typeof error === "object" &&
+    error !== null &&
+    "status" in error &&
+    typeof (error as { status: unknown }).status === "number"
+      ? (error as { status: number }).status
+      : undefined;
+
+  const providerMessage =
+    typeof error === "object" &&
+    error !== null &&
+    "error" in error &&
+    typeof (error as { error: unknown }).error === "object" &&
+    (error as { error: { message?: string } }).error?.message
+      ? String((error as { error: { message?: string } }).error.message)
+      : error instanceof Error
+        ? error.message
+        : "Internal Server Error";
+
+  if (status === 402 || status === 403) {
+    const lower = providerMessage.toLowerCase();
+    const isBalance =
+      lower.includes("insufficient") ||
+      lower.includes("balance") ||
+      lower.includes("quota") ||
+      lower.includes("credit");
+    return {
+      status: 502,
+      message: isBalance
+        ? "Your LLM router has insufficient balance. Top up credits or switch to a cheaper model in .env.local."
+        : providerMessage || "LLM provider rejected the request.",
+    };
+  }
+
+  if (status === 401) {
+    return {
+      status: 502,
+      message:
+        "LLM router rejected the API key. Check LLM_ROUTER_API_KEY in .env.local.",
+    };
+  }
+
+  if (status === 429) {
+    return {
+      status: 429,
+      message: "LLM router rate limit hit. Please wait a moment and try again.",
+    };
+  }
+
+  return { status: 500, message: providerMessage };
+}
+
 export async function POST(req: Request) {
   try {
     const session = await auth();
@@ -26,13 +88,22 @@ export async function POST(req: Request) {
 
     const userId = session.user.id;
     if (!rateLimit(`ai-chat:${userId}`, 30, 60 * 60 * 1000)) {
-      return NextResponse.json({ message: "Too many chat requests. Try again later." }, { status: 429 });
+      return NextResponse.json(
+        { message: "Too many chat requests. Try again later." },
+        { status: 429 }
+      );
     }
 
     const limited = enforceLlmBudget(userId, "ai-hub-chat", 30);
     if (limited) return limited;
 
-    const { message, documentIds = [], threadId, attachments = [], modelSelection } = await req.json();
+    const {
+      message,
+      documentIds = [],
+      threadId,
+      attachments = [],
+      modelSelection,
+    } = await req.json();
 
     if (!message || !message.trim()) {
       return NextResponse.json({ message: "Message is required" }, { status: 400 });
@@ -77,7 +148,6 @@ export async function POST(req: Request) {
     const historyLimit = 15;
     const recentHistory = chat.messages.slice(-historyLimit);
     const documentContext = buildDocumentContext(documents);
-    // Keep untrusted PDF text out of the system prompt — attach it to the user turn.
     const systemPrompt = buildAiHubSystemPrompt(careerContext);
     const userTurnContent = documentContext
       ? `${documentContext}\n\n---\n\nUser question:\n${message}`
@@ -90,6 +160,13 @@ export async function POST(req: Request) {
       attachments: attachments,
       sentAt: new Date(),
     });
+
+    // Persist early so the client can attach to a threadId while tokens stream
+    if (chat.messages.length === 1 && chat.threadTitle === "AI Study Hub") {
+      chat.threadTitle =
+        message.length > 30 ? message.substring(0, 30) + "..." : message;
+    }
+    await chat.save();
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const apiMessages: any[] = [{ role: "system", content: systemPrompt }];
@@ -147,105 +224,104 @@ export async function POST(req: Request) {
 
     const client = getLlmClient();
     const model = getLlmModel(false, modelSelection);
+    const threadIdStr = String(chat._id);
 
-    const completion = await client.chat.completions.create({
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const docsUsed = documents.map((doc: any) => ({
+      id: doc._id,
+      filename: doc.filename,
+    }));
+
+    const stream = await client.chat.completions.create({
       model,
       messages: apiMessages,
       temperature: 0.6,
+      stream: true,
     });
 
-    const reply =
-      completion.choices[0]?.message?.content ||
-      "I'm sorry, I encountered an issue generating a response. Please try again.";
+    const readable = new ReadableStream({
+      async start(controller) {
+        let fullReply = "";
+        try {
+          controller.enqueue(
+            sseEncode({
+              type: "meta",
+              threadId: threadIdStr,
+              documentsUsed: docsUsed,
+            })
+          );
 
-    chat.messages.push({
-      role: "assistant",
-      content: reply,
-      documentIds: safeDocumentIds,
-      sentAt: new Date(),
-    });
+          for await (const chunk of stream) {
+            const delta = chunk.choices[0]?.delta?.content || "";
+            if (!delta) continue;
+            fullReply += delta;
+            controller.enqueue(
+              sseEncode({
+                type: "token",
+                content: delta,
+              })
+            );
+          }
 
-    if (chat.messages.length === 2 && chat.threadTitle === "AI Study Hub") {
-      chat.threadTitle = message.length > 30 ? message.substring(0, 30) + "..." : message;
-    }
+          if (!fullReply.trim()) {
+            fullReply =
+              "I'm sorry, I encountered an issue generating a response. Please try again.";
+          }
 
-    await chat.save();
+          chat.messages.push({
+            role: "assistant",
+            content: fullReply,
+            documentIds: safeDocumentIds,
+            sentAt: new Date(),
+          });
+          await chat.save();
 
-    await UserProgress.findOneAndUpdate(
-      { userId },
-      {
-        $inc: { tutorSessions: 1 },
-        $set: { lastActive: new Date() },
+          await UserProgress.findOneAndUpdate(
+            { userId },
+            {
+              $inc: { tutorSessions: 1 },
+              $set: { lastActive: new Date() },
+            },
+            { upsert: true, new: true }
+          );
+
+          controller.enqueue(
+            sseEncode({
+              type: "done",
+              threadId: threadIdStr,
+              reply: fullReply,
+            })
+          );
+          controller.close();
+        } catch (err) {
+          console.error("AI Hub stream error:", err);
+          const { message: errMsg } = providerErrorMessage(err);
+          try {
+            controller.enqueue(
+              sseEncode({
+                type: "error",
+                message: errMsg,
+              })
+            );
+          } catch {
+            /* ignore */
+          }
+          controller.close();
+        }
       },
-      { upsert: true, new: true }
-    );
+    });
 
-    return NextResponse.json({
-      reply,
-      threadId: chat._id,
-      messages: chat.messages,
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      documentsUsed: documents.map((doc: any) => ({
-        id: doc._id,
-        filename: doc.filename,
-      })),
+    return new Response(readable, {
+      headers: {
+        "Content-Type": "text/event-stream; charset=utf-8",
+        "Cache-Control": "no-cache, no-transform",
+        Connection: "keep-alive",
+        "X-Accel-Buffering": "no",
+      },
     });
   } catch (error: unknown) {
     console.error("AI Hub chat route error:", error);
-
-    const status =
-      typeof error === "object" &&
-      error !== null &&
-      "status" in error &&
-      typeof (error as { status: unknown }).status === "number"
-        ? (error as { status: number }).status
-        : undefined;
-
-    const providerMessage =
-      typeof error === "object" &&
-      error !== null &&
-      "error" in error &&
-      typeof (error as { error: unknown }).error === "object" &&
-      (error as { error: { message?: string } }).error?.message
-        ? String((error as { error: { message?: string } }).error.message)
-        : error instanceof Error
-          ? error.message
-          : null;
-
-    if (status === 402 || status === 403) {
-      const lower = (providerMessage || "").toLowerCase();
-      const isBalance =
-        lower.includes("insufficient") ||
-        lower.includes("balance") ||
-        lower.includes("quota") ||
-        lower.includes("credit");
-      return NextResponse.json(
-        {
-          message: isBalance
-            ? "Your LLM router has insufficient balance. Top up credits or switch to a cheaper model in .env.local."
-            : providerMessage || "LLM provider rejected the request.",
-        },
-        { status: 502 }
-      );
-    }
-
-    if (status === 401) {
-      return NextResponse.json(
-        { message: "LLM router rejected the API key. Check LLM_ROUTER_API_KEY in .env.local." },
-        { status: 502 }
-      );
-    }
-
-    if (status === 429) {
-      return NextResponse.json(
-        { message: "LLM router rate limit hit. Please wait a moment and try again." },
-        { status: 429 }
-      );
-    }
-
-    return NextResponse.json(
-      { message: providerMessage || "Internal Server Error" },
-      { status: 500 }
-    );
+    const { status, message } = providerErrorMessage(error);
+    return NextResponse.json({ message }, { status: status || 500 });
   }
 }

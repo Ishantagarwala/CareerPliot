@@ -354,20 +354,127 @@ export default function UnifiedChat({
         throw new Error(errorData?.message || "Failed to receive response from AI Study Hub");
       }
 
-      const data = await res.json();
-      setMessages(data.messages);
+      if (!res.body) {
+        throw new Error("No response stream from AI Study Hub");
+      }
 
-      if (!activeThreadId && data.threadId) {
-        setActiveThreadId(data.threadId);
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = "";
+      let streamedThreadId: string | null = null;
+      let fullReply = "";
+      let assistantStarted = false;
+
+      const appendToken = (token: string) => {
+        fullReply += token;
+        if (!assistantStarted) {
+          assistantStarted = true;
+          setMessages((prev) => [
+            ...prev,
+            {
+              role: "assistant",
+              content: token,
+              sentAt: new Date().toISOString(),
+            },
+          ]);
+          return;
+        }
+        setMessages((prev) => {
+          const next = [...prev];
+          for (let i = next.length - 1; i >= 0; i--) {
+            if (next[i].role === "assistant") {
+              next[i] = { ...next[i], content: next[i].content + token };
+              break;
+            }
+          }
+          return next;
+        });
+      };
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, { stream: true });
+        const chunks = buffer.split("\n\n");
+        buffer = chunks.pop() || "";
+
+        for (const chunk of chunks) {
+          const line = chunk
+            .split("\n")
+            .map((l) => l.trim())
+            .find((l) => l.startsWith("data:"));
+          if (!line) continue;
+          const raw = line.replace(/^data:\s?/, "");
+          if (!raw || raw === "[DONE]") continue;
+
+          let event: {
+            type?: string;
+            content?: string;
+            threadId?: string;
+            message?: string;
+            reply?: string;
+          };
+          try {
+            event = JSON.parse(raw);
+          } catch {
+            continue;
+          }
+
+          if (event.type === "meta" && event.threadId) {
+            streamedThreadId = event.threadId;
+            if (!activeThreadId) {
+              setActiveThreadId(event.threadId);
+              onThreadCreated();
+            }
+          } else if (event.type === "token" && event.content) {
+            appendToken(event.content);
+          } else if (event.type === "done") {
+            if (event.threadId) {
+              streamedThreadId = event.threadId;
+              if (!activeThreadId) {
+                setActiveThreadId(event.threadId);
+                onThreadCreated();
+              }
+            }
+            if (event.reply && !fullReply) {
+              fullReply = event.reply;
+              setMessages((prev) => {
+                const next = [...prev];
+                if (!assistantStarted) {
+                  assistantStarted = true;
+                  next.push({
+                    role: "assistant",
+                    content: event.reply || "",
+                    sentAt: new Date().toISOString(),
+                  });
+                  return next;
+                }
+                for (let i = next.length - 1; i >= 0; i--) {
+                  if (next[i].role === "assistant") {
+                    next[i] = { ...next[i], content: event.reply || "" };
+                    break;
+                  }
+                }
+                return next;
+              });
+            }
+          } else if (event.type === "error") {
+            throw new Error(event.message || "AI Study Hub stream error");
+          }
+        }
+      }
+
+      if (!fullReply.trim() && !assistantStarted) {
+        // Keep thinking state only — no empty bubble
+      }
+
+      if (streamedThreadId && !activeThreadId) {
+        setActiveThreadId(streamedThreadId);
         onThreadCreated();
       }
 
-      // Vocalize AI response
-      if (isVoiceChatActive && data.messages && data.messages.length > 0) {
-        const lastMsg = data.messages[data.messages.length - 1];
-        if (lastMsg && lastMsg.role === "assistant") {
-          voice.speakText(lastMsg.content);
-        }
+      if (isVoiceChatActive && fullReply) {
+        voice.speakText(fullReply);
       }
     } catch (error: any) {
       console.error(error);
@@ -576,10 +683,24 @@ export default function UnifiedChat({
               .map((message, index) => (
                 <MessageBubble key={index} message={message as any} />
               ))}
-            {loading && (
+            {loading &&
+              !(
+                messages.length > 0 &&
+                messages[messages.length - 1]?.role === "assistant" &&
+                Boolean(messages[messages.length - 1]?.content)
+              ) && (
               <div className="flex items-center gap-2 text-xs text-muted-foreground px-2 italic">
                 <span className="animate-spin material-symbols-outlined text-[14px]">progress_activity</span>
                 AI is thinking...
+              </div>
+            )}
+            {loading &&
+              messages.length > 0 &&
+              messages[messages.length - 1]?.role === "assistant" &&
+              Boolean(messages[messages.length - 1]?.content) && (
+              <div className="flex items-center gap-1 text-[10px] text-muted-foreground px-2 font-mono tracking-wide">
+                <span className="inline-block h-1.5 w-1.5 rounded-full bg-primary animate-pulse" />
+                streaming
               </div>
             )}
           </div>
