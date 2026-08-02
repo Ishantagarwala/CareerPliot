@@ -9,12 +9,17 @@ import { signIn } from "next-auth/react";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
 import Link from "next/link";
+import TurnstileWidget, {
+  isTurnstileEnabled,
+  resetTurnstile,
+} from "@/components/auth/TurnstileWidget";
 
 const registerSchema = z.object({
   name: z.string().min(2, { message: "Name must be at least 2 characters" }),
   email: z.string().email({ message: "Invalid email address format" }),
   password: z.string().min(6, { message: "Password must be at least 6 characters" }),
   confirmPassword: z.string(),
+  website: z.string().optional(), // honeypot
 }).refine((data) => data.password === data.confirmPassword, {
   message: "Passwords do not match",
   path: ["confirmPassword"],
@@ -25,6 +30,8 @@ type RegisterFormValues = z.infer<typeof registerSchema>;
 export default function RegisterForm() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
+  const [captchaToken, setCaptchaToken] = useState<string | null>(null);
+  const captchaRequired = isTurnstileEnabled();
 
   const {
     register,
@@ -37,10 +44,16 @@ export default function RegisterForm() {
       email: "",
       password: "",
       confirmPassword: "",
+      website: "",
     },
   });
 
   const onSubmit = async (values: RegisterFormValues) => {
+    if (captchaRequired && !captchaToken) {
+      toast.error("Please complete the bot verification challenge.");
+      return;
+    }
+
     setLoading(true);
     try {
       const res = await fetch("/api/auth/register", {
@@ -50,6 +63,8 @@ export default function RegisterForm() {
           name: values.name,
           email: values.email,
           password: values.password,
+          captchaToken,
+          website: values.website,
         }),
       });
 
@@ -57,6 +72,8 @@ export default function RegisterForm() {
 
       if (!res.ok) {
         toast.error(data.message || "Failed to register account.");
+        resetTurnstile();
+        setCaptchaToken(null);
         return;
       }
 
@@ -65,6 +82,8 @@ export default function RegisterForm() {
       const loginRes = await signIn("credentials", {
         email: values.email,
         password: values.password,
+        loginTicket: typeof data.loginTicket === "string" ? data.loginTicket : "",
+        captchaToken: captchaToken || "",
         redirect: false,
       });
 
@@ -79,6 +98,8 @@ export default function RegisterForm() {
     } catch (err) {
       console.error(err);
       toast.error("An unexpected error occurred. Please try again.");
+      resetTurnstile();
+      setCaptchaToken(null);
     } finally {
       setLoading(false);
     }
@@ -104,7 +125,7 @@ export default function RegisterForm() {
           Enter your details below to set up your Career Pilot profile
         </p>
       </div>
-      <form onSubmit={handleSubmit(onSubmit)}>
+      <form onSubmit={handleSubmit(onSubmit)} className="relative">
         <div className="p-6 space-y-4">
           {fields.map((field) => (
             <div key={field.id} className="space-y-2">
@@ -129,11 +150,27 @@ export default function RegisterForm() {
               )}
             </div>
           ))}
+
+          {/* Honeypot — hidden from users, filled by many bots */}
+          <div className="absolute -left-[9999px] opacity-0 h-0 w-0 overflow-hidden" aria-hidden="true">
+            <label htmlFor="website">Website</label>
+            <input
+              id="website"
+              type="text"
+              tabIndex={-1}
+              autoComplete="off"
+              {...register("website")}
+            />
+          </div>
+
+          {captchaRequired && (
+            <TurnstileWidget onToken={setCaptchaToken} className="flex justify-center pt-2" />
+          )}
         </div>
         <div className="p-6 pt-0 space-y-4">
           <button
             type="submit"
-            disabled={loading}
+            disabled={loading || (captchaRequired && !captchaToken)}
             className="w-full py-2.5 bg-white text-[#0A0A0A] font-bold text-xs hover:bg-[#e2e2e2] transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
             style={{ fontFamily: "'JetBrains Mono', monospace", letterSpacing: "0.04em" }}
           >
@@ -141,6 +178,11 @@ export default function RegisterForm() {
               <>
                 <Loader2 className="h-4 w-4 animate-spin" />
                 Registering...
+              </>
+            ) : captchaRequired && !captchaToken ? (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin" />
+                Verifying...
               </>
             ) : (
               <>

@@ -4,6 +4,8 @@ import dbConnect from "@/lib/db";
 import UserProfile from "@/models/UserProfile";
 import CareerRecommendation from "@/models/CareerRecommendation";
 import { generateStructuredJson } from "@/lib/llm";
+import { enforceLlmBudget } from "@/lib/llmGuard";
+import { getClientIp, rateLimit } from "@/lib/security";
 
 interface LlmRecommendation {
   careerPath: string;
@@ -23,6 +25,18 @@ export async function POST(req: Request) {
     }
 
     const userId = session.user.id;
+    const ip = getClientIp(req);
+
+    if (!rateLimit(`career-assess:ip:${ip}`, 10, 60 * 60 * 1000)) {
+      return NextResponse.json(
+        { message: "Too many assessment requests from this network." },
+        { status: 429 }
+      );
+    }
+
+    const limited = enforceLlmBudget(userId, "career-assess", 5);
+    if (limited) return limited;
+
     const { interests, goals, subjects, skills } = await req.json();
 
     if (!interests || !goals || !subjects || !skills) {

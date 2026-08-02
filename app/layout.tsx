@@ -5,6 +5,7 @@ import { SessionProvider } from "next-auth/react";
 import { Toaster } from "@/components/ui/sonner";
 import { ThemeProvider } from "@/components/layout/ThemeProvider";
 import { AccentColorProvider } from "@/components/layout/AccentColor";
+import CloudflareBotGuard from "@/components/security/CloudflareBotGuard";
 import dns from "dns";
 
 try {
@@ -61,6 +62,7 @@ export default function RootLayout({
             storageKey="cp-theme"
           >
             <AccentColorProvider>
+              <CloudflareBotGuard />
               {children}
               <Toaster position="top-right" richColors />
             </AccentColorProvider>

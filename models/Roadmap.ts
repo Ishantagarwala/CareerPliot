@@ -35,4 +35,7 @@ const RoadmapSchema = new Schema<IRoadmap>({
   currentStage: { type: String, default: 'beginner', enum: ['beginner', 'intermediate', 'advanced'] },
 }, { timestamps: true });
 
+// One cached roadmap per user + career path so switching paths can reuse LLM results
+RoadmapSchema.index({ userId: 1, careerPath: 1 }, { unique: true });
+
 export default mongoose.models.Roadmap || mongoose.model<IRoadmap>('Roadmap', RoadmapSchema);

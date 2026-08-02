@@ -4,6 +4,7 @@ import dbConnect from "@/lib/db";
 import UserProgress from "@/models/UserProgress";
 import Roadmap from "@/models/Roadmap";
 import Document from "@/models/Document";
+import CareerRecommendation from "@/models/CareerRecommendation";
 
 // Helper function to update the user active streak
 async function getOrUpdateProgress(userId: string) {
@@ -71,9 +72,18 @@ export async function GET() {
       await progress.save();
     }
 
-    // 3. Aggregate roadmap milestone progression
-    const roadmap = await Roadmap.findOne({ userId });
-    
+    // 3. Aggregate roadmap milestone progression for the selected career path
+    const selectedRecommendation = await CareerRecommendation.findOne({
+      userId,
+      selected: true,
+    });
+    const roadmap = selectedRecommendation
+      ? await Roadmap.findOne({
+          userId,
+          careerPath: selectedRecommendation.careerPath,
+        })
+      : null;
+
     let totalMilestones = 0;
     let completedMilestones = 0;
     

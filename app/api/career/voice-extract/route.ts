@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { generateStructuredJson } from "@/lib/llm";
+import { enforceLlmBudget } from "@/lib/llmGuard";
 
 interface ExtractedProfile {
   interests: string[];
@@ -12,9 +13,12 @@ interface ExtractedProfile {
 export async function POST(req: Request) {
   try {
     const session = await auth();
-    if (!session || !session.user) {
+    if (!session || !session.user || !session.user.id) {
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }
+
+    const limited = enforceLlmBudget(session.user.id, "voice-extract", 10);
+    if (limited) return limited;
 
     const { conversation } = await req.json();
     if (!conversation || !Array.isArray(conversation)) {

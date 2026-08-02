@@ -137,10 +137,13 @@ Make sure you have the following installed:
     ```env
     AUTH_SECRET=your_auth_secret_here
     MONGODB_URI=mongodb+srv://user:password@cluster.mongodb.net/careerpilot
-    ZENMUX_API_KEY=your_zenmux_api_key_here
-    ZENMUX_BASE_URL=https://zenmux.ai/api/v1
-    ZENMUX_MODEL=openai/gpt-4o-mini
-    ZENMUX_PDF_MODEL=openai/gpt-4o
+
+    # OpenAI-compatible LLM router (required)
+    LLM_ROUTER_API_KEY=your_router_api_key
+    LLM_ROUTER_BASE_URL=https://your-router.example.com/v1
+    LLM_ROUTER_MODEL=zeus/claude-opus-5
+    LLM_ROUTER_PDF_MODEL=posiden/deepseek-v4-flash
+    LLM_ROUTER_FALLBACK_MODEL=posiden/deepseek-v4-flash
     ```
 
    Generate an Auth.js secret with:
@@ -152,7 +155,6 @@ Make sure you have the following installed:
 
    | Variable | Purpose |
    | :--- | :--- |
-   | `GEMINI_API_KEY` or `OPENAI_API_KEY` | Alternative AI provider |
    | `PDF_CO_API_KEY` | OCR fallback for scanned/image-only PDFs |
    | `YOUTUBE_API_KEY` | Long-form YouTube course recommendations |
    | `RAPIDAPI_KEY` | JSearch jobs sourced from LinkedIn, Indeed and Glassdoor |
@@ -168,8 +170,8 @@ Make sure you have the following installed:
 ### Deployment on Vercel
 
 1. Import this GitHub repository into Vercel.
-2. Add `AUTH_SECRET`, `MONGODB_URI`, and an AI provider key under **Project Settings → Environment Variables**.
-3. Add optional provider keys as needed.
+2. Add `AUTH_SECRET`, `MONGODB_URI`, `LLM_ROUTER_API_KEY`, and `LLM_ROUTER_BASE_URL` under **Project Settings → Environment Variables**.
+3. Add optional keys (`YOUTUBE_API_KEY`, Turnstile, etc.) as needed.
 4. Deploy. The PDF worker is statically bundled for Vercel serverless compatibility.
 
 > Never commit `.env.local` or real credentials.

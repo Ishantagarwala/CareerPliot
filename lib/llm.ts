@@ -1,85 +1,83 @@
 import OpenAI from "openai";
 import type { ChatCompletionCreateParamsNonStreaming } from "openai/resources/chat/completions";
 
-/**
- * Returns the configured OpenAI client.
- * If ZENMUX_API_KEY is present, it uses ZenMux's OpenAI-compatible endpoint.
- * If GEMINI_API_KEY is present, it configures the client to point to the Google Gemini API endpoint.
- * Otherwise, it uses the standard OpenAI API.
- */
-export function getLlmClient(): OpenAI {
-  const zenMuxKey = process.env.ZENMUX_API_KEY?.trim();
-  const zenMuxBaseUrl = process.env.ZENMUX_BASE_URL?.trim() || "https://zenmux.ai/api/v1";
-  const geminiKey = process.env.GEMINI_API_KEY?.trim();
-  const openAiKey = process.env.OPENAI_API_KEY?.trim();
+const isPlaceholder = (val?: string) =>
+  !val ||
+  val.includes("your_") ||
+  val.includes("_here") ||
+  val === "dummy-key";
 
-  const isPlaceholder = (val?: string) => 
-    !val || 
-    val.includes("your_") || 
-    val.includes("_here") || 
-    val === "dummy-key";
+function requireRouterConfig(): { apiKey: string; baseURL: string } {
+  const apiKey = process.env.LLM_ROUTER_API_KEY?.trim();
+  const baseURL = process.env.LLM_ROUTER_BASE_URL?.trim();
 
-  if (zenMuxKey && !isPlaceholder(zenMuxKey)) {
-    return new OpenAI({
-      apiKey: zenMuxKey,
-      baseURL: zenMuxBaseUrl,
-    });
+  if (!apiKey || isPlaceholder(apiKey) || !baseURL) {
+    throw new Error(
+      "LLM router is not configured. Set LLM_ROUTER_API_KEY and LLM_ROUTER_BASE_URL in .env.local."
+    );
   }
 
-  if (geminiKey && !isPlaceholder(geminiKey)) {
-    return new OpenAI({
-      apiKey: geminiKey,
-      baseURL: "https://generativelanguage.googleapis.com/v1beta/openai/",
-    });
-  }
-
-  return new OpenAI({
-    apiKey: isPlaceholder(openAiKey) ? "dummy-key" : openAiKey!,
-  });
+  return { apiKey, baseURL };
 }
 
+/** OpenAI-compatible client pointed at the configured LLM router. */
+export function getLlmClient(): OpenAI {
+  const { apiKey, baseURL } = requireRouterConfig();
+  return new OpenAI({ apiKey, baseURL });
+}
+
+const FLAGSHIP_MODEL = "zeus/claude-opus-5";
+const FALLBACK_MODEL = "posiden/deepseek-v4-flash";
+
 /**
- * Returns the model name to use.
- * Defaults to a ZenMux OpenAI model if ZENMUX_API_KEY is present,
- * "gemini-3.1-flash-lite" (or "gemini-3-flash" for PDF) if GEMINI_API_KEY is present,
- * or "gpt-4o-mini" (or "gpt-4o" for PDF) if using OpenAI. Can be overridden via environment variables.
+ * Model id for the LLM router.
+ * - Explicit AI Hub selections (full model ids) are passed through
+ * - Default: LLM_ROUTER_MODEL (flagship)
+ * - Fallback: LLM_ROUTER_FALLBACK_MODEL or deepseek-v4-flash
  */
 export function getLlmModel(isPdf = false, modelSelection?: string): string {
-  const zenMuxKey = process.env.ZENMUX_API_KEY?.trim();
-  const geminiKey = process.env.GEMINI_API_KEY?.trim();
+  const flagship =
+    process.env.LLM_ROUTER_MODEL?.trim() || FLAGSHIP_MODEL;
+  const fallback =
+    process.env.LLM_ROUTER_FALLBACK_MODEL?.trim() ||
+    process.env.LLM_ROUTER_PDF_MODEL?.trim() ||
+    FALLBACK_MODEL;
 
-  const isPlaceholder = (val?: string) => 
-    !val || 
-    val.includes("your_") || 
-    val.includes("_here");
-
-  if (modelSelection && modelSelection !== "primary" && modelSelection !== "opus" && modelSelection !== "gemini") {
+  if (
+    modelSelection &&
+    modelSelection !== "primary" &&
+    modelSelection !== "opus" &&
+    modelSelection !== "gemini"
+  ) {
     return modelSelection;
   }
 
-  if (zenMuxKey && !isPlaceholder(zenMuxKey)) {
-    if (modelSelection === "opus") {
-      return "anthropic/claude-opus-4.6";
-    }
-    if (modelSelection === "gemini") {
-      return "google/gemini-3.5-flash";
-    }
-    if (isPdf) {
-      return process.env.ZENMUX_PDF_MODEL || process.env.ZENMUX_MODEL || "openai/gpt-5.5";
-    }
-    return process.env.ZENMUX_MODEL || "openai/gpt-5.5";
+  if (modelSelection === "opus") {
+    return (
+      process.env.LLM_ROUTER_OPUS_MODEL?.trim() ||
+      flagship
+    );
   }
 
-  if (geminiKey && !isPlaceholder(geminiKey)) {
-    if (isPdf) {
-      return process.env.GEMINI_PDF_MODEL || "gemini-3.5-flash";
-    }
-    return process.env.GEMINI_MODEL || "gemini-3.5-flash";
+  if (modelSelection === "gemini") {
+    return (
+      process.env.LLM_ROUTER_GEMINI_MODEL?.trim() ||
+      fallback
+    );
   }
+
+  // PDF / lighter workloads prefer the fast fallback unless PDF model is set
   if (isPdf) {
-    return process.env.OPENAI_PDF_MODEL || "gpt-5.5";
+    return process.env.LLM_ROUTER_PDF_MODEL?.trim() || fallback;
   }
-  return process.env.OPENAI_MODEL || "gpt-5.5";
+
+  return flagship;
+}
+
+/** Many routers reject response_format=json_object; enable with LLM_ROUTER_JSON_MODE=true. */
+function skipJsonResponseFormat(): boolean {
+  const flag = process.env.LLM_ROUTER_JSON_MODE?.trim().toLowerCase();
+  return flag !== "1" && flag !== "true" && flag !== "yes";
 }
 
 function extractJsonContent(content: string): string {
@@ -98,10 +96,7 @@ function extractJsonContent(content: string): string {
   return trimmed;
 }
 
-/**
- * Helper to call the LLM and expect a JSON response.
- * Handles setting up system prompts, user prompts, and parsing the output.
- */
+/** Call the LLM router and parse a JSON response. */
 export async function generateStructuredJson<T>(
   systemPrompt: string,
   userPrompt: string,
@@ -121,7 +116,7 @@ export async function generateStructuredJson<T>(
     };
 
     const response = await client.chat.completions.create(
-      process.env.ZENMUX_API_KEY
+      skipJsonResponseFormat()
         ? request
         : { ...request, response_format: { type: "json_object" } }
     );

@@ -11,6 +11,7 @@ import {
 } from "@/lib/resume";
 import { extractTextFromPdf } from "@/lib/pdf";
 import { MAX_UPLOAD_BYTES, sniffFileType } from "@/lib/security";
+import { enforceLlmBudget } from "@/lib/llmGuard";
 
 export const dynamic = "force-dynamic";
 // PDF parsing + LLM analysis can exceed the default 10s function limit.
@@ -22,6 +23,9 @@ export async function POST(req: Request) {
     if (!session?.user?.id) {
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }
+
+    const limited = enforceLlmBudget(session.user.id, "ats-analyze", 10);
+    if (limited) return limited;
 
     const contentType = req.headers.get("content-type") || "";
     let resumeText = "";

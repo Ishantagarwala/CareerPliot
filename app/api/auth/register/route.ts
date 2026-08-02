@@ -3,19 +3,53 @@ import dbConnect from '@/lib/db';
 import User from '@/models/User';
 import bcrypt from 'bcryptjs';
 import { getClientIp, rateLimit } from '@/lib/security';
+import {
+  DEMO_ACCOUNT_EMAIL,
+  createLoginTicket,
+  isDisposableEmail,
+  isRegistrationDisabled,
+  verifyTurnstileToken,
+} from '@/lib/captcha';
 import dns from 'dns';
+
+const HOUR = 60 * 60 * 1000;
 
 export async function POST(req: Request) {
   try {
     const ip = getClientIp(req);
-    if (!rateLimit(`register:ip:${ip}`, 10, 60 * 60 * 1000)) {
+
+    const body = await req.json();
+    const { name, email, password, captchaToken, website } = body;
+    const normalizedEmailEarly =
+      typeof email === "string" ? email.toLowerCase().trim() : "";
+
+    // Emergency kill switch — set DISABLE_REGISTRATION=true during an active attack
+    // (demo account still allowed so demos keep working)
+    if (
+      isRegistrationDisabled() &&
+      normalizedEmailEarly !== DEMO_ACCOUNT_EMAIL
+    ) {
+      return NextResponse.json(
+        { message: 'Registration is temporarily disabled. Please try again later.' },
+        { status: 503 }
+      );
+    }
+
+    // Tight IP limit (in-memory; still helps on single-instance / sticky traffic)
+    if (!rateLimit(`register:ip:${ip}`, 3, HOUR)) {
       return NextResponse.json(
         { message: 'Too many registration attempts. Try again later.' },
         { status: 429 }
       );
     }
 
-    const { name, email, password } = await req.json();
+    // Honeypot — bots often fill hidden fields; humans leave them empty
+    if (typeof website === 'string' && website.trim().length > 0) {
+      return NextResponse.json(
+        { message: 'Registration rejected.' },
+        { status: 400 }
+      );
+    }
 
     if (!name || !email || !password) {
       return NextResponse.json(
@@ -24,7 +58,6 @@ export async function POST(req: Request) {
       );
     }
 
-    // Simple email validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
       return NextResponse.json(
@@ -41,10 +74,29 @@ export async function POST(req: Request) {
     }
 
     const normalizedEmail = String(email).toLowerCase().trim();
-    if (!rateLimit(`register:email:${normalizedEmail}`, 5, 60 * 60 * 1000)) {
+
+    if (isDisposableEmail(normalizedEmail)) {
+      return NextResponse.json(
+        { message: 'Please use a permanent email address.' },
+        { status: 400 }
+      );
+    }
+
+    if (!rateLimit(`register:email:${normalizedEmail}`, 2, HOUR)) {
       return NextResponse.json(
         { message: 'Too many registration attempts. Try again later.' },
         { status: 429 }
+      );
+    }
+
+    const captcha = await verifyTurnstileToken(captchaToken, {
+      email: normalizedEmail,
+      ip,
+    });
+    if (!captcha.ok) {
+      return NextResponse.json(
+        { message: captcha.reason || 'Captcha failed' },
+        { status: 400 }
       );
     }
 
@@ -54,7 +106,6 @@ export async function POST(req: Request) {
 
     await dbConnect();
 
-    // Check if user already exists
     const existingUser = await User.findOne({ email: normalizedEmail });
     if (existingUser) {
       return NextResponse.json(
@@ -63,18 +114,26 @@ export async function POST(req: Request) {
       );
     }
 
-    // Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Create user
     const user = await User.create({
       name,
       email: normalizedEmail,
       password: hashedPassword,
     });
 
+    // Extra global throttle for brand-new accounts (not demo)
+    if (normalizedEmail !== DEMO_ACCOUNT_EMAIL) {
+      rateLimit(`register:global:${ip}`, 5, HOUR);
+    }
+
     return NextResponse.json(
-      { message: 'User registered successfully', userId: user._id },
+      {
+        message: 'User registered successfully',
+        userId: user._id,
+        // Lets the client auto-login without solving Turnstile twice
+        loginTicket: createLoginTicket(normalizedEmail),
+      },
       { status: 201 }
     );
   } catch (error) {

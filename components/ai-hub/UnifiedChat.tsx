@@ -55,17 +55,34 @@ function ModelPicker({
     if (id === "primary") return "Default Model";
     if (id === "opus") return "Claude 4.6 Opus";
     if (id === "gemini") return "Gemini 3.5 Flash";
-    const parts = id.split("/");
-    const mainName = parts[1] || parts[0];
-    return mainName
-      .split("-")
+
+    const slash = id.indexOf("/");
+    const provider = slash === -1 ? "" : id.slice(0, slash);
+    const mainName = slash === -1 ? id : id.slice(slash + 1);
+    const pretty = mainName
+      .split(/[-_]/)
+      .filter(Boolean)
       .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
       .join(" ");
+
+    // Include provider so similarly named models stay distinguishable
+    return provider ? `${pretty} · ${provider}` : pretty;
   };
 
-  const modelsList = availableModels.length > 0 
-    ? availableModels 
-    : ["primary", "opus", "gemini"];
+  // Deduplicate defensively on the client too (by base model name)
+  const modelsList = (() => {
+    const source =
+      availableModels.length > 0 ? availableModels : ["primary", "opus", "gemini"];
+    const seen = new Set<string>();
+    const out: string[] = [];
+    for (const id of source) {
+      const base = id.includes("/") ? id.split("/").slice(1).join("/").toLowerCase() : id.toLowerCase();
+      if (seen.has(base)) continue;
+      seen.add(base);
+      out.push(id);
+    }
+    return out;
+  })();
 
   return (
     <div className="relative">
@@ -82,7 +99,7 @@ function ModelPicker({
         <>
           <div className="fixed inset-0 z-40" onClick={() => setShowModelDropdown(false)} />
           <div
-            className={`absolute z-50 min-w-[160px] bg-card border-2 border-border p-1 shadow-lg rounded-xl flex flex-col gap-0.5 max-h-[250px] overflow-y-auto ${
+            className={`absolute z-50 min-w-[220px] bg-card border-2 border-border p-1 shadow-lg rounded-xl flex flex-col gap-0.5 max-h-[280px] overflow-y-auto ${
               placement === "up" ? "bottom-full mb-2" : "top-full mt-2"
             }`}
           >
@@ -162,12 +179,13 @@ export default function UnifiedChat({
         const res = await fetch("/api/ai-hub/models");
         if (res.ok) {
           const data = await res.json();
-          if (data.models && data.models.length > 0) {
+          if (Array.isArray(data.models) && data.models.length > 0) {
             setAvailableModels(data.models);
-            // Default to 'zeus/claude-opus-5' if available, otherwise first model
-            const defaultModel = data.models.includes("zeus/claude-opus-5")
-              ? "zeus/claude-opus-5"
-              : data.models[0];
+            const preferred = process.env.NEXT_PUBLIC_LLM_ROUTER_MODEL?.trim();
+            const defaultModel =
+              (typeof data.defaultModel === "string" && data.defaultModel) ||
+              (preferred && data.models.includes(preferred) && preferred) ||
+              data.models[0];
             setSelectedModel(defaultModel);
           }
         }

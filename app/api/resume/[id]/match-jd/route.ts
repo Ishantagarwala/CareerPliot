@@ -4,6 +4,7 @@ import dbConnect from "@/lib/db";
 import Resume from "@/models/Resume";
 import { buildJdMatchPrompts, resumeToPlainText } from "@/lib/resume";
 import { generateStructuredJson } from "@/lib/llm";
+import { enforceLlmBudget } from "@/lib/llmGuard";
 
 interface RouteContext {
   params: Promise<{ id: string }>;
@@ -23,6 +24,9 @@ export async function POST(req: Request, { params }: RouteContext) {
     if (!session?.user?.id) {
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }
+
+    const limited = enforceLlmBudget(session.user.id, "resume-jd", 10);
+    if (limited) return limited;
 
     const { id } = await params;
     const { jobDescription } = await req.json();

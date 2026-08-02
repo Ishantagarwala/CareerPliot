@@ -15,6 +15,7 @@ import {
   sniffFileType,
   toUploadFileUrl,
 } from "@/lib/security";
+import { enforceLlmBudget } from "@/lib/llmGuard";
 
 export const dynamic = "force-dynamic";
 // PDF parsing + LLM summarization can exceed the default 10s function limit.
@@ -40,9 +41,12 @@ export async function POST(req: Request) {
     }
 
     const userId = session.user.id;
-    if (!rateLimit(`ai-upload:${userId}`, 30, 60 * 60 * 1000)) {
+    if (!rateLimit(`ai-upload:${userId}`, 15, 60 * 60 * 1000)) {
       return NextResponse.json({ message: "Too many uploads. Try again later." }, { status: 429 });
     }
+
+    const limited = enforceLlmBudget(userId, "ai-upload", 15);
+    if (limited) return limited;
 
     const formData = await req.formData();
     const file = formData.get("file") as File;

@@ -5,6 +5,7 @@ import User from '@/models/User';
 import bcrypt from 'bcryptjs';
 import { authConfig } from './auth.config';
 import { rateLimit } from './security';
+import { requireBotVerification } from './captcha';
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
   ...authConfig,
@@ -14,6 +15,8 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       credentials: {
         email: { label: 'Email', type: 'text' },
         password: { label: 'Password', type: 'password' },
+        captchaToken: { label: 'Captcha', type: 'text' },
+        loginTicket: { label: 'Login Ticket', type: 'text' },
       },
       async authorize(credentials) {
         // Reject non-string inputs to prevent NoSQL operator injection
@@ -27,9 +30,26 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
 
         const email = credentials.email.toLowerCase();
         const password = credentials.password;
+        const captchaToken =
+          typeof credentials.captchaToken === 'string'
+            ? credentials.captchaToken
+            : undefined;
+        const loginTicket =
+          typeof credentials.loginTicket === 'string'
+            ? credentials.loginTicket
+            : undefined;
 
         // Best-effort brute-force throttling, keyed per account.
-        if (!rateLimit(`login:${email}`, 10, 60_000)) {
+        if (!rateLimit(`login:${email}`, 5, 60_000)) {
+          return null;
+        }
+
+        const bot = await requireBotVerification({
+          email,
+          captchaToken,
+          loginTicket,
+        });
+        if (!bot.ok) {
           return null;
         }
 
@@ -55,4 +75,3 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     }),
   ],
 });
-

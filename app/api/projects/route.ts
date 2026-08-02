@@ -6,6 +6,7 @@ import Hackathon from "@/models/Hackathon";
 import UserProfile from "@/models/UserProfile";
 import { generateStructuredJson } from "@/lib/llm";
 import { formatHackathonPrize } from "@/lib/formatHackathonPrize";
+import { enforceLlmBudget } from "@/lib/llmGuard";
 
 export const dynamic = "force-dynamic";
 
@@ -152,6 +153,9 @@ export async function POST(req: Request) {
     if (!session || !session.user || !session.user.id) {
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }
+
+    const limited = enforceLlmBudget(session.user.id, "projects", 5);
+    if (limited) return limited;
 
     await dbConnect();
 

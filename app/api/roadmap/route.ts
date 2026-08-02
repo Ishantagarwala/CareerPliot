@@ -5,6 +5,7 @@ import Roadmap from "@/models/Roadmap";
 import CareerRecommendation from "@/models/CareerRecommendation";
 import UserProfile from "@/models/UserProfile";
 import { generateStructuredJson } from "@/lib/llm";
+import { enforceLlmBudget } from "@/lib/llmGuard";
 
 interface LlmMilestone {
   title: string;
@@ -30,23 +31,10 @@ export async function GET() {
 
     await dbConnect();
 
-    // 2. Find selected career path
     const selectedRecommendation = await CareerRecommendation.findOne({
       userId,
       selected: true,
     });
-
-    // 1. Check if roadmap already exists
-    let roadmap = await Roadmap.findOne({ userId });
-    if (roadmap) {
-      if (selectedRecommendation && roadmap.careerPath !== selectedRecommendation.careerPath) {
-        // Career path changed! Delete the old roadmap to force regeneration
-        await Roadmap.deleteOne({ _id: roadmap._id });
-        roadmap = null;
-      } else {
-        return NextResponse.json(roadmap.toJSON());
-      }
-    }
 
     if (!selectedRecommendation) {
       return NextResponse.json(
@@ -55,13 +43,24 @@ export async function GET() {
       );
     }
 
-    // 3. Fetch UserProfile to customize roadmap milestones to student's background
+    const careerPath = selectedRecommendation.careerPath;
+
+    // Reuse a cached roadmap for this career path — do not delete other paths'
+    // roadmaps when switching, so switching back stays instant (no LLM).
+    let roadmap = await Roadmap.findOne({ userId, careerPath });
+    if (roadmap) {
+      return NextResponse.json(roadmap.toJSON());
+    }
+
+    const limited = enforceLlmBudget(userId, "roadmap", 5);
+    if (limited) return limited;
+
+    // Fetch UserProfile to customize roadmap milestones to student's background
     const userProfile = await UserProfile.findOne({ userId });
     const skillsList = userProfile?.skills
       ? userProfile.skills.map((s: { name: string; level: string }) => `${s.name} (${s.level})`).join(", ")
       : "None listed";
-    
-    // 4. Query LLM to generate stage-wise roadmap
+
     const systemPrompt = `You are a curriculum design expert. Create a detailed, sequential learning roadmap for a student transitioning into the specified career path.
 The roadmap must be structured into exactly three stages: "beginner", "intermediate", and "advanced".
 Each stage must contain exactly 3-4 structured milestones.
@@ -80,7 +79,7 @@ Return your response ONLY as a JSON object matching this structure:
   ]
 }`;
 
-    const userPrompt = `Career Path: ${selectedRecommendation.careerPath}
+    const userPrompt = `Career Path: ${careerPath}
 Student's Current Profile:
 - Interests: ${userProfile?.interests?.join(", ") || "General"}
 - Goals: ${userProfile?.goals || "Build a successful career"}
@@ -94,7 +93,6 @@ Generate a personalized roadmap tailored for this student.`;
       throw new Error("Invalid output format from LLM for learning roadmap");
     }
 
-    // 5. Build and save new roadmap
     const roadmapStages = llmResult.stages.map((stage) => ({
       name: stage.name,
       milestones: stage.milestones.map((m) => ({
@@ -105,7 +103,7 @@ Generate a personalized roadmap tailored for this student.`;
 
     roadmap = await Roadmap.create({
       userId,
-      careerPath: selectedRecommendation.careerPath,
+      careerPath,
       stages: roadmapStages,
       currentStage: "beginner",
     });

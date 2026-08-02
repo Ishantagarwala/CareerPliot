@@ -7,6 +7,7 @@ import Document from "@/models/Document";
 import UserProgress from "@/models/UserProgress";
 import { buildAiHubSystemPrompt, buildDocumentContext } from "@/lib/aiHub";
 import { getLlmClient, getLlmModel } from "@/lib/llm";
+import { enforceLlmBudget } from "@/lib/llmGuard";
 import {
   isOwnedUploadFilename,
   rateLimit,
@@ -24,9 +25,12 @@ export async function POST(req: Request) {
     }
 
     const userId = session.user.id;
-    if (!rateLimit(`ai-chat:${userId}`, 60, 60 * 60 * 1000)) {
+    if (!rateLimit(`ai-chat:${userId}`, 30, 60 * 60 * 1000)) {
       return NextResponse.json({ message: "Too many chat requests. Try again later." }, { status: 429 });
     }
+
+    const limited = enforceLlmBudget(userId, "ai-hub-chat", 30);
+    if (limited) return limited;
 
     const { message, documentIds = [], threadId, attachments = [], modelSelection } = await req.json();
 
@@ -186,8 +190,62 @@ export async function POST(req: Request) {
         filename: doc.filename,
       })),
     });
-  } catch (error) {
+  } catch (error: unknown) {
     console.error("AI Hub chat route error:", error);
-    return NextResponse.json({ message: "Internal Server Error" }, { status: 500 });
+
+    const status =
+      typeof error === "object" &&
+      error !== null &&
+      "status" in error &&
+      typeof (error as { status: unknown }).status === "number"
+        ? (error as { status: number }).status
+        : undefined;
+
+    const providerMessage =
+      typeof error === "object" &&
+      error !== null &&
+      "error" in error &&
+      typeof (error as { error: unknown }).error === "object" &&
+      (error as { error: { message?: string } }).error?.message
+        ? String((error as { error: { message?: string } }).error.message)
+        : error instanceof Error
+          ? error.message
+          : null;
+
+    if (status === 402 || status === 403) {
+      const lower = (providerMessage || "").toLowerCase();
+      const isBalance =
+        lower.includes("insufficient") ||
+        lower.includes("balance") ||
+        lower.includes("quota") ||
+        lower.includes("credit");
+      return NextResponse.json(
+        {
+          message: isBalance
+            ? "Your LLM router has insufficient balance. Top up credits or switch to a cheaper model in .env.local."
+            : providerMessage || "LLM provider rejected the request.",
+        },
+        { status: 502 }
+      );
+    }
+
+    if (status === 401) {
+      return NextResponse.json(
+        { message: "LLM router rejected the API key. Check LLM_ROUTER_API_KEY in .env.local." },
+        { status: 502 }
+      );
+    }
+
+    if (status === 429) {
+      return NextResponse.json(
+        { message: "LLM router rate limit hit. Please wait a moment and try again." },
+        { status: 429 }
+      );
+    }
+
+    return NextResponse.json(
+      { message: providerMessage || "Internal Server Error" },
+      { status: 500 }
+    );
   }
 }

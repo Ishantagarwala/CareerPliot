@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import dbConnect from "@/lib/db";
 import Roadmap from "@/models/Roadmap";
+import CareerRecommendation from "@/models/CareerRecommendation";
 
 export async function PUT(req: Request) {
   try {
@@ -19,7 +20,22 @@ export async function PUT(req: Request) {
 
     await dbConnect();
 
-    const roadmap = await Roadmap.findOne({ userId });
+    const selectedRecommendation = await CareerRecommendation.findOne({
+      userId,
+      selected: true,
+    });
+
+    if (!selectedRecommendation) {
+      return NextResponse.json(
+        { message: "No career path selected yet." },
+        { status: 404 }
+      );
+    }
+
+    const roadmap = await Roadmap.findOne({
+      userId,
+      careerPath: selectedRecommendation.careerPath,
+    });
     if (!roadmap) {
       return NextResponse.json({ message: "Roadmap not found" }, { status: 404 });
     }

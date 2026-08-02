@@ -9,6 +9,10 @@ import { signIn } from "next-auth/react";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
 import Link from "next/link";
+import TurnstileWidget, {
+  isTurnstileEnabled,
+  resetTurnstile,
+} from "@/components/auth/TurnstileWidget";
 
 const loginSchema = z.object({
   email: z.string().email({ message: "Invalid email address format" }),
@@ -23,7 +27,9 @@ export default function LoginForm() {
   const [loading, setLoading] = useState(false);
   const [demoLoading, setDemoLoading] = useState(false);
   const [demoStep, setDemoStep] = useState("");
+  const [captchaToken, setCaptchaToken] = useState<string | null>(null);
   const demoStarted = useRef(false);
+  const captchaRequired = isTurnstileEnabled();
 
   const handleDemoLogin = async () => {
     if (demoLoading) return;
@@ -31,6 +37,7 @@ export default function LoginForm() {
     setDemoStep("Creating demo account...");
     try {
       // 1. Ensure demo user exists (ignore "already registered" responses).
+      // Demo email bypasses captcha server-side.
       const registerRes = await fetch("/api/auth/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -53,6 +60,8 @@ export default function LoginForm() {
       const res = await signIn("credentials", {
         email: "demo@careerpilot.com",
         password: "demo1234",
+        captchaToken: "",
+        loginTicket: "",
         redirect: false,
       });
 
@@ -113,16 +122,25 @@ export default function LoginForm() {
   });
 
   const onSubmit = async (values: LoginFormValues) => {
+    if (captchaRequired && !captchaToken) {
+      toast.error("Please complete the bot verification challenge.");
+      return;
+    }
+
     setLoading(true);
     try {
       const res = await signIn("credentials", {
         email: values.email,
         password: values.password,
+        captchaToken: captchaToken || "",
+        loginTicket: "",
         redirect: false,
       });
 
       if (res?.error) {
-        toast.error("Invalid credentials, please check your email and password.");
+        toast.error("Invalid credentials or bot verification failed. Please try again.");
+        resetTurnstile();
+        setCaptchaToken(null);
       } else {
         toast.success("Successfully logged in!");
         router.push("/dashboard");
@@ -131,6 +149,8 @@ export default function LoginForm() {
     } catch (err) {
       console.error(err);
       toast.error("An unexpected error occurred. Please try again.");
+      resetTurnstile();
+      setCaptchaToken(null);
     } finally {
       setLoading(false);
     }
@@ -220,11 +240,15 @@ export default function LoginForm() {
               <p className="text-xs text-[#ffb4ab] mt-1">{errors.password.message}</p>
             )}
           </div>
+
+          {captchaRequired && (
+            <TurnstileWidget onToken={setCaptchaToken} className="pt-2" />
+          )}
         </div>
         <div className="p-6 pt-0 space-y-4">
           <button
             type="submit"
-            disabled={loading}
+            disabled={loading || (captchaRequired && !captchaToken)}
             className="w-full py-2.5 bg-white text-[#0A0A0A] font-bold text-xs hover:bg-[#e2e2e2] transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
             style={{ fontFamily: "'JetBrains Mono', monospace", letterSpacing: "0.04em" }}
           >
@@ -232,6 +256,11 @@ export default function LoginForm() {
               <>
                 <Loader2 className="h-4 w-4 animate-spin" />
                 Logging in...
+              </>
+            ) : captchaRequired && !captchaToken ? (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin" />
+                Verifying...
               </>
             ) : (
               <>

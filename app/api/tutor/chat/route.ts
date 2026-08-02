@@ -5,6 +5,7 @@ import ChatHistory from "@/models/ChatHistory";
 import CareerRecommendation from "@/models/CareerRecommendation";
 import UserProgress from "@/models/UserProgress";
 import { getLlmClient, getLlmModel } from "@/lib/llm";
+import { enforceLlmBudget } from "@/lib/llmGuard";
 
 export async function POST(req: Request) {
   try {
@@ -14,6 +15,10 @@ export async function POST(req: Request) {
     }
 
     const userId = session.user.id;
+
+    const limited = enforceLlmBudget(userId, "tutor-chat", 30);
+    if (limited) return limited;
+
     const { message } = await req.json();
 
     if (!message || !message.trim()) {
