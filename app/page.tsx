@@ -1,6 +1,7 @@
 import Link from "next/link";
 import Footer from "@/components/layout/Footer";
 import LandingNav from "@/components/layout/LandingNav";
+import { getSiteUrl } from "@/lib/siteUrl";
 
 const modules = [
   {
@@ -81,8 +82,33 @@ const faqs = [
 const shell = "w-full max-w-[1600px] mx-auto px-5 sm:px-8 lg:px-12 xl:px-16";
 
 export default function Home() {
+  const siteUrl = getSiteUrl();
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "WebApplication",
+    name: "Career Pilot",
+    url: siteUrl,
+    applicationCategory: "EducationalApplication",
+    operatingSystem: "Web",
+    description:
+      "AI-powered career discovery, personalized learning roadmaps, courses, jobs, and tutoring for students.",
+    offers: {
+      "@type": "Offer",
+      price: "0",
+      priceCurrency: "USD",
+    },
+    creator: {
+      "@type": "Organization",
+      name: "Career Wallah",
+    },
+  };
+
   return (
     <div className="flex min-h-screen flex-col bg-background text-foreground">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
       <LandingNav />
 
       {/* Hero fills viewport above the marquee */}

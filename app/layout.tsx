@@ -6,6 +6,7 @@ import { Toaster } from "@/components/ui/sonner";
 import { ThemeProvider } from "@/components/layout/ThemeProvider";
 import { AccentColorProvider } from "@/components/layout/AccentColor";
 import CloudflareBotGuard from "@/components/security/CloudflareBotGuard";
+import { getSiteUrl } from "@/lib/siteUrl";
 import dns from "dns";
 
 try {
@@ -30,10 +31,70 @@ const spaceGrotesk = Space_Grotesk({
   weight: ["500", "700"],
 });
 
+const siteUrl = getSiteUrl();
+
 export const metadata: Metadata = {
-  title: "Career Pilot — AI-Powered Career Planning",
+  metadataBase: new URL(siteUrl),
+  title: {
+    default: "Career Pilot — AI-Powered Career Planning",
+    template: "%s | Career Pilot",
+  },
   description:
-    "Navigate your career path with AI-driven discovery, custom roadmaps, filtered courses, notes summarization, and interactive tutoring.",
+    "AI career discovery, personalized learning roadmaps, live courses and jobs, document-aware tutoring, and resume scoring — built for students.",
+  applicationName: "Career Pilot",
+  keywords: [
+    "Career Pilot",
+    "AI career guidance",
+    "career discovery",
+    "learning roadmap",
+    "student career planning",
+    "AI tutor",
+    "resume builder",
+    "job board for students",
+  ],
+  authors: [{ name: "Career Wallah" }],
+  creator: "Career Wallah",
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+    },
+  },
+  alternates: {
+    canonical: "/",
+  },
+  openGraph: {
+    type: "website",
+    locale: "en_US",
+    url: siteUrl,
+    siteName: "Career Pilot",
+    title: "Career Pilot — AI-Powered Career Planning",
+    description:
+      "Discover careers, build roadmaps, learn with AI tutoring, and track your progress — all in one platform.",
+    images: [
+      {
+        url: "/logo.png",
+        width: 512,
+        height: 512,
+        alt: "Career Pilot",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Career Pilot — AI-Powered Career Planning",
+    description:
+      "AI career discovery, roadmaps, courses, jobs, and tutoring for students.",
+    images: ["/logo.png"],
+  },
+  icons: {
+    icon: "/logo.png",
+    apple: "/logo.png",
+  },
 };
 
 export default function RootLayout({

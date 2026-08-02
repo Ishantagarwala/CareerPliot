@@ -160,6 +160,7 @@ Make sure you have the following installed:
 
    | Variable | Purpose |
    | :--- | :--- |
+   | `NEXT_PUBLIC_SITE_URL` | Canonical URL — use `https://www.careerpilot.cc` |
    | `NEXT_PUBLIC_TURNSTILE_SITE_KEY` / `TURNSTILE_SECRET_KEY` | Cloudflare bot verification on auth |
    | `PDF_CO_API_KEY` | OCR fallback for scanned/image-only PDFs |
    | `YOUTUBE_API_KEY` | Long-form YouTube course recommendations |
