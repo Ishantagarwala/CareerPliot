@@ -28,7 +28,7 @@ The interface uses a light-first neo-brutalist design, supports dark mode, inclu
 * **🧭 AI Career Discovery:** Assesses interests, academic preferences, existing skills, and goals to recommend compatible career paths.
 * **🗺️ Personalized Roadmaps:** Generates Beginner → Intermediate → Advanced milestones and tracks completion and readiness.
 * **📚 Live Course Recommendations:** Uses roadmap milestones to find relevant Coursera catalog courses, optional long-form YouTube results, and provider search links.
-* **📄 AI Study Hub:** Upload PDFs, extract text locally, summarize documents, generate questions, and use selected documents as chat context. Uploaded documents can also be deleted from the library.
+* **📄 AI Study Hub:** Upload PDFs, extract text locally, summarize documents, generate questions, and chat with selected documents. Replies stream token-by-token. Uploaded documents can also be deleted from the library.
 * **🤖 Context-Aware AI Tutor:** Supports general tutoring, document-aware questions, code help, attachments, persistent threads, and renamed conversations.
 * **📝 Resume Builder:** Builds printable resumes with personal details, education, experience, projects, skills, certifications, custom sections, LaTeX export, and reliable comma-separated skill/technology entry.
 * **🎯 Resume Score:** Uses a HackerRank hiring-agent-inspired rubric (open source, self-projects, production impact, technical skills, bonuses, and deductions) with a score out of 120.
@@ -48,13 +48,14 @@ The interface uses a light-first neo-brutalist design, supports dark mode, inclu
 Browser
   └─ Next.js 16 App Router + React 19 + Tailwind CSS 4
        ├─ Public landing and Auth.js credential flows
+       │    (Cloudflare Turnstile on login/register)
        ├─ Protected dashboard pages and client-side data fetching
        └─ Route handlers under app/api
             ├─ MongoDB Atlas / Mongoose
             │    users, profiles, roadmaps, progress, resumes,
             │    documents, chat threads, applications and cached news
-            ├─ OpenAI-compatible AI layer
-            │    ZenMux, Gemini or OpenAI
+            ├─ OpenAI-compatible LLM router
+            │    LLM_ROUTER_BASE_URL + API key (streaming AI Hub chat)
             ├─ PDF extraction
             │    pdf-parse locally; optional PDF.co OCR fallback
             └─ External providers
@@ -72,7 +73,8 @@ Browser
 | **Database** | **MongoDB (Atlas)** | Document-based flexible cloud database ideal for rapid feature expansion |
 | **ODM** | **Mongoose 9** | Schema validation and structured MongoDB queries |
 | **Auth** | **NextAuth.js (Auth.js v5)** | Session management, credential login, CSRF protection, and middleware route security |
-| **AI Engine** | **ZenMux / Gemini / OpenAI** | OpenAI-compatible client with configurable primary and PDF models |
+| **Bot protection** | **Cloudflare Turnstile** | Interaction-only verification on login and registration |
+| **AI Engine** | **Custom LLM router** | OpenAI-compatible gateway (`LLM_ROUTER_*`) with flagship + fallback models |
 | **PDF Extraction** | **pdf-parse + optional PDF.co** | Local serverless-compatible extraction with OCR fallback |
 | **Job Providers** | **Remotive, Arbeitnow, RemoteOK, Adzuna, JSearch** | Multi-source live jobs with optional premium providers |
 | **Course Providers** | **Coursera + YouTube Data API** | Roadmap-driven live recommendations and provider deep links |
@@ -87,9 +89,10 @@ CareerPliot/
 ├── app/
 │   ├── (auth)/                   # Login and registration
 │   ├── (dashboard)/              # Protected application pages
-│   └── api/                      # 35 route handlers
+│   └── api/                      # Route handlers
 ├── components/
 │   ├── ai-hub/                   # Document library and unified chat
+│   ├── auth/                     # Login/register + Turnstile
 │   ├── career/                   # Assessment and recommendations
 │   ├── courses/                  # Filters and course cards
 │   ├── dashboard/                # Metrics and streak widgets
@@ -97,11 +100,12 @@ CareerPliot/
 │   ├── pdf/                      # Upload, summary and quiz UI
 │   ├── resume/                   # Builder, preview, ATS and JD matching
 │   ├── roadmap/                  # Roadmap viewer and milestones
+│   ├── security/                 # Cloudflare bot guard preload
 │   ├── tutor/                    # Chat interface and message rendering
 │   └── ui/                       # Shared UI primitives
-├── lib/                          # Auth, DB, AI, PDF and provider integrations
+├── lib/                          # Auth, DB, LLM router, PDF and providers
 ├── models/                       # Mongoose models
-├── public/                       # Static assets
+├── public/                       # Static assets (logo)
 └── middleware.ts                 # Protected-route middleware
 ```
 
@@ -112,8 +116,8 @@ CareerPliot/
 ### Prerequisites
 Make sure you have the following installed:
 * [Node.js](https://nodejs.org/) 20+ recommended
-*   [MongoDB Atlas](https://www.mongodb.com/atlas) (or local MongoDB server instance)
-* At least one supported AI key: ZenMux, Gemini, or OpenAI
+* [MongoDB Atlas](https://www.mongodb.com/atlas) (or local MongoDB server instance)
+* An OpenAI-compatible LLM router (API key + base URL)
 
 ### Installation & Run
 
@@ -144,6 +148,7 @@ Make sure you have the following installed:
     LLM_ROUTER_MODEL=zeus/claude-opus-5
     LLM_ROUTER_PDF_MODEL=posiden/deepseek-v4-flash
     LLM_ROUTER_FALLBACK_MODEL=posiden/deepseek-v4-flash
+    NEXT_PUBLIC_LLM_ROUTER_MODEL=zeus/claude-opus-5
     ```
 
    Generate an Auth.js secret with:
@@ -155,6 +160,7 @@ Make sure you have the following installed:
 
    | Variable | Purpose |
    | :--- | :--- |
+   | `NEXT_PUBLIC_TURNSTILE_SITE_KEY` / `TURNSTILE_SECRET_KEY` | Cloudflare bot verification on auth |
    | `PDF_CO_API_KEY` | OCR fallback for scanned/image-only PDFs |
    | `YOUTUBE_API_KEY` | Long-form YouTube course recommendations |
    | `RAPIDAPI_KEY` | JSearch jobs sourced from LinkedIn, Indeed and Glassdoor |
