@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useId, useRef, useState } from "react";
 
 declare global {
   interface Window {
@@ -42,7 +42,6 @@ export function hasHCaptchaSiteKey(): boolean {
   return Boolean(SITE_KEY);
 }
 
-/** Show/require captcha when site key is set and not on localhost. */
 export function isHCaptchaEnabled(): boolean {
   return hasHCaptchaSiteKey() && !isLocalHost();
 }
@@ -93,9 +92,21 @@ export default function HCaptchaWidget({
   const containerRef = useRef<HTMLDivElement>(null);
   const widgetIdRef = useRef<string | null>(null);
   const onTokenRef = useRef(onToken);
-  const renderedRef = useRef(false);
   const [error, setError] = useState<string | null>(null);
+  const [renderKey, setRenderKey] = useState(0);
+  const instanceId = useId();
   onTokenRef.current = onToken;
+
+  const destroyWidget = useCallback(() => {
+    if (widgetIdRef.current && window.hcaptcha) {
+      try {
+        window.hcaptcha.remove(widgetIdRef.current);
+      } catch {
+        /* ignore */
+      }
+      widgetIdRef.current = null;
+    }
+  }, []);
 
   useEffect(() => {
     if (!SITE_KEY || isLocalHost()) return;
@@ -103,16 +114,9 @@ export default function HCaptchaWidget({
 
     const renderWidget = () => {
       if (cancelled || !containerRef.current || !window.hcaptcha) return;
-      if (renderedRef.current && widgetIdRef.current) return;
-
-      try {
-        if (widgetIdRef.current) {
-          window.hcaptcha.remove(widgetIdRef.current);
-          widgetIdRef.current = null;
-        }
-      } catch {
-        /* ignore */
-      }
+      destroyWidget();
+      // Clear container so hCaptcha always mounts into a fresh node.
+      containerRef.current.innerHTML = "";
 
       try {
         widgetIdRef.current = window.hcaptcha.render(containerRef.current, {
@@ -127,13 +131,14 @@ export default function HCaptchaWidget({
           "chalexpired-callback": () => onTokenRef.current(null),
           "error-callback": () => {
             onTokenRef.current(null);
-            setError("Captcha failed to load. Refresh and try again.");
+            setError(
+              "hCaptcha error (often rate-limited). Wait a few minutes, then hit Retry."
+            );
           },
         });
-        renderedRef.current = true;
       } catch (err) {
         console.error("[hCaptcha] render failed:", err);
-        setError("Could not load captcha. Refresh and try again.");
+        setError("Could not load captcha. Tap Retry.");
       }
     };
 
@@ -141,24 +146,33 @@ export default function HCaptchaWidget({
 
     return () => {
       cancelled = true;
-      renderedRef.current = false;
-      if (widgetIdRef.current && window.hcaptcha) {
-        try {
-          window.hcaptcha.remove(widgetIdRef.current);
-        } catch {
-          /* ignore */
-        }
-        widgetIdRef.current = null;
-      }
+      destroyWidget();
     };
-  }, []);
+  }, [destroyWidget, renderKey, instanceId]);
+
+  const handleRetry = () => {
+    onToken(null);
+    setError(null);
+    setRenderKey((k) => k + 1);
+  };
 
   if (!SITE_KEY || isLocalHost()) return null;
 
   return (
     <div className={className}>
       <div ref={containerRef} className="min-h-[78px] overflow-visible" />
-      {error && <p className="mt-2 text-xs text-[#ffb4ab]">{error}</p>}
+      {error && (
+        <div className="mt-2 flex flex-col gap-2">
+          <p className="text-xs text-[#ffb4ab]">{error}</p>
+          <button
+            type="button"
+            onClick={handleRetry}
+            className="self-start text-xs font-bold underline text-foreground"
+          >
+            Retry captcha
+          </button>
+        </div>
+      )}
     </div>
   );
 }

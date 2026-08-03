@@ -108,6 +108,7 @@ export async function verifyCaptchaToken(
     const body = new URLSearchParams({
       secret: process.env.HCAPTCHA_SECRET_KEY!.trim(),
       response: token.trim(),
+      sitekey: process.env.NEXT_PUBLIC_HCAPTCHA_SITE_KEY!.trim(),
     });
     if (opts?.ip && opts.ip !== "unknown") {
       body.set("remoteip", opts.ip);
@@ -119,8 +120,21 @@ export async function verifyCaptchaToken(
       body,
     });
 
-    const data = (await res.json()) as { success?: boolean };
+    const data = (await res.json()) as {
+      success?: boolean;
+      "error-codes"?: string[];
+    };
+
     if (!data.success) {
+      const codes = data["error-codes"]?.join(", ") || "unknown";
+      console.error("[captcha] siteverify failed:", codes);
+      if (codes.includes("sitekey-secret-mismatch") || codes.includes("invalid-input-secret")) {
+        return {
+          ok: false,
+          reason:
+            "Captcha keys are misconfigured. Use the site key + secret from the same hCaptcha site.",
+        };
+      }
       return { ok: false, reason: "Captcha failed. Please try again." };
     }
     return { ok: true };

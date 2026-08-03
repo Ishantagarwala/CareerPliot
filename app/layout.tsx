@@ -95,6 +95,13 @@ export const metadata: Metadata = {
     icon: "/logo.png",
     apple: "/logo.png",
   },
+  ...(process.env.GOOGLE_SITE_VERIFICATION?.trim()
+    ? {
+        verification: {
+          google: process.env.GOOGLE_SITE_VERIFICATION.trim(),
+        },
+      }
+    : {}),
 };
 
 export default function RootLayout({
