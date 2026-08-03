@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import MarkdownContent from "@/components/markdown/MarkdownContent";
 
 interface Message {
+  id?: string;
   role: "user" | "assistant";
   content: string;
   attachments?: {
@@ -15,6 +16,7 @@ interface Message {
     docId?: string;
   }[];
   sentAt?: Date | string;
+  streaming?: boolean;
 }
 
 interface MessageBubbleProps {
@@ -68,7 +70,7 @@ export default function MessageBubble({ message }: MessageBubbleProps) {
 
         <div className="flex min-w-0 flex-1 flex-col space-y-1">
           <div
-            className={`relative w-full border-2 border-black p-4 transition-all ${
+            className={`relative w-full border-2 border-black p-4 pb-10 transition-all ${
               isUser ? "bg-accent text-accent-foreground" : "bg-card text-foreground"
             }`}
           >
@@ -112,10 +114,18 @@ export default function MessageBubble({ message }: MessageBubbleProps) {
               </div>
             )}
 
-            <MarkdownContent
-              content={message.content}
-              variant={isUser ? "chat-user" : "chat-assistant"}
-            />
+            {/* Plain text while streaming avoids KaTeX/markdown flicker on incomplete fences */}
+            {message.streaming && !isUser ? (
+              <div className="break-words select-text whitespace-pre-wrap text-sm leading-relaxed">
+                {message.content}
+                <span className="ml-0.5 inline-block h-3.5 w-1.5 animate-pulse bg-primary align-middle" />
+              </div>
+            ) : (
+              <MarkdownContent
+                content={message.content}
+                variant={isUser ? "chat-user" : "chat-assistant"}
+              />
+            )}
 
             <div className="absolute bottom-2 right-2 opacity-0 transition-opacity group-hover:opacity-100">
               <button

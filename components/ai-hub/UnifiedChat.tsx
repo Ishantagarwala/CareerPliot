@@ -8,6 +8,7 @@ import { useVoice } from "@/components/voice/useVoice";
 import VoiceHUD from "@/components/voice/VoiceHUD";
 
 interface Message {
+  id?: string;
   role: "user" | "assistant" | "system";
   content: string;
   attachments?: {
@@ -17,6 +18,14 @@ interface Message {
     docId?: string;
   }[];
   sentAt?: Date | string;
+  streaming?: boolean;
+}
+
+function newMessageId(): string {
+  if (typeof crypto !== "undefined" && "randomUUID" in crypto) {
+    return crypto.randomUUID();
+  }
+  return `msg_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`;
 }
 
 type ModelSelection = "primary" | "opus" | "gemini";
@@ -164,6 +173,15 @@ export default function UnifiedChat({
   const scrollRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const isStreamingRef = useRef(false);
+  const streamingThreadIdRef = useRef<string | null>(null);
+  const streamOriginThreadRef = useRef<string | null>(null);
+  const streamMsgIdRef = useRef<string | null>(null);
+  const streamAbortRef = useRef<AbortController | null>(null);
+  const historyFetchGenRef = useRef(0);
+  const stickToBottomRef = useRef(true);
+  const activeThreadIdRef = useRef(activeThreadId);
+  activeThreadIdRef.current = activeThreadId;
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -195,33 +213,85 @@ export default function UnifiedChat({
   }, []);
 
   useEffect(() => {
+    // Don't wipe the in-progress stream when New Thread is clicked mid-request —
+    // abort first, then clear.
     if (!activeThreadId) {
+      if (isStreamingRef.current) {
+        streamAbortRef.current?.abort();
+        isStreamingRef.current = false;
+        streamingThreadIdRef.current = null;
+        streamMsgIdRef.current = null;
+        setLoading(false);
+      }
       setMessages([]);
       setInput("");
       setLoadingHistory(false);
       return;
     }
 
+    // Mid-stream thread id assignment must NOT refetch history (assistant isn't
+    // persisted yet — refetch would wipe tokens / attach them to the wrong bubble).
+    if (
+      isStreamingRef.current &&
+      streamingThreadIdRef.current === activeThreadId
+    ) {
+      return;
+    }
+
+    const gen = ++historyFetchGenRef.current;
+    let cancelled = false;
+
     async function fetchHistory() {
       setLoadingHistory(true);
       try {
         const res = await fetch(`/api/ai-hub/threads/${activeThreadId}`);
+        if (cancelled || gen !== historyFetchGenRef.current) return;
         if (res.ok) {
           const data = await res.json();
-          setMessages(data.messages || []);
+          const loaded: Message[] = (data.messages || []).map(
+            (m: Message, i: number) => ({
+              ...m,
+              id:
+                m.id ||
+                `hist_${activeThreadId}_${i}_${String(m.sentAt || "")}_${m.role}`,
+              streaming: false,
+            })
+          );
+          setMessages(loaded);
         } else {
           toast.error("Failed to load conversation history");
         }
       } catch (error) {
-        console.error(error);
-        toast.error("Failed to load conversation history");
+        if (!cancelled && gen === historyFetchGenRef.current) {
+          console.error(error);
+          toast.error("Failed to load conversation history");
+        }
       } finally {
-        setLoadingHistory(false);
+        if (!cancelled && gen === historyFetchGenRef.current) {
+          setLoadingHistory(false);
+        }
       }
     }
 
-    fetchHistory();
+    void fetchHistory();
+    return () => {
+      cancelled = true;
+    };
   }, [activeThreadId, newChatNonce]);
+
+  // Abort stream if the user switches threads mid-reply
+  useEffect(() => {
+    if (!isStreamingRef.current) return;
+    const owned = streamingThreadIdRef.current;
+    const origin = streamOriginThreadRef.current;
+    if (owned) {
+      if (activeThreadId !== owned) streamAbortRef.current?.abort();
+      return;
+    }
+    if (activeThreadId !== origin) {
+      streamAbortRef.current?.abort();
+    }
+  }, [activeThreadId]);
 
   useEffect(() => {
     if (draftPrompt) {
@@ -231,11 +301,17 @@ export default function UnifiedChat({
     }
   }, [draftPrompt, onDraftPromptConsumed]);
 
+  const handleScroll = () => {
+    const el = scrollRef.current;
+    if (!el) return;
+    stickToBottomRef.current =
+      el.scrollHeight - el.scrollTop - el.clientHeight < 96;
+  };
+
   useEffect(() => {
-    if (scrollRef.current) {
-      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
-    }
-  }, [messages, loading, showUpload, attachments, uploadingAttachment]);
+    if (!stickToBottomRef.current || !scrollRef.current) return;
+    scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+  }, [messages, loading]);
 
   const handleFileSelectClick = () => {
     fileInputRef.current?.click();
@@ -309,15 +385,22 @@ export default function UnifiedChat({
     const userMessageText = textToSend;
     const currentAttachments = [...attachments];
 
+    // Abort any in-flight stream before starting a new one
+    streamAbortRef.current?.abort();
+    const abort = new AbortController();
+    streamAbortRef.current = abort;
+
     setInput("");
     setAttachments([]);
     if (textareaRef.current) {
       textareaRef.current.style.height = "auto";
     }
 
+    const userMsgId = newMessageId();
     setMessages((prev) => [
       ...prev,
       {
+        id: userMsgId,
         role: "user",
         content:
           userMessageText ||
@@ -329,11 +412,18 @@ export default function UnifiedChat({
       },
     ]);
     setLoading(true);
+    isStreamingRef.current = true;
+    streamMsgIdRef.current = null;
+    const threadAtStart = activeThreadIdRef.current;
+    streamOriginThreadRef.current = threadAtStart;
+    streamingThreadIdRef.current = threadAtStart;
+    stickToBottomRef.current = true;
 
     try {
       const res = await fetch("/api/ai-hub/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        signal: abort.signal,
         body: JSON.stringify({
           message:
             userMessageText ||
@@ -341,7 +431,7 @@ export default function UnifiedChat({
               ? `Analyze the attached ${currentAttachments[0].type}`
               : "Analyze the attached file"),
           documentIds: selectedDocumentIds,
-          threadId: activeThreadId,
+          threadId: threadAtStart,
           attachments: currentAttachments,
           modelSelection: selectedModel,
         }),
@@ -361,32 +451,109 @@ export default function UnifiedChat({
       let buffer = "";
       let streamedThreadId: string | null = null;
       let fullReply = "";
-      let assistantStarted = false;
 
       const appendToken = (token: string) => {
         fullReply += token;
-        if (!assistantStarted) {
-          assistantStarted = true;
+        if (!streamMsgIdRef.current) {
+          const id = newMessageId();
+          streamMsgIdRef.current = id;
           setMessages((prev) => [
             ...prev,
             {
+              id,
               role: "assistant",
               content: token,
               sentAt: new Date().toISOString(),
+              streaming: true,
             },
           ]);
           return;
         }
-        setMessages((prev) => {
-          const next = [...prev];
-          for (let i = next.length - 1; i >= 0; i--) {
-            if (next[i].role === "assistant") {
-              next[i] = { ...next[i], content: next[i].content + token };
-              break;
-            }
+        const id = streamMsgIdRef.current;
+        setMessages((prev) =>
+          prev.map((m) =>
+            m.id === id ? { ...m, content: m.content + token, streaming: true } : m
+          )
+        );
+      };
+
+      const finalizeAssistant = (reply: string) => {
+        fullReply = reply;
+        const id = streamMsgIdRef.current;
+        if (!id) {
+          const newId = newMessageId();
+          streamMsgIdRef.current = newId;
+          setMessages((prev) => [
+            ...prev,
+            {
+              id: newId,
+              role: "assistant",
+              content: reply,
+              sentAt: new Date().toISOString(),
+              streaming: false,
+            },
+          ]);
+          return;
+        }
+        setMessages((prev) =>
+          prev.map((m) =>
+            m.id === id ? { ...m, content: reply, streaming: false } : m
+          )
+        );
+      };
+
+      const bindThread = (threadId: string) => {
+        streamedThreadId = threadId;
+        streamingThreadIdRef.current = threadId;
+        if (!activeThreadIdRef.current) {
+          setActiveThreadId(threadId);
+          onThreadCreated();
+        }
+      };
+
+      const processSseChunk = (chunk: string) => {
+        const line = chunk
+          .split("\n")
+          .map((l) => l.trim())
+          .find((l) => l.startsWith("data:"));
+        if (!line) return;
+        const raw = line.replace(/^data:\s?/, "");
+        if (!raw || raw === "[DONE]") return;
+
+        let event: {
+          type?: string;
+          content?: string;
+          threadId?: string;
+          message?: string;
+          reply?: string;
+        };
+        try {
+          event = JSON.parse(raw);
+        } catch {
+          return;
+        }
+
+        if (event.type === "meta" && event.threadId) {
+          bindThread(event.threadId);
+        } else if (event.type === "token" && event.content) {
+          appendToken(event.content);
+        } else if (event.type === "done") {
+          if (event.threadId) bindThread(event.threadId);
+          if (event.reply) {
+            // Always trust the final reply for consistency with DB
+            finalizeAssistant(event.reply);
+          } else if (streamMsgIdRef.current) {
+            setMessages((prev) =>
+              prev.map((m) =>
+                m.id === streamMsgIdRef.current
+                  ? { ...m, streaming: false }
+                  : m
+              )
+            );
           }
-          return next;
-        });
+        } else if (event.type === "error") {
+          throw new Error(event.message || "AI Study Hub stream error");
+        }
       };
 
       while (true) {
@@ -395,90 +562,44 @@ export default function UnifiedChat({
         buffer += decoder.decode(value, { stream: true });
         const chunks = buffer.split("\n\n");
         buffer = chunks.pop() || "";
-
-        for (const chunk of chunks) {
-          const line = chunk
-            .split("\n")
-            .map((l) => l.trim())
-            .find((l) => l.startsWith("data:"));
-          if (!line) continue;
-          const raw = line.replace(/^data:\s?/, "");
-          if (!raw || raw === "[DONE]") continue;
-
-          let event: {
-            type?: string;
-            content?: string;
-            threadId?: string;
-            message?: string;
-            reply?: string;
-          };
-          try {
-            event = JSON.parse(raw);
-          } catch {
-            continue;
-          }
-
-          if (event.type === "meta" && event.threadId) {
-            streamedThreadId = event.threadId;
-            if (!activeThreadId) {
-              setActiveThreadId(event.threadId);
-              onThreadCreated();
-            }
-          } else if (event.type === "token" && event.content) {
-            appendToken(event.content);
-          } else if (event.type === "done") {
-            if (event.threadId) {
-              streamedThreadId = event.threadId;
-              if (!activeThreadId) {
-                setActiveThreadId(event.threadId);
-                onThreadCreated();
-              }
-            }
-            if (event.reply && !fullReply) {
-              fullReply = event.reply;
-              setMessages((prev) => {
-                const next = [...prev];
-                if (!assistantStarted) {
-                  assistantStarted = true;
-                  next.push({
-                    role: "assistant",
-                    content: event.reply || "",
-                    sentAt: new Date().toISOString(),
-                  });
-                  return next;
-                }
-                for (let i = next.length - 1; i >= 0; i--) {
-                  if (next[i].role === "assistant") {
-                    next[i] = { ...next[i], content: event.reply || "" };
-                    break;
-                  }
-                }
-                return next;
-              });
-            }
-          } else if (event.type === "error") {
-            throw new Error(event.message || "AI Study Hub stream error");
-          }
-        }
+        for (const chunk of chunks) processSseChunk(chunk);
       }
 
-      if (!fullReply.trim() && !assistantStarted) {
-        // Keep thinking state only — no empty bubble
+      // Flush decoder + leftover buffer (last token often lives here)
+      buffer += decoder.decode();
+      if (buffer.trim()) {
+        for (const chunk of buffer.split("\n\n")) processSseChunk(chunk);
       }
 
-      if (streamedThreadId && !activeThreadId) {
-        setActiveThreadId(streamedThreadId);
-        onThreadCreated();
+      if (streamMsgIdRef.current) {
+        setMessages((prev) =>
+          prev.map((m) =>
+            m.id === streamMsgIdRef.current ? { ...m, streaming: false } : m
+          )
+        );
+      }
+
+      if (streamedThreadId && !activeThreadIdRef.current) {
+        bindThread(streamedThreadId);
       }
 
       if (isVoiceChatActive && fullReply) {
         voice.speakText(fullReply);
       }
     } catch (error: any) {
-      console.error(error);
-      toast.error(error.message || "AI Study Hub error. Please try again.");
+      if (error?.name === "AbortError") {
+        // User switched threads / started a new send — silent
+      } else {
+        console.error(error);
+        toast.error(error.message || "AI Study Hub error. Please try again.");
+      }
     } finally {
-      setLoading(false);
+      if (streamAbortRef.current === abort) {
+        isStreamingRef.current = false;
+        streamingThreadIdRef.current = null;
+        streamMsgIdRef.current = null;
+        setLoading(false);
+      }
     }
   };
 
@@ -542,7 +663,11 @@ export default function UnifiedChat({
         </div>
       </header>
 
-      <div ref={scrollRef} className="flex-1 overflow-y-auto custom-scrollbar bg-background">
+      <div
+        ref={scrollRef}
+        onScroll={handleScroll}
+        className="flex-1 overflow-y-auto custom-scrollbar bg-background"
+      >
         {loadingHistory ? (
           <div className="flex h-full items-center justify-center text-sm text-muted-foreground italic">
             <span className="animate-spin material-symbols-outlined mr-2">progress_activity</span>
@@ -682,7 +807,10 @@ export default function UnifiedChat({
             {messages
               .filter((message) => message.role !== "system")
               .map((message, index) => (
-                <MessageBubble key={index} message={message as any} />
+                <MessageBubble
+                  key={message.id || `msg_${index}`}
+                  message={message as any}
+                />
               ))}
             {loading &&
               !(

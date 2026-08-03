@@ -6,7 +6,6 @@ import { cn } from "@/lib/utils";
 import {
   Briefcase,
   MapPin,
-  DollarSign,
   Search,
   Plus,
   Loader2,
@@ -14,6 +13,7 @@ import {
   Check,
 } from "lucide-react";
 import SafeImage from "@/components/ui/SafeImage";
+import { formatJobSalary } from "@/lib/formatJobSalary";
 
 interface JobListing {
   _id: string;
@@ -219,7 +219,7 @@ export default function JobsPage() {
           <p className="text-sm text-muted-foreground mt-2 max-w-2xl">
             Live openings from Remotive, Arbeitnow, RemoteOK
             {meta?.enabledProviders?.some((p) => p.includes("JSearch"))
-              ? ", plus LinkedIn/Indeed via JSearch"
+              ? ", LinkedIn, and Indeed"
               : ""}
             {meta?.careerPath ? (
               <>
@@ -312,13 +312,6 @@ export default function JobsPage() {
             </div>
           )}
 
-          {meta?.note && (
-            <p className="text-[11px] text-muted-foreground border-2 border-dashed border-black p-3 bg-card">
-              {meta.note} Add <code className="text-foreground font-semibold">RAPIDAPI_KEY</code> to{" "}
-              <code className="text-foreground font-semibold">.env.local</code> for LinkedIn/Indeed-sourced roles via JSearch.
-            </p>
-          )}
-
           {loading ? (
             <div className="flex flex-col items-center justify-center py-20 space-y-4">
               <Loader2 className="h-8 w-8 animate-spin text-foreground" />
@@ -395,10 +388,8 @@ export default function JobsPage() {
                           {job.location} {job.remote ? "(Remote)" : ""}
                         </span>
                         {job.salary && (job.salary.min || job.salary.max) && (
-                          <span className="flex items-center gap-1">
-                            <DollarSign className="h-3 w-3" />
-                            {job.salary.min ? `${job.salary.currency || ""} ${job.salary.min.toLocaleString()}` : ""}
-                            {job.salary.max ? ` – ${job.salary.max.toLocaleString()}` : ""}
+                          <span className="flex items-center gap-1 font-semibold text-foreground">
+                            {formatJobSalary(job.salary)}
                           </span>
                         )}
                         <span className="capitalize border-2 border-black px-1.5 ml-auto text-[9px] font-bold text-foreground bg-background">

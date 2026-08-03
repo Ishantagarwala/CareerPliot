@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { useSession, signOut } from "next-auth/react";
 import Link from "next/link";
@@ -81,14 +81,22 @@ export default function AIHubLayout() {
     }
   }, []);
 
-  const fetchThreads = useCallback(async () => {
+  const initialThreadSelected = useRef(false);
+
+  const fetchThreads = useCallback(async (opts?: { autoSelect?: boolean }) => {
     try {
       const res = await fetch("/api/ai-hub/threads");
       if (res.ok) {
         const data = await res.json();
         setThreads(data);
-        if (data.length > 0) {
-          setActiveThreadId((curr) => curr || data[0]._id);
+        // Only auto-select once on first load — never yank "New Thread" or an active stream.
+        if (
+          opts?.autoSelect &&
+          !initialThreadSelected.current &&
+          data.length > 0
+        ) {
+          initialThreadSelected.current = true;
+          setActiveThreadId((curr) => curr ?? data[0]._id);
         }
       }
     } catch (error) {
@@ -100,7 +108,7 @@ export default function AIHubLayout() {
 
   useEffect(() => {
     fetchDocuments();
-    fetchThreads();
+    void fetchThreads({ autoSelect: true });
   }, [fetchDocuments, fetchThreads]);
 
   useEffect(() => {
