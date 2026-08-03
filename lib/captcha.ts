@@ -15,6 +15,14 @@ export function isCaptchaConfigured(): boolean {
   );
 }
 
+/** Skip enforcement in local/dev — real hCaptcha cannot run on localhost. */
+function shouldSkipCaptchaInDev(): boolean {
+  if (process.env.NODE_ENV === "production") return false;
+  const force = process.env.HCAPTCHA_FORCE_IN_DEV?.trim().toLowerCase();
+  if (force === "1" || force === "true") return false;
+  return true;
+}
+
 export function isRegistrationDisabled(): boolean {
   const flag = process.env.DISABLE_REGISTRATION?.trim().toLowerCase();
   return flag === "1" || flag === "true" || flag === "yes";
@@ -99,6 +107,10 @@ export async function verifyCaptchaToken(
     return { ok: true };
   }
 
+  if (shouldSkipCaptchaInDev()) {
+    return { ok: true };
+  }
+
   if (typeof token !== "string" || !token.trim()) {
     return { ok: false, reason: "Please complete the bot verification challenge." };
   }
@@ -151,6 +163,10 @@ export async function requireBotVerification(opts: {
   }
 
   if (!isCaptchaConfigured()) {
+    return { ok: true };
+  }
+
+  if (shouldSkipCaptchaInDev()) {
     return { ok: true };
   }
 

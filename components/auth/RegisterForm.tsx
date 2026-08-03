@@ -10,8 +10,8 @@ import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
 import Link from "next/link";
 import CaptchaWidget, {
-  isCaptchaEnabled,
   resetCaptcha,
+  useCaptchaRequired,
 } from "@/components/auth/CaptchaWidget";
 
 const registerSchema = z.object({
@@ -31,7 +31,7 @@ export default function RegisterForm() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [captchaToken, setCaptchaToken] = useState<string | null>(null);
-  const captchaRequired = isCaptchaEnabled();
+  const captchaRequired = useCaptchaRequired();
 
   const {
     register,
@@ -181,8 +181,7 @@ export default function RegisterForm() {
               </>
             ) : captchaRequired && !captchaToken ? (
               <>
-                <Loader2 className="h-4 w-4 animate-spin" />
-                Verifying...
+                Complete verification below
               </>
             ) : (
               <>

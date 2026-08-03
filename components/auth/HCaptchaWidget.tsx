@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 
 declare global {
   interface Window {
@@ -13,7 +13,8 @@ declare global {
           size?: "normal" | "compact" | "invisible";
           callback?: (token: string) => void;
           "expired-callback"?: () => void;
-          "error-callback"?: () => void;
+          "error-callback"?: (error?: string) => void;
+          "chalexpired-callback"?: () => void;
         }
       ) => string;
       reset: (widgetId?: string) => void;
@@ -31,8 +32,25 @@ interface HCaptchaWidgetProps {
   className?: string;
 }
 
-export function isHCaptchaEnabled(): boolean {
+/** hCaptcha rejects localhost / 127.0.0.1 — do not require the widget there. */
+export function isLocalDevHost(): boolean {
+  if (typeof window === "undefined") return false;
+  const host = window.location.hostname;
+  return (
+    host === "localhost" ||
+    host === "127.0.0.1" ||
+    host === "[::1]" ||
+    host.endsWith(".local")
+  );
+}
+
+export function hasHCaptchaSiteKey(): boolean {
   return Boolean(SITE_KEY);
+}
+
+/** True when the live site should show/require hCaptcha (not on localhost). */
+export function isHCaptchaEnabled(): boolean {
+  return hasHCaptchaSiteKey() && !isLocalDevHost();
 }
 
 function loadHCaptcha(onReady: () => void) {
@@ -69,7 +87,7 @@ function loadHCaptcha(onReady: () => void) {
     if (window.hcaptcha) {
       window.clearInterval(timer);
       onReady();
-    } else if (tries > 40) {
+    } else if (tries > 50) {
       window.clearInterval(timer);
     }
   }, 100);
@@ -83,10 +101,11 @@ export default function HCaptchaWidget({
   const widgetIdRef = useRef<string | null>(null);
   const onTokenRef = useRef(onToken);
   const renderedRef = useRef(false);
+  const [error, setError] = useState<string | null>(null);
   onTokenRef.current = onToken;
 
   useEffect(() => {
-    if (!SITE_KEY) return;
+    if (!SITE_KEY || isLocalDevHost()) return;
     let cancelled = false;
 
     const renderWidget = () => {
@@ -102,15 +121,29 @@ export default function HCaptchaWidget({
         /* ignore */
       }
 
-      widgetIdRef.current = window.hcaptcha.render(containerRef.current, {
-        sitekey: SITE_KEY,
-        theme: "dark",
-        size: "normal",
-        callback: (token) => onTokenRef.current(token),
-        "expired-callback": () => onTokenRef.current(null),
-        "error-callback": () => onTokenRef.current(null),
-      });
-      renderedRef.current = true;
+      try {
+        widgetIdRef.current = window.hcaptcha.render(containerRef.current, {
+          sitekey: SITE_KEY,
+          theme: "light",
+          size: "normal",
+          callback: (token) => {
+            setError(null);
+            onTokenRef.current(token);
+          },
+          "expired-callback": () => onTokenRef.current(null),
+          "chalexpired-callback": () => onTokenRef.current(null),
+          "error-callback": () => {
+            onTokenRef.current(null);
+            setError(
+              "Verification failed to load. Check that this domain is allowlisted in hCaptcha."
+            );
+          },
+        });
+        renderedRef.current = true;
+      } catch (err) {
+        console.error("[hCaptcha] render failed:", err);
+        setError("Could not load verification. Refresh and try again.");
+      }
     };
 
     loadHCaptcha(renderWidget);
@@ -129,9 +162,14 @@ export default function HCaptchaWidget({
     };
   }, []);
 
-  if (!SITE_KEY) return null;
+  if (!SITE_KEY || isLocalDevHost()) return null;
 
-  return <div ref={containerRef} className={className} />;
+  return (
+    <div className={className}>
+      <div ref={containerRef} className="min-h-[78px]" />
+      {error && <p className="mt-2 text-xs text-[#ffb4ab]">{error}</p>}
+    </div>
+  );
 }
 
 export function resetHCaptcha(): void {
