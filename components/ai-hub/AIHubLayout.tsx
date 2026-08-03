@@ -406,7 +406,13 @@ export default function AIHubLayout() {
                       <span className="truncate">{thread.threadTitle || "AI Chat"}</span>
                     </div>
 
-                    <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
+                    <div
+                      className={`flex items-center gap-0.5 transition-opacity shrink-0 ${
+                        isActive
+                          ? "opacity-100"
+                          : "opacity-100 lg:opacity-0 lg:group-hover:opacity-100 lg:group-focus-within:opacity-100"
+                      }`}
+                    >
                       <button
                         type="button"
                         onClick={(e) => {
@@ -414,9 +420,11 @@ export default function AIHubLayout() {
                           setEditingThreadId(thread._id);
                           setEditingTitle(thread.threadTitle || "");
                         }}
-                        className="hover:text-foreground text-muted-foreground p-0.5"
+                        className="hover:text-foreground text-muted-foreground p-1.5 -my-1 touch-manipulation"
+                        aria-label={`Rename ${thread.threadTitle || "conversation"}`}
+                        title="Rename"
                       >
-                        <span className="material-symbols-outlined text-[12px]">edit</span>
+                        <span className="material-symbols-outlined text-[14px]">edit</span>
                       </button>
                       <button
                         type="button"
@@ -424,9 +432,11 @@ export default function AIHubLayout() {
                           e.stopPropagation();
                           setThreadToDeleteId(thread._id);
                         }}
-                        className="hover:text-red-500 text-muted-foreground p-0.5"
+                        className="hover:text-red-500 text-muted-foreground p-1.5 -my-1 touch-manipulation"
+                        aria-label={`Delete ${thread.threadTitle || "conversation"}`}
+                        title="Delete"
                       >
-                        <span className="material-symbols-outlined text-[12px]">delete</span>
+                        <span className="material-symbols-outlined text-[14px]">delete</span>
                       </button>
                     </div>
                   </div>
