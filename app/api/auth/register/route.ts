@@ -10,6 +10,11 @@ import {
   isRegistrationDisabled,
   verifyCaptchaToken,
 } from '@/lib/captcha';
+import {
+  ALLOWED_EMAIL_HINT,
+  isAllowedEmailProvider,
+} from '@/lib/allowedEmail';
+import { assertResidentialIp } from '@/lib/ipReputation';
 import dns from 'dns';
 
 const HOUR = 60 * 60 * 1000;
@@ -75,10 +80,32 @@ export async function POST(req: Request) {
 
     const normalizedEmail = String(email).toLowerCase().trim();
 
+    if (!isAllowedEmailProvider(normalizedEmail)) {
+      return NextResponse.json(
+        { message: ALLOWED_EMAIL_HINT },
+        { status: 400 }
+      );
+    }
+
     if (isDisposableEmail(normalizedEmail)) {
       return NextResponse.json(
         { message: 'Please use a permanent email address.' },
         { status: 400 }
+      );
+    }
+
+    const ipCheck = await assertResidentialIp({
+      ip,
+      email: normalizedEmail,
+    });
+    if (!ipCheck.ok) {
+      return NextResponse.json(
+        {
+          message:
+            ipCheck.reason ||
+            'Network not allowed. Disable VPN and use a residential connection.',
+        },
+        { status: 403 }
       );
     }
 

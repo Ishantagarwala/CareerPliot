@@ -14,9 +14,17 @@ import CaptchaWidget, {
   useCaptchaRequired,
 } from "@/components/auth/CaptchaWidget";
 
+const ALLOWED_EMAIL_RE =
+  /^[^\s@]+@(gmail\.com|googlemail\.com|icloud\.com|me\.com|mac\.com|(yahoo|ymail|rocketmail|outlook|hotmail|live|msn)(\.[a-z]{2,})+)$/i;
+
 const registerSchema = z.object({
   name: z.string().min(2, { message: "Name must be at least 2 characters" }),
-  email: z.string().email({ message: "Invalid email address format" }),
+  email: z
+    .string()
+    .email({ message: "Invalid email address format" })
+    .refine((v) => ALLOWED_EMAIL_RE.test(v.trim()), {
+      message: "Use a Gmail, iCloud, Yahoo, or Outlook/Hotmail email.",
+    }),
   password: z.string().min(6, { message: "Password must be at least 6 characters" }),
   confirmPassword: z.string(),
   website: z.string().optional(), // honeypot
@@ -107,7 +115,7 @@ export default function RegisterForm() {
 
   const fields = [
     { id: "name", label: "Full Name", type: "text", placeholder: "John Doe", error: errors.name },
-    { id: "email", label: "Email", type: "email", placeholder: "name@example.com", error: errors.email },
+    { id: "email", label: "Email", type: "email", placeholder: "you@gmail.com", error: errors.email },
     { id: "password", label: "Password", type: "password", placeholder: "••••••••", error: errors.password },
     { id: "confirmPassword", label: "Confirm Password", type: "password", placeholder: "••••••••", error: errors.confirmPassword },
   ] as const;
@@ -122,8 +130,9 @@ export default function RegisterForm() {
           Create an Account
         </h1>
         <p className="text-sm text-muted-foreground">
-          Enter your details below to set up your Career Pilot profile
+          Use a Gmail, iCloud, Yahoo, or Outlook email — VPNs and datacenter IPs are blocked.
         </p>
+
       </div>
       <form onSubmit={handleSubmit(onSubmit)} className="relative">
         <div className="p-6 space-y-4">

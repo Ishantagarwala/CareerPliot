@@ -15,7 +15,17 @@ import CaptchaWidget, {
 } from "@/components/auth/CaptchaWidget";
 
 const loginSchema = z.object({
-  email: z.string().email({ message: "Invalid email address format" }),
+  email: z
+    .string()
+    .email({ message: "Invalid email address format" })
+    .refine(
+      (v) =>
+        v.toLowerCase().trim() === "demo@careerpilot.com" ||
+        /^[^\s@]+@(gmail\.com|googlemail\.com|icloud\.com|me\.com|mac\.com|(yahoo|ymail|rocketmail|outlook|hotmail|live|msn)(\.[a-z]{2,})+)$/i.test(
+          v.trim()
+        ),
+      { message: "Use a Gmail, iCloud, Yahoo, or Outlook/Hotmail email." }
+    ),
   password: z.string().min(6, { message: "Password must be at least 6 characters" }),
 });
 
@@ -138,7 +148,16 @@ export default function LoginForm() {
       });
 
       if (res?.error) {
-        toast.error("Invalid credentials or bot verification failed. Please try again.");
+        const code = (res as { code?: string }).code || "";
+        if (code === "email_provider") {
+          toast.error("Use a Gmail, iCloud, Yahoo, or Outlook/Hotmail email.");
+        } else if (code === "network_blocked") {
+          toast.error(
+            "VPNs and datacenter IPs are blocked. Disconnect VPN and try again."
+          );
+        } else {
+          toast.error("Invalid credentials or bot verification failed. Please try again.");
+        }
         resetCaptcha();
         setCaptchaToken(null);
       } else {

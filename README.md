@@ -160,11 +160,15 @@ Make sure you have the following installed:
    | Variable | Purpose |
    | :--- | :--- |
    | `NEXT_PUBLIC_HCAPTCHA_SITE_KEY` / `HCAPTCHA_SECRET_KEY` | Captcha on login/register |
+   | `PROXYCHECK_API_KEY` | Stronger VPN/datacenter IP blocking (proxycheck.io) |
+   | `IP_REPUTATION_STRICT` | Reject auth when IP reputation lookup fails |
    | `YOUTUBE_API_KEY` | Live YouTube course recommendations |
    | `SARVAM_AI_API_KEY` | Voice input/output in AI Hub |
    | `RAPIDAPI_KEY` | JSearch jobs (LinkedIn, Indeed, etc.) |
    | `ADZUNA_APP_ID` / `ADZUNA_APP_KEY` | Adzuna job listings |
    | `PDF_CO_API_KEY` | OCR fallback for scanned PDFs |
+
+   Registration and login only accept **Gmail, iCloud, Yahoo, and Outlook/Hotmail** addresses. Datacenter and VPN IPs are blocked via IP reputation lookups (ipapi.is / ip-api.com, optional ProxyCheck). Demo login is exempt. Localhost / private IPs are allowed for development.
 
 4. Start the local development server:
    ```bash
