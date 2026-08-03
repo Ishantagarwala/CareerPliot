@@ -142,13 +142,12 @@ Make sure you have the following installed:
     AUTH_SECRET=your_auth_secret_here
     MONGODB_URI=mongodb+srv://user:password@cluster.mongodb.net/careerpilot
 
-    # OpenAI-compatible LLM router (required)
     LLM_ROUTER_API_KEY=your_router_api_key
     LLM_ROUTER_BASE_URL=https://your-router.example.com/v1
     LLM_ROUTER_MODEL=zeus/claude-opus-5
-    LLM_ROUTER_PDF_MODEL=posiden/deepseek-v4-flash
     LLM_ROUTER_FALLBACK_MODEL=posiden/deepseek-v4-flash
-    NEXT_PUBLIC_LLM_ROUTER_MODEL=zeus/claude-opus-5
+
+    NEXT_PUBLIC_SITE_URL=https://www.careerpilot.cc
     ```
 
    Generate an Auth.js secret with:
@@ -160,12 +159,12 @@ Make sure you have the following installed:
 
    | Variable | Purpose |
    | :--- | :--- |
-   | `NEXT_PUBLIC_SITE_URL` | Canonical URL — use `https://www.careerpilot.cc` |
-   | `NEXT_PUBLIC_HCAPTCHA_SITE_KEY` / `HCAPTCHA_SECRET_KEY` | hCaptcha bot verification on auth |
-   | `PDF_CO_API_KEY` | OCR fallback for scanned/image-only PDFs |
-   | `YOUTUBE_API_KEY` | Long-form YouTube course recommendations |
-   | `RAPIDAPI_KEY` | JSearch jobs sourced from LinkedIn, Indeed and Glassdoor |
-   | `ADZUNA_APP_ID`, `ADZUNA_APP_KEY` | Adzuna job listings |
+   | `NEXT_PUBLIC_HCAPTCHA_SITE_KEY` / `HCAPTCHA_SECRET_KEY` | Captcha on login/register |
+   | `YOUTUBE_API_KEY` | Live YouTube course recommendations |
+   | `SARVAM_AI_API_KEY` | Voice input/output in AI Hub |
+   | `RAPIDAPI_KEY` | JSearch jobs (LinkedIn, Indeed, etc.) |
+   | `ADZUNA_APP_ID` / `ADZUNA_APP_KEY` | Adzuna job listings |
+   | `PDF_CO_API_KEY` | OCR fallback for scanned PDFs |
 
 4. Start the local development server:
    ```bash

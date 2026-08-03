@@ -38,10 +38,7 @@ export async function GET() {
     const client = getLlmClient();
     const list = await client.models.list();
 
-    const preferred =
-      process.env.LLM_ROUTER_MODEL?.trim() ||
-      process.env.NEXT_PUBLIC_LLM_ROUTER_MODEL?.trim() ||
-      undefined;
+    const preferred = process.env.LLM_ROUTER_MODEL?.trim() || undefined;
 
     const rawIds = (list.data || [])
       .map((m) => (typeof m?.id === "string" ? m.id.trim() : ""))

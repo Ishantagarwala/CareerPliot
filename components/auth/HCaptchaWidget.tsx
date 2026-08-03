@@ -13,7 +13,7 @@ declare global {
           size?: "normal" | "compact" | "invisible";
           callback?: (token: string) => void;
           "expired-callback"?: () => void;
-          "error-callback"?: (error?: string) => void;
+          "error-callback"?: () => void;
           "chalexpired-callback"?: () => void;
         }
       ) => string;
@@ -27,41 +27,28 @@ declare global {
 const SCRIPT_ID = "hcaptcha-script";
 const SITE_KEY = process.env.NEXT_PUBLIC_HCAPTCHA_SITE_KEY?.trim() || "";
 
-function flagTrue(value: string | undefined): boolean {
-  const v = value?.trim().toLowerCase();
-  return v === "1" || v === "true" || v === "yes";
-}
-
 interface HCaptchaWidgetProps {
   onToken: (token: string | null) => void;
   className?: string;
 }
 
-/** hCaptcha rejects localhost / 127.0.0.1 — do not require the widget there. */
-export function isLocalDevHost(): boolean {
+function isLocalHost(): boolean {
   if (typeof window === "undefined") return false;
   const host = window.location.hostname;
-  return (
-    host === "localhost" ||
-    host === "127.0.0.1" ||
-    host === "[::1]" ||
-    host.endsWith(".local")
-  );
+  return host === "localhost" || host === "127.0.0.1" || host === "[::1]";
 }
 
 export function hasHCaptchaSiteKey(): boolean {
   return Boolean(SITE_KEY);
 }
 
-/** Captcha UI + client gate — only when explicitly enforced. */
+/** Show/require captcha when site key is set and not on localhost. */
 export function isHCaptchaEnabled(): boolean {
-  if (!flagTrue(process.env.NEXT_PUBLIC_HCAPTCHA_ENFORCE)) return false;
-  return hasHCaptchaSiteKey() && !isLocalDevHost();
+  return hasHCaptchaSiteKey() && !isLocalHost();
 }
 
 function loadHCaptcha(onReady: () => void) {
   if (typeof window === "undefined") return;
-
   if (window.hcaptcha) {
     onReady();
     return;
@@ -111,7 +98,7 @@ export default function HCaptchaWidget({
   onTokenRef.current = onToken;
 
   useEffect(() => {
-    if (!SITE_KEY || isLocalDevHost()) return;
+    if (!SITE_KEY || isLocalHost()) return;
     let cancelled = false;
 
     const renderWidget = () => {
@@ -140,15 +127,13 @@ export default function HCaptchaWidget({
           "chalexpired-callback": () => onTokenRef.current(null),
           "error-callback": () => {
             onTokenRef.current(null);
-            setError(
-              "Verification failed (rate limit or network). Wait a few minutes, then refresh."
-            );
+            setError("Captcha failed to load. Refresh and try again.");
           },
         });
         renderedRef.current = true;
       } catch (err) {
         console.error("[hCaptcha] render failed:", err);
-        setError("Could not load verification. Refresh and try again.");
+        setError("Could not load captcha. Refresh and try again.");
       }
     };
 
@@ -168,7 +153,7 @@ export default function HCaptchaWidget({
     };
   }, []);
 
-  if (!SITE_KEY || isLocalDevHost()) return null;
+  if (!SITE_KEY || isLocalHost()) return null;
 
   return (
     <div className={className}>

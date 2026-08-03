@@ -215,7 +215,7 @@ async function fetchAdzuna(params: JobSearchParams): Promise<ProviderJob[]> {
   if (!appId || !appKey) return [];
 
   try {
-    const country = (process.env.ADZUNA_COUNTRY || "in").toLowerCase();
+    const country = "in";
     const url = new URL(`https://api.adzuna.com/v1/api/jobs/${country}/search/1`);
     url.searchParams.set("app_id", appId);
     url.searchParams.set("app_key", appKey);
@@ -278,14 +278,14 @@ async function fetchAdzuna(params: JobSearchParams): Promise<ProviderJob[]> {
 
 /**
  * JSearch (RapidAPI) aggregates LinkedIn, Indeed, Glassdoor, ZipRecruiter, etc.
- * Set RAPIDAPI_KEY (and optionally JSEARCH_HOST, default jsearch.p.rapidapi.com).
+ * Set RAPIDAPI_KEY to enable.
  */
 async function fetchJSearch(params: JobSearchParams): Promise<ProviderJob[]> {
-  const key = process.env.RAPIDAPI_KEY || process.env.JSEARCH_API_KEY;
+  const key = process.env.RAPIDAPI_KEY?.trim();
   if (!key) return [];
 
   try {
-    const host = process.env.JSEARCH_HOST || "jsearch.p.rapidapi.com";
+    const host = "jsearch.p.rapidapi.com";
     const url = new URL(`https://${host}/search`);
     url.searchParams.set("query", params.query || "software engineer jobs");
     url.searchParams.set("page", "1");
@@ -376,7 +376,7 @@ export async function fetchLiveJobs(params: JobSearchParams): Promise<{
 
   const enabled = ["Remotive", "Arbeitnow", "RemoteOK"];
   if (process.env.ADZUNA_APP_ID && process.env.ADZUNA_APP_KEY) enabled.push("Adzuna");
-  if (process.env.RAPIDAPI_KEY || process.env.JSEARCH_API_KEY) {
+  if (process.env.RAPIDAPI_KEY?.trim()) {
     enabled.push("JSearch (LinkedIn/Indeed/Glassdoor)");
   }
 

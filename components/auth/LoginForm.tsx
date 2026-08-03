@@ -240,15 +240,14 @@ export default function LoginForm() {
               <p className="text-xs text-[#ffb4ab] mt-1">{errors.password.message}</p>
             )}
           </div>
-
-          {captchaRequired && (
-            <CaptchaWidget onToken={setCaptchaToken} className="pt-2" />
-          )}
         </div>
         <div className="p-6 pt-0 space-y-4">
+          {captchaRequired && (
+            <CaptchaWidget onToken={setCaptchaToken} className="flex justify-center" />
+          )}
           <button
             type="submit"
-            disabled={loading}
+            disabled={loading || (captchaRequired && !captchaToken)}
             className="w-full py-2.5 bg-primary text-primary-foreground border-2 border-black font-bold text-xs hover:opacity-90 transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
             style={{ fontFamily: "'JetBrains Mono', monospace", letterSpacing: "0.04em" }}
           >
@@ -257,6 +256,8 @@ export default function LoginForm() {
                 <Loader2 className="h-4 w-4 animate-spin" />
                 Logging in...
               </>
+            ) : captchaRequired && !captchaToken ? (
+              <>Complete captcha to continue</>
             ) : (
               <>
                 Log In

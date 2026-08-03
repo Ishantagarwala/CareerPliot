@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 
 export async function POST(req: Request) {
   try {
-    const sarvamApiKey = process.env.SARVAM_AI_API_KEY || process.env.SARVAM_API_KEY;
+    const sarvamApiKey = process.env.SARVAM_AI_API_KEY?.trim();
     if (!sarvamApiKey) {
       return NextResponse.json({ message: "Sarvam AI API key is not configured on the server." }, { status: 500 });
     }

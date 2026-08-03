@@ -32,16 +32,13 @@ const FALLBACK_MODEL = "posiden/deepseek-v4-flash";
 /**
  * Model id for the LLM router.
  * - Explicit AI Hub selections (full model ids) are passed through
- * - Default: LLM_ROUTER_MODEL (flagship)
- * - Fallback: LLM_ROUTER_FALLBACK_MODEL or deepseek-v4-flash
+ * - Default: LLM_ROUTER_MODEL
+ * - PDF / "gemini" alias: LLM_ROUTER_FALLBACK_MODEL
  */
 export function getLlmModel(isPdf = false, modelSelection?: string): string {
-  const flagship =
-    process.env.LLM_ROUTER_MODEL?.trim() || FLAGSHIP_MODEL;
+  const flagship = process.env.LLM_ROUTER_MODEL?.trim() || FLAGSHIP_MODEL;
   const fallback =
-    process.env.LLM_ROUTER_FALLBACK_MODEL?.trim() ||
-    process.env.LLM_ROUTER_PDF_MODEL?.trim() ||
-    FALLBACK_MODEL;
+    process.env.LLM_ROUTER_FALLBACK_MODEL?.trim() || FALLBACK_MODEL;
 
   if (
     modelSelection &&
@@ -52,23 +49,12 @@ export function getLlmModel(isPdf = false, modelSelection?: string): string {
     return modelSelection;
   }
 
-  if (modelSelection === "opus") {
-    return (
-      process.env.LLM_ROUTER_OPUS_MODEL?.trim() ||
-      flagship
-    );
+  if (modelSelection === "opus" || modelSelection === "primary") {
+    return flagship;
   }
 
-  if (modelSelection === "gemini") {
-    return (
-      process.env.LLM_ROUTER_GEMINI_MODEL?.trim() ||
-      fallback
-    );
-  }
-
-  // PDF / lighter workloads prefer the fast fallback unless PDF model is set
-  if (isPdf) {
-    return process.env.LLM_ROUTER_PDF_MODEL?.trim() || fallback;
+  if (modelSelection === "gemini" || isPdf) {
+    return fallback;
   }
 
   return flagship;

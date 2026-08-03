@@ -1,10 +1,7 @@
 /**
- * hCaptcha verification for auth + bot protection.
- * Get keys at https://dashboard.hcaptcha.com
- *
- * Enforcement is OPT-IN via HCAPTCHA_ENFORCE=true because hCaptcha cannot run
- * on localhost and production has hit rate-limit / network failures that
- * permanently blocked login when captcha was required.
+ * hCaptcha for login/register.
+ * Keys: NEXT_PUBLIC_HCAPTCHA_SITE_KEY + HCAPTCHA_SECRET_KEY
+ * https://dashboard.hcaptcha.com
  */
 
 import { createHmac, timingSafeEqual } from "crypto";
@@ -12,36 +9,18 @@ import { createHmac, timingSafeEqual } from "crypto";
 export const DEMO_ACCOUNT_EMAIL =
   process.env.DEMO_EMAIL?.trim().toLowerCase() || "demo@careerpilot.com";
 
-function flagTrue(value: string | undefined): boolean {
-  const v = value?.trim().toLowerCase();
-  return v === "1" || v === "true" || v === "yes";
-}
-
-/** Must set HCAPTCHA_ENFORCE=true (server) to require captcha on login/register. */
-export function isCaptchaEnforced(): boolean {
-  return flagTrue(process.env.HCAPTCHA_ENFORCE);
-}
-
 export function isCaptchaConfigured(): boolean {
-  if (!isCaptchaEnforced()) return false;
   return Boolean(
     process.env.HCAPTCHA_SECRET_KEY?.trim() &&
       process.env.NEXT_PUBLIC_HCAPTCHA_SITE_KEY?.trim()
   );
 }
 
-/** Skip enforcement in local/dev — real hCaptcha cannot run on localhost. */
-function shouldSkipCaptchaInDev(): boolean {
-  if (process.env.NODE_ENV === "production") return false;
-  if (flagTrue(process.env.HCAPTCHA_FORCE_IN_DEV)) return false;
-  return true;
-}
-
 export function isRegistrationDisabled(): boolean {
-  return flagTrue(process.env.DISABLE_REGISTRATION);
+  const flag = process.env.DISABLE_REGISTRATION?.trim().toLowerCase();
+  return flag === "1" || flag === "true" || flag === "yes";
 }
 
-/** Common disposable / throwaway email domains used in signup spam. */
 const DISPOSABLE_DOMAINS = new Set([
   "mailinator.com",
   "guerrillamail.com",
@@ -111,16 +90,18 @@ export async function verifyCaptchaToken(
     return { ok: true };
   }
 
-  if (!isCaptchaConfigured()) {
+  // Local `next dev` — hCaptcha cannot run on localhost.
+  if (process.env.NODE_ENV !== "production") {
     return { ok: true };
   }
 
-  if (shouldSkipCaptchaInDev()) {
+  if (!isCaptchaConfigured()) {
+    console.warn("[captcha] hCaptcha keys missing — captcha not enforced");
     return { ok: true };
   }
 
   if (typeof token !== "string" || !token.trim()) {
-    return { ok: false, reason: "Please complete the bot verification challenge." };
+    return { ok: false, reason: "Please complete the captcha." };
   }
 
   try {
@@ -140,25 +121,16 @@ export async function verifyCaptchaToken(
 
     const data = (await res.json()) as { success?: boolean };
     if (!data.success) {
-      return {
-        ok: false,
-        reason: "Bot verification failed. Please try again.",
-      };
+      return { ok: false, reason: "Captcha failed. Please try again." };
     }
     return { ok: true };
   } catch (err) {
     console.error("[captcha] hCaptcha verify error:", err);
-    return {
-      ok: false,
-      reason: "Bot verification service unavailable. Please try again.",
-    };
+    return { ok: false, reason: "Captcha unavailable. Please try again." };
   }
 }
 
-/**
- * Require a valid hCaptcha token OR a fresh login ticket (post-register).
- * Demo accounts always pass. No-op unless HCAPTCHA_ENFORCE=true.
- */
+/** Valid captcha token, login ticket, or demo account. */
 export async function requireBotVerification(opts: {
   captchaToken?: unknown;
   loginTicket?: unknown;
@@ -170,11 +142,11 @@ export async function requireBotVerification(opts: {
     return { ok: true };
   }
 
-  if (!isCaptchaConfigured()) {
+  if (process.env.NODE_ENV !== "production") {
     return { ok: true };
   }
 
-  if (shouldSkipCaptchaInDev()) {
+  if (!isCaptchaConfigured()) {
     return { ok: true };
   }
 

@@ -132,7 +132,7 @@ export async function GET(req: Request) {
         sources,
         enabledProviders: enabled,
         note:
-          !process.env.RAPIDAPI_KEY && !process.env.JSEARCH_API_KEY
+          !process.env.RAPIDAPI_KEY?.trim()
             ? "Add RAPIDAPI_KEY for JSearch (LinkedIn/Indeed/Glassdoor). LinkedIn has no public jobs API."
             : undefined,
       },

@@ -2,9 +2,7 @@
 
 import { useEffect, useState } from "react";
 import HCaptchaWidget, {
-  hasHCaptchaSiteKey,
   isHCaptchaEnabled,
-  isLocalDevHost,
   resetHCaptcha,
 } from "@/components/auth/HCaptchaWidget";
 
@@ -13,22 +11,13 @@ interface CaptchaWidgetProps {
   className?: string;
 }
 
-/**
- * Client-safe captcha gate. Returns false on localhost (hCaptcha cannot run there)
- * and until we know the hostname after mount (avoids SSR mismatch).
- */
+/** After mount — avoids SSR/localhost mismatch. */
 export function useCaptchaRequired(): boolean {
   const [required, setRequired] = useState(false);
-
   useEffect(() => {
     setRequired(isHCaptchaEnabled());
   }, []);
-
   return required;
-}
-
-export function isCaptchaEnabled(): boolean {
-  return hasHCaptchaSiteKey() && !isLocalDevHost();
 }
 
 export default function CaptchaWidget({

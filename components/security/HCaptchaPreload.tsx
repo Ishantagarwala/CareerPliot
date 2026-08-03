@@ -1,8 +1,5 @@
 "use client";
 
-/**
- * Preloads the hCaptcha script when captcha is enforced on a non-localhost host.
- */
 import { useEffect } from "react";
 import { isHCaptchaEnabled } from "@/components/auth/HCaptchaWidget";
 

@@ -181,10 +181,8 @@ export default function UnifiedChat({
           const data = await res.json();
           if (Array.isArray(data.models) && data.models.length > 0) {
             setAvailableModels(data.models);
-            const preferred = process.env.NEXT_PUBLIC_LLM_ROUTER_MODEL?.trim();
             const defaultModel =
               (typeof data.defaultModel === "string" && data.defaultModel) ||
-              (preferred && data.models.includes(preferred) && preferred) ||
               data.models[0];
             setSelectedModel(defaultModel);
           }

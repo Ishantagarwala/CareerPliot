@@ -5,9 +5,7 @@ export const PRODUCTION_SITE_URL = "https://www.careerpilot.cc";
  * Absolute public site URL for SEO (sitemap, Open Graph, canonical).
  */
 export function getSiteUrl(): string {
-  const explicit =
-    process.env.NEXT_PUBLIC_SITE_URL?.trim() ||
-    process.env.SITE_URL?.trim();
+  const explicit = process.env.NEXT_PUBLIC_SITE_URL?.trim();
   if (explicit) return explicit.replace(/\/$/, "");
 
   // Prefer the custom domain over *.vercel.app preview hosts.
