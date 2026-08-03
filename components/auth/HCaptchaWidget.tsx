@@ -27,6 +27,11 @@ declare global {
 const SCRIPT_ID = "hcaptcha-script";
 const SITE_KEY = process.env.NEXT_PUBLIC_HCAPTCHA_SITE_KEY?.trim() || "";
 
+function flagTrue(value: string | undefined): boolean {
+  const v = value?.trim().toLowerCase();
+  return v === "1" || v === "true" || v === "yes";
+}
+
 interface HCaptchaWidgetProps {
   onToken: (token: string | null) => void;
   className?: string;
@@ -48,8 +53,9 @@ export function hasHCaptchaSiteKey(): boolean {
   return Boolean(SITE_KEY);
 }
 
-/** True when the live site should show/require hCaptcha (not on localhost). */
+/** Captcha UI + client gate — only when explicitly enforced. */
 export function isHCaptchaEnabled(): boolean {
+  if (!flagTrue(process.env.NEXT_PUBLIC_HCAPTCHA_ENFORCE)) return false;
   return hasHCaptchaSiteKey() && !isLocalDevHost();
 }
 
@@ -135,7 +141,7 @@ export default function HCaptchaWidget({
           "error-callback": () => {
             onTokenRef.current(null);
             setError(
-              "Verification failed to load. Check that this domain is allowlisted in hCaptcha."
+              "Verification failed (rate limit or network). Wait a few minutes, then refresh."
             );
           },
         });
@@ -166,7 +172,7 @@ export default function HCaptchaWidget({
 
   return (
     <div className={className}>
-      <div ref={containerRef} className="min-h-[78px]" />
+      <div ref={containerRef} className="min-h-[78px] overflow-visible" />
       {error && <p className="mt-2 text-xs text-[#ffb4ab]">{error}</p>}
     </div>
   );

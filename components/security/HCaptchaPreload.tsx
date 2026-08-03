@@ -1,19 +1,16 @@
 "use client";
 
 /**
- * Preloads the hCaptcha script on non-localhost hosts so auth forms render faster.
+ * Preloads the hCaptcha script when captcha is enforced on a non-localhost host.
  */
 import { useEffect } from "react";
-import {
-  hasHCaptchaSiteKey,
-  isLocalDevHost,
-} from "@/components/auth/HCaptchaWidget";
+import { isHCaptchaEnabled } from "@/components/auth/HCaptchaWidget";
 
 const SCRIPT_ID = "hcaptcha-script";
 
 export default function HCaptchaPreload() {
   useEffect(() => {
-    if (!hasHCaptchaSiteKey() || isLocalDevHost()) return;
+    if (!isHCaptchaEnabled()) return;
     if (document.getElementById(SCRIPT_ID)) return;
     if (typeof window !== "undefined" && window.hcaptcha) return;
 

@@ -1,6 +1,10 @@
 /**
  * hCaptcha verification for auth + bot protection.
  * Get keys at https://dashboard.hcaptcha.com
+ *
+ * Enforcement is OPT-IN via HCAPTCHA_ENFORCE=true because hCaptcha cannot run
+ * on localhost and production has hit rate-limit / network failures that
+ * permanently blocked login when captcha was required.
  */
 
 import { createHmac, timingSafeEqual } from "crypto";
@@ -8,7 +12,18 @@ import { createHmac, timingSafeEqual } from "crypto";
 export const DEMO_ACCOUNT_EMAIL =
   process.env.DEMO_EMAIL?.trim().toLowerCase() || "demo@careerpilot.com";
 
+function flagTrue(value: string | undefined): boolean {
+  const v = value?.trim().toLowerCase();
+  return v === "1" || v === "true" || v === "yes";
+}
+
+/** Must set HCAPTCHA_ENFORCE=true (server) to require captcha on login/register. */
+export function isCaptchaEnforced(): boolean {
+  return flagTrue(process.env.HCAPTCHA_ENFORCE);
+}
+
 export function isCaptchaConfigured(): boolean {
+  if (!isCaptchaEnforced()) return false;
   return Boolean(
     process.env.HCAPTCHA_SECRET_KEY?.trim() &&
       process.env.NEXT_PUBLIC_HCAPTCHA_SITE_KEY?.trim()
@@ -18,14 +33,12 @@ export function isCaptchaConfigured(): boolean {
 /** Skip enforcement in local/dev — real hCaptcha cannot run on localhost. */
 function shouldSkipCaptchaInDev(): boolean {
   if (process.env.NODE_ENV === "production") return false;
-  const force = process.env.HCAPTCHA_FORCE_IN_DEV?.trim().toLowerCase();
-  if (force === "1" || force === "true") return false;
+  if (flagTrue(process.env.HCAPTCHA_FORCE_IN_DEV)) return false;
   return true;
 }
 
 export function isRegistrationDisabled(): boolean {
-  const flag = process.env.DISABLE_REGISTRATION?.trim().toLowerCase();
-  return flag === "1" || flag === "true" || flag === "yes";
+  return flagTrue(process.env.DISABLE_REGISTRATION);
 }
 
 /** Common disposable / throwaway email domains used in signup spam. */
@@ -99,11 +112,6 @@ export async function verifyCaptchaToken(
   }
 
   if (!isCaptchaConfigured()) {
-    if (process.env.NODE_ENV === "production") {
-      console.warn(
-        "[captcha] hCaptcha keys missing in production — captcha not enforced"
-      );
-    }
     return { ok: true };
   }
 
@@ -149,7 +157,7 @@ export async function verifyCaptchaToken(
 
 /**
  * Require a valid hCaptcha token OR a fresh login ticket (post-register).
- * Demo accounts always pass.
+ * Demo accounts always pass. No-op unless HCAPTCHA_ENFORCE=true.
  */
 export async function requireBotVerification(opts: {
   captchaToken?: unknown;
