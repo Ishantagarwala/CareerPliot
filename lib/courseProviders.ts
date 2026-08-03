@@ -55,6 +55,21 @@ const STOP_WORDS = new Set([
   "on", "or", "as", "is", "are", "be", "by", "how", "what", "get", "started",
 ]);
 
+/** Verbs / fluff that hurt provider search relevance on long milestone titles. */
+const TOPIC_EXTRA_STOP = new Set([
+  "solidify", "rebuilding", "existing", "pages", "dynamic", "driven", "ship",
+  "reusable", "library", "buttons", "cards", "inputs", "modals", "portfolio",
+  "own", "full", "cycle", "hit", "least", "annual", "future", "comp",
+  "establish", "credibility", "negotiations", "enough", "literacy", "manage",
+  "functional", "small", "group", "early", "collect", "through", "interviews",
+  "analytics", "usage", "data", "based", "behavior", "focus", "improving",
+  "willingness", "pay", "acquire", "first", "paying", "customers", "direct",
+  "outreach", "partnerships", "content", "communities", "targeted", "campaigns",
+  "founder", "operating", "systems", "tracking", "metrics", "managing", "product",
+  "roadmap", "handling", "customer", "support", "making", "decisions", "iterate",
+  "end", "citation", "backed", "history", "stored", "three", "modern",
+]);
+
 export function extractRoadmapTopics(
   stages: Array<{ name?: string; milestones?: Array<{ title?: string; completed?: boolean }> }>,
   careerPath: string
@@ -131,6 +146,28 @@ function scoreMatch(text: string, tokens: string[]): number {
     if (hay.includes(t)) score += t.length > 5 ? 2 : 1;
   }
   return score;
+}
+
+/** Title hits count more than description-only keyword noise. */
+function scoreCourseraMatch(
+  name: string,
+  description: string | undefined,
+  tokens: string[]
+): number {
+  const titleScore = scoreMatch(name, tokens);
+  const descScore = scoreMatch(description || "", tokens);
+  // Require at least one title token for a strong match; description alone is weak.
+  if (titleScore === 0) {
+    return descScore >= 4 ? Math.floor(descScore / 2) : 0;
+  }
+  return titleScore * 3 + Math.min(descScore, 4);
+}
+
+function courseraQueryTokens(query: string): string[] {
+  const headline = query.split(/[:—–]/)[0]?.trim() || query;
+  const primary = tokenize(headline).filter((t) => !TOPIC_EXTRA_STOP.has(t));
+  if (primary.length >= 2) return primary.slice(0, 8);
+  return tokenize(query).filter((t) => !TOPIC_EXTRA_STOP.has(t)).slice(0, 8);
 }
 
 async function loadCourseraCatalog(): Promise<CourseraElement[]> {
@@ -219,15 +256,18 @@ export async function searchCoursera(
 ): Promise<ProviderCourse[]> {
   try {
     const catalog = await loadCourseraCatalog();
-    const tokens = tokenize(query);
+    const tokens = courseraQueryTokens(query);
     if (tokens.length === 0) return [];
+
+    // Minimum score: prefer real title overlap (title token ≈ 3 pts).
+    const minScore = tokens.length >= 3 ? 6 : 3;
 
     const ranked = catalog
       .map((c) => ({
         c,
-        score: scoreMatch(`${c.name} ${c.description || ""}`, tokens),
+        score: scoreCourseraMatch(c.name, c.description, tokens),
       }))
-      .filter((r) => r.score > 0)
+      .filter((r) => r.score >= minScore)
       .sort((a, b) => b.score - a.score)
       .slice(0, limit);
 
@@ -263,19 +303,7 @@ export function isLiveYouTubeExternalId(externalId?: string | null): boolean {
   return typeof externalId === "string" && /^youtube:[a-zA-Z0-9_-]+$/.test(externalId);
 }
 
-const YT_EXTRA_STOP = new Set([
-  "solidify", "rebuilding", "existing", "pages", "dynamic", "driven", "ship",
-  "reusable", "library", "buttons", "cards", "inputs", "modals", "portfolio",
-  "own", "full", "cycle", "hit", "least", "annual", "future", "comp",
-  "establish", "credibility", "negotiations", "enough", "literacy", "manage",
-  "functional", "small", "group", "early", "collect", "through", "interviews",
-  "analytics", "usage", "data", "based", "behavior", "focus", "improving",
-  "willingness", "pay", "acquire", "first", "paying", "customers", "direct",
-  "outreach", "partnerships", "content", "communities", "targeted", "campaigns",
-  "founder", "operating", "systems", "tracking", "metrics", "managing", "product",
-  "roadmap", "handling", "customer", "support", "making", "decisions", "iterate",
-  "end", "citation", "backed", "history", "stored", "three", "modern",
-]);
+const YT_EXTRA_STOP = TOPIC_EXTRA_STOP;
 
 /**
  * Milestone titles are long sentences — YouTube relevance collapses on them.

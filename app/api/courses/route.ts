@@ -54,7 +54,7 @@ export async function GET(req: Request) {
       );
     }
 
-    const hash = `${roadmapFingerprint(careerPath, roadmap.stages)}:yt2`;
+    const hash = `${roadmapFingerprint(careerPath, roadmap.stages)}:yt3`;
 
     let courses = await Course.find({
       userId,
@@ -121,7 +121,40 @@ export async function GET(req: Request) {
       query.isFree = false;
     }
 
-    const filteredCourses = await Course.find(query).sort({ rating: -1, skillLevel: 1 });
+    const topics = extractRoadmapTopics(roadmap.stages, careerPath);
+    const topicOrder = topics.map((t) => t.milestoneTitle);
+    const topicRank = new Map(topicOrder.map((title, i) => [title, i]));
+    const levelRank: Record<string, number> = {
+      beginner: 0,
+      intermediate: 1,
+      advanced: 2,
+    };
+
+    const filteredCourses = await Course.find(query);
+    // Keep roadmap sequence: beginner → intermediate → advanced, milestone order,
+    // then prefer live YouTube, then other free/video hits, then by rating.
+    filteredCourses.sort((a, b) => {
+      const aTopic = a.sourceTopic || "";
+      const bTopic = b.sourceTopic || "";
+      const aIdx = topicRank.has(aTopic)
+        ? (topicRank.get(aTopic) as number)
+        : 1000 + (levelRank[a.skillLevel] ?? 9);
+      const bIdx = topicRank.has(bTopic)
+        ? (topicRank.get(bTopic) as number)
+        : 1000 + (levelRank[b.skillLevel] ?? 9);
+      if (aIdx !== bIdx) return aIdx - bIdx;
+
+      const aLive = isLiveYouTubeExternalId(a.externalId) ? 0 : 1;
+      const bLive = isLiveYouTubeExternalId(b.externalId) ? 0 : 1;
+      if (aLive !== bLive) return aLive - bLive;
+
+      const aYt = a.platform === "YouTube" ? 0 : 1;
+      const bYt = b.platform === "YouTube" ? 0 : 1;
+      if (aYt !== bYt) return aYt - bYt;
+
+      return (b.rating || 0) - (a.rating || 0);
+    });
+
     const youtubeCount = filteredCourses.filter((c) => c.platform === "YouTube").length;
     const liveYouTubeCount = filteredCourses.filter((c) =>
       isLiveYouTubeExternalId(c.externalId)
@@ -136,7 +169,8 @@ export async function GET(req: Request) {
         youtubeEnabled,
         youtubeCount,
         liveYouTubeCount,
-        topicCount: extractRoadmapTopics(roadmap.stages, careerPath).length,
+        topicCount: topics.length,
+        topicOrder,
       },
     });
   } catch (error: any) {

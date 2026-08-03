@@ -8,7 +8,7 @@ import {
   createLoginTicket,
   isDisposableEmail,
   isRegistrationDisabled,
-  verifyTurnstileToken,
+  verifyCaptchaToken,
 } from '@/lib/captcha';
 import dns from 'dns';
 
@@ -89,7 +89,7 @@ export async function POST(req: Request) {
       );
     }
 
-    const captcha = await verifyTurnstileToken(captchaToken, {
+    const captcha = await verifyCaptchaToken(captchaToken, {
       email: normalizedEmail,
       ip,
     });
@@ -131,7 +131,7 @@ export async function POST(req: Request) {
       {
         message: 'User registered successfully',
         userId: user._id,
-        // Lets the client auto-login without solving Turnstile twice
+        // Lets the client auto-login without solving captcha twice
         loginTicket: createLoginTicket(normalizedEmail),
       },
       { status: 201 }

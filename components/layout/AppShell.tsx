@@ -20,7 +20,6 @@ const menuItems = [
   { name: "Resume Score", href: "/resume/ats", icon: "military_tech" },
   { name: "Jobs & Internships", href: "/jobs", icon: "work" },
   { name: "Projects & Hackathons", href: "/projects", icon: "hub" },
-  { name: "Study With Me", href: "/study", icon: "group" },
   { name: "Tech News", href: "/news", icon: "newspaper" },
 ];
 

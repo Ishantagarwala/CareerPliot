@@ -515,6 +515,9 @@ export default function UnifiedChat({
           <span className="text-xs font-bold text-foreground font-label uppercase tracking-wider">
             {activeThreadId ? "Active Thread" : "New Thread"}
           </span>
+          <span className="hidden sm:inline text-[11px] text-muted-foreground font-normal normal-case tracking-normal">
+            Upload notes or chat with AI about your materials
+          </span>
         </div>
 
         <div className="flex items-center gap-2">

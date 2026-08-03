@@ -9,10 +9,10 @@ import { signIn } from "next-auth/react";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
 import Link from "next/link";
-import TurnstileWidget, {
-  isTurnstileEnabled,
-  resetTurnstile,
-} from "@/components/auth/TurnstileWidget";
+import CaptchaWidget, {
+  isCaptchaEnabled,
+  resetCaptcha,
+} from "@/components/auth/CaptchaWidget";
 
 const loginSchema = z.object({
   email: z.string().email({ message: "Invalid email address format" }),
@@ -29,7 +29,7 @@ export default function LoginForm() {
   const [demoStep, setDemoStep] = useState("");
   const [captchaToken, setCaptchaToken] = useState<string | null>(null);
   const demoStarted = useRef(false);
-  const captchaRequired = isTurnstileEnabled();
+  const captchaRequired = isCaptchaEnabled();
 
   const handleDemoLogin = async () => {
     if (demoLoading) return;
@@ -139,7 +139,7 @@ export default function LoginForm() {
 
       if (res?.error) {
         toast.error("Invalid credentials or bot verification failed. Please try again.");
-        resetTurnstile();
+        resetCaptcha();
         setCaptchaToken(null);
       } else {
         toast.success("Successfully logged in!");
@@ -149,7 +149,7 @@ export default function LoginForm() {
     } catch (err) {
       console.error(err);
       toast.error("An unexpected error occurred. Please try again.");
-      resetTurnstile();
+      resetCaptcha();
       setCaptchaToken(null);
     } finally {
       setLoading(false);
@@ -158,7 +158,7 @@ export default function LoginForm() {
 
   if (demoLoading) {
     return (
-      <div className="w-full max-w-md bg-[#1A1A1A] border border-[#262626] p-8 text-center space-y-6 animate-fade-in-up">
+      <div className="w-full max-w-md bg-card border border-border p-8 text-center space-y-6 animate-fade-in-up">
         <div className="flex flex-col items-center justify-center space-y-4 py-8">
           <div className="relative flex items-center justify-center">
             {/* Pulsing animated outer ring */}
@@ -168,15 +168,15 @@ export default function LoginForm() {
             </div>
           </div>
           <div className="space-y-2">
-            <h3 className="text-lg font-bold text-white tracking-tight" style={{ fontFamily: "'Hanken Grotesk', system-ui, sans-serif" }}>
+            <h3 className="text-lg font-bold text-foreground tracking-tight" style={{ fontFamily: "'Hanken Grotesk', system-ui, sans-serif" }}>
               Initializing Demo Session
             </h3>
-            <p className="text-sm text-[#8e9192]" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
+            <p className="text-sm text-muted-foreground" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
               {demoStep}
             </p>
           </div>
         </div>
-        <div className="text-xs text-[#636565] border-t border-[#262626] pt-4">
+        <div className="text-xs text-muted-foreground border-t border-border pt-4">
           This will take a moment to configure your custom AI roadmaps.
         </div>
       </div>
@@ -184,15 +184,15 @@ export default function LoginForm() {
   }
 
   return (
-    <div className="w-full max-w-md bg-[#1A1A1A] border border-[#262626] overflow-hidden">
-      <div className="p-6 border-b border-[#262626] text-center space-y-2">
+    <div className="w-full max-w-md bg-card border border-border overflow-hidden">
+      <div className="p-6 border-b border-border text-center space-y-2">
         <h1
-          className="text-2xl font-bold text-white tracking-tight"
+          className="text-2xl font-bold text-foreground tracking-tight"
           style={{ fontFamily: "'Hanken Grotesk', system-ui, sans-serif" }}
         >
           Sign In
         </h1>
-        <p className="text-sm text-[#8e9192]">
+        <p className="text-sm text-muted-foreground">
           Enter your email and password to log into your account
         </p>
       </div>
@@ -201,7 +201,7 @@ export default function LoginForm() {
           <div className="space-y-2">
             <label
               htmlFor="email"
-              className="text-[11px] text-[#8e9192] uppercase tracking-[0.1em] font-medium block"
+              className="text-[11px] text-muted-foreground uppercase tracking-[0.1em] font-medium block"
               style={{ fontFamily: "'JetBrains Mono', monospace" }}
             >
               Email
@@ -211,8 +211,8 @@ export default function LoginForm() {
               type="email"
               placeholder="name@example.com"
               {...register("email")}
-              className={`w-full border bg-[#131313] px-3 py-2 text-sm text-white placeholder:text-[#636565] focus:border-white focus:ring-0 focus:outline-none transition-colors ${
-                errors.email ? "border-[#ffb4ab]" : "border-[#262626]"
+              className={`w-full border bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:border-foreground focus:ring-0 focus:outline-none transition-colors ${
+                errors.email ? "border-[#ffb4ab]" : "border-border"
               }`}
             />
             {errors.email && (
@@ -222,7 +222,7 @@ export default function LoginForm() {
           <div className="space-y-2">
             <label
               htmlFor="password"
-              className="text-[11px] text-[#8e9192] uppercase tracking-[0.1em] font-medium block"
+              className="text-[11px] text-muted-foreground uppercase tracking-[0.1em] font-medium block"
               style={{ fontFamily: "'JetBrains Mono', monospace" }}
             >
               Password
@@ -232,8 +232,8 @@ export default function LoginForm() {
               type="password"
               placeholder="••••••••"
               {...register("password")}
-              className={`w-full border bg-[#131313] px-3 py-2 text-sm text-white placeholder:text-[#636565] focus:border-white focus:ring-0 focus:outline-none transition-colors ${
-                errors.password ? "border-[#ffb4ab]" : "border-[#262626]"
+              className={`w-full border bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:border-foreground focus:ring-0 focus:outline-none transition-colors ${
+                errors.password ? "border-[#ffb4ab]" : "border-border"
               }`}
             />
             {errors.password && (
@@ -242,14 +242,14 @@ export default function LoginForm() {
           </div>
 
           {captchaRequired && (
-            <TurnstileWidget onToken={setCaptchaToken} className="pt-2" />
+            <CaptchaWidget onToken={setCaptchaToken} className="pt-2" />
           )}
         </div>
         <div className="p-6 pt-0 space-y-4">
           <button
             type="submit"
             disabled={loading || (captchaRequired && !captchaToken)}
-            className="w-full py-2.5 bg-white text-[#0A0A0A] font-bold text-xs hover:bg-[#e2e2e2] transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
+            className="w-full py-2.5 bg-primary text-primary-foreground border-2 border-black font-bold text-xs hover:opacity-90 transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
             style={{ fontFamily: "'JetBrains Mono', monospace", letterSpacing: "0.04em" }}
           >
             {loading ? (
@@ -271,24 +271,24 @@ export default function LoginForm() {
           </button>
 
           <div className="relative flex py-1 items-center">
-            <div className="flex-grow border-t border-[#262626]"></div>
-            <span className="flex-shrink mx-4 text-[10px] text-[#636565] uppercase tracking-wider" style={{ fontFamily: "'JetBrains Mono', monospace" }}>or</span>
-            <div className="flex-grow border-t border-[#262626]"></div>
+            <div className="flex-grow border-t border-border"></div>
+            <span className="flex-shrink mx-4 text-[10px] text-muted-foreground uppercase tracking-wider" style={{ fontFamily: "'JetBrains Mono', monospace" }}>or</span>
+            <div className="flex-grow border-t border-border"></div>
           </div>
 
           <button
             type="button"
             onClick={handleDemoLogin}
-            className="w-full py-2.5 border border-indigo-500/30 text-indigo-400 font-bold text-xs hover:bg-indigo-500/10 hover:border-indigo-500 hover:text-white transition-all flex items-center justify-center gap-2"
+            className="w-full py-2.5 border border-indigo-500/30 text-indigo-400 font-bold text-xs hover:bg-indigo-500/10 hover:border-indigo-500 hover:text-foreground transition-all flex items-center justify-center gap-2"
             style={{ fontFamily: "'JetBrains Mono', monospace", letterSpacing: "0.04em" }}
           >
             Try Demo Login
             <span className="material-symbols-outlined text-[16px]">bolt</span>
           </button>
 
-          <div className="text-sm text-center text-[#8e9192] pt-2">
+          <div className="text-sm text-center text-muted-foreground pt-2">
             Don&apos;t have an account?{" "}
-            <Link href="/register" className="text-white font-medium hover:underline">
+            <Link href="/register" className="text-foreground font-medium hover:underline">
               Sign Up
             </Link>
           </div>

@@ -1,9 +1,6 @@
 /**
- * Cloudflare Turnstile verification for auth + bot protection.
- * Get keys at https://dash.cloudflare.com/ → Turnstile
- *
- * For full network-level Bot Fight Mode, also proxy the domain through
- * Cloudflare DNS (orange cloud) and enable Bot Fight Mode in the dashboard.
+ * hCaptcha verification for auth + bot protection.
+ * Get keys at https://dashboard.hcaptcha.com
  */
 
 import { createHmac, timingSafeEqual } from "crypto";
@@ -13,8 +10,8 @@ export const DEMO_ACCOUNT_EMAIL =
 
 export function isCaptchaConfigured(): boolean {
   return Boolean(
-    process.env.TURNSTILE_SECRET_KEY?.trim() &&
-      process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY?.trim()
+    process.env.HCAPTCHA_SECRET_KEY?.trim() &&
+      process.env.NEXT_PUBLIC_HCAPTCHA_SITE_KEY?.trim()
   );
 }
 
@@ -50,12 +47,12 @@ export function isDisposableEmail(email: string): boolean {
 function ticketSecret(): string {
   return (
     process.env.AUTH_SECRET?.trim() ||
-    process.env.TURNSTILE_SECRET_KEY?.trim() ||
+    process.env.HCAPTCHA_SECRET_KEY?.trim() ||
     "dev-insecure-secret"
   );
 }
 
-/** Short-lived ticket so post-register auto-login can skip a second Turnstile. */
+/** Short-lived ticket so post-register auto-login can skip a second captcha. */
 export function createLoginTicket(email: string, ttlMs = 2 * 60 * 1000): string {
   const exp = Date.now() + ttlMs;
   const payload = `${email.toLowerCase().trim()}.${exp}`;
@@ -84,7 +81,7 @@ export function verifyLoginTicket(ticket: unknown, email: string): boolean {
   }
 }
 
-export async function verifyTurnstileToken(
+export async function verifyCaptchaToken(
   token: unknown,
   opts?: { email?: string; ip?: string }
 ): Promise<{ ok: boolean; reason?: string }> {
@@ -96,7 +93,7 @@ export async function verifyTurnstileToken(
   if (!isCaptchaConfigured()) {
     if (process.env.NODE_ENV === "production") {
       console.warn(
-        "[captcha] TURNSTILE keys missing in production — captcha not enforced"
+        "[captcha] hCaptcha keys missing in production — captcha not enforced"
       );
     }
     return { ok: true };
@@ -108,21 +105,18 @@ export async function verifyTurnstileToken(
 
   try {
     const body = new URLSearchParams({
-      secret: process.env.TURNSTILE_SECRET_KEY!.trim(),
+      secret: process.env.HCAPTCHA_SECRET_KEY!.trim(),
       response: token.trim(),
     });
     if (opts?.ip && opts.ip !== "unknown") {
       body.set("remoteip", opts.ip);
     }
 
-    const res = await fetch(
-      "https://challenges.cloudflare.com/turnstile/v0/siteverify",
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/x-www-form-urlencoded" },
-        body,
-      }
-    );
+    const res = await fetch("https://api.hcaptcha.com/siteverify", {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body,
+    });
 
     const data = (await res.json()) as { success?: boolean };
     if (!data.success) {
@@ -133,7 +127,7 @@ export async function verifyTurnstileToken(
     }
     return { ok: true };
   } catch (err) {
-    console.error("[captcha] Turnstile verify error:", err);
+    console.error("[captcha] hCaptcha verify error:", err);
     return {
       ok: false,
       reason: "Bot verification service unavailable. Please try again.",
@@ -142,7 +136,7 @@ export async function verifyTurnstileToken(
 }
 
 /**
- * Require a valid Turnstile token OR a fresh login ticket (post-register).
+ * Require a valid hCaptcha token OR a fresh login ticket (post-register).
  * Demo accounts always pass.
  */
 export async function requireBotVerification(opts: {
@@ -164,5 +158,5 @@ export async function requireBotVerification(opts: {
     return { ok: true };
   }
 
-  return verifyTurnstileToken(opts.captchaToken, { email, ip: opts.ip });
+  return verifyCaptchaToken(opts.captchaToken, { email, ip: opts.ip });
 }

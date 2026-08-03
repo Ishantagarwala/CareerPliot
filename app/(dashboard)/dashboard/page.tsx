@@ -46,6 +46,37 @@ interface ProgressData {
   readinessScore: number;
 }
 
+const START_STEPS = [
+  {
+    step: 1,
+    title: "Career Discovery",
+    description: "Find a path that fits your skills and goals.",
+    href: "/career",
+    icon: "explore",
+  },
+  {
+    step: 2,
+    title: "Learning Roadmap",
+    description: "Get a beginner → advanced plan for that path.",
+    href: "/roadmap",
+    icon: "map",
+  },
+  {
+    step: 3,
+    title: "Courses",
+    description: "Pick free YouTube and Coursera courses for each milestone.",
+    href: "/courses",
+    icon: "school",
+  },
+  {
+    step: 4,
+    title: "AI Study Hub",
+    description: "Upload notes or chat with AI while you learn.",
+    href: "/ai-hub",
+    icon: "auto_awesome",
+  },
+] as const;
+
 export default function DashboardHome() {
   const { data: session } = useSession();
   const [selectedPath, setSelectedPath] = useState<CareerRecommendation | null>(null);
@@ -85,67 +116,72 @@ export default function DashboardHome() {
     return <PageLoader label="Loading dashboard" />;
   }
 
-  // Circular gauge calculations
   const readiness = progressData?.readinessScore || 0;
   const radius = 50;
   const circumference = 2 * Math.PI * radius;
   const strokeDashoffset = circumference - (readiness / 100) * circumference;
 
+  const hasRoadmap =
+    Boolean(progressData?.roadmap?.careerPath) &&
+    (progressData?.roadmap?.totalMilestones || 0) > 0;
+  const nextStep = !hasRoadmap
+    ? { label: "Build your roadmap", href: "/roadmap" }
+    : (progressData?.metrics.coursesCompleted || 0) === 0
+      ? { label: "Browse free courses", href: "/courses" }
+      : null;
+
   return (
     <div className="space-y-8">
-      {/* Welcome Header */}
-      <div className="border-b border-[#262626] pb-6 animate-fade-in-up">
+      <div className="border-b border-border pb-6 animate-fade-in-up">
         <h1
-          className="text-3xl font-bold text-white tracking-tight flex items-center gap-3"
+          className="text-3xl font-bold text-foreground tracking-tight flex items-center gap-3"
           style={{ fontFamily: "'Hanken Grotesk', system-ui, sans-serif" }}
         >
           <span className="material-symbols-outlined text-[28px]">dashboard</span>
           Dashboard
         </h1>
-        <p className="text-sm text-[#8e9192] mt-2">
-          Welcome back, <span className="font-bold text-white">{session?.user?.name || "Student"}</span>. Here is your personalized learning progress.
+        <p className="text-sm text-muted-foreground mt-2">
+          Welcome back,{" "}
+          <span className="font-bold text-foreground">{session?.user?.name || "Student"}</span>.
+          Here is your personalized learning progress.
         </p>
       </div>
 
-      {/* Profile Overview and Readiness Gauge */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Profile Card */}
         <div className="lg:col-span-2">
           {selectedPath ? (
-            <div className="bg-[#1A1A1A] border border-[#262626] p-8 h-full relative overflow-hidden animate-fade-in-up delay-100">
-              <div className="absolute inset-y-0 right-0 w-1/3 bg-[radial-gradient(ellipse_at_right,_rgba(255,255,255,0.03)_0%,_transparent_60%)] pointer-events-none" />
-
+            <div className="bg-card border border-border p-8 h-full relative overflow-hidden animate-fade-in-up">
               <div className="relative">
                 <div
-                  className="inline-flex items-center gap-2 px-3 py-1 border border-[#262626] bg-[#131313] text-[#c4c7c8] mb-4"
+                  className="inline-flex items-center gap-2 px-3 py-1 border border-border bg-background text-muted-foreground mb-4"
                   style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "11px", letterSpacing: "0.08em" }}
                 >
-                  <span className="w-2 h-2 rounded-full bg-white" />
+                  <span className="w-2 h-2 rounded-full bg-primary" />
                   SELECTED CAREER PATH
                 </div>
 
                 <h2
-                  className="text-2xl font-bold text-white mb-1"
+                  className="text-2xl font-bold text-foreground mb-1"
                   style={{ fontFamily: "'Hanken Grotesk', system-ui, sans-serif" }}
                 >
                   {selectedPath.careerPath}
                 </h2>
 
                 <p
-                  className="text-xs text-white mb-4"
+                  className="text-xs text-foreground mb-4"
                   style={{ fontFamily: "'JetBrains Mono', monospace", letterSpacing: "0.05em" }}
                 >
                   Compatibility Score: {selectedPath.matchScore}% Match
                 </p>
 
-                <p className="text-sm text-[#c4c7c8] leading-relaxed mb-6 max-w-xl">
+                <p className="text-sm text-muted-foreground leading-relaxed mb-6 max-w-xl">
                   {selectedPath.reasoning}
                 </p>
 
-                <div className="border-t border-[#262626] pt-4 flex gap-3">
+                <div className="border-t border-border pt-4 flex flex-wrap gap-3">
                   <Link
                     href="/roadmap"
-                    className="inline-flex items-center px-5 py-2 bg-white text-[#0A0A0A] font-bold hover:bg-[#e2e2e2] transition-colors text-xs group"
+                    className="inline-flex items-center px-5 py-2 bg-primary text-primary-foreground border-2 border-black font-bold hover:opacity-90 transition-colors text-xs group shadow-[3px_3px_0_0_#000]"
                     style={{ fontFamily: "'JetBrains Mono', monospace", letterSpacing: "0.04em" }}
                   >
                     View Roadmap
@@ -153,64 +189,114 @@ export default function DashboardHome() {
                   </Link>
                   <Link
                     href="/career"
-                    className="inline-flex items-center px-5 py-2 border border-white text-white hover:bg-[#1A1A1A] transition-colors text-xs"
+                    className="inline-flex items-center px-5 py-2 border border-border text-foreground hover:border-foreground transition-colors text-xs"
                     style={{ fontFamily: "'JetBrains Mono', monospace", letterSpacing: "0.04em" }}
                   >
                     Change Path
                   </Link>
+                  {nextStep && (
+                    <Link
+                      href={nextStep.href}
+                      className="inline-flex items-center px-4 py-2 border border-primary/40 text-foreground text-xs hover:bg-primary/10 transition-colors"
+                      style={{ fontFamily: "'JetBrains Mono', monospace", letterSpacing: "0.04em" }}
+                    >
+                      Next: {nextStep.label}
+                    </Link>
+                  )}
                 </div>
               </div>
             </div>
           ) : (
-            <div className="border-2 border-dashed border-[#262626] bg-[#131313] text-center py-16 px-8 h-full flex flex-col items-center justify-center gap-5 animate-fade-in-up delay-100">
-              <div className="h-14 w-14 border border-[#262626] flex items-center justify-center text-white">
-                <span className="material-symbols-outlined text-[28px]">explore</span>
-              </div>
-              <div className="space-y-2">
+            <div className="border-2 border-dashed border-border bg-card/40 p-8 h-full flex flex-col animate-fade-in-up">
+              <div className="mb-6 text-center sm:text-left">
+                <p
+                  className="text-[10px] text-muted-foreground uppercase tracking-[0.14em] mb-2"
+                  style={{ fontFamily: "'JetBrains Mono', monospace" }}
+                >
+                  Get started · 4 steps
+                </p>
                 <h3
-                  className="font-bold text-lg text-white"
+                  className="font-bold text-xl text-foreground"
                   style={{ fontFamily: "'Hanken Grotesk', system-ui, sans-serif" }}
                 >
-                  No Active Career Path Selected
+                  Build your career plan
                 </h3>
-                <p className="text-sm text-[#8e9192] max-w-sm">
-                  Complete the Career Discovery questionnaire to unlock personalized learning paths, courses, and AI study tools.
+                <p className="text-sm text-muted-foreground mt-2 max-w-lg">
+                  Follow these steps in order — each one unlocks the next.
                 </p>
               </div>
-              <Link
-                href="/career"
-                className="inline-flex items-center px-6 py-2.5 bg-white text-[#0A0A0A] font-bold hover:bg-[#e2e2e2] transition-colors text-xs group"
-                style={{ fontFamily: "'JetBrains Mono', monospace", letterSpacing: "0.04em" }}
-              >
-                Get Started
-                <ArrowRight className="h-3.5 w-3.5 ml-1.5 group-hover:translate-x-0.5 transition-transform" />
-              </Link>
+
+              <ol className="space-y-3 flex-1">
+                {START_STEPS.map((item) => (
+                  <li key={item.step}>
+                    <Link
+                      href={item.href}
+                      className="flex items-start gap-4 p-4 border border-border bg-card hover:border-foreground transition-colors group"
+                    >
+                      <span
+                        className="h-8 w-8 shrink-0 flex items-center justify-center border-2 border-black bg-primary text-primary-foreground text-xs font-bold"
+                        style={{ fontFamily: "'JetBrains Mono', monospace" }}
+                      >
+                        {item.step}
+                      </span>
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-2">
+                          <span className="material-symbols-outlined text-[18px] text-muted-foreground group-hover:text-foreground">
+                            {item.icon}
+                          </span>
+                          <span
+                            className="font-bold text-sm text-foreground"
+                            style={{ fontFamily: "'Hanken Grotesk', system-ui, sans-serif" }}
+                          >
+                            {item.title}
+                          </span>
+                        </div>
+                        <p className="text-xs text-muted-foreground mt-1 leading-relaxed">
+                          {item.description}
+                        </p>
+                      </div>
+                      <ArrowRight className="h-4 w-4 text-muted-foreground group-hover:text-foreground group-hover:translate-x-0.5 transition-all shrink-0 mt-1" />
+                    </Link>
+                  </li>
+                ))}
+              </ol>
+
+              <div className="mt-6 pt-4 border-t border-border">
+                <Link
+                  href="/career"
+                  className="inline-flex items-center px-6 py-2.5 bg-primary text-primary-foreground border-2 border-black font-bold hover:opacity-90 transition-colors text-xs group shadow-[3px_3px_0_0_#000]"
+                  style={{ fontFamily: "'JetBrains Mono', monospace", letterSpacing: "0.04em" }}
+                >
+                  Start with Career Discovery
+                  <ArrowRight className="h-3.5 w-3.5 ml-1.5 group-hover:translate-x-0.5 transition-transform" />
+                </Link>
+              </div>
             </div>
           )}
         </div>
 
-        {/* Readiness Gauge */}
         <div className="lg:col-span-1">
-          <div className="bg-[#1A1A1A] border border-[#262626] p-6 h-full flex flex-col items-center justify-center text-center animate-fade-in-up delay-200">
+          <div className="bg-card border border-border p-6 h-full flex flex-col items-center justify-center text-center animate-fade-in-up">
             <div className="mb-4">
               <h3
-                className="text-sm font-bold text-white flex items-center justify-center gap-1.5"
+                className="text-sm font-bold text-foreground flex items-center justify-center gap-1.5"
                 style={{ fontFamily: "'Hanken Grotesk', system-ui, sans-serif" }}
               >
                 <span className="material-symbols-outlined text-[18px]">target</span>
-                Overall Readiness
+                Job readiness
               </h3>
-              <p className="text-[10px] text-[#8e9192] mt-1">Composite score toward job-readiness</p>
+              <p className="text-[10px] text-muted-foreground mt-1">
+                Based on milestones, courses, and study activity
+              </p>
             </div>
 
-            {/* Radial Progress Gauge */}
             <div className="relative h-32 w-32 flex items-center justify-center my-4">
               <svg className="h-full w-full transform -rotate-90">
                 <circle
                   cx="64"
                   cy="64"
                   r={radius}
-                  className="stroke-[#262626]"
+                  className="stroke-border"
                   strokeWidth="8"
                   fill="transparent"
                 />
@@ -218,7 +304,7 @@ export default function DashboardHome() {
                   cx="64"
                   cy="64"
                   r={radius}
-                  className="stroke-white transition-all duration-1000 ease-out"
+                  className="stroke-primary transition-all duration-1000 ease-out"
                   strokeWidth="8"
                   strokeDasharray={circumference}
                   strokeDashoffset={strokeDashoffset}
@@ -228,13 +314,13 @@ export default function DashboardHome() {
               </svg>
               <div className="absolute flex flex-col items-center justify-center">
                 <span
-                  className="text-3xl font-bold text-white tracking-tight"
+                  className="text-3xl font-bold text-foreground tracking-tight"
                   style={{ fontFamily: "'Hanken Grotesk', system-ui, sans-serif" }}
                 >
                   {readiness}%
                 </span>
                 <span
-                  className="text-[10px] text-[#8e9192] uppercase tracking-[0.15em] mt-0.5"
+                  className="text-[10px] text-muted-foreground uppercase tracking-[0.15em] mt-0.5"
                   style={{ fontFamily: "'JetBrains Mono', monospace" }}
                 >
                   Ready
@@ -242,14 +328,15 @@ export default function DashboardHome() {
               </div>
             </div>
 
-            <div className="text-[10px] text-[#636565] leading-relaxed max-w-[200px] font-medium">
-              Based on milestones ({progressData?.roadmap?.completedMilestones || 0} done), courses, document analysis, and tutor chats.
+            <div className="text-[10px] text-muted-foreground leading-relaxed max-w-[200px] font-medium">
+              {progressData?.roadmap?.completedMilestones || 0} milestones done ·{" "}
+              {progressData?.metrics.coursesCompleted || 0} courses ·{" "}
+              {progressData?.metrics.tutorSessions || 0} tutor chats
             </div>
           </div>
         </div>
       </div>
 
-      {/* Stats Cards */}
       {selectedPath && progressData && (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <StatsCard
@@ -283,7 +370,6 @@ export default function DashboardHome() {
         </div>
       )}
 
-      {/* Charts */}
       {selectedPath && progressData && (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <ProgressChart

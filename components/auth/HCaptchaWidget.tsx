@@ -4,14 +4,13 @@ import { useEffect, useRef } from "react";
 
 declare global {
   interface Window {
-    turnstile?: {
+    hcaptcha?: {
       render: (
         el: HTMLElement,
         options: {
           sitekey: string;
-          theme?: "dark" | "light" | "auto";
-          appearance?: "always" | "execute" | "interaction-only";
-          size?: "normal" | "compact" | "flexible";
+          theme?: "dark" | "light";
+          size?: "normal" | "compact" | "invisible";
           callback?: (token: string) => void;
           "expired-callback"?: () => void;
           "error-callback"?: () => void;
@@ -20,41 +19,32 @@ declare global {
       reset: (widgetId?: string) => void;
       remove: (widgetId?: string) => void;
     };
-    onTurnstileLoad?: () => void;
+    onHCaptchaLoad?: () => void;
   }
 }
 
-const SCRIPT_ID = "cf-turnstile-script";
-const SITE_KEY = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY?.trim() || "";
+const SCRIPT_ID = "hcaptcha-script";
+const SITE_KEY = process.env.NEXT_PUBLIC_HCAPTCHA_SITE_KEY?.trim() || "";
 
-/** Invisible for real users; only challenges when Cloudflare suspects a bot */
-const APPEARANCE =
-  (process.env.NEXT_PUBLIC_TURNSTILE_APPEARANCE?.trim() as
-    | "always"
-    | "execute"
-    | "interaction-only"
-    | undefined) || "interaction-only";
-
-interface TurnstileWidgetProps {
+interface HCaptchaWidgetProps {
   onToken: (token: string | null) => void;
   className?: string;
-  appearance?: "always" | "execute" | "interaction-only";
 }
 
-export function isTurnstileEnabled(): boolean {
+export function isHCaptchaEnabled(): boolean {
   return Boolean(SITE_KEY);
 }
 
-function loadTurnstile(onReady: () => void) {
+function loadHCaptcha(onReady: () => void) {
   if (typeof window === "undefined") return;
 
-  if (window.turnstile) {
+  if (window.hcaptcha) {
     onReady();
     return;
   }
 
-  const prev = window.onTurnstileLoad;
-  window.onTurnstileLoad = () => {
+  const prev = window.onHCaptchaLoad;
+  window.onHCaptchaLoad = () => {
     try {
       prev?.();
     } catch {
@@ -68,16 +58,15 @@ function loadTurnstile(onReady: () => void) {
     script = document.createElement("script");
     script.id = SCRIPT_ID;
     script.src =
-      "https://challenges.cloudflare.com/turnstile/v0/api.js?onload=onTurnstileLoad&render=explicit";
+      "https://js.hcaptcha.com/1/api.js?onload=onHCaptchaLoad&render=explicit";
     script.async = true;
     document.head.appendChild(script);
   }
 
-  // Script may already be present (preloaded) without our onload — poll briefly.
   let tries = 0;
   const timer = window.setInterval(() => {
     tries += 1;
-    if (window.turnstile) {
+    if (window.hcaptcha) {
       window.clearInterval(timer);
       onReady();
     } else if (tries > 40) {
@@ -86,11 +75,10 @@ function loadTurnstile(onReady: () => void) {
   }, 100);
 }
 
-export default function TurnstileWidget({
+export default function HCaptchaWidget({
   onToken,
   className,
-  appearance = APPEARANCE,
-}: TurnstileWidgetProps) {
+}: HCaptchaWidgetProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const widgetIdRef = useRef<string | null>(null);
   const onTokenRef = useRef(onToken);
@@ -102,24 +90,22 @@ export default function TurnstileWidget({
     let cancelled = false;
 
     const renderWidget = () => {
-      if (cancelled || !containerRef.current || !window.turnstile) return;
-      // Avoid double-render (React Strict Mode / poll + onload)
+      if (cancelled || !containerRef.current || !window.hcaptcha) return;
       if (renderedRef.current && widgetIdRef.current) return;
 
       try {
         if (widgetIdRef.current) {
-          window.turnstile.remove(widgetIdRef.current);
+          window.hcaptcha.remove(widgetIdRef.current);
           widgetIdRef.current = null;
         }
       } catch {
         /* ignore */
       }
 
-      widgetIdRef.current = window.turnstile.render(containerRef.current, {
+      widgetIdRef.current = window.hcaptcha.render(containerRef.current, {
         sitekey: SITE_KEY,
-        theme: "auto",
-        appearance,
-        size: "flexible",
+        theme: "dark",
+        size: "normal",
         callback: (token) => onTokenRef.current(token),
         "expired-callback": () => onTokenRef.current(null),
         "error-callback": () => onTokenRef.current(null),
@@ -127,32 +113,31 @@ export default function TurnstileWidget({
       renderedRef.current = true;
     };
 
-    loadTurnstile(renderWidget);
+    loadHCaptcha(renderWidget);
 
     return () => {
       cancelled = true;
       renderedRef.current = false;
-      if (widgetIdRef.current && window.turnstile) {
+      if (widgetIdRef.current && window.hcaptcha) {
         try {
-          window.turnstile.remove(widgetIdRef.current);
+          window.hcaptcha.remove(widgetIdRef.current);
         } catch {
           /* ignore */
         }
         widgetIdRef.current = null;
       }
     };
-  }, [appearance]);
+  }, []);
 
   if (!SITE_KEY) return null;
 
-  // Keep a mount point; interaction-only stays visually quiet unless CF challenges.
-  return <div ref={containerRef} className={className} style={{ minHeight: 1 }} />;
+  return <div ref={containerRef} className={className} />;
 }
 
-export function resetTurnstile(): void {
-  if (typeof window !== "undefined" && window.turnstile) {
+export function resetHCaptcha(): void {
+  if (typeof window !== "undefined" && window.hcaptcha) {
     try {
-      window.turnstile.reset();
+      window.hcaptcha.reset();
     } catch {
       /* ignore */
     }

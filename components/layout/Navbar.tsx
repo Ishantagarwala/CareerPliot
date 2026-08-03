@@ -8,34 +8,7 @@ import { useTheme } from "next-themes";
 import { Sun, Moon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import BrandLogo from "@/components/layout/BrandLogo";
-
-const navigation = [
-  { name: "Dashboard", href: "/dashboard", icon: "dashboard" },
-  { name: "Career Discovery", href: "/career", icon: "explore" },
-  { name: "Learning Roadmap", href: "/roadmap", icon: "map" },
-  { name: "Course Recommendations", href: "/courses", icon: "school" },
-  { name: "AI Study Hub", href: "/ai-hub", icon: "auto_awesome" },
-  { name: "Resume Builder", href: "/resume", icon: "description" },
-  { name: "Resume Score", href: "/resume/ats", icon: "military_tech" },
-  { name: "Jobs & Internships", href: "/jobs", icon: "work" },
-  { name: "Projects & Hackathons", href: "/projects", icon: "hub" },
-  { name: "Study With Me", href: "/study", icon: "group" },
-  { name: "Tech News", href: "/news", icon: "newspaper" },
-  { name: "Profile", href: "/profile", icon: "person" },
-];
-
-function isNavActive(pathname: string, href: string) {
-  const matches = pathname === href || pathname.startsWith(`${href}/`);
-  if (!matches) return false;
-  const longerMatch = navigation.some(
-    (other) =>
-      other.href !== href &&
-      other.href.length > href.length &&
-      (other.href === href || other.href.startsWith(`${href}/`)) &&
-      (pathname === other.href || pathname.startsWith(`${other.href}/`))
-  );
-  return !longerMatch;
-}
+import { navSections, bottomNavItems, isNavActive } from "@/components/layout/navConfig";
 
 export default function Navbar({ showLinks = true }: { showLinks?: boolean }) {
   const { data: session, status } = useSession();
@@ -50,10 +23,10 @@ export default function Navbar({ showLinks = true }: { showLinks?: boolean }) {
 
   const isAuthenticated = status === "authenticated";
   const isDark = theme === "dark";
+  void showLinks;
 
   return (
     <>
-      {/* Mobile Top Bar — hidden on desktop */}
       <header className="md:hidden flex justify-between items-center w-full px-4 h-16 bg-background border-b border-border sticky top-0 z-50 transition-colors duration-300">
         <Link href="/dashboard" className="flex items-center gap-2.5">
           <BrandLogo size="sm" />
@@ -120,34 +93,68 @@ export default function Navbar({ showLinks = true }: { showLinks?: boolean }) {
         </div>
       </header>
 
-      {/* Mobile Menu Dropdown */}
       {mobileMenuOpen && isAuthenticated && (
-        <div className="md:hidden fixed inset-x-0 top-16 z-40 bg-sidebar border-b border-sidebar-border animate-fade-in-down">
-          <nav className="px-4 py-4 space-y-1">
-            {navigation.map((item) => {
-              const isActive = isNavActive(pathname, item.href);
-              return (
-                <Link
-                  key={item.name}
-                  href={item.href}
-                  onClick={() => setMobileMenuOpen(false)}
-                  className={`flex items-center gap-3 px-4 py-3 rounded text-sm transition-colors ${
-                    isActive
-                      ? "bg-sidebar-accent text-foreground"
-                      : "text-muted-foreground hover:bg-sidebar-accent/50 hover:text-foreground"
-                  }`}
-                  style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "13px", letterSpacing: "0.04em" }}
-                >
-                  <span className={`material-symbols-outlined text-[20px] ${isActive ? "text-primary" : "text-muted-foreground"}`}>
-                    {item.icon}
-                  </span>
-                  <span>{item.name}</span>
-                </Link>
-              );
-            })}
+        <div className="md:hidden fixed inset-x-0 top-16 z-40 bg-sidebar border-b border-sidebar-border animate-fade-in-down max-h-[calc(100vh-4rem)] overflow-y-auto">
+          <nav className="px-4 py-4 space-y-4">
+            {navSections.map((section) => (
+              <div key={section.id} className="space-y-1">
+                {section.label ? (
+                  <p
+                    className="px-4 pt-1 text-[10px] font-bold uppercase tracking-[0.14em] text-muted-foreground/80"
+                    style={{ fontFamily: "'JetBrains Mono', monospace" }}
+                  >
+                    {section.label}
+                  </p>
+                ) : null}
+                {section.items.map((item) => {
+                  const isActive = isNavActive(pathname, item.href);
+                  return (
+                    <Link
+                      key={item.href}
+                      href={item.href}
+                      onClick={() => setMobileMenuOpen(false)}
+                      className={`flex items-center gap-3 px-4 py-3 rounded text-sm transition-colors ${
+                        isActive
+                          ? "bg-sidebar-accent text-foreground"
+                          : "text-muted-foreground hover:bg-sidebar-accent/50 hover:text-foreground"
+                      }`}
+                      style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "13px", letterSpacing: "0.04em" }}
+                    >
+                      <span className={`material-symbols-outlined text-[20px] ${isActive ? "text-primary" : "text-muted-foreground"}`}>
+                        {item.icon}
+                      </span>
+                      <span>{item.name}</span>
+                    </Link>
+                  );
+                })}
+              </div>
+            ))}
 
-            {/* User info + sign out */}
-            <div className="border-t border-border mt-3 pt-3 flex items-center justify-between px-4">
+            <div className="space-y-1 border-t border-border pt-3">
+              {bottomNavItems.map((item) => {
+                const isActive = isNavActive(pathname, item.href);
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    onClick={() => setMobileMenuOpen(false)}
+                    className={`flex items-center gap-3 px-4 py-3 rounded text-sm transition-colors ${
+                      isActive
+                        ? "bg-sidebar-accent text-foreground"
+                        : "text-muted-foreground hover:bg-sidebar-accent/50 hover:text-foreground"
+                    }`}
+                    style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "13px", letterSpacing: "0.04em" }}
+                  >
+                    <span className={`material-symbols-outlined text-[20px] ${isActive ? "text-primary" : "text-muted-foreground"}`}>
+                      {item.icon}
+                    </span>
+                    <span>{item.name}</span>
+                  </Link>
+                );
+              })}
+            </div>
+
+            <div className="border-t border-border mt-1 pt-3 flex items-center justify-between px-4">
               <div className="flex items-center gap-2">
                 <div className="h-8 w-8 rounded-full bg-sidebar-accent flex items-center justify-center text-foreground text-xs font-bold">
                   {session?.user?.name?.charAt(0).toUpperCase() || "U"}
@@ -173,4 +180,3 @@ export default function Navbar({ showLinks = true }: { showLinks?: boolean }) {
     </>
   );
 }
-

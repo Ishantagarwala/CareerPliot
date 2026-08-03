@@ -378,12 +378,12 @@ export default function AssessmentForm({ onSuccess }: AssessmentFormProps) {
           {/* Option A: Type */}
           <button
             onClick={() => setMode("type")}
-            className="flex flex-col items-center justify-center p-6 border-2 border-black bg-white hover:bg-primary hover:text-white transition-all rounded-[5px] text-center space-y-4 group cursor-pointer hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-[4px_4px_0_0_#000]"
+            className="flex flex-col items-center justify-center p-6 border-2 border-black bg-card hover:bg-primary hover:text-primary-foreground transition-all rounded-[5px] text-center space-y-4 group cursor-pointer hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-[4px_4px_0_0_#000]"
           >
-            <span className="material-symbols-outlined text-[40px] text-primary group-hover:text-white">keyboard</span>
+            <span className="material-symbols-outlined text-[40px] text-primary group-hover:text-primary-foreground">keyboard</span>
             <div className="space-y-1">
-              <h3 className="font-display font-bold text-lg text-black group-hover:text-white">Option A: Type Answers</h3>
-              <p className="text-xs text-black/60 group-hover:text-white/80">
+              <h3 className="font-display font-bold text-lg text-foreground group-hover:text-primary-foreground">Option A: Type Answers</h3>
+              <p className="text-xs text-muted-foreground group-hover:text-primary-foreground/80">
                 Answer structured forms and select options.
               </p>
             </div>
@@ -392,12 +392,12 @@ export default function AssessmentForm({ onSuccess }: AssessmentFormProps) {
           {/* Option B: Voice */}
           <button
             onClick={startVoiceMode}
-            className="flex flex-col items-center justify-center p-6 border-2 border-black bg-white hover:bg-red-500 hover:text-white transition-all rounded-[5px] text-center space-y-4 group cursor-pointer hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-[4px_4px_0_0_#000]"
+            className="flex flex-col items-center justify-center p-6 border-2 border-black bg-card hover:bg-red-500 hover:text-white transition-all rounded-[5px] text-center space-y-4 group cursor-pointer hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-[4px_4px_0_0_#000]"
           >
             <span className="material-symbols-outlined text-[40px] text-red-500 group-hover:text-white animate-pulse">mic</span>
             <div className="space-y-1">
-              <h3 className="font-display font-bold text-lg text-black group-hover:text-white">Option B: Talk to AI</h3>
-              <p className="text-xs text-black/60 group-hover:text-white/80">
+              <h3 className="font-display font-bold text-lg text-foreground group-hover:text-white">Option B: Talk to AI</h3>
+              <p className="text-xs text-muted-foreground group-hover:text-white/80">
                 Conducted as an interactive AI voice interview.
               </p>
             </div>

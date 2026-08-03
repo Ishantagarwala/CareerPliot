@@ -155,12 +155,18 @@ export default function NewsPage() {
   const featuredArticles = filteredArticles.filter(
     (a) => a.category === "Featured"
   );
-  const featuredArticle = featuredArticles[0];
+  // Fallback: if Featured is missing from the payload, use the newest story.
+  const featuredArticle =
+    featuredArticles[0] ||
+    [...filteredArticles].sort(
+      (a, b) =>
+        new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime()
+    )[0];
   const liveFeedArticles = filteredArticles.filter(
-    (a) => a.category === "Live Feed"
+    (a) => a.category === "Live Feed" && a._id !== featuredArticle?._id
   );
   const inDepthArticles = filteredArticles.filter(
-    (a) => a.category === "In-Depth Analysis"
+    (a) => a.category === "In-Depth Analysis" && a._id !== featuredArticle?._id
   );
 
   // Get unique tags list — prioritize commonly-needed ones

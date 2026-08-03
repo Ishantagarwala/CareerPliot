@@ -6,6 +6,13 @@ try {
 } catch {}
 
 const nextConfig: NextConfig = {
+  async redirects() {
+    return [
+      { source: "/tutor", destination: "/ai-hub", permanent: false },
+      { source: "/pdf", destination: "/ai-hub", permanent: false },
+      { source: "/study", destination: "/ai-hub", permanent: false },
+    ];
+  },
   serverExternalPackages: ["pdfjs-dist", "pdf-parse"],
   outputFileTracingIncludes: {
     // pdf-parse v2 runs pdf.js. Two things load via bundler-opaque dynamic

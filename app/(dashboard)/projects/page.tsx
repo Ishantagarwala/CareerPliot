@@ -196,26 +196,26 @@ export default function ProjectsPage() {
   return (
     <div className="space-y-8 animate-fade-in-up">
       {/* Header */}
-      <div className="border-b border-[#262626] pb-6 flex flex-col md:flex-row md:items-end justify-between gap-6">
+      <div className="border-b border-border pb-6 flex flex-col md:flex-row md:items-end justify-between gap-6">
         <div>
           <h1
-            className="text-3xl font-bold text-white tracking-tight flex items-center gap-3"
+            className="text-3xl font-bold text-foreground tracking-tight flex items-center gap-3"
             style={{ fontFamily: "'Hanken Grotesk', system-ui, sans-serif" }}
           >
             <span className="material-symbols-outlined text-[28px]">hub</span>
             Projects & Hackathon Hub
           </h1>
-          <p className="text-sm text-[#8e9192] mt-2">
+          <p className="text-sm text-muted-foreground mt-2">
             Build your portfolio with custom project ideas, collaborate in hackathons, and connect with teammates.
           </p>
         </div>
 
         {/* Tab Switcher */}
-        <div className="flex bg-[#131313] border border-[#262626] p-1 shrink-0">
+        <div className="flex bg-card/40 border border-border p-1 shrink-0">
           <button
             onClick={() => setActiveTab('ideas')}
             className={`px-4 py-2 text-xs font-bold tracking-wider uppercase transition-colors rounded-none ${
-              activeTab === 'ideas' ? 'bg-white text-black' : 'text-muted-foreground hover:text-white'
+              activeTab === 'ideas' ? 'bg-primary text-primary-foreground border-2 border-black' : 'text-muted-foreground hover:text-foreground'
             }`}
             style={{ fontFamily: "'JetBrains Mono', monospace" }}
           >
@@ -224,7 +224,7 @@ export default function ProjectsPage() {
           <button
             onClick={() => setActiveTab('hackathons')}
             className={`px-4 py-2 text-xs font-bold tracking-wider uppercase transition-colors rounded-none ${
-              activeTab === 'hackathons' ? 'bg-white text-black' : 'text-muted-foreground hover:text-white'
+              activeTab === 'hackathons' ? 'bg-primary text-primary-foreground border-2 border-black' : 'text-muted-foreground hover:text-foreground'
             }`}
             style={{ fontFamily: "'JetBrains Mono', monospace" }}
           >
@@ -233,7 +233,7 @@ export default function ProjectsPage() {
           <button
             onClick={() => setActiveTab('teams')}
             className={`px-4 py-2 text-xs font-bold tracking-wider uppercase transition-colors rounded-none ${
-              activeTab === 'teams' ? 'bg-white text-black' : 'text-muted-foreground hover:text-white'
+              activeTab === 'teams' ? 'bg-primary text-primary-foreground border-2 border-black' : 'text-muted-foreground hover:text-foreground'
             }`}
             style={{ fontFamily: "'JetBrains Mono', monospace" }}
           >
@@ -245,14 +245,14 @@ export default function ProjectsPage() {
       {/* Main Tab Views */}
       {activeTab === 'ideas' && (
         <div className="space-y-6">
-          <div className="flex justify-between items-center bg-[#131313] border border-[#262626] p-4">
-            <div className="text-xs font-bold text-white uppercase tracking-wider" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
+          <div className="flex justify-between items-center bg-card/40 border border-border p-4">
+            <div className="text-xs font-bold text-foreground uppercase tracking-wider" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
               Tailored Portfolio Projects
             </div>
             <button
               onClick={handleGenerateAI}
               disabled={generating}
-              className="flex items-center gap-1.5 px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold uppercase tracking-wider transition-colors disabled:opacity-50"
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-foreground text-xs font-bold uppercase tracking-wider transition-colors disabled:opacity-50"
               style={{ fontFamily: "'JetBrains Mono', monospace" }}
             >
               {generating ? (
@@ -266,37 +266,49 @@ export default function ProjectsPage() {
 
           {ideasLoading ? (
             <div className="flex justify-center py-20">
-              <Loader2 className="h-8 w-8 animate-spin text-white" />
+              <Loader2 className="h-8 w-8 animate-spin text-foreground" />
             </div>
           ) : ideas.length === 0 ? (
-            <div className="text-center py-16 border border-dashed border-[#262626] bg-[#131313] space-y-4">
-              <Code className="h-8 w-8 mx-auto text-[#636565]" />
-              <p className="text-sm text-[#8e9192]" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
-                No project ideas generated yet. Click above to generate tailored ideas.
-              </p>
+            <div className="text-center py-16 border-2 border-dashed border-border bg-card/40 space-y-4 px-6">
+              <Code className="h-8 w-8 mx-auto text-muted-foreground" />
+              <div className="space-y-2 max-w-md mx-auto">
+                <h4 className="font-bold text-foreground text-base">No project ideas yet</h4>
+                <p className="text-sm text-muted-foreground">
+                  Generate ideas matched to your career path — then pick one to build.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={handleGenerateAI}
+                disabled={generating}
+                className="inline-flex items-center px-5 py-2.5 bg-primary text-primary-foreground border-2 border-black text-xs font-bold disabled:opacity-40 shadow-[3px_3px_0_0_#000]"
+                style={{ fontFamily: "'JetBrains Mono', monospace", letterSpacing: "0.04em" }}
+              >
+                {generating ? "Generating…" : "Generate AI Ideas"}
+              </button>
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {ideas.map((idea) => (
                 <div
                   key={idea._id}
-                  className="bg-[#131313] border border-[#262626] hover:border-[#404040] transition-colors p-6 flex flex-col justify-between space-y-6"
+                  className="bg-card/40 border border-border hover:border-border transition-colors p-6 flex flex-col justify-between space-y-6"
                 >
                   <div className="space-y-4">
                     <div className="flex justify-between items-start gap-4">
-                      <h3 className="font-bold text-base text-white leading-tight">{idea.title}</h3>
+                      <h3 className="font-bold text-base text-foreground leading-tight">{idea.title}</h3>
                       <span className={`text-[9px] uppercase font-bold tracking-widest px-2 py-0.5 border ${getDifficultyColor(idea.difficulty)}`} style={{ fontFamily: "'JetBrains Mono', monospace" }}>
                         {idea.difficulty}
                       </span>
                     </div>
 
-                    <p className="text-xs text-[#c4c7c8] leading-relaxed">
+                    <p className="text-xs text-muted-foreground leading-relaxed">
                       {idea.description}
                     </p>
 
                     <div className="space-y-1.5">
                       <span className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider" style={{ fontFamily: "'JetBrains Mono', monospace" }}>Key Features</span>
-                      <ul className="list-disc pl-4 text-xs text-[#8e9192] space-y-1">
+                      <ul className="list-disc pl-4 text-xs text-muted-foreground space-y-1">
                         {idea.features.slice(0, 3).map((f, i) => (
                           <li key={i}>{f}</li>
                         ))}
@@ -307,7 +319,7 @@ export default function ProjectsPage() {
                       {idea.technologies.map(tech => (
                         <span
                           key={tech}
-                          className="text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 border border-[#262626] bg-[#0A0A0A] text-[#8e9192]"
+                          className="text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 border border-border bg-background text-muted-foreground"
                           style={{ fontFamily: "'JetBrains Mono', monospace" }}
                         >
                           {tech}
@@ -316,7 +328,7 @@ export default function ProjectsPage() {
                     </div>
                   </div>
 
-                  <div className="flex justify-between items-center border-t border-[#262626] pt-4 mt-auto text-[10px] text-[#8e9192]" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
+                  <div className="flex justify-between items-center border-t border-border pt-4 mt-auto text-[10px] text-muted-foreground" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
                     <span>Estimated time: {idea.estimatedTime}</span>
                     {idea.isAIGenerated && (
                       <span className="text-indigo-400 flex items-center gap-1 font-semibold">
@@ -334,19 +346,20 @@ export default function ProjectsPage() {
 
       {activeTab === 'hackathons' && (
         <div className="space-y-6">
-          <div className="text-xs font-bold text-white uppercase tracking-wider bg-[#131313] border border-[#262626] p-4" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
+          <div className="text-xs font-bold text-foreground uppercase tracking-wider bg-card/40 border border-border p-4" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
             Featured Hackathon Calendar
           </div>
 
           {hackathonsLoading ? (
             <div className="flex justify-center py-20">
-              <Loader2 className="h-8 w-8 animate-spin text-white" />
+              <Loader2 className="h-8 w-8 animate-spin text-foreground" />
             </div>
           ) : hackathons.length === 0 ? (
-            <div className="text-center py-16 border border-dashed border-[#262626] bg-[#131313] space-y-4">
-              <Calendar className="h-8 w-8 mx-auto text-[#636565]" />
-              <p className="text-sm text-[#8e9192]" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
-                No upcoming hackathons registered.
+            <div className="text-center py-16 border-2 border-dashed border-border bg-card/40 space-y-3 px-6">
+              <Calendar className="h-8 w-8 mx-auto text-muted-foreground" />
+              <p className="font-bold text-foreground">No hackathons listed</p>
+              <p className="text-sm text-muted-foreground max-w-md mx-auto">
+                Check back later, or focus on project ideas while you wait for the next event.
               </p>
             </div>
           ) : (
@@ -354,24 +367,24 @@ export default function ProjectsPage() {
               {hackathons.map((hack) => (
                 <div
                   key={hack._id}
-                  className="bg-[#131313] border border-[#262626] hover:border-[#404040] transition-colors p-6 flex flex-col justify-between space-y-6"
+                  className="bg-card/40 border border-border hover:border-border transition-colors p-6 flex flex-col justify-between space-y-6"
                 >
                   <div className="space-y-4">
                     <div className="flex justify-between items-start gap-4">
                       <div>
-                        <h3 className="font-bold text-base text-white leading-tight">{hack.title}</h3>
+                        <h3 className="font-bold text-base text-foreground leading-tight">{hack.title}</h3>
                         <p className="text-xs text-muted-foreground font-semibold mt-1">Organized by {hack.organizer}</p>
                       </div>
-                      <span className="text-[9px] uppercase font-bold tracking-widest px-2 py-0.5 border border-[#262626] text-white bg-[#0A0A0A]" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
+                      <span className="text-[9px] uppercase font-bold tracking-widest px-2 py-0.5 border border-border text-foreground bg-background" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
                         {hack.platform}
                       </span>
                     </div>
 
-                    <p className="text-xs text-[#c4c7c8] leading-relaxed">
+                    <p className="text-xs text-muted-foreground leading-relaxed">
                       {hack.description}
                     </p>
 
-                    <div className="flex flex-wrap gap-x-4 gap-y-2 text-[10px] text-[#8e9192]" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
+                    <div className="flex flex-wrap gap-x-4 gap-y-2 text-[10px] text-muted-foreground" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
                       <span className="flex items-center gap-1">
                         <Clock className="h-3 w-3" />
                         {new Date(hack.startDate).toLocaleDateString()}
@@ -380,14 +393,14 @@ export default function ProjectsPage() {
                         <MapPin className="h-3 w-3" />
                         {hack.mode === "online" ? "Online" : `${hack.location || "Offline"}`}
                       </span>
-                      <span className="flex items-center gap-1 font-bold text-white">
+                      <span className="flex items-center gap-1 font-bold text-foreground">
                         Prizes: {formatHackathonPrize(hack.prizes)}
                       </span>
                     </div>
 
                     <div className="flex flex-wrap gap-1">
                       {hack.themes.map(t => (
-                        <span key={t} className="text-[9px] border border-[#262626] bg-[#0A0A0A] text-[#8e9192] px-2 py-0.5 uppercase tracking-wider font-semibold" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
+                        <span key={t} className="text-[9px] border border-border bg-background text-muted-foreground px-2 py-0.5 uppercase tracking-wider font-semibold" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
                           {t}
                         </span>
                       ))}
@@ -398,7 +411,7 @@ export default function ProjectsPage() {
                     href={hack.url}
                     target="_blank"
                     rel="noreferrer"
-                    className="w-full py-2 bg-white text-black text-center font-bold text-xs uppercase tracking-wider hover:bg-[#e2e2e2] transition-colors flex items-center justify-center gap-1.5"
+                    className="w-full py-2 bg-primary text-primary-foreground border-2 border-black text-center font-bold text-xs uppercase tracking-wider hover:opacity-90 transition-colors flex items-center justify-center gap-1.5"
                     style={{ fontFamily: "'JetBrains Mono', monospace" }}
                   >
                     View Hackathon / Register
@@ -413,13 +426,13 @@ export default function ProjectsPage() {
 
       {activeTab === 'teams' && (
         <div className="space-y-6">
-          <div className="flex justify-between items-center bg-[#131313] border border-[#262626] p-4">
-            <div className="text-xs font-bold text-white uppercase tracking-wider" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
+          <div className="flex justify-between items-center bg-card/40 border border-border p-4">
+            <div className="text-xs font-bold text-foreground uppercase tracking-wider" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
               Find Teammates or Join Groups
             </div>
             <button
               onClick={() => setShowTeamModal(true)}
-              className="flex items-center gap-1.5 px-3 py-1.5 bg-white text-black text-xs font-bold uppercase tracking-wider hover:bg-[#e2e2e2] transition-colors"
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-primary text-primary-foreground border-2 border-black text-xs font-bold uppercase tracking-wider hover:opacity-90 transition-colors"
               style={{ fontFamily: "'JetBrains Mono', monospace" }}
             >
               <Plus className="h-3.5 w-3.5" />
@@ -429,40 +442,52 @@ export default function ProjectsPage() {
 
           {teamsLoading ? (
             <div className="flex justify-center py-20">
-              <Loader2 className="h-8 w-8 animate-spin text-white" />
+              <Loader2 className="h-8 w-8 animate-spin text-foreground" />
             </div>
           ) : teams.length === 0 ? (
-            <div className="text-center py-16 border border-dashed border-[#262626] bg-[#131313] space-y-4">
-              <Users className="h-8 w-8 mx-auto text-[#636565]" />
-              <p className="text-sm text-[#8e9192]" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
-                No active team posts. Be the first to publish one!
-              </p>
+            <div className="text-center py-16 border-2 border-dashed border-border bg-card/40 space-y-4 px-6">
+              <Users className="h-8 w-8 mx-auto text-muted-foreground" />
+              <div className="space-y-2 max-w-md mx-auto">
+                <p className="font-bold text-foreground">No team posts yet</p>
+                <p className="text-sm text-muted-foreground">
+                  Be the first to publish — find teammates or offer to join a group.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowTeamModal(true)}
+                className="inline-flex items-center gap-1.5 px-4 py-2 bg-primary text-primary-foreground border-2 border-black text-xs font-bold shadow-[3px_3px_0_0_#000]"
+                style={{ fontFamily: "'JetBrains Mono', monospace", letterSpacing: "0.04em" }}
+              >
+                <Plus className="h-3.5 w-3.5" />
+                Publish Post
+              </button>
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {teams.map((post) => (
                 <div
                   key={post._id}
-                  className="bg-[#131313] border border-[#262626] hover:border-[#404040] transition-colors p-6 flex flex-col justify-between space-y-6"
+                  className="bg-card/40 border border-border hover:border-border transition-colors p-6 flex flex-col justify-between space-y-6"
                 >
                   <div className="space-y-4">
                     <div className="flex justify-between items-start gap-4">
                       <div>
-                        <h3 className="font-bold text-base text-white leading-tight">{post.title}</h3>
+                        <h3 className="font-bold text-base text-foreground leading-tight">{post.title}</h3>
                         <p className="text-xs text-muted-foreground mt-1">Posted by {post.userId.name}</p>
                       </div>
-                      <span className="text-[10px] text-[#8e9192] uppercase font-bold tracking-wider" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
+                      <span className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
                         Size: {post.currentMembers}/{post.teamSize}
                       </span>
                     </div>
 
-                    <p className="text-xs text-[#c4c7c8] leading-relaxed">
+                    <p className="text-xs text-muted-foreground leading-relaxed">
                       {post.description}
                     </p>
 
                     {post.hackathonId && (
-                      <div className="p-2 border border-[#262626] bg-[#0A0A0A] text-xs text-[#8e9192]">
-                        <span className="font-bold text-white">Target Event:</span> {post.hackathonId.title}
+                      <div className="p-2 border border-border bg-background text-xs text-muted-foreground">
+                        <span className="font-bold text-foreground">Target Event:</span> {post.hackathonId.title}
                       </div>
                     )}
 
@@ -470,7 +495,7 @@ export default function ProjectsPage() {
                       <span className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider" style={{ fontFamily: "'JetBrains Mono', monospace" }}>Skills Needed</span>
                       <div className="flex flex-wrap gap-1.5">
                         {post.lookingFor.map(skill => (
-                          <span key={skill} className="text-[9px] border border-[#262626] bg-[#0A0A0A] text-white px-2 py-0.5 uppercase tracking-wider font-semibold" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
+                          <span key={skill} className="text-[9px] border border-border bg-background text-foreground px-2 py-0.5 uppercase tracking-wider font-semibold" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
                             {skill}
                           </span>
                         ))}
@@ -478,9 +503,9 @@ export default function ProjectsPage() {
                     </div>
                   </div>
 
-                  <div className="border-t border-[#262626] pt-4 mt-auto flex flex-col space-y-2 text-xs text-[#8e9192]" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
+                  <div className="border-t border-border pt-4 mt-auto flex flex-col space-y-2 text-xs text-muted-foreground" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
                     <div>
-                      <span className="font-bold text-white">Contact Info:</span> {post.contactMethod}
+                      <span className="font-bold text-foreground">Contact Info:</span> {post.contactMethod}
                     </div>
                   </div>
                 </div>
@@ -493,14 +518,14 @@ export default function ProjectsPage() {
       {/* Publish Team Post Modal */}
       {showTeamModal && (
         <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
-          <div className="bg-[#1A1A1A] border border-[#262626] w-full max-w-md overflow-hidden animate-scale-in">
-            <div className="p-6 border-b border-[#262626] flex justify-between items-center">
-              <h3 className="font-bold text-lg text-white" style={{ fontFamily: "'Hanken Grotesk', system-ui, sans-serif" }}>
+          <div className="bg-card border border-border w-full max-w-md overflow-hidden animate-scale-in">
+            <div className="p-6 border-b border-border flex justify-between items-center">
+              <h3 className="font-bold text-lg text-foreground" style={{ fontFamily: "'Hanken Grotesk', system-ui, sans-serif" }}>
                 Publish Team Post
               </h3>
               <button
                 onClick={() => setShowTeamModal(false)}
-                className="text-muted-foreground hover:text-white"
+                className="text-muted-foreground hover:text-foreground"
               >
                 <span className="material-symbols-outlined text-[18px]">close</span>
               </button>
@@ -508,7 +533,7 @@ export default function ProjectsPage() {
 
             <form onSubmit={handleCreateTeamPost} className="p-6 space-y-4">
               <div className="space-y-2">
-                <label className="text-[10px] uppercase font-bold tracking-wider text-[#8e9192]" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
+                <label className="text-[10px] uppercase font-bold tracking-wider text-muted-foreground" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
                   Post Title *
                 </label>
                 <input
@@ -516,19 +541,19 @@ export default function ProjectsPage() {
                   placeholder="e.g., Looking for Web3 Developer for ETHIndia"
                   value={teamTitle}
                   onChange={(e) => setTeamTitle(e.target.value)}
-                  className="w-full bg-[#131313] border border-[#262626] p-2 text-xs text-white placeholder-[#636565] focus:border-white focus:outline-none"
+                  className="w-full bg-card/40 border border-border p-2 text-xs text-foreground placeholder-[#636565] focus:border-foreground focus:outline-none"
                   required
                 />
               </div>
 
               <div className="space-y-2">
-                <label className="text-[10px] uppercase font-bold tracking-wider text-[#8e9192]" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
+                <label className="text-[10px] uppercase font-bold tracking-wider text-muted-foreground" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
                   Target Hackathon (Optional)
                 </label>
                 <select
                   value={selectedHackathon}
                   onChange={(e) => setSelectedHackathon(e.target.value)}
-                  className="w-full bg-[#131313] border border-[#262626] p-2 text-xs text-white focus:border-white focus:outline-none"
+                  className="w-full bg-card/40 border border-border p-2 text-xs text-foreground focus:border-foreground focus:outline-none"
                 >
                   <option value="">No specific event</option>
                   {hackathons.map(h => (
@@ -538,20 +563,20 @@ export default function ProjectsPage() {
               </div>
 
               <div className="space-y-2">
-                <label className="text-[10px] uppercase font-bold tracking-wider text-[#8e9192]" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
+                <label className="text-[10px] uppercase font-bold tracking-wider text-muted-foreground" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
                   Detailed Description *
                 </label>
                 <textarea
                   placeholder="Explain what you are building and what role you want someone to play..."
                   value={teamDescription}
                   onChange={(e) => setTeamDescription(e.target.value)}
-                  className="w-full bg-[#131313] border border-[#262626] p-2 text-xs text-white placeholder-[#636565] focus:border-white focus:outline-none min-h-[80px]"
+                  className="w-full bg-card/40 border border-border p-2 text-xs text-foreground placeholder-[#636565] focus:border-foreground focus:outline-none min-h-[80px]"
                   required
                 />
               </div>
 
               <div className="space-y-2">
-                <label className="text-[10px] uppercase font-bold tracking-wider text-[#8e9192]" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
+                <label className="text-[10px] uppercase font-bold tracking-wider text-muted-foreground" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
                   Skills Looking For * (comma-separated)
                 </label>
                 <input
@@ -559,14 +584,14 @@ export default function ProjectsPage() {
                   placeholder="e.g., React, Tailwind CSS, Solidity"
                   value={skillsLookingFor}
                   onChange={(e) => setSkillsLookingFor(e.target.value)}
-                  className="w-full bg-[#131313] border border-[#262626] p-2 text-xs text-white placeholder-[#636565] focus:border-white focus:outline-none"
+                  className="w-full bg-card/40 border border-border p-2 text-xs text-foreground placeholder-[#636565] focus:border-foreground focus:outline-none"
                   required
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <label className="text-[10px] uppercase font-bold tracking-wider text-[#8e9192]" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
+                  <label className="text-[10px] uppercase font-bold tracking-wider text-muted-foreground" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
                     Total Team Size
                   </label>
                   <input
@@ -575,13 +600,13 @@ export default function ProjectsPage() {
                     max={10}
                     value={teamSize}
                     onChange={(e) => setTeamSize(parseInt(e.target.value))}
-                    className="w-full bg-[#131313] border border-[#262626] p-2 text-xs text-white focus:border-white focus:outline-none"
+                    className="w-full bg-card/40 border border-border p-2 text-xs text-foreground focus:border-foreground focus:outline-none"
                     required
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-[10px] uppercase font-bold tracking-wider text-[#8e9192]" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
+                  <label className="text-[10px] uppercase font-bold tracking-wider text-muted-foreground" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
                     Contact Method *
                   </label>
                   <input
@@ -589,7 +614,7 @@ export default function ProjectsPage() {
                     placeholder="e.g., Email or Discord handle"
                     value={contactMethod}
                     onChange={(e) => setContactMethod(e.target.value)}
-                    className="w-full bg-[#131313] border border-[#262626] p-2 text-xs text-white placeholder-[#636565] focus:border-white focus:outline-none"
+                    className="w-full bg-card/40 border border-border p-2 text-xs text-foreground placeholder-[#636565] focus:border-foreground focus:outline-none"
                     required
                   />
                 </div>
@@ -597,7 +622,7 @@ export default function ProjectsPage() {
 
               <button
                 type="submit"
-                className="w-full py-2.5 bg-white text-black font-bold text-xs uppercase tracking-wider hover:bg-[#e2e2e2] transition-colors"
+                className="w-full py-2.5 bg-primary text-primary-foreground border-2 border-black font-bold text-xs uppercase tracking-wider hover:opacity-90 transition-colors"
                 style={{ fontFamily: "'JetBrains Mono', monospace" }}
               >
                 Publish Post

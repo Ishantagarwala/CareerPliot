@@ -40,19 +40,19 @@ export default function MilestoneCard({ milestone, onToggle }: MilestoneCardProp
     <div
       className={`flex items-start gap-4 border p-4 transition-all ${
         milestone.completed
-          ? "border-[#404040] bg-[#131313]"
-          : "border-[#262626] hover:border-[#404040]"
+          ? "border-border bg-[#131313]"
+          : "border-border hover:border-border"
       }`}
     >
       <div className="flex h-5 items-center mt-0.5">
         {loading ? (
-          <Loader2 className="h-4 w-4 animate-spin text-white" />
+          <Loader2 className="h-4 w-4 animate-spin text-foreground" />
         ) : (
           <input
             type="checkbox"
             checked={milestone.completed}
             onChange={(e) => handleCheckedChange(e.target.checked)}
-            className="h-4 w-4 border-[#404040] bg-transparent text-white focus:ring-0 cursor-pointer accent-white"
+            className="h-4 w-4 border-border bg-transparent text-foreground focus:ring-0 cursor-pointer accent-primary"
           />
         )}
       </div>
@@ -61,8 +61,8 @@ export default function MilestoneCard({ milestone, onToggle }: MilestoneCardProp
         <p
           className={`text-sm font-medium leading-relaxed ${
             milestone.completed
-              ? "text-[#8e9192] line-through decoration-[#404040]"
-              : "text-white"
+              ? "text-muted-foreground line-through decoration-[#404040]"
+              : "text-foreground"
           }`}
         >
           {milestone.title}

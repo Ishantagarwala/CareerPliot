@@ -14,13 +14,27 @@ interface Course {
   rating?: number;
   sourceTopic?: string;
   thumbnailUrl?: string;
+  externalId?: string;
 }
 
 interface CourseCardProps {
   course: Course;
+  /** When grouped under a milestone heading, hide the redundant blurb. */
+  hideMilestone?: boolean;
 }
 
-export default function CourseCard({ course }: CourseCardProps) {
+function isSearchDeepLink(externalId?: string): boolean {
+  return (
+    typeof externalId === "string" &&
+    (externalId.startsWith("youtube-search:") || externalId.startsWith("coursera-search:"))
+  );
+}
+
+function isLiveYouTube(externalId?: string): boolean {
+  return typeof externalId === "string" && /^youtube:[a-zA-Z0-9_-]+$/.test(externalId);
+}
+
+export default function CourseCard({ course, hideMilestone = false }: CourseCardProps) {
   const [completed, setCompleted] = useState(() => {
     if (typeof window !== "undefined") {
       const key = `course_completed_${course._id}`;
@@ -29,6 +43,26 @@ export default function CourseCard({ course }: CourseCardProps) {
     return false;
   });
   const [loading, setLoading] = useState(false);
+
+  const searchLink = isSearchDeepLink(course.externalId);
+  const liveYouTube = isLiveYouTube(course.externalId);
+  const isYouTube = course.platform === "YouTube" || liveYouTube || course.externalId?.startsWith("youtube-search:");
+
+  const platformLabel = searchLink
+    ? isYouTube
+      ? "YouTube Search"
+      : `${course.platform} Search`
+    : course.platform;
+
+  const ctaLabel = searchLink
+    ? isYouTube
+      ? "Search YouTube"
+      : `Search ${course.platform}`
+    : liveYouTube
+      ? "Watch free"
+      : "Start Course";
+
+  const ctaIcon = searchLink ? "search" : liveYouTube ? "play_circle" : "school";
 
   const toggleCompleted = async () => {
     setLoading(true);
@@ -64,30 +98,48 @@ export default function CourseCard({ course }: CourseCardProps) {
 
   return (
     <div
-      className={`flex flex-col transition-all overflow-hidden ${
+      className={`flex flex-col transition-all overflow-hidden h-full ${
         completed
-          ? "bg-[#1A1A1A] border-2 border-[#404040]"
-          : "bg-[#1A1A1A] border border-[#262626] hover:border-[#404040]"
+          ? "bg-card border-2 border-border"
+          : "bg-card border border-border hover:border-border"
       }`}
     >
-      <a href={course.url} target="_blank" rel="noopener noreferrer" className="block border-b border-[#262626]">
+      <a href={course.url} target="_blank" rel="noopener noreferrer" className="block border-b border-border">
         <SafeImage
           src={course.thumbnailUrl}
           alt={course.title}
           fallbackName={course.platform || course.title}
-          className="w-full h-36 object-cover bg-[#0A0A0A]"
+          className="w-full h-36 object-cover bg-background"
         />
       </a>
 
-      <div className="p-5 pb-0">
+      <div className="p-5 pb-0 flex-1">
         <div className="flex justify-between items-start gap-2 mb-4">
-          <span
-            className="monolith-chip"
-            style={{ fontFamily: "'JetBrains Mono', monospace" }}
-          >
-            {course.platform}
-          </span>
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
+            <span
+              className="monolith-chip"
+              style={{ fontFamily: "'JetBrains Mono', monospace" }}
+            >
+              {platformLabel}
+            </span>
+            {liveYouTube && (
+              <span
+                className="monolith-chip border-white/20 text-foreground"
+                style={{ fontFamily: "'JetBrains Mono', monospace" }}
+              >
+                Full course
+              </span>
+            )}
+            {searchLink && (
+              <span
+                className="monolith-chip text-muted-foreground"
+                style={{ fontFamily: "'JetBrains Mono', monospace" }}
+              >
+                Browse results
+              </span>
+            )}
+          </div>
+          <div className="flex gap-2 shrink-0">
             <span
               className="monolith-chip capitalize"
               style={{ fontFamily: "'JetBrains Mono', monospace" }}
@@ -96,7 +148,7 @@ export default function CourseCard({ course }: CourseCardProps) {
             </span>
             <span
               className={`monolith-chip ${
-                course.isFree ? "border-white/20 text-white" : ""
+                course.isFree ? "border-white/20 text-foreground" : ""
               }`}
               style={{ fontFamily: "'JetBrains Mono', monospace" }}
             >
@@ -106,26 +158,33 @@ export default function CourseCard({ course }: CourseCardProps) {
         </div>
 
         <h3
-          className="font-bold text-base text-white leading-snug line-clamp-2 mb-2"
+          className="font-bold text-base text-foreground leading-snug line-clamp-2 mb-2"
           style={{ fontFamily: "'Hanken Grotesk', system-ui, sans-serif" }}
         >
           {course.title}
         </h3>
 
-        {course.sourceTopic && (
-          <p className="text-[11px] text-[#8e9192] mb-3 line-clamp-2">
-            Matched to milestone: <span className="text-[#c4c7c8]">{course.sourceTopic}</span>
+        {!hideMilestone && course.sourceTopic && (
+          <p className="text-[11px] text-muted-foreground mb-3 line-clamp-2">
+            For: <span className="text-muted-foreground">{course.sourceTopic.split(/[:—–]/)[0]?.trim()}</span>
+          </p>
+        )}
+        {searchLink && (
+          <p className="text-[11px] text-muted-foreground mb-3 leading-relaxed">
+            {isYouTube
+              ? "Opens YouTube search — pick a full course that fits your pace."
+              : `Opens ${course.platform} search — pick a course that fits your pace.`}
           </p>
         )}
       </div>
 
       <div className="px-5 pb-4">
         <div className="flex justify-between items-center">
-          {course.rating != null && (
+          {course.rating != null && !searchLink && (
             <div className="flex items-center gap-2">
-              <span className="material-symbols-outlined text-[16px] text-white" style={{ fontVariationSettings: "'FILL' 1" }}>star</span>
+              <span className="material-symbols-outlined text-[16px] text-foreground" style={{ fontVariationSettings: "'FILL' 1" }}>star</span>
               <span
-                className="text-xs font-bold text-white"
+                className="text-xs font-bold text-foreground"
                 style={{ fontFamily: "'JetBrains Mono', monospace" }}
               >
                 {Number(course.rating).toFixed(1)}
@@ -134,7 +193,7 @@ export default function CourseCard({ course }: CourseCardProps) {
           )}
           {completed && (
             <span
-              className="flex items-center gap-1 text-[10px] text-[#c4c7c8]"
+              className="flex items-center gap-1 text-[10px] text-muted-foreground ml-auto"
               style={{ fontFamily: "'JetBrains Mono', monospace", letterSpacing: "0.05em" }}
             >
               <span className="material-symbols-outlined text-[14px]">check_circle</span>
@@ -144,41 +203,43 @@ export default function CourseCard({ course }: CourseCardProps) {
         </div>
       </div>
 
-      <div className="border-t border-[#262626] px-5 py-3 flex gap-2 mt-auto">
+      <div className="border-t border-border px-5 py-3 flex gap-2 mt-auto">
         <a
           href={course.url}
           target="_blank"
           rel="noopener noreferrer"
-          className="flex-1 inline-flex items-center justify-between px-4 py-2 border border-[#262626] text-white text-xs font-medium hover:border-white transition-colors group"
+          className="flex-1 inline-flex items-center justify-between px-4 py-2 border border-border text-foreground text-xs font-medium hover:border-foreground transition-colors group"
           style={{ fontFamily: "'JetBrains Mono', monospace", letterSpacing: "0.04em" }}
         >
           <span className="flex items-center gap-1.5">
-            <span className="material-symbols-outlined text-[16px]">school</span>
-            Start Course
+            <span className="material-symbols-outlined text-[16px]">{ctaIcon}</span>
+            {ctaLabel}
           </span>
           <span className="material-symbols-outlined text-[14px] group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform">
             open_in_new
           </span>
         </a>
 
-        <button
-          disabled={loading}
-          onClick={toggleCompleted}
-          className={`h-9 w-9 border flex items-center justify-center shrink-0 transition-colors ${
-            completed
-              ? "bg-white/5 border-white/30 text-white hover:bg-white/10"
-              : "border-[#262626] text-[#8e9192] hover:text-white hover:border-[#404040]"
-          }`}
-          title={completed ? "Mark incomplete" : "Mark as completed"}
-        >
-          {loading ? (
-            <span className="h-4 w-4 border-2 border-[#262626] border-t-white animate-spin" />
-          ) : (
-            <span className="material-symbols-outlined text-[18px]" style={completed ? { fontVariationSettings: "'FILL' 1" } : undefined}>
-              check_circle
-            </span>
-          )}
-        </button>
+        {!searchLink && (
+          <button
+            disabled={loading}
+            onClick={toggleCompleted}
+            className={`h-9 w-9 border flex items-center justify-center shrink-0 transition-colors ${
+              completed
+                ? "bg-white/5 border-white/30 text-foreground hover:bg-white/10"
+                : "border-border text-muted-foreground hover:text-foreground hover:border-border"
+            }`}
+            title={completed ? "Mark incomplete" : "Mark as completed"}
+          >
+            {loading ? (
+              <span className="h-4 w-4 border-2 border-border border-t-white animate-spin" />
+            ) : (
+              <span className="material-symbols-outlined text-[18px]" style={completed ? { fontVariationSettings: "'FILL' 1" } : undefined}>
+                check_circle
+              </span>
+            )}
+          </button>
+        )}
       </div>
     </div>
   );

@@ -51,10 +51,17 @@ export async function GET(req: Request) {
       ];
     }
 
-    const newsItems = await News.find(query)
-      .sort({ publishedAt: -1 })
-      .limit(50)
-      .lean();
+    // Always include Featured (even if older) so the hero never goes blank,
+    // then fill the rest with the newest non-featured stories.
+    const featuredQuery = { ...query, category: "Featured" };
+    const restQuery = { ...query, category: { $ne: "Featured" } };
+
+    const [featuredItems, restItems] = await Promise.all([
+      News.find(featuredQuery).sort({ publishedAt: -1 }).limit(2).lean(),
+      News.find(restQuery).sort({ publishedAt: -1 }).limit(48).lean(),
+    ]);
+
+    const newsItems = [...featuredItems, ...restItems];
 
     return NextResponse.json(newsItems);
   } catch (error) {

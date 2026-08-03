@@ -497,7 +497,12 @@ export default function JobsPage() {
 
                     <div className="space-y-3 min-h-[300px] overflow-y-auto max-h-[500px]">
                       {colApps.length === 0 ? (
-                        <div className="text-center py-8 text-[11px] text-muted-foreground italic">No items here</div>
+                        <div className="text-center py-8 px-2 space-y-1">
+                          <p className="text-[11px] text-muted-foreground font-medium">Nothing here yet</p>
+                          <p className="text-[10px] text-muted-foreground/80">
+                            Save a job from the board or add a custom role.
+                          </p>
+                        </div>
                       ) : (
                         colApps.map((app) => {
                           const title = app.jobId?.title || app.customJob?.title || "Untitled Job";

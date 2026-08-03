@@ -330,43 +330,66 @@ export async function fetchAndCacheNews(NewsModel: any): Promise<void> {
     return true;
   });
 
-  // Ensure we have category balance
-  let featured = 0;
-  let liveCount = 0;
-  let analysisCount = 0;
+  // Newest first so Featured picks stay in the live API window (sorted by publishedAt).
+  uniqueArticles.sort(
+    (a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime()
+  );
 
-  const categorized = uniqueArticles.map((a) => {
-    // Auto-tag
+  const featuredCandidates: typeof uniqueArticles = [];
+  const otherArticles: typeof uniqueArticles = [];
+
+  for (const a of uniqueArticles) {
     const tags = autoTag(a);
-
-    // Balance categories
-    let category = a.category;
-    if (featured < 2 && (a.tags.includes('India') || a.tags.includes('Hiring'))) {
-      category = 'Featured';
-      featured++;
-    } else if (liveCount < 12) {
-      category = 'Live Feed';
-      liveCount++;
+    a.tags = tags;
+    const isFeatureWorthy =
+      tags.includes("India") ||
+      tags.includes("Hiring") ||
+      tags.includes("Internship") ||
+      tags.includes("Funding");
+    if (isFeatureWorthy && featuredCandidates.length < 2) {
+      featuredCandidates.push(a);
     } else {
-      category = 'In-Depth Analysis';
-      analysisCount++;
+      otherArticles.push(a);
     }
+  }
 
-    return {
+  // Always surface something in Featured — fall back to newest overall.
+  while (featuredCandidates.length < 2 && otherArticles.length > 0) {
+    featuredCandidates.push(otherArticles.shift()!);
+  }
+
+  const categorized = [
+    ...featuredCandidates.map((a) => ({
       title: a.title,
       summary: a.summary,
       content: a.content || a.summary,
       publishedAt: new Date(a.publishedAt),
       readTime: estimateReadTime(a.content || a.summary),
-      tags,
-      category,
+      tags: a.tags,
+      category: "Featured" as const,
       imageUrl: a.imageUrl || undefined,
       imageAlt: a.title,
       sourceUrl: a.sourceUrl,
       source: a.source,
       fetchedAt: new Date(),
-    };
-  });
+    })),
+    ...otherArticles.map((a, idx) => ({
+      title: a.title,
+      summary: a.summary,
+      content: a.content || a.summary,
+      publishedAt: new Date(a.publishedAt),
+      readTime: estimateReadTime(a.content || a.summary),
+      tags: a.tags,
+      category: (idx < 12 ? "Live Feed" : "In-Depth Analysis") as
+        | "Live Feed"
+        | "In-Depth Analysis",
+      imageUrl: a.imageUrl || undefined,
+      imageAlt: a.title,
+      sourceUrl: a.sourceUrl,
+      source: a.source,
+      fetchedAt: new Date(),
+    })),
+  ];
 
   // Demote existing featured articles in the DB to 'Live Feed' so they don't block new ones
   try {

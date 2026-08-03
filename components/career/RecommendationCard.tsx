@@ -24,13 +24,13 @@ export default function RecommendationCard({ rec, onSelect, selectingId }: Recom
     <div
       className={`relative overflow-hidden transition-all p-6 flex flex-col ${
         isSelected
-          ? "bg-[#1A1A1A] border-2 border-white"
-          : "bg-[#1A1A1A] border border-[#262626] hover:border-[#404040]"
+          ? "bg-card border-2 border-foreground"
+          : "bg-card border border-border hover:border-foreground/40"
       }`}
     >
       {isSelected && (
         <div
-          className="absolute top-0 right-0 bg-white text-[#0A0A0A] px-3 py-1 text-[11px] font-bold flex items-center gap-1"
+          className="absolute top-0 right-0 bg-primary text-primary-foreground px-3 py-1 text-[11px] font-bold flex items-center gap-1 border-l border-b border-black"
           style={{ fontFamily: "'JetBrains Mono', monospace", letterSpacing: "0.05em" }}
         >
           <span className="material-symbols-outlined text-[14px]">check_circle</span>
@@ -38,36 +38,35 @@ export default function RecommendationCard({ rec, onSelect, selectingId }: Recom
         </div>
       )}
 
-      {/* Header */}
       <div className="flex justify-between items-start gap-4 pr-20 mb-4">
         <div className="flex items-start gap-3">
-          <div className="h-12 w-12 border border-[#262626] bg-[#131313] flex items-center justify-center shrink-0">
-            <span className="material-symbols-outlined text-[22px] text-white">model_training</span>
+          <div className="h-12 w-12 border border-border bg-background flex items-center justify-center shrink-0">
+            <span className="material-symbols-outlined text-[22px] text-foreground">model_training</span>
           </div>
           <div>
             <h3
-              className="font-bold text-lg text-white group-hover:underline decoration-1 underline-offset-4"
+              className="font-bold text-lg text-foreground"
               style={{ fontFamily: "'Hanken Grotesk', system-ui, sans-serif" }}
             >
               {rec.careerPath}
             </h3>
             <p
-              className="text-[11px] text-[#8e9192] uppercase tracking-[0.1em] mt-1"
+              className="text-[11px] text-muted-foreground uppercase tracking-[0.1em] mt-1"
               style={{ fontFamily: "'JetBrains Mono', monospace" }}
             >
-              AI Match Compatibility
+              Match score
             </p>
           </div>
         </div>
         <div className="flex flex-col items-end">
           <span
-            className="text-2xl font-bold text-white"
+            className="text-2xl font-bold text-foreground"
             style={{ fontFamily: "'Hanken Grotesk', system-ui, sans-serif" }}
           >
             {rec.matchScore}%
           </span>
           <span
-            className="text-[10px] text-[#8e9192] uppercase tracking-[0.15em]"
+            className="text-[10px] text-muted-foreground uppercase tracking-[0.15em]"
             style={{ fontFamily: "'JetBrains Mono', monospace" }}
           >
             Match
@@ -75,26 +74,23 @@ export default function RecommendationCard({ rec, onSelect, selectingId }: Recom
         </div>
       </div>
 
-      {/* Reasoning */}
-      <div className="p-4 bg-[#131313] border border-[#262626] mb-6 flex-1">
-        <p className="text-sm text-[#c4c7c8] leading-relaxed">{rec.reasoning}</p>
+      <div className="p-4 bg-background border border-border mb-6 flex-1">
+        <p className="text-sm text-muted-foreground leading-relaxed">{rec.reasoning}</p>
       </div>
 
-      {/* Progress bar */}
-      <div className="h-1 w-full bg-[#262626] overflow-hidden mb-4">
-        <div className="h-full bg-white progress-bar-fill" style={{ width: `${rec.matchScore}%` }} />
+      <div className="h-1 w-full bg-border overflow-hidden mb-4">
+        <div className="h-full bg-primary progress-bar-fill" style={{ width: `${rec.matchScore}%` }} />
       </div>
 
-      {/* Action */}
       <button
         onClick={() => onSelect(rec._id)}
         disabled={isSelected || isSelecting}
         className={`w-full py-2.5 text-xs font-bold transition-colors flex items-center justify-center gap-2 ${
           isSelected
-            ? "bg-[#131313] border border-[#262626] text-[#8e9192] cursor-default"
+            ? "bg-background border border-border text-muted-foreground cursor-default"
             : isSelecting
-            ? "bg-[#262626] text-white cursor-wait"
-            : "bg-white text-[#0A0A0A] hover:bg-[#e2e2e2] cursor-pointer"
+            ? "bg-muted text-foreground cursor-wait"
+            : "bg-primary text-primary-foreground border-2 border-black hover:opacity-90 cursor-pointer shadow-[3px_3px_0_0_#000]"
         }`}
         style={{ fontFamily: "'JetBrains Mono', monospace", letterSpacing: "0.05em" }}
       >

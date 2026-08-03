@@ -76,14 +76,14 @@ export default function RoadmapViewer({ roadmap, onMilestoneToggle }: RoadmapVie
       {/* Page Header with Display Typography */}
       <div className="mb-12 animate-fade-in-up">
         <div
-          className="inline-flex items-center gap-2 px-3 py-1 border border-[#262626] bg-[#1A1A1A] text-[#c4c7c8] mb-6"
+          className="inline-flex items-center gap-2 px-3 py-1 border border-border bg-card text-muted-foreground mb-6"
           style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "11px", letterSpacing: "0.08em" }}
         >
           <span className="w-2 h-2 rounded-full bg-white" />
           ACTIVE PATH
         </div>
         <h2
-          className="text-4xl md:text-5xl font-bold text-white tracking-tight mb-4"
+          className="text-4xl md:text-5xl font-bold text-foreground tracking-tight mb-4"
           style={{ fontFamily: "'Hanken Grotesk', system-ui, sans-serif" }}
         >
           {roadmap.careerPath}
@@ -93,19 +93,19 @@ export default function RoadmapViewer({ roadmap, onMilestoneToggle }: RoadmapVie
         <div className="mt-6 max-w-md">
           <div className="flex justify-between items-end mb-2">
             <span
-              className="text-[11px] text-[#8e9192] uppercase tracking-[0.1em]"
+              className="text-[11px] text-muted-foreground uppercase tracking-[0.1em]"
               style={{ fontFamily: "'JetBrains Mono', monospace" }}
             >
               Overall Progress
             </span>
             <span
-              className="text-[11px] text-white"
+              className="text-[11px] text-foreground"
               style={{ fontFamily: "'JetBrains Mono', monospace" }}
             >
               {progressPercent}%
             </span>
           </div>
-          <div className="h-2 w-full bg-[#1A1A1A] overflow-hidden border border-[#262626]">
+          <div className="h-2 w-full bg-card overflow-hidden border border-border">
             <div className="h-full bg-white progress-bar-fill" style={{ width: `${progressPercent}%` }} />
           </div>
         </div>
@@ -131,11 +131,11 @@ export default function RoadmapViewer({ roadmap, onMilestoneToggle }: RoadmapVie
               {status === "completed" ? (
                 <div className="absolute left-[16px] md:left-[32px] top-10 w-4 h-4 rounded-full bg-white border-4 border-[#0A0A0A] z-10" />
               ) : status === "in-progress" ? (
-                <div className="absolute left-[12px] md:left-[28px] top-10 w-6 h-6 rounded-full bg-[#0A0A0A] border-2 border-white z-10 flex items-center justify-center">
+                <div className="absolute left-[12px] md:left-[28px] top-10 w-6 h-6 rounded-full bg-[#0A0A0A] border-2 border-foreground z-10 flex items-center justify-center">
                   <div className="w-2 h-2 rounded-full bg-white animate-node-pulse" />
                 </div>
               ) : (
-                <div className="absolute left-[16px] md:left-[32px] top-10 w-4 h-4 rounded-full bg-[#0A0A0A] border-2 border-[#404040] z-10 flex items-center justify-center">
+                <div className="absolute left-[16px] md:left-[32px] top-10 w-4 h-4 rounded-full bg-[#0A0A0A] border-2 border-border z-10 flex items-center justify-center">
                   <div className="w-1.5 h-1.5 rounded-full bg-[#404040]" />
                 </div>
               )}
@@ -144,10 +144,10 @@ export default function RoadmapViewer({ roadmap, onMilestoneToggle }: RoadmapVie
               <div
                 className={`p-6 md:p-8 relative overflow-hidden ${
                   status === "in-progress"
-                    ? "bg-[#1A1A1A] border border-white shadow-[0_0_15px_rgba(255,255,255,0.03)]"
+                    ? "bg-card border border-foreground shadow-[0_0_15px_rgba(255,255,255,0.03)]"
                     : status === "completed"
-                    ? "bg-[#1A1A1A] border border-[#262626] hover:border-[#404040] transition-colors"
-                    : "bg-transparent border border-[#262626]"
+                    ? "bg-card border border-border hover:border-border transition-colors"
+                    : "bg-transparent border border-border"
                 }`}
               >
                 {/* Active indicator line */}
@@ -156,12 +156,12 @@ export default function RoadmapViewer({ roadmap, onMilestoneToggle }: RoadmapVie
                 )}
 
                 {/* Stage Header */}
-                <div className="flex flex-col md:flex-row md:items-start justify-between gap-4 border-b border-[#262626] pb-6 mb-6">
+                <div className="flex flex-col md:flex-row md:items-start justify-between gap-4 border-b border-border pb-6 mb-6">
                   <div>
                     <div className="flex items-center gap-3 mb-2">
                       <span
                         className={`text-[11px] uppercase tracking-[0.15em] ${
-                          status === "in-progress" ? "text-white" : "text-[#8e9192]"
+                          status === "in-progress" ? "text-foreground" : "text-muted-foreground"
                         }`}
                         style={{ fontFamily: "'JetBrains Mono', monospace" }}
                       >
@@ -171,7 +171,7 @@ export default function RoadmapViewer({ roadmap, onMilestoneToggle }: RoadmapVie
                       {/* Status Chip */}
                       {status === "completed" && (
                         <span
-                          className="px-2 py-0.5 border border-[#262626] bg-[#201f1f] text-[#c4c7c8] text-[11px] flex items-center gap-1"
+                          className="px-2 py-0.5 border border-border bg-muted text-muted-foreground text-[11px] flex items-center gap-1"
                           style={{ fontFamily: "'JetBrains Mono', monospace", letterSpacing: "0.05em" }}
                         >
                           <span className="material-symbols-outlined text-[14px]">check_circle</span>
@@ -180,7 +180,7 @@ export default function RoadmapViewer({ roadmap, onMilestoneToggle }: RoadmapVie
                       )}
                       {status === "in-progress" && (
                         <span
-                          className="px-2 py-0.5 border border-white bg-white text-[#0A0A0A] text-[11px] font-bold flex items-center gap-1"
+                          className="px-2 py-0.5 border border-foreground bg-white text-[#0A0A0A] text-[11px] font-bold flex items-center gap-1"
                           style={{ fontFamily: "'JetBrains Mono', monospace", letterSpacing: "0.05em" }}
                         >
                           <span className="material-symbols-outlined text-[14px]">sync</span>
@@ -189,7 +189,7 @@ export default function RoadmapViewer({ roadmap, onMilestoneToggle }: RoadmapVie
                       )}
                       {status === "locked" && (
                         <span
-                          className="px-2 py-0.5 border border-[#404040] text-[#8e9192] text-[11px] flex items-center gap-1"
+                          className="px-2 py-0.5 border border-border text-muted-foreground text-[11px] flex items-center gap-1"
                           style={{ fontFamily: "'JetBrains Mono', monospace", letterSpacing: "0.05em" }}
                         >
                           <span className="material-symbols-outlined text-[14px]">lock</span>
@@ -200,7 +200,7 @@ export default function RoadmapViewer({ roadmap, onMilestoneToggle }: RoadmapVie
 
                     <h3
                       className={`text-2xl font-bold ${
-                        status === "locked" ? "text-[#8e9192]" : "text-white"
+                        status === "locked" ? "text-muted-foreground" : "text-foreground"
                       }`}
                       style={{ fontFamily: "'Hanken Grotesk', system-ui, sans-serif" }}
                     >
@@ -212,7 +212,7 @@ export default function RoadmapViewer({ roadmap, onMilestoneToggle }: RoadmapVie
                   <div className="text-right">
                     <span
                       className={`text-4xl font-bold ${
-                        status === "in-progress" ? "text-white" : status === "completed" ? "text-[#262626]" : "text-[#262626]"
+                        status === "in-progress" ? "text-foreground" : status === "completed" ? "text-muted-foreground" : "text-muted-foreground"
                       }`}
                       style={{ fontFamily: "'Hanken Grotesk', system-ui, sans-serif" }}
                     >

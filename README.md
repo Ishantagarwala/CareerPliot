@@ -48,7 +48,7 @@ The interface uses a light-first neo-brutalist design, supports dark mode, inclu
 Browser
   └─ Next.js 16 App Router + React 19 + Tailwind CSS 4
        ├─ Public landing and Auth.js credential flows
-       │    (Cloudflare Turnstile on login/register)
+       │    (hCaptcha on login/register)
        ├─ Protected dashboard pages and client-side data fetching
        └─ Route handlers under app/api
             ├─ MongoDB Atlas / Mongoose
@@ -73,7 +73,7 @@ Browser
 | **Database** | **MongoDB (Atlas)** | Document-based flexible cloud database ideal for rapid feature expansion |
 | **ODM** | **Mongoose 9** | Schema validation and structured MongoDB queries |
 | **Auth** | **NextAuth.js (Auth.js v5)** | Session management, credential login, CSRF protection, and middleware route security |
-| **Bot protection** | **Cloudflare Turnstile** | Interaction-only verification on login and registration |
+| **Bot protection** | **hCaptcha** | Challenge / passive verification on login and registration |
 | **AI Engine** | **Custom LLM router** | OpenAI-compatible gateway (`LLM_ROUTER_*`) with flagship + fallback models |
 | **PDF Extraction** | **pdf-parse + optional PDF.co** | Local serverless-compatible extraction with OCR fallback |
 | **Job Providers** | **Remotive, Arbeitnow, RemoteOK, Adzuna, JSearch** | Multi-source live jobs with optional premium providers |
@@ -92,7 +92,7 @@ CareerPliot/
 │   └── api/                      # Route handlers
 ├── components/
 │   ├── ai-hub/                   # Document library and unified chat
-│   ├── auth/                     # Login/register + Turnstile
+│   ├── auth/                     # Login/register + hCaptcha
 │   ├── career/                   # Assessment and recommendations
 │   ├── courses/                  # Filters and course cards
 │   ├── dashboard/                # Metrics and streak widgets
@@ -161,7 +161,7 @@ Make sure you have the following installed:
    | Variable | Purpose |
    | :--- | :--- |
    | `NEXT_PUBLIC_SITE_URL` | Canonical URL — use `https://www.careerpilot.cc` |
-   | `NEXT_PUBLIC_TURNSTILE_SITE_KEY` / `TURNSTILE_SECRET_KEY` | Cloudflare bot verification on auth |
+   | `NEXT_PUBLIC_HCAPTCHA_SITE_KEY` / `HCAPTCHA_SECRET_KEY` | hCaptcha bot verification on auth |
    | `PDF_CO_API_KEY` | OCR fallback for scanned/image-only PDFs |
    | `YOUTUBE_API_KEY` | Long-form YouTube course recommendations |
    | `RAPIDAPI_KEY` | JSearch jobs sourced from LinkedIn, Indeed and Glassdoor |
@@ -178,7 +178,7 @@ Make sure you have the following installed:
 
 1. Import this GitHub repository into Vercel.
 2. Add `AUTH_SECRET`, `MONGODB_URI`, `LLM_ROUTER_API_KEY`, and `LLM_ROUTER_BASE_URL` under **Project Settings → Environment Variables**.
-3. Add optional keys (`YOUTUBE_API_KEY`, Turnstile, etc.) as needed.
+3. Add optional keys (`YOUTUBE_API_KEY`, hCaptcha, etc.) as needed.
 4. Deploy. The PDF worker is statically bundled for Vercel serverless compatibility.
 
 > Never commit `.env.local` or real credentials.

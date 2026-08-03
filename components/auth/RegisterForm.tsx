@@ -9,10 +9,10 @@ import { signIn } from "next-auth/react";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
 import Link from "next/link";
-import TurnstileWidget, {
-  isTurnstileEnabled,
-  resetTurnstile,
-} from "@/components/auth/TurnstileWidget";
+import CaptchaWidget, {
+  isCaptchaEnabled,
+  resetCaptcha,
+} from "@/components/auth/CaptchaWidget";
 
 const registerSchema = z.object({
   name: z.string().min(2, { message: "Name must be at least 2 characters" }),
@@ -31,7 +31,7 @@ export default function RegisterForm() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [captchaToken, setCaptchaToken] = useState<string | null>(null);
-  const captchaRequired = isTurnstileEnabled();
+  const captchaRequired = isCaptchaEnabled();
 
   const {
     register,
@@ -72,7 +72,7 @@ export default function RegisterForm() {
 
       if (!res.ok) {
         toast.error(data.message || "Failed to register account.");
-        resetTurnstile();
+        resetCaptcha();
         setCaptchaToken(null);
         return;
       }
@@ -98,7 +98,7 @@ export default function RegisterForm() {
     } catch (err) {
       console.error(err);
       toast.error("An unexpected error occurred. Please try again.");
-      resetTurnstile();
+      resetCaptcha();
       setCaptchaToken(null);
     } finally {
       setLoading(false);
@@ -113,15 +113,15 @@ export default function RegisterForm() {
   ] as const;
 
   return (
-    <div className="w-full max-w-md bg-[#1A1A1A] border border-[#262626] overflow-hidden">
-      <div className="p-6 border-b border-[#262626] text-center space-y-2">
+    <div className="w-full max-w-md bg-card border border-border overflow-hidden">
+      <div className="p-6 border-b border-border text-center space-y-2">
         <h1
-          className="text-2xl font-bold text-white tracking-tight"
+          className="text-2xl font-bold text-foreground tracking-tight"
           style={{ fontFamily: "'Hanken Grotesk', system-ui, sans-serif" }}
         >
           Create an Account
         </h1>
-        <p className="text-sm text-[#8e9192]">
+        <p className="text-sm text-muted-foreground">
           Enter your details below to set up your Career Pilot profile
         </p>
       </div>
@@ -131,7 +131,7 @@ export default function RegisterForm() {
             <div key={field.id} className="space-y-2">
               <label
                 htmlFor={field.id}
-                className="text-[11px] text-[#8e9192] uppercase tracking-[0.1em] font-medium block"
+                className="text-[11px] text-muted-foreground uppercase tracking-[0.1em] font-medium block"
                 style={{ fontFamily: "'JetBrains Mono', monospace" }}
               >
                 {field.label}
@@ -141,8 +141,8 @@ export default function RegisterForm() {
                 type={field.type}
                 placeholder={field.placeholder}
                 {...register(field.id)}
-                className={`w-full border bg-[#131313] px-3 py-2 text-sm text-white placeholder:text-[#636565] focus:border-white focus:ring-0 focus:outline-none transition-colors ${
-                  field.error ? "border-[#ffb4ab]" : "border-[#262626]"
+                className={`w-full border bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:border-foreground focus:ring-0 focus:outline-none transition-colors ${
+                  field.error ? "border-[#ffb4ab]" : "border-border"
                 }`}
               />
               {field.error && (
@@ -164,14 +164,14 @@ export default function RegisterForm() {
           </div>
 
           {captchaRequired && (
-            <TurnstileWidget onToken={setCaptchaToken} className="flex justify-center pt-2" />
+            <CaptchaWidget onToken={setCaptchaToken} className="flex justify-center pt-2" />
           )}
         </div>
         <div className="p-6 pt-0 space-y-4">
           <button
             type="submit"
             disabled={loading || (captchaRequired && !captchaToken)}
-            className="w-full py-2.5 bg-white text-[#0A0A0A] font-bold text-xs hover:bg-[#e2e2e2] transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
+            className="w-full py-2.5 bg-primary text-primary-foreground border-2 border-black font-bold text-xs hover:opacity-90 transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
             style={{ fontFamily: "'JetBrains Mono', monospace", letterSpacing: "0.04em" }}
           >
             {loading ? (
@@ -191,9 +191,9 @@ export default function RegisterForm() {
               </>
             )}
           </button>
-          <div className="text-sm text-center text-[#8e9192]">
+          <div className="text-sm text-center text-muted-foreground">
             Already have an account?{" "}
-            <Link href="/login" className="text-white font-medium hover:underline">
+            <Link href="/login" className="text-foreground font-medium hover:underline">
               Log In
             </Link>
           </div>
