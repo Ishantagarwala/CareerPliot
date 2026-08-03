@@ -248,80 +248,204 @@ export async function searchCoursera(
   }
 }
 
+function decodeHtmlEntities(text: string): string {
+  return text
+    .replace(/&#39;/g, "'")
+    .replace(/&apos;/g, "'")
+    .replace(/&amp;/g, "&")
+    .replace(/&quot;/g, '"')
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">");
+}
+
+/** True for real video cards (`youtube:<id>`), not search deep-links. */
+export function isLiveYouTubeExternalId(externalId?: string | null): boolean {
+  return typeof externalId === "string" && /^youtube:[a-zA-Z0-9_-]+$/.test(externalId);
+}
+
+const YT_EXTRA_STOP = new Set([
+  "solidify", "rebuilding", "existing", "pages", "dynamic", "driven", "ship",
+  "reusable", "library", "buttons", "cards", "inputs", "modals", "portfolio",
+  "own", "full", "cycle", "hit", "least", "annual", "future", "comp",
+  "establish", "credibility", "negotiations", "enough", "literacy", "manage",
+  "functional", "small", "group", "early", "collect", "through", "interviews",
+  "analytics", "usage", "data", "based", "behavior", "focus", "improving",
+  "willingness", "pay", "acquire", "first", "paying", "customers", "direct",
+  "outreach", "partnerships", "content", "communities", "targeted", "campaigns",
+  "founder", "operating", "systems", "tracking", "metrics", "managing", "product",
+  "roadmap", "handling", "customer", "support", "making", "decisions", "iterate",
+  "end", "citation", "backed", "history", "stored", "three", "modern",
+]);
+
+/**
+ * Milestone titles are long sentences — YouTube relevance collapses on them.
+ * Prefer the skill headline (before : or —), then keep a few strong tokens.
+ */
+export function buildYouTubeSearchQuery(query: string, level: SkillLevel): string {
+  const headline = query.split(/[:—–]/)[0]?.trim() || query;
+  const tokens = tokenize(headline).filter((t) => !YT_EXTRA_STOP.has(t));
+  // Fall back to full-query tokens if the headline was too thin.
+  const pool = tokens.length >= 2 ? tokens : tokenize(query).filter((t) => !YT_EXTRA_STOP.has(t));
+  const core = pool.slice(0, 5).join(" ");
+  const base = core || headline.slice(0, 60).trim() || query.slice(0, 60).trim();
+  return `${base} full course tutorial`.trim();
+}
+
+async function youtubeSearchRequest(
+  key: string,
+  searchQ: string,
+  opts: { categoryEducation?: boolean; maxResults: number }
+): Promise<any[]> {
+  const url = new URL(YOUTUBE_SEARCH);
+  url.searchParams.set("part", "snippet");
+  url.searchParams.set("type", "video");
+  url.searchParams.set("videoDuration", "long");
+  if (opts.categoryEducation) {
+    url.searchParams.set("videoCategoryId", "27");
+  }
+  url.searchParams.set("safeSearch", "moderate");
+  url.searchParams.set("order", "relevance");
+  url.searchParams.set("relevanceLanguage", "en");
+  url.searchParams.set("maxResults", String(opts.maxResults));
+  url.searchParams.set("q", searchQ);
+  url.searchParams.set("key", key);
+
+  const res = await fetch(url.toString(), {
+    headers: { Accept: "application/json" },
+    cache: "no-store",
+  });
+  const data = await res.json().catch(() => null);
+
+  if (!res.ok) {
+    const apiMessage =
+      data?.error?.message ||
+      data?.error?.errors?.[0]?.reason ||
+      "(no error body)";
+    console.error("YouTube search failed:", res.status, apiMessage, "q=", searchQ);
+    return [];
+  }
+  if (data?.error) {
+    console.error("YouTube API error payload:", data.error?.message || data.error);
+    return [];
+  }
+  return Array.isArray(data?.items) ? data.items : [];
+}
+
 export async function searchYouTube(
   query: string,
   level: SkillLevel,
   limit = 2
 ): Promise<ProviderCourse[]> {
-  const key = process.env.YOUTUBE_API_KEY;
+  const key = process.env.YOUTUBE_API_KEY?.trim();
   if (!key) return [];
 
-  try {
-    const url = new URL(YOUTUBE_SEARCH);
-    url.searchParams.set("part", "snippet");
-    url.searchParams.set("type", "video");
-    url.searchParams.set("videoDuration", "long");
-    url.searchParams.set("maxResults", String(limit));
-    url.searchParams.set("q", `${query} full course tutorial ${level}`);
-    url.searchParams.set("key", key);
+  const tokens = tokenize(query);
+  const searchQ = buildYouTubeSearchQuery(query, level);
+  const maxResults = Math.min(Math.max(limit * 4, 6), 10);
 
-    const res = await fetch(url.toString());
-    if (!res.ok) {
-      console.error("YouTube search failed:", res.status, await res.text().catch(() => ""));
-      return [];
+  try {
+    let items = await youtubeSearchRequest(key, searchQ, {
+      categoryEducation: true,
+      maxResults,
+    });
+
+    // Education category is often too strict for niche tech topics — retry open search.
+    if (items.length === 0) {
+      items = await youtubeSearchRequest(key, searchQ, {
+        categoryEducation: false,
+        maxResults,
+      });
     }
 
-    const data = await res.json();
-    const items = Array.isArray(data?.items) ? data.items : [];
+    // Still empty? try an even shorter query (first 3 tokens).
+    if (items.length === 0) {
+      const shortTokens = tokenize(query.split(/[:—–]/)[0] || query)
+        .filter((t) => !YT_EXTRA_STOP.has(t))
+        .slice(0, 3);
+      if (shortTokens.length > 0) {
+        items = await youtubeSearchRequest(
+          key,
+          `${shortTokens.join(" ")} full course tutorial`,
+          { categoryEducation: false, maxResults }
+        );
+      }
+    }
 
-    return items
-      .map((item: any): ProviderCourse | null => {
+    const ranked = items
+      .map((item: any) => {
         const videoId = item?.id?.videoId;
-        const title = item?.snippet?.title;
-        if (!videoId || !title) return null;
+        const rawTitle = item?.snippet?.title;
+        if (!videoId || !rawTitle) return null;
+        const title = decodeHtmlEntities(String(rawTitle));
+        const blurb = `${title} ${item?.snippet?.description || ""}`;
+        const score = tokens.length > 0 ? scoreMatch(blurb, tokens) : 1;
         return {
-          title: String(title).replace(/&#39;/g, "'").replace(/&amp;/g, "&").replace(/&quot;/g, '"'),
-          platform: "YouTube",
-          url: `https://www.youtube.com/watch?v=${videoId}`,
-          skillLevel: level,
-          isFree: true,
-          rating: 4.6,
-          sourceTopic: query,
-          thumbnailUrl: item?.snippet?.thumbnails?.medium?.url || item?.snippet?.thumbnails?.default?.url,
-          externalId: `youtube:${videoId}`,
+          score,
+          course: {
+            title,
+            platform: "YouTube",
+            url: `https://www.youtube.com/watch?v=${videoId}`,
+            skillLevel: level,
+            isFree: true,
+            rating: 4.6,
+            sourceTopic: query,
+            thumbnailUrl:
+              item?.snippet?.thumbnails?.medium?.url ||
+              item?.snippet?.thumbnails?.high?.url ||
+              item?.snippet?.thumbnails?.default?.url,
+            externalId: `youtube:${videoId}`,
+          } satisfies ProviderCourse,
         };
       })
-      .filter(Boolean) as ProviderCourse[];
+      .filter(Boolean) as Array<{ score: number; course: ProviderCourse }>;
+
+    const relevant = ranked
+      .filter((r) => (tokens.length === 0 ? true : r.score > 0))
+      .sort((a, b) => b.score - a.score)
+      .slice(0, limit)
+      .map((r) => r.course);
+
+    // Never return score-0 junk (e.g. unrelated long-form videos).
+    return relevant;
   } catch (err) {
     console.error("YouTube search error:", err);
     return [];
   }
 }
 
-function fallbackSearchLinks(query: string, level: SkillLevel): ProviderCourse[] {
-  const q = encodeURIComponent(query);
-  return [
-    {
-      title: `Coursera: ${query}`,
-      platform: "Coursera",
-      url: `https://www.coursera.org/search?query=${q}`,
-      skillLevel: level,
-      isFree: false,
-      rating: 4.4,
-      sourceTopic: query,
-      externalId: `coursera-search:${q}:${level}`,
-    },
-    {
-      title: `YouTube full course: ${query}`,
-      platform: "YouTube",
-      url: `https://www.youtube.com/results?search_query=${encodeURIComponent(`${query} full course`)}`,
-      skillLevel: level,
-      isFree: true,
-      rating: 4.3,
-      sourceTopic: query,
-      externalId: `youtube-search:${q}:${level}`,
-    },
-  ];
+function shortTopicLabel(query: string, level: SkillLevel): string {
+  return buildYouTubeSearchQuery(query, level).replace(/ full course tutorial \w+$/, "").trim();
+}
+
+function courseraSearchFallback(query: string, level: SkillLevel): ProviderCourse {
+  const short = shortTopicLabel(query, level) || query.slice(0, 80);
+  const q = encodeURIComponent(short);
+  return {
+    title: `Coursera: ${short}`,
+    platform: "Coursera",
+    url: `https://www.coursera.org/search?query=${q}`,
+    skillLevel: level,
+    isFree: false,
+    rating: 4.4,
+    sourceTopic: query,
+    externalId: `coursera-search:${q}:${level}`,
+  };
+}
+
+function youtubeSearchFallback(query: string, level: SkillLevel): ProviderCourse {
+  const searchQ = buildYouTubeSearchQuery(query, level);
+  const short = shortTopicLabel(query, level) || query.slice(0, 80);
+  const q = encodeURIComponent(searchQ);
+  return {
+    title: `YouTube: ${short} full course`,
+    platform: "YouTube",
+    url: `https://www.youtube.com/results?search_query=${q}`,
+    skillLevel: level,
+    isFree: true,
+    rating: 4.3,
+    sourceTopic: query,
+    externalId: `youtube-search:${q}:${level}`,
+  };
 }
 
 export async function fetchCoursesForTopics(topics: RoadmapTopic[]): Promise<ProviderCourse[]> {
@@ -329,21 +453,24 @@ export async function fetchCoursesForTopics(topics: RoadmapTopic[]): Promise<Pro
     topics.map(async (topic) => {
       const [coursera, youtube] = await Promise.all([
         searchCoursera(topic.query, topic.level, 2),
-        searchYouTube(topic.query, topic.level, 1),
+        searchYouTube(topic.query, topic.level, 2),
       ]);
 
-      const combined = [...youtube, ...coursera].map((c) => ({
+      const combined: ProviderCourse[] = [...youtube, ...coursera];
+
+      // Always keep a YouTube option visible — live videos when the API works,
+      // otherwise a real YouTube search deep-link (key missing / quota / error).
+      if (youtube.length === 0) {
+        combined.push(youtubeSearchFallback(topic.query, topic.level));
+      }
+      if (coursera.length === 0) {
+        combined.push(courseraSearchFallback(topic.query, topic.level));
+      }
+
+      return combined.map((c) => ({
         ...c,
         sourceTopic: topic.milestoneTitle,
       }));
-
-      if (combined.length === 0) {
-        return fallbackSearchLinks(topic.query, topic.level).map((c) => ({
-          ...c,
-          sourceTopic: topic.milestoneTitle,
-        }));
-      }
-      return combined;
     })
   );
 

@@ -7,6 +7,7 @@ import Roadmap from "@/models/Roadmap";
 import {
   extractRoadmapTopics,
   fetchCoursesForTopics,
+  isLiveYouTubeExternalId,
   roadmapFingerprint,
 } from "@/lib/courseProviders";
 
@@ -53,7 +54,7 @@ export async function GET(req: Request) {
       );
     }
 
-    const hash = roadmapFingerprint(careerPath, roadmap.stages);
+    const hash = `${roadmapFingerprint(careerPath, roadmap.stages)}:yt2`;
 
     let courses = await Course.find({
       userId,
@@ -61,7 +62,16 @@ export async function GET(req: Request) {
       roadmapHash: hash,
     });
 
-    const needsRefresh = forceRefresh || courses.length === 0;
+    const youtubeEnabled = Boolean(process.env.YOUTUBE_API_KEY?.trim());
+    // Live videos use externalId "youtube:<videoId>"; search deep-links use "youtube-search:...".
+    const cachedHasLiveYouTube = courses.some((c) =>
+      isLiveYouTubeExternalId(c.externalId)
+    );
+    // Re-fetch when the YouTube key is available but cache has no real video results yet.
+    const needsRefresh =
+      forceRefresh ||
+      courses.length === 0 ||
+      (youtubeEnabled && !cachedHasLiveYouTube);
 
     if (needsRefresh) {
       const topics = extractRoadmapTopics(roadmap.stages, careerPath);
@@ -112,6 +122,10 @@ export async function GET(req: Request) {
     }
 
     const filteredCourses = await Course.find(query).sort({ rating: -1, skillLevel: 1 });
+    const youtubeCount = filteredCourses.filter((c) => c.platform === "YouTube").length;
+    const liveYouTubeCount = filteredCourses.filter((c) =>
+      isLiveYouTubeExternalId(c.externalId)
+    ).length;
 
     return NextResponse.json({
       courses: filteredCourses,
@@ -119,7 +133,9 @@ export async function GET(req: Request) {
         careerPath,
         roadmapHash: hash,
         source: needsRefresh ? "live" : "cache",
-        youtubeEnabled: Boolean(process.env.YOUTUBE_API_KEY),
+        youtubeEnabled,
+        youtubeCount,
+        liveYouTubeCount,
         topicCount: extractRoadmapTopics(roadmap.stages, careerPath).length,
       },
     });
