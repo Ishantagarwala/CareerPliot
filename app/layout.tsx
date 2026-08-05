@@ -81,10 +81,6 @@ export const metadata: Metadata = {
     title: `${SITE_NAME} — AI Career Planning for Students`,
     description: DEFAULT_DESCRIPTION,
   },
-  icons: {
-    icon: "/logo.png",
-    apple: "/logo.png",
-  },
   ...(process.env.GOOGLE_SITE_VERIFICATION?.trim()
     ? {
         verification: {
