@@ -1,0 +1,20 @@
+User-agent: *
+Allow: /
+Allow: /login
+Allow: /register
+Disallow: /dashboard
+Disallow: /career
+Disallow: /roadmap
+Disallow: /courses
+Disallow: /pdf
+Disallow: /tutor
+Disallow: /ai-hub
+Disallow: /resume
+Disallow: /study
+Disallow: /news
+Disallow: /profile
+Disallow: /jobs
+Disallow: /projects
+Disallow: /api/
+
+Sitemap: https://www.careerpilot.cc/sitemap.xml
