@@ -1,4 +1,13 @@
+import type { Metadata } from "next";
 import RegisterForm from "@/components/auth/RegisterForm";
+import { pageMetadata } from "@/lib/seo";
+
+export const metadata: Metadata = pageMetadata({
+  title: "Create Free Account",
+  description:
+    "Join Career Pilot free — get AI career discovery, personalized learning roadmaps, course recommendations, and 24/7 tutoring.",
+  path: "/register",
+});
 
 export default function RegisterPage() {
   return (

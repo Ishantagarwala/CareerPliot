@@ -1,3 +1,4 @@
+import Link from "next/link";
 import BrandLogo from "@/components/layout/BrandLogo";
 
 export default function Footer() {
@@ -37,57 +38,57 @@ export default function Footer() {
             <h5 className="font-label text-sm font-bold text-primary">Platform</h5>
             <ul className="space-y-2">
               <li>
-                <a
-                  href="#"
+                <Link
+                  href="/#modules"
                   className="text-foreground/70 hover:text-cyan transition-colors"
                 >
-                  Privacy Policy
-                </a>
+                  Features
+                </Link>
               </li>
               <li>
-                <a
-                  href="#"
+                <Link
+                  href="/#faq"
                   className="text-foreground/70 hover:text-cyan transition-colors"
                 >
-                  Terms of Service
-                </a>
+                  FAQs
+                </Link>
               </li>
               <li>
-                <a
-                  href="#"
+                <Link
+                  href="/register"
                   className="text-foreground/70 hover:text-cyan transition-colors"
                 >
-                  Discord Community
-                </a>
+                  Sign Up Free
+                </Link>
               </li>
             </ul>
           </div>
           <div className="space-y-4">
-            <h5 className="font-label text-sm font-bold text-primary">Support</h5>
+            <h5 className="font-label text-sm font-bold text-primary">Account</h5>
             <ul className="space-y-2">
               <li>
-                <a
-                  href="#"
+                <Link
+                  href="/login"
                   className="text-foreground/70 hover:text-cyan transition-colors"
                 >
-                  Twitter
-                </a>
+                  Log In
+                </Link>
               </li>
               <li>
-                <a
-                  href="#"
+                <Link
+                  href="/register"
                   className="text-foreground/70 hover:text-cyan transition-colors"
                 >
-                  Support
-                </a>
+                  Register
+                </Link>
               </li>
               <li>
-                <a
-                  href="#"
+                <Link
+                  href="/#cta"
                   className="text-foreground/70 hover:text-cyan transition-colors"
                 >
-                  Help Center
-                </a>
+                  Get Started
+                </Link>
               </li>
             </ul>
           </div>

@@ -1,7 +1,15 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import Footer from "@/components/layout/Footer";
 import LandingNav from "@/components/layout/LandingNav";
+import { buildHomeJsonLd } from "@/lib/seo";
 import { getSiteUrl } from "@/lib/siteUrl";
+
+export const metadata: Metadata = {
+  alternates: {
+    canonical: "/",
+  },
+};
 
 const modules = [
   {
@@ -65,8 +73,8 @@ const faqs = [
   },
   {
     n: "03",
-    q: "What frameworks are supported?",
-    a: "The platform is built for React and Next.js, ensuring a snappy and modern experience.",
+    q: "Is Career Pilot free to use?",
+    a: "Yes. Create a free account to run career discovery, generate roadmaps, and try AI tutoring. Premium features may be added later.",
     nColor: "text-[#dde1ff]",
     hover: "hover:bg-[#dde1ff]",
   },
@@ -83,25 +91,8 @@ const shell = "w-full max-w-[1600px] mx-auto px-5 sm:px-8 lg:px-12 xl:px-16";
 
 export default function Home() {
   const siteUrl = getSiteUrl();
-  const jsonLd = {
-    "@context": "https://schema.org",
-    "@type": "WebApplication",
-    name: "Career Pilot",
-    url: siteUrl,
-    applicationCategory: "EducationalApplication",
-    operatingSystem: "Web",
-    description:
-      "AI-powered career discovery, personalized learning roadmaps, courses, jobs, and tutoring for students.",
-    offers: {
-      "@type": "Offer",
-      price: "0",
-      priceCurrency: "USD",
-    },
-    creator: {
-      "@type": "Organization",
-      name: "Career Wallah",
-    },
-  };
+  const faqItems = faqs.map(({ q, a }) => ({ q, a }));
+  const jsonLd = buildHomeJsonLd(siteUrl, faqItems);
 
   return (
     <div className="flex min-h-screen flex-col bg-background text-foreground">
@@ -129,13 +120,14 @@ export default function Home() {
             <p className="font-display text-[clamp(2.75rem,8vw,7.5rem)] font-extrabold uppercase leading-[0.9] tracking-tighter text-primary mb-4 md:mb-6">
               Career Pilot
             </p>
-            <h1 className="font-display text-[clamp(1.75rem,4.2vw,3.75rem)] font-extrabold leading-[1.05] tracking-tight text-foreground max-w-[22ch] mb-4 md:mb-5">
-              Chart your path with{" "}
-              <span className="text-primary">precision</span>
+            <h1 className="font-display text-[clamp(1.75rem,4.2vw,3.75rem)] font-extrabold leading-[1.05] tracking-tight text-foreground max-w-[24ch] mb-4 md:mb-5">
+              AI career planning for students —{" "}
+              <span className="text-primary">roadmaps, courses & jobs</span>
             </h1>
             <p className="text-base md:text-lg text-[color:var(--on-surface-variant)] max-w-xl mb-7 md:mb-8 leading-relaxed">
-              Smart assessments, stage-by-stage roadmaps, courses, PDF study tools,
-              and an AI tutor — one place to plan and build your career.
+              Career Pilot helps you discover the right path with smart assessments,
+              stage-by-stage learning roadmaps, curated courses, PDF study tools,
+              resume scoring, and a 24/7 AI tutor.
             </p>
             <div className="flex flex-wrap gap-3 md:gap-4">
               <Link

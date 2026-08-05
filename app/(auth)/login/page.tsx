@@ -1,5 +1,14 @@
+import type { Metadata } from "next";
 import { Suspense } from "react";
 import LoginForm from "@/components/auth/LoginForm";
+import { pageMetadata } from "@/lib/seo";
+
+export const metadata: Metadata = pageMetadata({
+  title: "Log In",
+  description:
+    "Sign in to Career Pilot to access your AI career roadmap, courses, jobs, resume tools, and AI tutor.",
+  path: "/login",
+});
 
 export default function LoginPage() {
   return (
