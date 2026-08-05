@@ -2,11 +2,12 @@ import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import dbConnect from "@/lib/db";
 import JobListing from "@/models/JobListing";
-import UserProfile from "@/models/UserProfile";
 import CareerRecommendation from "@/models/CareerRecommendation";
+import UserProfile from "@/models/UserProfile";
 import { escapeRegExp } from "@/lib/security";
 import { buildJobQuery, fetchLiveJobs } from "@/lib/jobProviders";
 import { resolveCompanyLogo } from "@/lib/imageUrl";
+import { inferCareerDomain } from "@/lib/careerDomains";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
@@ -20,16 +21,27 @@ export async function GET(req: Request) {
 
     await dbConnect();
 
-    const profile = await UserProfile.findOne({ userId: session.user.id }).lean();
+    const profile = await UserProfile.findOne({ userId: session.user.id });
     const selectedCareer = await CareerRecommendation.findOne({
       userId: session.user.id,
       selected: true,
-    }).lean();
+    });
 
     const careerPath =
       selectedCareer?.careerPath ||
       profile?.interests?.[0] ||
       null;
+
+    const careerDomain = inferCareerDomain({
+      interests: profile?.interests,
+      subjects: profile?.subjects,
+      goals: profile?.goals,
+      careerPath: selectedCareer?.careerPath || undefined,
+    });
+    if (profile && profile.careerDomain !== careerDomain) {
+      profile.careerDomain = careerDomain;
+      await profile.save();
+    }
 
     const userSkills: string[] =
       profile?.skills?.map((s: any) => String(s.name || "").toLowerCase()).filter(Boolean) || [];
@@ -43,6 +55,8 @@ export async function GET(req: Request) {
       search,
       careerPath,
       skills: userSkills,
+      careerDomain,
+      careerNiche: profile?.careerNiche,
     });
 
     // Optional local seed listings (Mongo) — kept as a fallback supplement.

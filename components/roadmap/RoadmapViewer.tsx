@@ -44,11 +44,11 @@ export default function RoadmapViewer({ roadmap, onMilestoneToggle }: RoadmapVie
   const getStageTitle = (name: string) => {
     switch (name) {
       case "beginner":
-        return "Foundations & Core Logic";
+        return "Foundations";
       case "intermediate":
-        return "Architecture & Scaling";
+        return "Applied Practice";
       case "advanced":
-        return "Advanced Systems & DevOps";
+        return "Advanced Mastery";
       default:
         return name;
     }

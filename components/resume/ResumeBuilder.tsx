@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { defaultResumeContent } from "@/lib/resume";
+import { defaultResumeContent, resumeSkillLabels } from "@/lib/resume";
 import ATSScoreCard from "./ATSScoreCard";
 import JDMatcher from "./JDMatcher";
 import ResumePreview from "./ResumePreview";
@@ -107,11 +107,16 @@ export default function ResumeBuilder({ resumeId }: ResumeBuilderProps) {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [analyzing, setAnalyzing] = useState(false);
+  const [careerDomain, setCareerDomain] = useState<string | null>(null);
+  const skillLabels = resumeSkillLabels(careerDomain);
 
   useEffect(() => {
     async function loadResume() {
       try {
-        const res = await fetch(`/api/resume/${resumeId}`);
+        const [res, profileRes] = await Promise.all([
+          fetch(`/api/resume/${resumeId}`),
+          fetch("/api/career/assess"),
+        ]);
         if (!res.ok) {
           throw new Error("Failed to load resume");
         }
@@ -127,6 +132,10 @@ export default function ResumeBuilder({ resumeId }: ResumeBuilderProps) {
             },
           },
         });
+        if (profileRes.ok) {
+          const profile = await profileRes.json();
+          if (profile?.careerDomain) setCareerDomain(profile.careerDomain);
+        }
       } catch (error: any) {
         toast.error(error.message || "Failed to load resume");
       } finally {
@@ -361,12 +370,12 @@ export default function ResumeBuilder({ resumeId }: ResumeBuilderProps) {
         <section className="bg-[#1A1A1A] border border-[#262626] p-5 space-y-4">
           <h2 className="font-bold text-white">Skills</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            {["technical", "frameworks", "tools", "soft"].map((field) => (
+            {(["technical", "frameworks", "tools", "soft"] as const).map((field) => (
               <CsvInput
                 key={field}
                 value={content.skills[field]}
                 onChange={(items) => updateContent(["skills", field], items)}
-                placeholder={`${field} skills, comma separated`}
+                placeholder={`${skillLabels[field]}, comma separated`}
                 className="bg-[#131313] border border-[#262626] p-3 text-white text-sm"
               />
             ))}
@@ -455,12 +464,17 @@ export default function ResumeBuilder({ resumeId }: ResumeBuilderProps) {
           ))}
         </section>
 
-        <ATSScoreCard analysis={resume.atsAnalysis} loading={analyzing} onAnalyze={analyzeResume} />
+        <ATSScoreCard
+          analysis={resume.atsAnalysis}
+          loading={analyzing}
+          onAnalyze={analyzeResume}
+          careerDomain={careerDomain}
+        />
         <JDMatcher resumeId={resumeId} />
       </div>
 
       <div className="2xl:sticky 2xl:top-8 self-start print:static">
-        <ResumePreview resume={resume} />
+        <ResumePreview resume={resume} careerDomain={careerDomain} />
       </div>
     </div>
   );

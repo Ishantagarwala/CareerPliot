@@ -8,6 +8,12 @@ import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
 import { useVoice } from "@/components/voice/useVoice";
 import VoiceHUD from "@/components/voice/VoiceHUD";
+import {
+  DOMAIN_LIST,
+  getDomainConfig,
+  isCareerDomain,
+  type CareerDomain,
+} from "@/lib/careerDomains";
 
 const assessmentSchema = z.object({
   goals: z.string().min(10, { message: "Please describe your career goals in at least 10 characters." }),
@@ -28,20 +34,20 @@ const INTERVIEW_QUESTIONS: Record<string, string[]> = {
   "en-IN": [
     "Hi! I'm CareerPilot. Let's discover the career path that fits you. What subjects, activities, or types of problems do you genuinely enjoy?",
     "Great. What are your main career goals? If you have a dream job or field you want to work in, describe it.",
-    "Interesting! What academic or technical subjects do you feel strongest or most interested in?",
-    "Lastly, what are your main technical or soft skills, and what do you consider to be your biggest strengths?"
+    "Interesting! What academic subjects do you feel strongest or most interested in?",
+    "Lastly, what are your main skills — technical, creative, analytical, or soft skills — and what do you consider your biggest strengths?"
   ],
   "hi-IN": [
     "नमस्ते! मैं करियरपायलट हूँ। आइए आपके लिए सही करियर पथ की खोज करें। आपको किन विषयों, गतिविधियों या समस्याओं में वास्तविक रूप से आनंद आता है?",
     "समझ गया। आपके मुख्य करियर लक्ष्य क्या हैं? यदि आपका कोई सपनों का काम या क्षेत्र है, तो उसका वर्णन करें।",
-    "रोचक! आप किन शैक्षणिक या तकनीकी विषयों में सबसे अधिक मजबूत या रुचि महसूस करते हैं?",
-    "अंत में, आपके मुख्य तकनीकी या व्यावहारिक कौशल क्या हैं, और आप अपनी सबसे बड़ी ताकत या प्रतिभा क्या मानते हैं?"
+    "रोचक! आप किन शैक्षणिक विषयों में सबसे अधिक मजबूत या रुचि महसूस करते हैं?",
+    "अंत में, आपके मुख्य कौशल क्या हैं — तकनीकी, रचनात्मक, विश्लेषणात्मक या सॉफ्ट स्किल — और आप अपनी सबसे बड़ी ताकत क्या मानते हैं?"
   ],
   "bn-IN": [
     "নমস্কার! আমি ক্যারিয়ারপাইলট। চলুন আপনার জন্য সঠিক ক্যারিয়ার পথটি খুঁজে বের করি। আপনি কোন বিষয়, ক্রিয়াকলাপ বা সমস্যার ধরণগুলি সত্যিই উপভোগ করেন?",
     "বুঝতে পারলাম। আপনার প্রধান ক্যারিয়ারের লক্ষ্যগুলি কী কী? যদি আপনার কোনো স্বপ্নের চাকরি বা ক্ষেত্র থাকে, তবে তা বর্ণনা করুন।",
-    "আকর্ষণীয়! কোন শিক্ষাগত বা প্রযুক্তিগত বিষয়গুলিতে আপনি সবচেয়ে বেশি শক্তিশালী বা আগ্রহী বোধ করেন?",
-    "সবশেষে, আপনার প্রধান প্রযুক্তিগত বা সফট স্কিলগুলি কী কী, এবং আপনি আপনার সবচেয়ে বড় শক্তি বা প্রতিভা কী বলে মনে করেন?"
+    "আকর্ষণীয়! কোন শিক্ষাগত বিষয়গুলিতে আপনি সবচেয়ে বেশি শক্তিশালী বা আগ্রহী বোধ করেন?",
+    "সবশেষে, আপনার প্রধান দক্ষতাগুলি কী কী — প্রযুক্তিগত, সৃজনশীল, বিশ্লেষণাত্মক বা সফট স্কিল — এবং আপনি আপনার সবচেয়ে বড় শক্তি কী বলে মনে করেন?"
   ]
 };
 
@@ -60,6 +66,14 @@ export default function AssessmentForm({ onSuccess }: AssessmentFormProps) {
 
   const [selectedInterests, setSelectedInterests] = useState<string[]>([]);
   const [selectedSubjects, setSelectedSubjects] = useState<string[]>([]);
+  const [careerDomain, setCareerDomain] = useState<CareerDomain | null>(null);
+  const [careerNiche, setCareerNiche] = useState("");
+  const [customInterest, setCustomInterest] = useState("");
+  const [customSubject, setCustomSubject] = useState("");
+  const [nicheInterests, setNicheInterests] = useState<string[]>([]);
+  const [nicheSubjects, setNicheSubjects] = useState<string[]>([]);
+  const [nicheSkills, setNicheSkills] = useState<string[]>([]);
+  const [loadingNiche, setLoadingNiche] = useState(false);
 
   const [skills, setSkills] = useState<SkillItem[]>([
     { name: "Problem Solving", level: "intermediate" },
@@ -87,6 +101,12 @@ export default function AssessmentForm({ onSuccess }: AssessmentFormProps) {
         if (res.ok) {
           const profile = await res.json();
           if (profile) {
+            if (profile.careerDomain && isCareerDomain(profile.careerDomain)) {
+              setCareerDomain(profile.careerDomain);
+            }
+            if (profile.careerNiche) {
+              setCareerNiche(profile.careerNiche);
+            }
             if (profile.interests && profile.interests.length > 0) {
               setSelectedInterests(profile.interests);
             }
@@ -125,33 +145,76 @@ export default function AssessmentForm({ onSuccess }: AssessmentFormProps) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [voiceHUDOpen, voice.selectedLanguage.code, currentVoiceIndex, mode]);
 
-  const interestsOptions = [
-    "Software Engineering",
-    "Artificial Intelligence",
-    "Data Science",
-    "UI/UX Design",
-    "Cybersecurity",
-    "Product Management",
-    "Digital Marketing",
-    "Entrepreneurship",
-    "Finance & Accounting",
-    "Business Management",
-    "Healthcare & Medical",
-    "Creative Writing & Media",
-  ];
+  const domainConfig = careerDomain ? getDomainConfig(careerDomain) : null;
+  const interestsOptions = Array.from(
+    new Set([...(domainConfig?.interests || []), ...nicheInterests, ...selectedInterests])
+  );
+  const subjectsOptions = Array.from(
+    new Set([...(domainConfig?.subjects || []), ...nicheSubjects, ...selectedSubjects])
+  );
+  const skillSuggestions = Array.from(
+    new Set([...(domainConfig?.skillSuggestions || []), ...nicheSkills])
+  );
+  const goalPlaceholder =
+    domainConfig?.goalExamples?.[0] ||
+    "Example: I want a career that matches my strengths and interests...";
 
-  const subjectsOptions = [
-    "Computer Science",
-    "Mathematics",
-    "Data Structures & Algorithms",
-    "Web Development",
-    "Database Systems (DBMS)",
-    "Computer Networks",
-    "Software Engineering",
-    "Machine Learning & AI",
-    "Discrete Mathematics",
-    "Statistics & Probability",
-  ];
+  const totalSteps = 5;
+
+  const selectDomain = (domain: CareerDomain) => {
+    const next = getDomainConfig(domain);
+    setCareerDomain(domain);
+    if (domain !== "other") {
+      setCareerNiche("");
+      setNicheInterests([]);
+      setNicheSubjects([]);
+      setNicheSkills([]);
+      setSelectedInterests((prev) => prev.filter((item) => next.interests.includes(item)));
+      setSelectedSubjects((prev) => prev.filter((item) => next.subjects.includes(item)));
+    }
+  };
+
+  const loadNicheCatalog = async () => {
+    if (!careerNiche.trim() || careerNiche.trim().length < 3) {
+      toast.error("Describe your niche in a few words first.");
+      return;
+    }
+    setLoadingNiche(true);
+    try {
+      const res = await fetch("/api/career/niche-catalog", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ niche: careerNiche.trim() }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || "Failed to generate niche catalog");
+      setNicheInterests(data.interests || []);
+      setNicheSubjects(data.subjects || []);
+      setNicheSkills(data.skills || []);
+      toast.success("Niche catalog ready — pick interests & subjects next.");
+      setStep(2);
+    } catch (err: any) {
+      toast.error(err.message || "Could not generate niche catalog");
+    } finally {
+      setLoadingNiche(false);
+    }
+  };
+
+  const addCustomChip = (
+    value: string,
+    selected: string[],
+    setSelected: (next: string[]) => void,
+    clear: () => void
+  ) => {
+    const chip = value.trim();
+    if (!chip) return;
+    if (selected.some((item) => item.toLowerCase() === chip.toLowerCase())) {
+      toast.warning("Already added");
+      return;
+    }
+    setSelected([...selected, chip]);
+    clear();
+  };
 
   const toggleInterest = (interest: string) => {
     if (selectedInterests.includes(interest)) {
@@ -187,7 +250,15 @@ export default function AssessmentForm({ onSuccess }: AssessmentFormProps) {
   };
 
   const handleNext = () => {
-    if (step === 1 && selectedInterests.length === 0) {
+    if (step === 1 && !careerDomain) {
+      toast.error("Please select a career domain to continue.");
+      return;
+    }
+    if (step === 1 && careerDomain === "other" && careerNiche.trim().length < 3) {
+      toast.error("Describe your niche career (at least a few words) to continue.");
+      return;
+    }
+    if (step === 2 && selectedInterests.length === 0) {
       toast.error("Please select at least one interest to continue.");
       return;
     }
@@ -265,10 +336,18 @@ export default function AssessmentForm({ onSuccess }: AssessmentFormProps) {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            interests: profileData.interests || ["Software Engineering"],
-            goals: profileData.goals || "I want to build a career in engineering.",
-            subjects: profileData.subjects || ["Computer Science"],
-            skills: profileData.skills || [{ name: "Problem Solving", level: "intermediate" }],
+            careerDomain: careerDomain || undefined,
+            careerNiche: careerNiche || undefined,
+            interests: profileData.interests?.length
+              ? profileData.interests
+              : ["Career Exploration"],
+            goals: profileData.goals || "I want to explore career options that match my interests and strengths.",
+            subjects: profileData.subjects?.length
+              ? profileData.subjects
+              : ["General Studies"],
+            skills: profileData.skills?.length
+              ? profileData.skills
+              : [{ name: "Problem Solving", level: "intermediate" }],
           }),
         });
 
@@ -293,9 +372,15 @@ export default function AssessmentForm({ onSuccess }: AssessmentFormProps) {
   };
 
   const onSubmit = async (values: AssessmentFormValues) => {
+    if (!careerDomain) {
+      toast.error("Please select a career domain in Step 1.");
+      setStep(1);
+      return;
+    }
+
     if (selectedSubjects.length === 0) {
-      toast.error("Please select at least one subject in Step 3.");
-      setStep(3);
+      toast.error("Please select at least one subject in Step 4.");
+      setStep(4);
       return;
     }
 
@@ -336,6 +421,8 @@ export default function AssessmentForm({ onSuccess }: AssessmentFormProps) {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
+          careerDomain,
+          careerNiche: careerNiche || undefined,
           interests: selectedInterests,
           goals: values.goals,
           subjects: selectedSubjects,
@@ -416,13 +503,13 @@ export default function AssessmentForm({ onSuccess }: AssessmentFormProps) {
             className="text-[11px] text-muted-foreground uppercase tracking-[0.15em]"
             style={{ fontFamily: "'JetBrains Mono', monospace" }}
           >
-            Step {step} of 4
+            Step {step} of {totalSteps}
           </span>
           {/* Progress bar */}
           <div className="w-full sm:w-2/3 h-1.5 bg-muted overflow-hidden">
             <div
               className="h-full bg-primary transition-all duration-500 ease-out"
-              style={{ width: `${(step / 4) * 100}%` }}
+              style={{ width: `${(step / totalSteps) * 100}%` }}
             />
           </div>
         </div>
@@ -430,46 +517,138 @@ export default function AssessmentForm({ onSuccess }: AssessmentFormProps) {
           className="text-2xl sm:text-3xl font-bold text-foreground tracking-tight"
           style={{ fontFamily: "'Hanken Grotesk', system-ui, sans-serif" }}
         >
-          {step === 1 && "What are your core interests?"}
-          {step === 2 && "Tell us about your career goals"}
-          {step === 3 && "What are your favorite subjects?"}
-          {step === 4 && "Highlight your current skills"}
+          {step === 1 && "Which career domain fits you?"}
+          {step === 2 && "What are your core interests?"}
+          {step === 3 && "Tell us about your career goals"}
+          {step === 4 && "What are your favorite subjects?"}
+          {step === 5 && "Highlight your current skills"}
         </h2>
         <p className="text-sm text-muted-foreground mt-2 max-w-3xl">
-          {step === 1 && "Select the domains and topics that excite you the most."}
-          {step === 2 && "Describe your aspirations, dream job, or fields you want to work in."}
-          {step === 3 && "Which academic/technical subjects do you feel strongest or most interested in?"}
-          {step === 4 && "Add your skills and rate your competency. Be honest!"}
+          {step === 1 && "Pick a primary domain — or Other for niche paths like hospitality, sports, trades, and more."}
+          {step === 2 && "Select the topics that excite you most within this domain."}
+          {step === 3 && "Describe your aspirations, dream job, or fields you want to work in."}
+          {step === 4 && "Which academic subjects do you feel strongest or most interested in?"}
+          {step === 5 && "Add your skills and rate your competency. Be honest!"}
         </p>
       </div>
 
       <form onSubmit={(e) => e.preventDefault()}>
         <div className="p-6 sm:p-8 min-h-[320px]">
-          {/* STEP 1: Interests */}
+          {/* STEP 1: Domain */}
           {step === 1 && (
-            <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3">
-              {interestsOptions.map((interest) => {
-                const isSelected = selectedInterests.includes(interest);
-                return (
-                  <button
-                    key={interest}
-                    type="button"
-                    onClick={() => toggleInterest(interest)}
-                    className={`flex items-center justify-center p-3.5 border-2 text-sm font-medium transition-all text-center ${
-                      isSelected
-                        ? "bg-primary text-primary-foreground border-primary"
-                        : "bg-background border-border text-foreground hover:border-primary/60"
-                    }`}
+            <div className="space-y-5">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {DOMAIN_LIST.map((domain) => {
+                  const isSelected = careerDomain === domain.id;
+                  return (
+                    <button
+                      key={domain.id}
+                      type="button"
+                      onClick={() => selectDomain(domain.id)}
+                      className={`flex flex-col items-start gap-1 p-4 border-2 text-left transition-all ${
+                        isSelected
+                          ? "bg-primary text-primary-foreground border-primary"
+                          : "bg-background border-border text-foreground hover:border-primary/60"
+                      }`}
+                    >
+                      <span className="text-sm font-bold">{domain.label}</span>
+                      <span
+                        className={`text-xs ${
+                          isSelected ? "text-primary-foreground/80" : "text-muted-foreground"
+                        }`}
+                      >
+                        {domain.description}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+
+              {careerDomain === "other" && (
+                <div className="space-y-3 border-2 border-border p-4 bg-background">
+                  <label
+                    className="text-[11px] text-muted-foreground uppercase tracking-[0.1em] font-medium block"
+                    style={{ fontFamily: "'JetBrains Mono', monospace" }}
                   >
-                    {interest}
+                    Describe your niche
+                  </label>
+                  <input
+                    type="text"
+                    value={careerNiche}
+                    onChange={(e) => setCareerNiche(e.target.value)}
+                    placeholder="e.g. Hotel management, commercial pilot, organic farming, cricket coaching..."
+                    className="w-full border-2 border-border bg-transparent px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none"
+                  />
+                  <button
+                    type="button"
+                    onClick={loadNicheCatalog}
+                    disabled={loadingNiche}
+                    className="inline-flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground text-xs font-bold border-2 border-border disabled:opacity-50"
+                    style={{ fontFamily: "'JetBrains Mono', monospace" }}
+                  >
+                    {loadingNiche ? "Generating chips..." : "Generate niche interests & subjects"}
                   </button>
-                );
-              })}
+                </div>
+              )}
             </div>
           )}
 
-          {/* STEP 2: Goals */}
+          {/* STEP 2: Interests */}
           {step === 2 && (
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3">
+                {interestsOptions.map((interest) => {
+                  const isSelected = selectedInterests.includes(interest);
+                  return (
+                    <button
+                      key={interest}
+                      type="button"
+                      onClick={() => toggleInterest(interest)}
+                      className={`flex items-center justify-center p-3.5 border-2 text-sm font-medium transition-all text-center ${
+                        isSelected
+                          ? "bg-primary text-primary-foreground border-primary"
+                          : "bg-background border-border text-foreground hover:border-primary/60"
+                      }`}
+                    >
+                      {interest}
+                    </button>
+                  );
+                })}
+              </div>
+              <div className="flex gap-2 flex-wrap sm:flex-nowrap">
+                <input
+                  type="text"
+                  value={customInterest}
+                  onChange={(e) => setCustomInterest(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      e.preventDefault();
+                      addCustomChip(customInterest, selectedInterests, setSelectedInterests, () =>
+                        setCustomInterest("")
+                      );
+                    }
+                  }}
+                  placeholder="Add your own interest..."
+                  className="flex-1 border-2 border-border bg-background px-3 py-2 text-sm focus:border-primary focus:outline-none"
+                />
+                <button
+                  type="button"
+                  onClick={() =>
+                    addCustomChip(customInterest, selectedInterests, setSelectedInterests, () =>
+                      setCustomInterest("")
+                    )
+                  }
+                  className="px-4 py-2 border-2 border-border bg-primary text-primary-foreground text-xs font-bold"
+                  style={{ fontFamily: "'JetBrains Mono', monospace" }}
+                >
+                  Add
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* STEP 3: Goals */}
+          {step === 3 && (
             <div className="space-y-4 max-w-4xl">
               <label
                 htmlFor="goals"
@@ -480,7 +659,7 @@ export default function AssessmentForm({ onSuccess }: AssessmentFormProps) {
               </label>
               <textarea
                 id="goals"
-                placeholder="Example: I want to build a career in technology, specifically working with AI. My dream is to work as an AI researcher or machine learning engineer..."
+                placeholder={goalPlaceholder}
                 className="w-full min-h-[220px] border-2 border-border bg-background p-4 text-sm text-foreground placeholder:text-muted-foreground focus:border-primary focus:ring-0 focus:outline-none transition-colors resize-none"
                 {...register("goals")}
               />
@@ -490,31 +669,62 @@ export default function AssessmentForm({ onSuccess }: AssessmentFormProps) {
             </div>
           )}
 
-          {/* STEP 3: Subjects */}
-          {step === 3 && (
-            <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3">
-              {subjectsOptions.map((subject) => {
-                const isSelected = selectedSubjects.includes(subject);
-                return (
-                  <button
-                    key={subject}
-                    type="button"
-                    onClick={() => toggleSubject(subject)}
-                    className={`flex items-center justify-center p-3.5 border-2 text-sm font-medium transition-all text-center ${
-                      isSelected
-                        ? "bg-primary text-primary-foreground border-primary"
-                        : "bg-background border-border text-foreground hover:border-primary/60"
-                    }`}
-                  >
-                    {subject}
-                  </button>
-                );
-              })}
+          {/* STEP 4: Subjects */}
+          {step === 4 && (
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3">
+                {subjectsOptions.map((subject) => {
+                  const isSelected = selectedSubjects.includes(subject);
+                  return (
+                    <button
+                      key={subject}
+                      type="button"
+                      onClick={() => toggleSubject(subject)}
+                      className={`flex items-center justify-center p-3.5 border-2 text-sm font-medium transition-all text-center ${
+                        isSelected
+                          ? "bg-primary text-primary-foreground border-primary"
+                          : "bg-background border-border text-foreground hover:border-primary/60"
+                      }`}
+                    >
+                      {subject}
+                    </button>
+                  );
+                })}
+              </div>
+              <div className="flex gap-2 flex-wrap sm:flex-nowrap">
+                <input
+                  type="text"
+                  value={customSubject}
+                  onChange={(e) => setCustomSubject(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      e.preventDefault();
+                      addCustomChip(customSubject, selectedSubjects, setSelectedSubjects, () =>
+                        setCustomSubject("")
+                      );
+                    }
+                  }}
+                  placeholder="Add your own subject..."
+                  className="flex-1 border-2 border-border bg-background px-3 py-2 text-sm focus:border-primary focus:outline-none"
+                />
+                <button
+                  type="button"
+                  onClick={() =>
+                    addCustomChip(customSubject, selectedSubjects, setSelectedSubjects, () =>
+                      setCustomSubject("")
+                    )
+                  }
+                  className="px-4 py-2 border-2 border-border bg-primary text-primary-foreground text-xs font-bold"
+                  style={{ fontFamily: "'JetBrains Mono', monospace" }}
+                >
+                  Add
+                </button>
+              </div>
             </div>
           )}
 
-          {/* STEP 4: Skills */}
-          {step === 4 && (
+          {/* STEP 5: Skills */}
+          {step === 5 && (
             <div className="space-y-6">
               {/* Skill Input */}
               <div className="flex gap-3 flex-wrap sm:flex-nowrap items-end p-4 sm:p-5 border-2 border-border bg-background">
@@ -529,7 +739,7 @@ export default function AssessmentForm({ onSuccess }: AssessmentFormProps) {
                   <input
                     id="skillName"
                     type="text"
-                    placeholder="e.g. Python, Figma"
+                    placeholder={`e.g. ${skillSuggestions.slice(0, 2).join(", ")}`}
                     value={newSkillName}
                     onChange={(e) => setNewSkillName(e.target.value)}
                     onKeyDown={(e) => {
@@ -570,6 +780,24 @@ export default function AssessmentForm({ onSuccess }: AssessmentFormProps) {
                   Add
                 </button>
               </div>
+
+              {skillSuggestions.length > 0 && (
+                <div className="flex flex-wrap gap-2">
+                  {skillSuggestions.map((suggestion) => (
+                    <button
+                      key={suggestion}
+                      type="button"
+                      onClick={() => {
+                        setNewSkillName(suggestion);
+                      }}
+                      className="text-[11px] border border-border px-2 py-1 text-muted-foreground hover:border-primary hover:text-foreground transition-colors"
+                      style={{ fontFamily: "'JetBrains Mono', monospace" }}
+                    >
+                      {suggestion}
+                    </button>
+                  ))}
+                </div>
+              )}
 
               {/* Skills List */}
               <div className="space-y-2 max-h-[280px] overflow-y-auto pr-1">
@@ -628,7 +856,7 @@ export default function AssessmentForm({ onSuccess }: AssessmentFormProps) {
             <div />
           )}
 
-          {step < 4 ? (
+          {step < totalSteps ? (
             <button
               type="button"
               onClick={handleNext}
@@ -680,13 +908,20 @@ export default function AssessmentForm({ onSuccess }: AssessmentFormProps) {
           onLanguageChange={(l) => voice.setSelectedLanguage(l)}
           suggestions={
             currentVoiceIndex === 0
-              ? interestsOptions
+              ? DOMAIN_LIST.map((d) => d.label)
               : currentVoiceIndex === 1
-              ? ["AI Researcher", "Web Developer", "Software Engineer", "Product Designer", "Data Analyst", "Cybersecurity Specialist", "Product Manager", "Entrepreneur", "Finance Specialist", "Creative Writer"]
+              ? domainConfig?.goalExamples || [
+                  "Doctor",
+                  "CA / Accountant",
+                  "Lawyer",
+                  "UX Designer",
+                  "Software Engineer",
+                  "Teacher",
+                ]
               : currentVoiceIndex === 2
               ? subjectsOptions
               : currentVoiceIndex === 3
-              ? ["Python", "JavaScript", "React", "SQL", "HTML/CSS", "Data Structures", "Algorithms", "Machine Learning", "Figma", "Problem Solving", "Communication", "Project Management"]
+              ? skillSuggestions
               : []
           }
         />

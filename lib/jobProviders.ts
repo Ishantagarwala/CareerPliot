@@ -7,6 +7,8 @@
  * JSearch is the standard aggregator used to surface LinkedIn-sourced listings.
  */
 
+import { getDomainConfig } from "@/lib/careerDomains";
+
 export type JobType = "internship" | "full-time" | "part-time" | "contract";
 
 export interface ProviderJob {
@@ -84,7 +86,7 @@ async function fetchRemotive(params: JobSearchParams): Promise<ProviderJob[]> {
     const jobs = Array.isArray(json?.jobs) ? json.jobs : [];
 
     return jobs.slice(0, params.limitPerSource || 15).map((item: any): ProviderJob => {
-      const title = item.title || "Software Engineer";
+      const title = item.title || "Open Role";
       return {
         _id: `remotive-${item.id}`,
         title,
@@ -122,7 +124,7 @@ async function fetchArbeitnow(params: JobSearchParams): Promise<ProviderJob[]> {
     const jobs = Array.isArray(json?.data) ? json.data : [];
 
     return jobs.slice(0, params.limitPerSource || 15).map((item: any): ProviderJob => {
-      const title = item.title || "Software Engineer";
+      const title = item.title || "Open Role";
       const types = Array.isArray(item.job_types) ? item.job_types.join(" ") : "";
       return {
         _id: `arbeitnow-${item.slug || item.url}`,
@@ -149,9 +151,9 @@ async function fetchRemoteOK(params: JobSearchParams): Promise<ProviderJob[]> {
   try {
     // RemoteOK: first element is metadata; needs a browser-like User-Agent.
     const tag = encodeURIComponent(
-      (params.query || "software").split(/\s+/)[0].toLowerCase().replace(/[^a-z0-9+#.-]/g, "")
+      (params.query || "jobs").split(/\s+/)[0].toLowerCase().replace(/[^a-z0-9+#.-]/g, "")
     );
-    const url = `https://remoteok.com/api?tags=${tag || "javascript"}`;
+    const url = `https://remoteok.com/api?tags=${tag || "dev"}`;
 
     const res = await fetch(url, {
       headers: {
@@ -220,12 +222,12 @@ async function fetchAdzuna(params: JobSearchParams): Promise<ProviderJob[]> {
     url.searchParams.set("app_id", appId);
     url.searchParams.set("app_key", appKey);
     url.searchParams.set("results_per_page", String(params.limitPerSource || 15));
-    url.searchParams.set("what", params.query || "software engineer");
+    url.searchParams.set("what", params.query || "graduate jobs");
     if (params.location) url.searchParams.set("where", params.location);
     url.searchParams.set("content-type", "application/json");
 
     if (params.type === "internship") {
-      url.searchParams.set("what", `${params.query || ""} internship`.trim());
+      url.searchParams.set("what", `${params.query || "internship"}`.trim());
     } else if (params.type === "part-time") {
       url.searchParams.set("part_time", "1");
     } else if (params.type === "full-time") {
@@ -287,14 +289,14 @@ async function fetchJSearch(params: JobSearchParams): Promise<ProviderJob[]> {
   try {
     const host = "jsearch.p.rapidapi.com";
     const url = new URL(`https://${host}/search`);
-    url.searchParams.set("query", params.query || "software engineer jobs");
+    url.searchParams.set("query", params.query || "graduate jobs");
     url.searchParams.set("page", "1");
     url.searchParams.set("num_pages", "1");
     if (params.type === "internship") {
-      url.searchParams.set("query", `${params.query || "software"} internship`);
+      url.searchParams.set("query", `${params.query || "internship"}`);
     }
     if (params.location) {
-      url.searchParams.set("query", `${params.query || "software engineer"} in ${params.location}`);
+      url.searchParams.set("query", `${params.query || "jobs"} in ${params.location}`);
     }
 
     const res = await fetch(url.toString(), {
@@ -358,12 +360,17 @@ export function buildJobQuery(opts: {
   search?: string | null;
   careerPath?: string | null;
   skills?: string[];
+  careerDomain?: string | null;
+  careerNiche?: string | null;
 }): string {
   if (opts.search?.trim()) return opts.search.trim();
   const parts: string[] = [];
   if (opts.careerPath) parts.push(opts.careerPath);
+  else if (opts.careerNiche?.trim()) parts.push(opts.careerNiche.trim());
   if (opts.skills?.length) parts.push(...opts.skills.slice(0, 3));
-  if (parts.length === 0) return "software engineer";
+  if (parts.length === 0) {
+    return getDomainConfig(opts.careerDomain).defaultJobQuery;
+  }
   return parts.join(" ");
 }
 

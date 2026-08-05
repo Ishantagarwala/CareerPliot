@@ -31,10 +31,10 @@ export async function POST(req: Request) {
 
     const systemPrompt = `You are an AI data extractor. Analyze the conversation transcripts of a career assessment interview and extract a structured JSON profile of the user.
 Extract:
-1. interests: Array of user's core interests/domains (e.g. ["Software Engineering", "UI/UX Design"]). Map them to standard domains where possible.
+1. interests: Array of user's core interests/domains across any field (e.g. ["Healthcare & Medical", "UI/UX Design", "Law & Public Policy", "Finance & Accounting"]). Map to clear domain labels; do not default to software/tech unless they said so.
 2. goals: A single cohesive description summarizing the user's career goals and aspirations (minimum 10 characters).
-3. subjects: Array of academic or technical subjects they enjoy (e.g. ["Computer Science", "Mathematics"]).
-4. skills: Array of objects, each with "name" (the skill) and "level" ("beginner", "intermediate", or "advanced"). Infer the level based on their description of experience or confidence.
+3. subjects: Array of academic or professional subjects they enjoy (e.g. ["Biology", "Economics", "Computer Science", "Literature"]). Include STEM, humanities, commerce, and vocational subjects as appropriate.
+4. skills: Array of objects, each with "name" (the skill) and "level" ("beginner", "intermediate", or "advanced"). Infer the level based on their description of experience or confidence. Skills may be technical, clinical, creative, analytical, or soft skills.
 
 Return your response ONLY as a JSON object matching this schema:
 {

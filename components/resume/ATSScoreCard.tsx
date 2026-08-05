@@ -1,9 +1,12 @@
 "use client";
 
+import { getDomainConfig, type CareerDomain } from "@/lib/careerDomains";
+
 interface ATSScoreCardProps {
   analysis?: any;
   loading?: boolean;
   onAnalyze: () => void;
+  careerDomain?: CareerDomain | string | null;
 }
 
 const isHackerRankFormat = (analysis: any) =>
@@ -12,8 +15,15 @@ const isHackerRankFormat = (analysis: any) =>
     typeof analysis.selfProjects === "number" ||
     analysis.tier);
 
-export default function ATSScoreCard({ analysis, loading, onAnalyze }: ATSScoreCardProps) {
+export default function ATSScoreCard({
+  analysis,
+  loading,
+  onAnalyze,
+  careerDomain,
+}: ATSScoreCardProps) {
   const hr = isHackerRankFormat(analysis);
+  const domain = getDomainConfig(careerDomain || analysis?.careerDomain);
+  const rubric = domain.resumeRubric;
 
   return (
     <div className="bg-[#1A1A1A] border border-[#262626] p-5 space-y-4">
@@ -23,9 +33,9 @@ export default function ATSScoreCard({ analysis, loading, onAnalyze }: ATSScoreC
             className="text-[11px] text-[#8e9192] uppercase tracking-[0.15em]"
             style={{ fontFamily: "'JetBrains Mono', monospace" }}
           >
-            HackerRank Rubric
+            {domain.label} Rubric
           </p>
-          <h3 className="font-bold text-white">Engineering Score</h3>
+          <h3 className="font-bold text-white">Career Score</h3>
         </div>
         <button
           onClick={onAnalyze}
@@ -52,10 +62,10 @@ export default function ATSScoreCard({ analysis, loading, onAnalyze }: ATSScoreC
           {hr ? (
             <div className="grid grid-cols-2 gap-2 text-xs">
               {[
-                ["Open Source", analysis.openSource, 35],
-                ["Projects", analysis.selfProjects, 30],
-                ["Production", analysis.production, 25],
-                ["Skills", analysis.technicalSkills, 10],
+                [rubric.community.label, analysis.openSource, 35],
+                [rubric.portfolio.label, analysis.selfProjects, 30],
+                [rubric.experience.label, analysis.production, 25],
+                [rubric.skills.label, analysis.technicalSkills, 10],
               ].map(([label, value, max]) => (
                 <div key={label as string} className="border border-[#262626] p-3">
                   <p className="text-[#8e9192]">{label}</p>
@@ -101,8 +111,9 @@ export default function ATSScoreCard({ analysis, loading, onAnalyze }: ATSScoreC
         </>
       ) : (
         <p className="text-sm text-[#8e9192]">
-          Run analysis to score open source, projects, production experience, and technical skills
-          (HackerRank hiring rubric).
+          Run analysis to score {rubric.community.label.toLowerCase()},{" "}
+          {rubric.portfolio.label.toLowerCase()}, {rubric.experience.label.toLowerCase()}, and{" "}
+          {rubric.skills.label.toLowerCase()} for {domain.label}.
         </p>
       )}
     </div>

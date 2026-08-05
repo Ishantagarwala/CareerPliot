@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import dbConnect from "@/lib/db";
 import Resume from "@/models/Resume";
+import UserProfile from "@/models/UserProfile";
 import {
   buildHackerRankAnalysisPrompts,
   normalizeHackerRankAnalysis,
@@ -33,12 +34,15 @@ export async function POST(req: Request, { params }: RouteContext) {
       return NextResponse.json({ message: "Resume not found" }, { status: 404 });
     }
 
-    const resumeText = resumeToPlainText(resume.content);
+    const profile = await UserProfile.findOne({ userId: session.user.id }).select("careerDomain");
+    const domainId = profile?.careerDomain;
+
+    const resumeText = resumeToPlainText(resume.content, domainId);
     if (!resumeText.trim()) {
       return NextResponse.json({ message: "Resume content is empty" }, { status: 400 });
     }
 
-    const { systemPrompt, userPrompt } = buildHackerRankAnalysisPrompts(resumeText);
+    const { systemPrompt, userPrompt } = buildHackerRankAnalysisPrompts(resumeText, domainId);
     const raw = await generateStructuredJson<HackerRankAnalysis>(systemPrompt, userPrompt);
     const analysis = normalizeHackerRankAnalysis(raw);
 

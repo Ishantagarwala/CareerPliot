@@ -86,10 +86,16 @@ const PRIORITY_TAGS = [
   "India",
   "Hiring",
   "Internship",
-  "AI/ML",
+  "Design",
+  "Creative",
+  "Animation",
+  "UX",
+  "Healthcare",
+  "Business",
+  "Law",
+  "Technology",
   "Startups",
   "Funding",
-  "Tech Industry",
   "Policy",
 ];
 
@@ -99,6 +105,7 @@ export default function NewsPage() {
   const [refreshing, setRefreshing] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [activeTag, setActiveTag] = useState<string | null>(null);
+  const [domainLabel, setDomainLabel] = useState<string>("Your field");
 
   // Fetch articles on mount
   const loadNews = useCallback(async (forceRefresh = false, silent = false) => {
@@ -108,13 +115,18 @@ export default function NewsPage() {
       const res = await fetch(url);
       if (!res.ok) throw new Error();
       const data = await res.json();
-      setArticles(data);
+      if (Array.isArray(data)) {
+        setArticles(data);
+      } else {
+        setArticles(Array.isArray(data.articles) ? data.articles : []);
+        if (data.domainLabel) setDomainLabel(data.domainLabel);
+      }
       if (forceRefresh && !silent) {
         toast.success("News feed refreshed with latest articles");
       }
     } catch {
       if (!silent) {
-        toast.error("Failed to retrieve tech intelligence news");
+        toast.error("Failed to retrieve career news");
       }
     } finally {
       if (!silent) {
@@ -206,8 +218,8 @@ export default function NewsPage() {
             Daily Dispatch
           </h1>
           <p className="text-sm text-muted-foreground mt-2 max-w-2xl">
-            High-signal intelligence on India&apos;s tech ecosystem, internship
-            openings, hiring trends, and policy updates. Cut through the noise.
+            News tailored to <span className="text-foreground font-semibold">{domainLabel}</span> —
+            hiring, industry shifts, and career signals for your path. Not a generic tech dump.
           </p>
         </div>
 

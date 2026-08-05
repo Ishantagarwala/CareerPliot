@@ -4,13 +4,17 @@ import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import type { HackerRankAnalysis } from "@/lib/resume";
+import { getDomainConfig } from "@/lib/careerDomains";
 
-const RUBRIC = [
-  { key: "openSource" as const, label: "Open Source", max: 35, icon: "diversity_3" },
-  { key: "selfProjects" as const, label: "Self Projects", max: 30, icon: "terminal" },
-  { key: "production" as const, label: "Production", max: 25, icon: "rocket_launch" },
-  { key: "technicalSkills" as const, label: "Technical Skills", max: 10, icon: "code" },
-];
+function rubricForDomain(domainId?: string | null) {
+  const rubric = getDomainConfig(domainId).resumeRubric;
+  return [
+    { key: "openSource" as const, label: rubric.community.label, max: 35, icon: "diversity_3" },
+    { key: "selfProjects" as const, label: rubric.portfolio.label, max: 30, icon: "terminal" },
+    { key: "production" as const, label: rubric.experience.label, max: 25, icon: "rocket_launch" },
+    { key: "technicalSkills" as const, label: rubric.skills.label, max: 10, icon: "code" },
+  ];
+}
 
 function tierColor(tier: string) {
   if (tier === "Excellent") return "text-emerald-400 border-emerald-500/30 bg-emerald-500/10";
@@ -34,18 +38,27 @@ export default function ResumeAtsPage() {
   const [activeInputTab, setActiveInputTab] = useState<"existing" | "upload" | "text">("existing");
 
   const [analyzing, setAnalyzing] = useState(false);
-  const [result, setResult] = useState<HackerRankAnalysis | null>(null);
+  const [result, setResult] = useState<(HackerRankAnalysis & { careerDomain?: string }) | null>(null);
+  const [careerDomain, setCareerDomain] = useState<string | null>(null);
+  const RUBRIC = rubricForDomain(result?.careerDomain || careerDomain);
 
   useEffect(() => {
     async function fetchResumes() {
       try {
-        const res = await fetch("/api/resume");
+        const [res, profileRes] = await Promise.all([
+          fetch("/api/resume"),
+          fetch("/api/career/assess"),
+        ]);
         if (res.ok) {
           const data = await res.json();
           setResumes(data);
           if (data.length > 0) {
             setSelectedResumeId(data[0]._id);
           }
+        }
+        if (profileRes.ok) {
+          const profile = await profileRes.json();
+          if (profile?.careerDomain) setCareerDomain(profile.careerDomain);
         }
       } catch (error) {
         console.error("Failed to load user resumes:", error);
@@ -107,7 +120,7 @@ export default function ResumeAtsPage() {
 
       const data = await res.json();
       setResult(data);
-      toast.success("HackerRank-style analysis complete!");
+      toast.success("Domain resume analysis complete!");
     } catch (error: any) {
       toast.error(error.message || "An error occurred during analysis.");
     } finally {
@@ -127,7 +140,8 @@ export default function ResumeAtsPage() {
             Engineering Resume Score
           </h1>
           <p className="text-sm text-[#8e9192] mt-2 max-w-2xl">
-            Scored with HackerRank&apos;s hiring rubric — open source, projects, production experience,
+            Scored with your domain career rubric — community impact, projects, experience,
+            and skills that matter for your field.
             and demonstrated skills. What you built matters more than keyword stuffing.
           </p>
         </div>
@@ -273,7 +287,7 @@ export default function ResumeAtsPage() {
           {analyzing && (
             <div className="bg-[#1A1A1A] border border-[#262626] p-12 text-center flex flex-col items-center justify-center space-y-4 min-h-[400px]">
               <span className="material-symbols-outlined text-[48px] text-primary animate-pulse">military_tech</span>
-              <h3 className="text-lg font-bold text-white">Evaluating engineering signal</h3>
+              <h3 className="text-lg font-bold text-white">Evaluating career signal</h3>
               <p className="text-xs text-[#8e9192] max-w-sm">
                 Weighing open-source work, project depth, production ownership, and demonstrated skills…
               </p>
@@ -285,7 +299,7 @@ export default function ResumeAtsPage() {
               <span className="material-symbols-outlined text-[48px] text-[#636565]">emoji_events</span>
               <h3 className="text-lg font-bold text-[#8e9192]">Ready to score</h3>
               <p className="text-xs text-[#636565] max-w-sm">
-                Select a resume source and run analysis to see your HackerRank-style engineering score.
+                Select a resume source and run analysis to see your domain career score.
               </p>
             </div>
           )}

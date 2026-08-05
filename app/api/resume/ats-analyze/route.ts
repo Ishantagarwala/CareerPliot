@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import dbConnect from "@/lib/db";
 import Resume from "@/models/Resume";
+import UserProfile from "@/models/UserProfile";
 import { generateStructuredJson } from "@/lib/llm";
 import {
   buildHackerRankAnalysisPrompts,
@@ -27,6 +28,10 @@ export async function POST(req: Request) {
     const limited = enforceLlmBudget(session.user.id, "ats-analyze", 10);
     if (limited) return limited;
 
+    await dbConnect();
+    const profile = await UserProfile.findOne({ userId: session.user.id }).select("careerDomain");
+    const domainId = profile?.careerDomain;
+
     const contentType = req.headers.get("content-type") || "";
     let resumeText = "";
 
@@ -37,10 +42,9 @@ export async function POST(req: Request) {
       const file = formData.get("file") as File;
 
       if (resumeId) {
-        await dbConnect();
         const resume = await Resume.findOne({ _id: resumeId, userId: session.user.id });
         if (resume) {
-          resumeText = resumeToPlainText(resume.content);
+          resumeText = resumeToPlainText(resume.content, domainId);
         }
       } else if (file) {
         const bytes = await file.arrayBuffer();
@@ -77,10 +81,9 @@ export async function POST(req: Request) {
       const rawText = body.resumeText;
 
       if (resumeId) {
-        await dbConnect();
         const resume = await Resume.findOne({ _id: resumeId, userId: session.user.id });
         if (resume) {
-          resumeText = resumeToPlainText(resume.content);
+          resumeText = resumeToPlainText(resume.content, domainId);
         }
       } else if (rawText) {
         resumeText = rawText;
@@ -95,11 +98,14 @@ export async function POST(req: Request) {
     }
 
     const truncatedResume = resumeText.substring(0, 15000);
-    const { systemPrompt, userPrompt } = buildHackerRankAnalysisPrompts(truncatedResume);
+    const { systemPrompt, userPrompt } = buildHackerRankAnalysisPrompts(
+      truncatedResume,
+      domainId
+    );
     const raw = await generateStructuredJson<HackerRankAnalysis>(systemPrompt, userPrompt, true);
     const result = normalizeHackerRankAnalysis(raw);
 
-    return NextResponse.json(result);
+    return NextResponse.json({ ...result, careerDomain: domainId || "technology" });
   } catch (error) {
     console.error("HackerRank resume analysis error:", error);
     return NextResponse.json(

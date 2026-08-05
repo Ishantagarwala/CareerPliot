@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import dbConnect from "@/lib/db";
 import CareerRecommendation from "@/models/CareerRecommendation";
+import UserProfile from "@/models/UserProfile";
+import { inferCareerDomain } from "@/lib/careerDomains";
 
 export async function POST(req: Request) {
   try {
@@ -36,9 +38,29 @@ export async function POST(req: Request) {
     recommendation.selected = true;
     await recommendation.save();
 
+    // Keep profile domain aligned with the selected career path
+    const profile = await UserProfile.findOne({ userId });
+    const careerDomain = inferCareerDomain({
+      interests: profile?.interests,
+      subjects: profile?.subjects,
+      goals: profile?.goals,
+      careerPath: recommendation.careerPath,
+    });
+    await UserProfile.findOneAndUpdate(
+      { userId },
+      {
+        careerDomain,
+        ...(profile?.careerDomain === "other" || careerDomain === "other"
+          ? { careerNiche: recommendation.careerPath }
+          : {}),
+      },
+      { upsert: false }
+    );
+
     return NextResponse.json({
       message: "Career path selected successfully",
       recommendation,
+      careerDomain,
     });
   } catch (error: any) {
     console.error("Select career route error:", error);

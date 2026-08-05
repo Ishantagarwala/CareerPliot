@@ -28,21 +28,21 @@ export default function ProgressChart({ stageProgress, careerPath }: ProgressCha
       name: "Beginner Stage",
       completed: stageProgress?.beginner?.completed || 0,
       total: stageProgress?.beginner?.total || 0,
-      description: "Foundational learning, basic scripting, tools setup",
+      description: "Foundational concepts, core tools, and early practice",
     },
     {
       key: "intermediate",
       name: "Intermediate Stage",
       completed: stageProgress?.intermediate?.completed || 0,
       total: stageProgress?.intermediate?.total || 0,
-      description: "Frameworks, databases, medium projects, algorithms",
+      description: "Applied projects, deeper skills, and domain fluency",
     },
     {
       key: "advanced",
       name: "Advanced Stage",
       completed: stageProgress?.advanced?.completed || 0,
       total: stageProgress?.advanced?.total || 0,
-      description: "System design, deployment, portfolio curation, job prep",
+      description: "Portfolio work, advanced practice, and job prep",
     },
   ];
 

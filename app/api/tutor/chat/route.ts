@@ -35,7 +35,7 @@ export async function POST(req: Request) {
     
     const careerContext = selectedRecommendation 
       ? `The student's selected career path is "${selectedRecommendation.careerPath}". Adapt your explanations, examples, and recommendations to align with this path where relevant.`
-      : "The student has not selected an active career path yet. Help them explore their options or answer their general learning/coding questions.";
+      : "The student has not selected an active career path yet. Help them explore their options or answer their general learning questions across any field.";
 
     // 2. Fetch or create chat history
     let chat = await ChatHistory.findOne({ userId });
@@ -59,15 +59,15 @@ export async function POST(req: Request) {
 
     // 4. Construct System Prompt
     const systemPrompt = `You are a professional, encouraging, and highly knowledgeable AI Tutor for "Career Pilot".
-Your role is to help students learn technical topics, debug code, and prepare for their career.
+Your role is to help students learn subjects relevant to their goals, work through problems, and prepare for careers in any field — not only technology or coding.
 ${careerContext}
 
 Guidelines:
 - Explain complex concepts simply using analogies, bullet points, and clean structures.
-- For coding questions, provide clean, well-commented code blocks.
-- Highlight common bugs or errors they might run into.
-- Encourage self-correction by asking minor guidance questions if they are stuck on a problem.
-- Keep responses engaging, structured, and easy to read using Markdown (bold text, numbered lists, bullet points, and code syntax highlighting).`;
+- Match teaching style to the domain: worked examples, case studies, lab reasoning, writing feedback, or code — whichever fits the question.
+- When the topic involves code or technical debugging, provide clean, well-commented code blocks and call out common mistakes.
+- Encourage self-correction by asking minor guidance questions if they are stuck.
+- Keep responses engaging, structured, and easy to read using Markdown (bold text, numbered lists, bullet points, and code syntax highlighting when useful).`;
 
     // 5. Call OpenAI Chat Completions
     const client = getLlmClient();

@@ -6,6 +6,12 @@ import CareerRecommendation from "@/models/CareerRecommendation";
 import { generateStructuredJson } from "@/lib/llm";
 import { enforceLlmBudget } from "@/lib/llmGuard";
 import { getClientIp, rateLimit } from "@/lib/security";
+import {
+  getDomainConfig,
+  inferCareerDomain,
+  isCareerDomain,
+  type CareerDomain,
+} from "@/lib/careerDomains";
 
 interface LlmRecommendation {
   careerPath: string;
@@ -37,11 +43,21 @@ export async function POST(req: Request) {
     const limited = enforceLlmBudget(userId, "career-assess", 5);
     if (limited) return limited;
 
-    const { interests, goals, subjects, skills } = await req.json();
+    const { interests, goals, subjects, skills, careerDomain: requestedDomain, careerNiche } =
+      await req.json();
 
     if (!interests || !goals || !subjects || !skills) {
       return NextResponse.json({ message: "Missing required fields" }, { status: 400 });
     }
+
+    const careerDomain: CareerDomain = isCareerDomain(requestedDomain)
+      ? requestedDomain
+      : inferCareerDomain({ interests, subjects, goals });
+    const domain = getDomainConfig(careerDomain);
+    const nicheText =
+      typeof careerNiche === "string" && careerNiche.trim()
+        ? careerNiche.trim().slice(0, 160)
+        : "";
 
     await dbConnect();
 
@@ -49,6 +65,8 @@ export async function POST(req: Request) {
     await UserProfile.findOneAndUpdate(
       { userId },
       {
+        careerDomain,
+        careerNiche: nicheText,
         interests,
         goals,
         subjects,
@@ -63,27 +81,38 @@ export async function POST(req: Request) {
       .map((s: { name: string; level: string }) => `${s.name} (${s.level})`)
       .join(", ");
 
-    const systemPrompt = `You are a professional student career counselor. Analyze the student's profile (interests, goals, academic subjects, and current skills) and recommend the top 3 best-fitting career paths.
-If the student indicates a preference, interest, or background in Computer Science or Software Engineering (e.g., if they select "Computer Science" as a subject, or select Software/AI interests, or mention coding/programming in their goals), ensure the recommended career paths align with core Computer Science, Software Engineering, AI/ML development, Web/Mobile Development, and related fields rather than general data analysis or IT support.
+    const systemPrompt = `You are a professional student career counselor specializing in the "${domain.label}" domain (${domain.description}).
+${nicheText ? `The student described their niche as: "${nicheText}". Prefer careers aligned with that niche.` : ""}
+Analyze the student's profile and recommend the top 3 best-fitting career paths.
+
+Rules:
+- Prefer careers inside ${domain.label}${nicheText ? ` / "${nicheText}"` : ""}, unless the profile clearly points elsewhere — then include at most one adjacent path with clear reasoning.
+- Prefer concrete, recognizable career titles over vague labels.
+- Never invent awkward hybrid titles that mash unrelated fields (e.g. "Health Educator DevOps").
+- Diversify specialization or seniority across the three recommendations when staying in-domain.
+- Be realistic for students: entry paths, education requirements, and growth potential.
+- For niche/other domains, recommend real entry roles that exist in India or globally for students.
 
 Return your response ONLY as a JSON object matching this structure:
 {
   "recommendations": [
     {
       "careerPath": "Exact Job Title or Career Area",
-      "matchScore": 85, // Integer score from 0-100 indicating fit
+      "matchScore": 85,
       "reasoning": "Clear, encouraging reasoning (2-3 sentences) on why this path fits their interests, skills, and goals."
     }
   ]
 }`;
 
     const userPrompt = `Student Profile:
+- Primary Domain: ${domain.label}
+${nicheText ? `- Niche Focus: ${nicheText}` : ""}
 - Interests: ${interests.join(", ")}
 - Career Goals: ${goals}
 - Favorite Subjects: ${subjects.join(", ")}
 - Current Skills: ${skillsString}
 
-Analyze this profile and generate 3 recommendations. Make sure they are realistic, practical, and highly relevant.`;
+Analyze this profile and generate 3 recommendations for the ${domain.label} domain${nicheText ? ` with niche "${nicheText}"` : ""} unless the profile strongly requires otherwise.`;
 
     // 3. Call LLM to generate recommendations
     const llmResult = await generateStructuredJson<LlmResponse>(systemPrompt, userPrompt);
@@ -112,6 +141,46 @@ Analyze this profile and generate 3 recommendations. Make sure they are realisti
     });
   } catch (error: any) {
     console.error("Assessment route error:", error);
+    const status = error?.status as number | undefined;
+    const providerMessage =
+      error?.error?.message || error?.message || "Internal Server Error";
+    const lower = String(providerMessage).toLowerCase();
+
+    if (status === 403 || lower.includes("permission") || lower.includes("无权")) {
+      return NextResponse.json(
+        {
+          message:
+            "Your LLM router denied access to the configured model. Check LLM_ROUTER_MODEL / LLM_ROUTER_FALLBACK_MODEL access on your provider, or switch models in .env.local.",
+        },
+        { status: 502 }
+      );
+    }
+
+    if (status === 401) {
+      return NextResponse.json(
+        {
+          message:
+            "LLM router rejected the API key. Check LLM_ROUTER_API_KEY in .env.local.",
+        },
+        { status: 502 }
+      );
+    }
+
+    if (
+      status === 429 ||
+      lower.includes("insufficient") ||
+      lower.includes("quota") ||
+      lower.includes("balance")
+    ) {
+      return NextResponse.json(
+        {
+          message:
+            "LLM router quota/rate limit issue. Wait a moment, top up credits, or switch to a cheaper model in .env.local.",
+        },
+        { status: status === 429 ? 429 : 502 }
+      );
+    }
+
     return NextResponse.json(
       { message: "Internal Server Error" },
       { status: 500 }

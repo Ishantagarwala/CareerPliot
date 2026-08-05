@@ -1,3 +1,5 @@
+import { getDomainConfig } from "@/lib/careerDomains";
+
 export const defaultResumeContent = {
   personalInfo: {
     fullName: "",
@@ -22,14 +24,19 @@ export const defaultResumeContent = {
   customSections: [],
 };
 
-export function resumeToPlainText(content: any): string {
+export function resumeSkillLabels(domainId?: string | null) {
+  return getDomainConfig(domainId).skillLabels;
+}
+
+export function resumeToPlainText(content: any, domainId?: string | null): string {
   const personal = content?.personalInfo || {};
   const skills = content?.skills || {};
+  const labels = resumeSkillLabels(domainId);
 
   const sections = [
     `${personal.fullName || ""}\n${personal.email || ""} ${personal.phone || ""} ${personal.location || ""}\n${personal.linkedin || ""} ${personal.github || ""} ${personal.portfolio || ""}`,
     `Summary\n${personal.summary || ""}`,
-    `Skills\nTechnical: ${(skills.technical || []).join(", ")}\nFrameworks: ${(skills.frameworks || []).join(", ")}\nTools: ${(skills.tools || []).join(", ")}\nSoft Skills: ${(skills.soft || []).join(", ")}`,
+    `Skills\n${labels.technical}: ${(skills.technical || []).join(", ")}\n${labels.frameworks}: ${(skills.frameworks || []).join(", ")}\n${labels.tools}: ${(skills.tools || []).join(", ")}\n${labels.soft}: ${(skills.soft || []).join(", ")}`,
     `Education\n${(content?.education || []).map((item: any) => `${item.degree || ""} ${item.field || ""} at ${item.institution || ""}. ${item.achievements?.join("; ") || ""}`).join("\n")}`,
     `Experience\n${(content?.experience || []).map((item: any) => `${item.title || ""} at ${item.company || ""}. ${(item.bullets || []).join("; ")} Technologies: ${(item.technologies || []).join(", ")}`).join("\n")}`,
     `Projects\n${(content?.projects || []).map((item: any) => `${item.name || ""}: ${item.description || ""}. ${(item.bullets || []).join("; ")} Tech: ${(item.technologies || []).join(", ")}`).join("\n")}`,
@@ -122,11 +129,17 @@ function asStringArray(value: unknown): string[] {
   return value.filter((item): item is string => typeof item === "string" && item.trim().length > 0);
 }
 
-export function buildHackerRankAnalysisPrompts(resumeText: string) {
-  const systemPrompt = `You are a senior engineering recruiter using HackerRank's hiring-agent resume rubric.
-Score what the candidate has BUILT and SHIPPED — not keyword stuffing or pedigree alone.
+export function buildHackerRankAnalysisPrompts(
+  resumeText: string,
+  domainId?: string | null
+) {
+  const domain = getDomainConfig(domainId);
+  const rubric = domain.resumeRubric;
 
-Return ONLY JSON with this exact structure:
+  const systemPrompt = `You are a ${rubric.recruiterRole} scoring a student resume for the "${domain.label}" domain.
+Score what the candidate has actually done and can evidence — not keyword stuffing or pedigree alone.
+
+Return ONLY JSON with this exact structure (field names stay fixed for the product schema):
 {
   "score": 0,
   "openSource": 0,
@@ -149,26 +162,27 @@ Return ONLY JSON with this exact structure:
   "summary": "2-3 sentence recruiter summary"
 }
 
-STRICT WEIGHTS (integers only):
-- openSource: 0–35 — contributions to external/open-source repos, PRs, community programs (GSoC, etc.)
-- selfProjects: 0–30 — personal projects with complexity, live demos, GitHub links, real impact (not tutorials)
-- production: 0–25 — internships/jobs/startups with ownership, shipped systems, measurable outcomes
-- technicalSkills: 0–10 — demonstrated depth via projects/experience (named tech alone scores low)
-- bonus: 0–20 — e.g. GSoC (+5), founder (+5), LinkedIn (+1), portfolio (+2), technical blogs (+3), GirlScript SoC (+3)
-- deductions: 0–20 — tutorial-only projects, missing/broken links, generic project names, no proof of work
+STRICT WEIGHTS (integers only) — interpret buckets for ${domain.label}:
+- openSource (0–35) = ${rubric.community.label}: ${rubric.community.guidance}
+- selfProjects (0–30) = ${rubric.portfolio.label}: ${rubric.portfolio.guidance}
+- production (0–25) = ${rubric.experience.label}: ${rubric.experience.guidance}
+- technicalSkills (0–10) = ${rubric.skills.label}: ${rubric.skills.guidance}
+- bonus (0–20): ${rubric.bonusExamples}
+- deductions (0–20): ${rubric.deductionExamples}
 
+Do NOT penalize non-software resumes for missing GitHub/open-source unless the domain is Technology.
 score = openSource + selfProjects + production + technicalSkills + bonus - deductions (clamp 0–120).
 tier: Excellent (≥90), Strong (70–89), Average (50–69), Needs Improvement (<50).
-Be honest and evidence-based. Prefer "what they built" over "what they claim".`;
+Be honest and evidence-based.`;
 
-  const userPrompt = `Evaluate this resume with the HackerRank hiring rubric above.\n\nRESUME:\n${resumeText}`;
+  const userPrompt = `Evaluate this ${domain.label} resume with the domain rubric above.\n\nRESUME:\n${resumeText}`;
 
   return { systemPrompt, userPrompt };
 }
 
 /** @deprecated Prefer buildHackerRankAnalysisPrompts — kept as alias for callers. */
-export function buildAtsAnalysisPrompts(resumeText: string) {
-  return buildHackerRankAnalysisPrompts(resumeText);
+export function buildAtsAnalysisPrompts(resumeText: string, domainId?: string | null) {
+  return buildHackerRankAnalysisPrompts(resumeText, domainId);
 }
 
 export function buildJdMatchPrompts(resumeText: string, jobDescription: string) {
@@ -212,10 +226,11 @@ ${bullets.map((item) => `        \\resumeItem{${latexEscape(item)}}`).join("\n")
       \\resumeItemListEnd`;
 }
 
-export function resumeToLatex(resume: any): string {
+export function resumeToLatex(resume: any, domainId?: string | null): string {
   const content = resume?.content || {};
   const personal = content.personalInfo || {};
   const skills = content.skills || {};
+  const labels = resumeSkillLabels(domainId);
   const contactParts = [
     personal.phone,
     personal.email ? `\\href{mailto:${latexEscape(personal.email)}}{\\color{black}\\raisebox{-0.2\\height}\\faEnvelope\\ ${latexEscape(personal.email)}}` : "",
@@ -311,13 +326,13 @@ ${education}
 \\section{Skills}
   \\begin{itemize}[leftmargin=0.15in, label={}]
     \\small{\\item{
-        \\textbf{Languages}{: ${latexEscape((skills.technical || []).join(", "))}} \\\\
+        \\textbf{${latexEscape(labels.technical)}}{: ${latexEscape((skills.technical || []).join(", "))}} \\\\
         \\vspace{2pt}
-        \\textbf{AI/ML \\& Frameworks}{: ${latexEscape((skills.frameworks || []).join(", "))}} \\\\
+        \\textbf{${latexEscape(labels.frameworks)}}{: ${latexEscape((skills.frameworks || []).join(", "))}} \\\\
         \\vspace{2pt}
-        \\textbf{Developer Tools}{: ${latexEscape((skills.tools || []).join(", "))}} \\\\
+        \\textbf{${latexEscape(labels.tools)}}{: ${latexEscape((skills.tools || []).join(", "))}} \\\\
         \\vspace{2pt}
-        \\textbf{Interpersonal}{: ${latexEscape((skills.soft || []).join(", "))}} \\\\
+        \\textbf{${latexEscape(labels.soft)}}{: ${latexEscape((skills.soft || []).join(", "))}}
     }}
   \\end{itemize}
   \\vspace{-20pt}

@@ -19,6 +19,9 @@ export interface IFutureGoals {
 
 export interface IUserProfile extends MongooseDocument {
   userId: mongoose.Types.ObjectId;
+  careerDomain?: CareerDomainString;
+  /** Free-text niche for Phase 3 long-tail (especially domain === other). */
+  careerNiche?: string;
   interests: string[];
   goals: string;
   subjects: string[];
@@ -29,8 +32,25 @@ export interface IUserProfile extends MongooseDocument {
   assessedAt: Date;
 }
 
+type CareerDomainString =
+  | 'technology'
+  | 'healthcare'
+  | 'business'
+  | 'design'
+  | 'law'
+  | 'education'
+  | 'science'
+  | 'engineering'
+  | 'other';
+
 const UserProfileSchema = new Schema<IUserProfile>({
   userId: { type: Schema.Types.ObjectId, ref: 'User', required: true, index: true },
+  careerDomain: {
+    type: String,
+    enum: ['technology', 'healthcare', 'business', 'design', 'law', 'education', 'science', 'engineering', 'other'],
+    index: true,
+  },
+  careerNiche: { type: String, default: '' },
   interests: [{ type: String }],
   goals: { type: String },
   subjects: [{ type: String }],

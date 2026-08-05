@@ -1,8 +1,10 @@
 /**
  * News Fetcher Utility
- * Fetches tech, hiring, and India-focused news from multiple free RSS feeds.
+ * Fetches domain-aware career news from RSS + optional GNews.
  * Caches results in MongoDB with a 6-hour TTL so we stay under rate limits.
  */
+
+import { DOMAIN_LIST } from "@/lib/careerDomains";
 
 interface RawArticle {
   title: string;
@@ -16,23 +18,8 @@ interface RawArticle {
   category: 'Featured' | 'Live Feed' | 'In-Depth Analysis';
 }
 
-// ── RSS Feed Sources ──────────────────────────────────────────────────
-// These are publicly accessible RSS feeds that don't need API keys.
-
-const RSS_FEEDS = [
-  // India Tech & Startup
-  {
-    url: 'https://techcrunch.com/tag/india/feed/',
-    source: 'TechCrunch India',
-    tags: ['India', 'Startups'],
-    category: 'Featured' as const,
-  },
-  {
-    url: 'https://inc42.com/feed/',
-    source: 'Inc42',
-    tags: ['India', 'Startups'],
-    category: 'Featured' as const,
-  },
+// Shared India / hiring feeds + per-domain sources from careerDomains config
+const SHARED_FEEDS = [
   {
     url: 'https://yourstory.com/feed',
     source: 'YourStory',
@@ -45,54 +32,28 @@ const RSS_FEEDS = [
     tags: ['India', 'Startups', 'Funding'],
     category: 'Live Feed' as const,
   },
-  {
-    url: 'https://www.moneycontrol.com/rss/MC_startup.xml',
-    source: 'Moneycontrol',
-    tags: ['India', 'Startups', 'Funding'],
-    category: 'Live Feed' as const,
-  },
-  {
-    url: 'https://www.livemint.com/rss/technology',
-    source: 'Livemint Tech',
-    tags: ['India', 'Tech Industry'],
-    category: 'In-Depth Analysis' as const,
-  },
-  // Hiring & Jobs
-  {
-    url: 'https://www.techinasia.com/feed',
-    source: 'Tech In Asia',
-    tags: ['Hiring', 'Asia'],
-    category: 'Live Feed' as const,
-  },
-  {
-    url: 'https://economictimes.indiatimes.com/tech/rssfeeds/13357270.cms',
-    source: 'ET Tech',
-    tags: ['India', 'Tech Industry'],
-    category: 'In-Depth Analysis' as const,
-  },
-  // General Tech
-  {
-    url: 'https://www.theverge.com/rss/index.xml',
-    source: 'The Verge',
-    tags: ['Tech', 'Global'],
-    category: 'Live Feed' as const,
-  },
-  {
-    url: 'https://feeds.arstechnica.com/arstechnica/technology-lab',
-    source: 'Ars Technica',
-    tags: ['Tech', 'Analysis'],
-    category: 'In-Depth Analysis' as const,
-  },
 ];
 
-// ── GNews API (free, 100 req/day) ─────────────────────────────────────
+function buildRssFeeds() {
+  const seen = new Set<string>();
+  const feeds: Array<{
+    url: string;
+    source: string;
+    tags: string[];
+    category: 'Featured' | 'Live Feed' | 'In-Depth Analysis';
+  }> = [];
 
-const GNEWS_QUERIES = [
-  { q: 'India tech hiring internship', tags: ['India', 'Hiring', 'Internship'] },
-  { q: 'India startup funding', tags: ['India', 'Startups', 'Funding'] },
-  { q: 'software developer jobs India', tags: ['India', 'Jobs', 'Tech Industry'] },
-  { q: 'tech layoffs hiring India', tags: ['India', 'Hiring', 'Tech Industry'] },
-];
+  for (const feed of [...SHARED_FEEDS, ...DOMAIN_LIST.flatMap((d) => d.newsFeeds)]) {
+    if (seen.has(feed.url)) continue;
+    seen.add(feed.url);
+    feeds.push(feed);
+  }
+  return feeds;
+}
+
+const RSS_FEEDS = buildRssFeeds();
+
+const GNEWS_QUERIES = DOMAIN_LIST.flatMap((d) => d.newsQueries);
 
 // ── RSS Parser (simple XML→JSON, no npm dep) ──────────────────────────
 
@@ -292,6 +253,14 @@ function autoTag(article: RawArticle): string[] {
     'Startups': ['startup', 'unicorn', 'founder', 'entrepreneur'],
     'Cloud': ['cloud', 'aws', 'azure', 'gcp', 'saas'],
     'Cybersecurity': ['cybersecurity', 'data breach', 'hack', 'vulnerability', 'security'],
+    'Technology': ['software', 'developer', 'tech', 'saas', 'app'],
+    'Healthcare': ['health', 'hospital', 'medical', 'doctor', 'pharma', 'clinical'],
+    'Business': ['finance', 'market', 'bank', 'economy', 'commerce', 'accounting'],
+    'Design': ['design', 'ux', 'ui', 'creative', 'figma', 'branding', 'illustration'],
+    'Education': ['education', 'teacher', 'school', 'university', 'curriculum', 'classroom', 'edtech', 'student'],
+    'Engineering': ['mechanical', 'electrical', 'civil engineer', 'manufacturing', 'infrastructure'],
+    'Animation': ['animation', 'motion graphic', 'motion design', 'after effects', 'animator'],
+    'Law': ['law', 'court', 'legal', 'supreme court', 'advocate', 'policy'],
   };
 
   for (const [tag, keywords] of Object.entries(tagKeywords)) {

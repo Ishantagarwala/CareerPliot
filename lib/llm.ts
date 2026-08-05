@@ -82,40 +82,85 @@ function extractJsonContent(content: string): string {
   return trimmed;
 }
 
-/** Call the LLM router and parse a JSON response. */
+function isModelAccessError(error: unknown): boolean {
+  const status = (error as { status?: number })?.status;
+  if (status === 403 || status === 404) return true;
+  const message = String(
+    (error as { message?: string })?.message ||
+      (error as { error?: { message?: string } })?.error?.message ||
+      ""
+  ).toLowerCase();
+  return (
+    message.includes("permission") ||
+    message.includes("无权") ||
+    message.includes("not found") ||
+    message.includes("does not exist") ||
+    message.includes("model_not_found")
+  );
+}
+
+async function createStructuredCompletion(
+  client: OpenAI,
+  model: string,
+  systemPrompt: string,
+  userPrompt: string
+) {
+  const request: ChatCompletionCreateParamsNonStreaming = {
+    model,
+    messages: [
+      { role: "system", content: systemPrompt },
+      { role: "user", content: userPrompt },
+    ],
+    temperature: 0.2,
+  };
+
+  return client.chat.completions.create(
+    skipJsonResponseFormat()
+      ? request
+      : { ...request, response_format: { type: "json_object" } }
+  );
+}
+
+/** Call the LLM router and parse a JSON response. Falls back to LLM_ROUTER_FALLBACK_MODEL on access errors. */
 export async function generateStructuredJson<T>(
   systemPrompt: string,
   userPrompt: string,
   isPdf = false
 ): Promise<T> {
   const client = getLlmClient();
-  const model = getLlmModel(isPdf);
+  const primary = getLlmModel(isPdf);
+  const fallback = getLlmModel(true);
+  const models =
+    !isPdf && fallback !== primary ? [primary, fallback] : [primary];
 
-  try {
-    const request: ChatCompletionCreateParamsNonStreaming = {
-      model,
-      messages: [
-        { role: "system", content: systemPrompt },
-        { role: "user", content: userPrompt },
-      ],
-      temperature: 0.2,
-    };
+  let lastError: unknown;
 
-    const response = await client.chat.completions.create(
-      skipJsonResponseFormat()
-        ? request
-        : { ...request, response_format: { type: "json_object" } }
-    );
+  for (let i = 0; i < models.length; i++) {
+    const model = models[i];
+    try {
+      const response = await createStructuredCompletion(
+        client,
+        model,
+        systemPrompt,
+        userPrompt
+      );
 
-    const content = response.choices[0]?.message?.content;
-    if (!content) {
-      throw new Error("Empty response from LLM");
+      const content = response.choices[0]?.message?.content;
+      if (!content) {
+        throw new Error("Empty response from LLM");
+      }
+
+      const cleanContent = extractJsonContent(content);
+      return JSON.parse(cleanContent) as T;
+    } catch (error) {
+      lastError = error;
+      console.error(`LLM Generation Error (${model}):`, error);
+      const canRetry =
+        i < models.length - 1 && isModelAccessError(error);
+      if (!canRetry) break;
+      console.warn(`Retrying structured JSON with fallback model: ${models[i + 1]}`);
     }
-
-    const cleanContent = extractJsonContent(content);
-    return JSON.parse(cleanContent) as T;
-  } catch (error) {
-    console.error("LLM Generation Error:", error);
-    throw error;
   }
+
+  throw lastError;
 }

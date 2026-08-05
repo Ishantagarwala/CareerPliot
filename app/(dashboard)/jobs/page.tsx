@@ -569,7 +569,7 @@ export default function JobsPage() {
                 </label>
                 <input
                   type="text"
-                  placeholder="e.g., Software Developer Intern"
+                  placeholder="e.g., Marketing Intern, Nursing Graduate, Analyst"
                   value={customTitle}
                   onChange={(e) => setCustomTitle(e.target.value)}
                   className="w-full bg-background border-2 border-black p-2 text-xs text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none"
@@ -582,7 +582,7 @@ export default function JobsPage() {
                 </label>
                 <input
                   type="text"
-                  placeholder="e.g., Google"
+                  placeholder="e.g., Apollo Hospitals, Deloitte, Unilever"
                   value={customCompany}
                   onChange={(e) => setCustomCompany(e.target.value)}
                   className="w-full bg-background border-2 border-black p-2 text-xs text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none"

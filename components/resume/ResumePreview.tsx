@@ -1,7 +1,10 @@
 "use client";
 
+import { resumeSkillLabels } from "@/lib/resume";
+
 interface ResumePreviewProps {
   resume: any;
+  careerDomain?: string | null;
 }
 
 function ListItems({ items }: { items?: string[] }) {
@@ -63,10 +66,11 @@ function HeadingRow({
   );
 }
 
-export default function ResumePreview({ resume }: ResumePreviewProps) {
+export default function ResumePreview({ resume, careerDomain }: ResumePreviewProps) {
   const content = resume?.content || {};
   const personal = content.personalInfo || {};
   const skills = content.skills || {};
+  const labels = resumeSkillLabels(careerDomain);
   const contactLine = [
     personal.phone,
     personal.email,
@@ -119,10 +123,10 @@ export default function ResumePreview({ resume }: ResumePreviewProps) {
       <Section title="Skills">
         <div className="text-[10.5px] leading-snug space-y-0.5">
           {Object.entries({
-            Languages: skills.technical,
-            "AI/ML & Frameworks": skills.frameworks,
-            "Developer Tools": skills.tools,
-            Interpersonal: skills.soft,
+            [labels.technical]: skills.technical,
+            [labels.frameworks]: skills.frameworks,
+            [labels.tools]: skills.tools,
+            [labels.soft]: skills.soft,
           }).map(([key, value]) => (
             Array.isArray(value) && value.length > 0 ? (
               <p key={key}>
