@@ -113,20 +113,6 @@ export async function GET() {
       ? (completedMilestones / totalMilestones) * 100 
       : 0;
 
-    // 4. Calculate composite Readiness Score (scale 0-100)
-    // Formula:
-    // - Milestones: 40% (milestoneCompletionRate * 0.4)
-    // - Courses: 30% (coursesCompleted * 10%, capped at 30%)
-    // - PDFs: 15% (pdfsAnalyzed * 5%, capped at 15%)
-    // - Tutor Sessions: 15% (tutorSessions * 3%, capped at 15%)
-    const milestoneScore = milestoneCompletionRate * 0.4;
-    const coursesScore = Math.min(progress.coursesCompleted * 10, 30);
-    const pdfsScore = Math.min(progress.pdfsAnalyzed * 5, 15);
-    const tutorScore = Math.min(progress.tutorSessions * 3, 15);
-    
-    const rawReadiness = milestoneScore + coursesScore + pdfsScore + tutorScore;
-    const readinessScore = Math.min(Math.floor(rawReadiness), 100);
-
     return NextResponse.json({
       metrics: {
         coursesCompleted: progress.coursesCompleted,
@@ -142,7 +128,6 @@ export async function GET() {
         milestoneCompletionRate,
         stageProgress,
       },
-      readinessScore,
     });
   } catch (error: any) {
     console.error("Progress GET API error:", error);

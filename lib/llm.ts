@@ -21,33 +21,21 @@ function getOllamaConfig(): { apiKey: string; baseURL: string } {
   return { apiKey: "ollama", baseURL };
 }
 
-/** Documented LLM_ROUTER_* vars, with optional ZENMUX_* aliases. */
+/** Documented LLM_ROUTER_* env vars. */
 function getRouterConfig(): { apiKey: string; baseURL: string } | null {
-  const apiKey =
-    process.env.LLM_ROUTER_API_KEY?.trim() ||
-    process.env.ZENMUX_API_KEY?.trim();
-  const baseURL =
-    process.env.LLM_ROUTER_BASE_URL?.trim() ||
-    process.env.ZENMUX_BASE_URL?.trim();
+  const apiKey = process.env.LLM_ROUTER_API_KEY?.trim();
+  const baseURL = process.env.LLM_ROUTER_BASE_URL?.trim();
 
   if (!apiKey || isPlaceholder(apiKey) || !baseURL) return null;
   return { apiKey, baseURL };
 }
 
 function getFlagshipModel(): string {
-  return (
-    process.env.LLM_ROUTER_MODEL?.trim() ||
-    process.env.ZENMUX_MODEL?.trim() ||
-    FLAGSHIP_MODEL
-  );
+  return process.env.LLM_ROUTER_MODEL?.trim() || FLAGSHIP_MODEL;
 }
 
 function getFallbackModel(): string {
-  return (
-    process.env.LLM_ROUTER_FALLBACK_MODEL?.trim() ||
-    process.env.ZENMUX_PDF_MODEL?.trim() ||
-    FALLBACK_MODEL
-  );
+  return process.env.LLM_ROUTER_FALLBACK_MODEL?.trim() || FALLBACK_MODEL;
 }
 
 // ─── Provider Definitions ────────────────────────────────────────────────────
