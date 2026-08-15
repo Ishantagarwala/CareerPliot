@@ -20,6 +20,10 @@ export const authConfig = {
   session: {
     strategy: 'jwt',
   },
+  // trustHost allows NextAuth v5 to accept requests from any host
+  // (needed for VPS / custom-domain deployments where the Host header
+  //  differs from NEXTAUTH_URL / AUTH_URL). Safe because we own the server.
+  trustHost: true,
   callbacks: {
     async jwt({ token, user }) {
       if (user) {
