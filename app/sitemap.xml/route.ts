@@ -1,15 +1,15 @@
 const SITEMAP_XML = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
-    <loc>https://www.careerpilot.cc/</loc>
+    <loc>https://careerpilot.cc/</loc>
     <lastmod>2026-08-05</lastmod>
   </url>
   <url>
-    <loc>https://www.careerpilot.cc/login</loc>
+    <loc>https://careerpilot.cc/login</loc>
     <lastmod>2026-08-05</lastmod>
   </url>
   <url>
-    <loc>https://www.careerpilot.cc/register</loc>
+    <loc>https://careerpilot.cc/register</loc>
     <lastmod>2026-08-05</lastmod>
   </url>
 </urlset>

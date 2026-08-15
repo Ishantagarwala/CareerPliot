@@ -20,6 +20,7 @@ import {
 } from "lucide-react";
 
 export interface TopicSubtopic {
+  _id?: string;
   id?: string;
   title: string;
   completed: boolean;
@@ -78,10 +79,11 @@ export default function TopicDetailModal({
   };
 
   const handleSubtopicToggle = async (sub: TopicSubtopic) => {
-    if (!sub.id) return;
+    const subId = sub.id || sub._id;
+    if (!subId) return;
     setUpdating(true);
     try {
-      await onToggleSubtopic(topic.id, sub.id, !sub.completed);
+      await onToggleSubtopic(topic.id, subId, !sub.completed);
     } finally {
       setUpdating(false);
     }
@@ -123,7 +125,10 @@ export default function TopicDetailModal({
   const subPercent = totalSubtopics > 0 ? Math.round((completedSubtopics / totalSubtopics) * 100) : 0;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-md animate-fade-in">
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-md animate-fade-in"
+      onClick={onClose}
+    >
       <div
         className="relative w-full max-w-2xl max-h-[90vh] bg-card border border-border text-card-foreground shadow-2xl overflow-hidden flex flex-col rounded-none"
         onClick={(e) => e.stopPropagation()}

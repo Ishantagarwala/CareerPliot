@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import dbConnect from "@/lib/db";
-import Roadmap from "@/models/Roadmap";
+import Roadmap, { IMilestone, ITopicSubtopic } from "@/models/Roadmap";
 import CareerRecommendation from "@/models/CareerRecommendation";
 
 export async function PUT(req: Request) {
@@ -52,20 +52,20 @@ export async function PUT(req: Request) {
           // Subtopic toggle
           if (subtopicId && topic.subtopics) {
             const sub = topic.subtopics.find(
-              (s: any) =>
+              (s: ITopicSubtopic) =>
                 s.id === subtopicId ||
                 s._id?.toString() === subtopicId ||
                 s.title === subtopicId
             );
             if (sub) {
               sub.completed = completed;
-              sub.completedAt = completed ? new Date() : undefined;
+              sub.completedAt = completed ? new Date() : null;
               updated = true;
-              const allSubDone = topic.subtopics.every((s: any) => s.completed);
+              const allSubDone = topic.subtopics.every((s: { completed: boolean }) => s.completed);
               topic.completed = allSubDone;
-              topic.completedAt = allSubDone ? new Date() : undefined;
-              const ml = stage.milestones.find((m: any) => m.title === topic.title);
-              if (ml) { ml.completed = allSubDone; ml.completedAt = allSubDone ? new Date() : undefined; }
+              topic.completedAt = allSubDone ? new Date() : null;
+              const ml = stage.milestones.find((m: IMilestone) => m.title === topic.title);
+              if (ml) { ml.completed = allSubDone; ml.completedAt = allSubDone ? new Date() : null; }
               break;
             }
           }
@@ -82,16 +82,16 @@ export async function PUT(req: Request) {
 
           if (idMatches) {
             topic.completed = completed;
-            topic.completedAt = completed ? new Date() : undefined;
+            topic.completedAt = completed ? new Date() : null;
             updated = true;
             if (topic.subtopics) {
-              topic.subtopics.forEach((s: any) => {
+              topic.subtopics.forEach((s: ITopicSubtopic) => {
                 s.completed = completed;
-                s.completedAt = completed ? new Date() : undefined;
+                s.completedAt = completed ? new Date() : null;
               });
             }
-            const ml = stage.milestones.find((m: any) => m.title === topic.title);
-            if (ml) { ml.completed = completed; ml.completedAt = completed ? new Date() : undefined; }
+            const ml = stage.milestones.find((m: IMilestone) => m.title === topic.title);
+            if (ml) { ml.completed = completed; ml.completedAt = completed ? new Date() : null; }
             break;
           }
         }
@@ -103,7 +103,7 @@ export async function PUT(req: Request) {
           const mId = milestone._id?.toString();
           if (mId === targetId || milestone.title === targetId) {
             milestone.completed = completed;
-            milestone.completedAt = completed ? new Date() : undefined;
+            milestone.completedAt = completed ? new Date() : null;
             updated = true;
             break;
           }
@@ -114,9 +114,11 @@ export async function PUT(req: Request) {
     }
 
     if (!updated) {
-      console.warn(`[Progress] Could not find topicId="${targetId}" in roadmap stages. Regenerate the roadmap.`);
-      // Return current roadmap state instead of 404 so UI doesn't show error
-      return NextResponse.json({ message: "Progress saved", roadmap: roadmap.toJSON() });
+      console.warn(`[Progress] Could not find topicId="${targetId}" in roadmap stages.`);
+      return NextResponse.json(
+        { message: "Topic not found. Try regenerating the roadmap." },
+        { status: 404 }
+      );
     }
 
     // Recalculate currentStage

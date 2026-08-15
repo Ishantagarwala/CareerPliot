@@ -13,6 +13,11 @@ const nextConfig: NextConfig = {
       { source: "/study", destination: "/ai-hub", permanent: false },
     ];
   },
+  experimental: {
+    serverActions: {
+      allowedOrigins: ["careerpilot.cc", "www.careerpilot.cc", "REDACTED-VPS-IP"],
+    },
+  },
   serverExternalPackages: ["pdfjs-dist", "pdf-parse"],
   outputFileTracingIncludes: {
     // pdf-parse v2 runs pdf.js. Two things load via bundler-opaque dynamic
@@ -30,6 +35,10 @@ const nextConfig: NextConfig = {
 
 export default nextConfig;
 
-import { initOpenNextCloudflareForDev } from "@opennextjs/cloudflare";
-initOpenNextCloudflareForDev();
+// Only for local `next dev` with Cloudflare bindings — skip in Docker/CI production builds.
+if (process.env.NODE_ENV !== "production") {
+  void import("@opennextjs/cloudflare").then(({ initOpenNextCloudflareForDev }) => {
+    initOpenNextCloudflareForDev();
+  });
+}
 

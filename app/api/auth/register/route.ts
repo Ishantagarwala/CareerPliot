@@ -27,13 +27,11 @@ export async function POST(req: Request) {
     const { name, email, password, captchaToken, website } = body;
     const normalizedEmailEarly =
       typeof email === "string" ? email.toLowerCase().trim() : "";
+    const isDemo = normalizedEmailEarly === DEMO_ACCOUNT_EMAIL;
 
     // Emergency kill switch — set DISABLE_REGISTRATION=true during an active attack
     // (demo account still allowed so demos keep working)
-    if (
-      isRegistrationDisabled() &&
-      normalizedEmailEarly !== DEMO_ACCOUNT_EMAIL
-    ) {
+    if (isRegistrationDisabled() && !isDemo) {
       return NextResponse.json(
         { message: 'Registration is temporarily disabled. Please try again later.' },
         { status: 503 }
@@ -41,7 +39,7 @@ export async function POST(req: Request) {
     }
 
     // Tight IP limit (in-memory; still helps on single-instance / sticky traffic)
-    if (!rateLimit(`register:ip:${ip}`, 3, HOUR)) {
+    if (!isDemo && !rateLimit(`register:ip:${ip}`, 3, HOUR)) {
       return NextResponse.json(
         { message: 'Too many registration attempts. Try again later.' },
         { status: 429 }
@@ -109,7 +107,7 @@ export async function POST(req: Request) {
       );
     }
 
-    if (!rateLimit(`register:email:${normalizedEmail}`, 2, HOUR)) {
+    if (!isDemo && !rateLimit(`register:email:${normalizedEmail}`, 2, HOUR)) {
       return NextResponse.json(
         { message: 'Too many registration attempts. Try again later.' },
         { status: 429 }

@@ -5,7 +5,7 @@ import User from '@/models/User';
 import bcrypt from 'bcryptjs';
 import { authConfig } from './auth.config';
 import { getClientIp, rateLimit } from './security';
-import { requireBotVerification } from './captcha';
+import { DEMO_ACCOUNT_EMAIL, requireBotVerification } from './captcha';
 import { isAllowedEmailProvider } from './allowedEmail';
 import { assertResidentialIp } from './ipReputation';
 
@@ -59,8 +59,9 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           throw new NetworkBlockedError();
         }
 
-        // Best-effort brute-force throttling, keyed per account.
-        if (!rateLimit(`login:${email}`, 5, 60_000)) {
+        // Shared demo account is used by many people — don't lock it out.
+        const isDemo = email === DEMO_ACCOUNT_EMAIL;
+        if (!isDemo && !rateLimit(`login:${email}`, 5, 60_000)) {
           return null;
         }
 

@@ -5,7 +5,6 @@ import { SessionProvider } from "next-auth/react";
 import { Toaster } from "@/components/ui/sonner";
 import { ThemeProvider } from "@/components/layout/ThemeProvider";
 import { AccentColorProvider } from "@/components/layout/AccentColor";
-import HCaptchaPreload from "@/components/security/HCaptchaPreload";
 import { DEFAULT_DESCRIPTION, SITE_NAME } from "@/lib/seo";
 import { getSiteUrl } from "@/lib/siteUrl";
 import dns from "dns";
@@ -116,7 +115,6 @@ export default function RootLayout({
             storageKey="cp-theme"
           >
             <AccentColorProvider>
-              <HCaptchaPreload />
               {children}
               <Toaster position="top-right" richColors />
             </AccentColorProvider>

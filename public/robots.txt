@@ -17,4 +17,4 @@ Disallow: /jobs
 Disallow: /projects
 Disallow: /api/
 
-Sitemap: https://www.careerpilot.cc/sitemap.xml
+Sitemap: https://careerpilot.cc/sitemap.xml

@@ -8,7 +8,7 @@ interface YouTubeShelfProps {
   skillTitle: string;
 }
 
-export default function YouTubeShelf({ videos, skillTitle }: YouTubeShelfProps) {
+export default function YouTubeShelf({ videos }: YouTubeShelfProps) {
   if (!videos || videos.length === 0) return null;
 
   return (

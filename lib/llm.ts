@@ -3,6 +3,9 @@ import type { ChatCompletionCreateParamsNonStreaming } from "openai/resources/ch
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
+const FLAGSHIP_MODEL = "zeus/claude-opus-5";
+const FALLBACK_MODEL = "posiden/deepseek-v4-flash";
+
 const isPlaceholder = (val?: string) =>
   !val ||
   val.includes("your_") ||
@@ -18,6 +21,35 @@ function getOllamaConfig(): { apiKey: string; baseURL: string } {
   return { apiKey: "ollama", baseURL };
 }
 
+/** Documented LLM_ROUTER_* vars, with optional ZENMUX_* aliases. */
+function getRouterConfig(): { apiKey: string; baseURL: string } | null {
+  const apiKey =
+    process.env.LLM_ROUTER_API_KEY?.trim() ||
+    process.env.ZENMUX_API_KEY?.trim();
+  const baseURL =
+    process.env.LLM_ROUTER_BASE_URL?.trim() ||
+    process.env.ZENMUX_BASE_URL?.trim();
+
+  if (!apiKey || isPlaceholder(apiKey) || !baseURL) return null;
+  return { apiKey, baseURL };
+}
+
+function getFlagshipModel(): string {
+  return (
+    process.env.LLM_ROUTER_MODEL?.trim() ||
+    process.env.ZENMUX_MODEL?.trim() ||
+    FLAGSHIP_MODEL
+  );
+}
+
+function getFallbackModel(): string {
+  return (
+    process.env.LLM_ROUTER_FALLBACK_MODEL?.trim() ||
+    process.env.ZENMUX_PDF_MODEL?.trim() ||
+    FALLBACK_MODEL
+  );
+}
+
 // ─── Provider Definitions ────────────────────────────────────────────────────
 
 interface LlmProvider {
@@ -27,43 +59,23 @@ interface LlmProvider {
 }
 
 /**
- * Returns an ordered list of providers to try, from most capable to fallback.
- * Order: Zenmux claude-opus-5 → Zenmux gpt-5.6-sol → Groq llama → Ollama (if enabled)
+ * Ordered providers: documented LLM router (flagship → fallback), then Ollama if enabled.
  */
 function buildProviderChain(): LlmProvider[] {
   const chain: LlmProvider[] = [];
 
-  // 1. Zenmux (api.17.wtf) — most capable, primary router
-  const zenmuxKey = process.env.ZENMUX_API_KEY?.trim();
-  const zenmuxBase = process.env.ZENMUX_BASE_URL?.trim();
-  if (zenmuxKey && !isPlaceholder(zenmuxKey) && zenmuxBase) {
-    const client = new OpenAI({ apiKey: zenmuxKey, baseURL: zenmuxBase });
+  const router = getRouterConfig();
+  if (router) {
+    const client = new OpenAI(router);
+    const primary = getFlagshipModel();
+    chain.push({ name: `Router/${primary}`, client, model: primary });
 
-    const primaryModel = process.env.ZENMUX_MODEL?.trim() || "zeus/claude-opus-5";
-    chain.push({ name: `Zenmux/${primaryModel}`, client, model: primaryModel });
-
-    const pdfModel = process.env.ZENMUX_PDF_MODEL?.trim();
-    if (pdfModel && pdfModel !== primaryModel) {
-      chain.push({ name: `Zenmux/${pdfModel}`, client, model: pdfModel });
+    const fallback = getFallbackModel();
+    if (fallback && fallback !== primary) {
+      chain.push({ name: `Router/${fallback}`, client, model: fallback });
     }
   }
 
-  // 2. Groq / LLM Router fallback
-  const groqKey = process.env.LLM_ROUTER_API_KEY?.trim();
-  const groqBase = process.env.LLM_ROUTER_BASE_URL?.trim();
-  if (groqKey && !isPlaceholder(groqKey) && groqBase) {
-    const client = new OpenAI({ apiKey: groqKey, baseURL: groqBase });
-
-    const model1 = process.env.LLM_ROUTER_MODEL?.trim() || "llama-3.1-8b-instant";
-    chain.push({ name: `Groq/${model1}`, client, model: model1 });
-
-    const model2 = process.env.LLM_ROUTER_FALLBACK_MODEL?.trim();
-    if (model2 && model2 !== model1) {
-      chain.push({ name: `Groq/${model2}`, client, model: model2 });
-    }
-  }
-
-  // 3. Local Ollama (if enabled)
   if (isOllamaEnabled()) {
     const ollamaClient = new OpenAI(getOllamaConfig());
     const ollamaModel = process.env.OLLAMA_MODEL?.trim() || "llama3";
@@ -77,14 +89,14 @@ function buildProviderChain(): LlmProvider[] {
 
   if (chain.length === 0) {
     throw new Error(
-      "No LLM providers configured. Set ZENMUX_API_KEY or LLM_ROUTER_API_KEY in your .env file."
+      "No LLM providers configured. Set LLM_ROUTER_API_KEY and LLM_ROUTER_BASE_URL in your .env file."
     );
   }
 
   return chain;
 }
 
-// ─── Legacy model helpers (for existing callers) ─────────────────────────────
+// ─── Public helpers (existing callers) ───────────────────────────────────────
 
 /** OpenAI-compatible client pointed at the primary configured router. */
 export function getLlmClient(): OpenAI {
@@ -92,11 +104,35 @@ export function getLlmClient(): OpenAI {
   return chain[0].client;
 }
 
-/** Returns primary model id. */
-export function getLlmModel(isPdf = false, _modelSelection?: string): string {
+/**
+ * Model id for the LLM router.
+ * - Explicit AI Hub selections (full model ids) are passed through
+ * - Default: LLM_ROUTER_MODEL
+ * - PDF / "gemini" alias: LLM_ROUTER_FALLBACK_MODEL
+ */
+export function getLlmModel(isPdf = false, modelSelection?: string): string {
   const chain = buildProviderChain();
-  if (isPdf && chain.length > 1) return chain[1].model;
-  return chain[0].model;
+  const flagship = getRouterConfig() ? getFlagshipModel() : chain[0].model;
+  const fallback = getRouterConfig() ? getFallbackModel() : (chain[1]?.model ?? chain[0].model);
+
+  if (
+    modelSelection &&
+    modelSelection !== "primary" &&
+    modelSelection !== "opus" &&
+    modelSelection !== "gemini"
+  ) {
+    return modelSelection;
+  }
+
+  if (modelSelection === "opus" || modelSelection === "primary") {
+    return flagship;
+  }
+
+  if (modelSelection === "gemini" || isPdf) {
+    return fallback;
+  }
+
+  return flagship;
 }
 
 // ─── JSON Repair ─────────────────────────────────────────────────────────────
@@ -106,7 +142,6 @@ export function getLlmModel(isPdf = false, _modelSelection?: string): string {
  * Closes unclosed arrays and objects and strips trailing broken values.
  */
 function repairTruncatedJson(raw: string): string {
-  // Fast path — valid JSON
   try {
     JSON.parse(raw);
     return raw;
@@ -116,22 +151,18 @@ function repairTruncatedJson(raw: string): string {
 
   let s = raw.trimEnd();
 
-  // Strip trailing comma or colon
   s = s.replace(/[,:\s]+$/, "");
 
-  // Strip an unclosed string value (last " opened but never closed)
   const lastQuoteIdx = s.lastIndexOf('"');
   if (lastQuoteIdx !== -1) {
     const afterLastQuote = s.slice(lastQuoteIdx + 1);
-    if (!afterLastQuote.includes('"') && !afterLastQuote.match(/^\s*[,\}\]]/)) {
+    if (!afterLastQuote.includes('"') && !afterLastQuote.match(/^\s*[,}\]]/)) {
       s = s.slice(0, lastQuoteIdx).trimEnd().replace(/[,:\s]+$/, "");
     }
   }
 
-  // Strip trailing commas exposed by above
   s = s.replace(/,\s*$/, "");
 
-  // Walk string tracking open bracket/brace depth
   const stack: string[] = [];
   let inString = false;
   let escape = false;
@@ -156,18 +187,16 @@ function repairTruncatedJson(raw: string): string {
     JSON.parse(repaired);
     return repaired;
   } catch {
-    return raw; // let outer handler deal with it
+    return raw;
   }
 }
 
 function extractJsonContent(content: string): string {
   const trimmed = content.trim();
 
-  // Strip markdown code fences
   const fencedMatch = trimmed.match(/```(?:json)?\s*([\s\S]*?)```/);
   if (fencedMatch) return repairTruncatedJson(fencedMatch[1].trim());
 
-  // Extract from first {
   const firstBrace = trimmed.indexOf("{");
   if (firstBrace !== -1) return repairTruncatedJson(trimmed.slice(firstBrace));
 
@@ -195,7 +224,6 @@ async function createStructuredCompletion(
       { role: "user", content: userPrompt },
     ],
     temperature: 0.2,
-    max_tokens: 4000,
   };
 
   return client.chat.completions.create(
@@ -209,27 +237,29 @@ async function createStructuredCompletion(
 
 /**
  * Calls the LLM provider chain and returns a parsed JSON response.
- * Cascades through: Zenmux claude-opus-5 → Zenmux gpt-5.6-sol → Groq → Ollama
- * Retries on EVERY error (access errors AND JSON parse errors).
+ * Cascades through: router flagship → router fallback → Ollama (if enabled).
  */
 export async function generateStructuredJson<T>(
   systemPrompt: string,
   userPrompt: string,
-  _isPdf = false
+  isPdf = false
 ): Promise<T> {
-  let chain: LlmProvider[];
-  try {
-    chain = buildProviderChain();
-  } catch (configErr) {
-    throw configErr;
+  const chain = buildProviderChain();
+  let providers = chain;
+  if (isPdf && chain.length > 1) {
+    const fallbackId = getRouterConfig() ? getFallbackModel() : chain[0].model;
+    const idx = chain.findIndex((p) => p.model === fallbackId);
+    if (idx > 0) {
+      providers = [...chain.slice(idx), ...chain.slice(0, idx)];
+    }
   }
 
   let lastError: unknown;
 
-  for (let i = 0; i < chain.length; i++) {
-    const { name, client, model } = chain[i];
+  for (let i = 0; i < providers.length; i++) {
+    const { name, client, model } = providers[i];
     try {
-      console.log(`[LLM] Trying provider ${i + 1}/${chain.length}: ${name}`);
+      console.log(`[LLM] Trying provider ${i + 1}/${providers.length}: ${name}`);
 
       const response = await createStructuredCompletion(client, model, systemPrompt, userPrompt);
 
@@ -239,14 +269,14 @@ export async function generateStructuredJson<T>(
       const cleanContent = extractJsonContent(content);
       const parsed = JSON.parse(cleanContent) as T;
 
-      console.log(`[LLM] ✅ Success with ${name}`);
+      console.log(`[LLM] Success with ${name}`);
       return parsed;
     } catch (error) {
       lastError = error;
-      console.error(`[LLM] ❌ Provider ${name} failed:`, (error as Error).message || error);
+      console.error(`[LLM] Provider ${name} failed:`, (error as Error).message || error);
 
-      if (i < chain.length - 1) {
-        console.warn(`[LLM] ⚡ Falling back to next provider: ${chain[i + 1].name}`);
+      if (i < providers.length - 1) {
+        console.warn(`[LLM] Falling back to next provider: ${providers[i + 1].name}`);
       }
     }
   }

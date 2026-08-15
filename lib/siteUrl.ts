@@ -1,5 +1,5 @@
 /** Production domain — used for sitemap / Open Graph when env is unset. */
-export const PRODUCTION_SITE_URL = "https://www.careerpilot.cc";
+export const PRODUCTION_SITE_URL = "https://careerpilot.cc";
 
 /**
  * Absolute public site URL for SEO (sitemap, Open Graph, canonical).

@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import dbConnect from "@/lib/db";
-import Roadmap from "@/models/Roadmap";
+import Roadmap, { IRoadmapStage } from "@/models/Roadmap";
 import CareerRecommendation from "@/models/CareerRecommendation";
 import UserProfile from "@/models/UserProfile";
 import Course from "@/models/Course";
@@ -77,28 +77,35 @@ export async function GET(req: Request) {
 
     const careerPath = selectedRecommendation.careerPath;
 
-    // Reuse cached roadmap for this path if valid
+    // Reuse cached roadmap. Never delete until a new generation succeeds —
+    // otherwise an LLM failure wipes user progress.
     let roadmap = refresh
       ? null
       : await Roadmap.findOne({ userId, careerPath });
 
-    if (refresh) {
-      console.log(`[Roadmap] Refresh requested — deleting cached roadmap for "${careerPath}"`);
-      await Roadmap.deleteMany({ userId, careerPath });
-      await Course.deleteMany({ userId, careerPath });
-    } else if (roadmap) {
-      // Validate cached roadmap: must have topics AND youtubeVideos populated
-      const stages = roadmap.stages || [];
-      const hasValidTopics = stages.some(
-        (s: any) => s.topics && s.topics.length > 0 && s.topics.some((t: any) => t.youtubeVideos && t.youtubeVideos.length > 0)
+    if (roadmap && !refresh) {
+      const stages = (roadmap.stages || []) as IRoadmapStage[];
+      const hasTopics = stages.some(
+        (s: IRoadmapStage) => Array.isArray(s.topics) && s.topics.length > 0
       );
-      if (hasValidTopics) {
-        console.log(`[Roadmap] Returning valid cached roadmap for "${careerPath}" with ${stages.length} stages`);
+
+      if (hasTopics) {
+        let backfilled = false;
+        for (const stage of stages) {
+          for (const topic of stage.topics || []) {
+            const existing = topic.youtubeVideos || [];
+            if (existing.length < 3) {
+              topic.youtubeVideos = getRecommendedYouTubeVideos(topic.title, existing);
+              backfilled = true;
+            }
+          }
+        }
+        if (backfilled) {
+          await roadmap.save();
+        }
         return NextResponse.json(roadmap.toJSON());
       }
-      // Stale or legacy roadmap — delete and regenerate
-      console.log(`[Roadmap] Stale cached roadmap for "${careerPath}" — deleting and regenerating`);
-      await Roadmap.deleteMany({ userId, careerPath });
+      // Legacy milestone-only cache: generate the new topic graph below, then replace.
     }
 
     const limited = enforceLlmBudget(userId, "roadmap", 5);
@@ -116,6 +123,12 @@ Generate a career roadmap with exactly 3 stages and exactly 4 topics per stage (
 
 Stage names MUST be exactly these strings: "beginner", "intermediate", "advanced"
 Topic type MUST be one of: "required", "recommended", "optional", "project", "career"
+
+Hard rules:
+- The Career Path field is the single source of truth. Every topic must belong to that profession.
+- Do NOT invent hybrid careers (never turn a non-software path into coding, DevOps, or "tech + X").
+- Student skills may only adjust starting difficulty. Ignore listed skills that are outside the career path.
+- Use real in-domain topic titles (tools, certifications, coursework, methods, or technologies actually used in that field).
 
 Return this exact JSON structure (fill every field with real content, keep strings under 120 chars):
 {
@@ -162,11 +175,11 @@ Return this exact JSON structure (fill every field with real content, keep strin
   ]
 }`;
 
-    const userPrompt = `Career Path: ${careerPath}
+    const userPrompt = `Career Path (authoritative): ${careerPath}
 Student Background: ${skillsList}
 Goal: ${userProfile?.goals || "Get hired as an entry-level professional"}
 
-Generate 4 specific, technology-named topic nodes per stage for the career path "${careerPath}". Use real technology names (e.g. HTML5, Python, React, SQL, Git) as topic titles.`;
+Generate 4 specific, in-domain topic nodes per stage for "${careerPath}". Titles should name real skills, methods, or tools used in that career — not generic filler and not unrelated tech.`;
 
     console.log(`[Roadmap] Generating roadmap for "${careerPath}" via LLM...`);
     const llmResult = await generateStructuredJson<LlmRoadmapResponse>(systemPrompt, userPrompt);
@@ -181,13 +194,24 @@ Generate 4 specific, technology-named topic nodes per stage for the career path 
       throw new Error("Invalid output format from LLM — no stages array");
     }
 
-    const validTypes = ["required", "recommended", "optional", "project", "career"];
-    const validStageNames = ["beginner", "intermediate", "advanced"];
+    const validTypes = ["required", "recommended", "optional", "project", "career"] as const;
+    const validResourceTypes = ["video", "article", "course", "tool", "practice"] as const;
+    const validStageNames = ["beginner", "intermediate", "advanced"] as const;
+
+    const safeHttpUrl = (raw: string) => {
+      try {
+        const parsed = new URL(raw);
+        return parsed.protocol === "http:" || parsed.protocol === "https:" ? parsed.toString() : "";
+      } catch {
+        return "";
+      }
+    };
 
     // Transform LLM response into database schema with strict sanitization
     const roadmapStages = llmResult.stages.map((stage, stageIdx) => {
-      const stageName = validStageNames.includes(stage.name)
-        ? stage.name
+      const rawName = String(stage.name || "").toLowerCase();
+      const stageName = (validStageNames as readonly string[]).includes(rawName)
+        ? (rawName as (typeof validStageNames)[number])
         : stageIdx === 0
         ? "beginner"
         : stageIdx === 1
@@ -202,7 +226,9 @@ Generate 4 specific, technology-named topic nodes per stage for the career path 
         const title = String(t.title || `Skill Node ${idx + 1}`);
         const description = String(t.description || `Master core concepts and practical skills for ${title}.`);
         const rawType = String(t.type || "").toLowerCase();
-        const type = validTypes.includes(rawType) ? rawType : "required";
+        const type = (validTypes as readonly string[]).includes(rawType)
+          ? (rawType as (typeof validTypes)[number])
+          : "required";
         const ytVideos = getRecommendedYouTubeVideos(title, t.youtubeVideos);
 
         return {
@@ -221,12 +247,17 @@ Generate 4 specific, technology-named topic nodes per stage for the career path 
               completed: false,
             };
           }),
-          resources: (Array.isArray(t.resources) ? t.resources : []).map((r: any) => ({
-            title: String(r?.title || "Documentation Guide"),
-            url: String(r?.url || ""),
-            type: String(r?.type || "article"),
-            free: r?.free !== false,
-          })),
+          resources: (Array.isArray(t.resources) ? t.resources : []).map((r: { title?: string; url?: string; type?: string; free?: boolean }) => {
+            const rawResType = String(r?.type || "article").toLowerCase();
+            return {
+              title: String(r?.title || "Documentation Guide"),
+              url: r?.url ? safeHttpUrl(String(r.url)) : "",
+              type: (validResourceTypes as readonly string[]).includes(rawResType)
+                ? (rawResType as (typeof validResourceTypes)[number])
+                : "article",
+              free: r?.free !== false,
+            };
+          }),
           youtubeVideos: ytVideos,
           deliverable: String(t.deliverable || `Build a practical ${title} mini-project`),
           prerequisites: Array.isArray(t.prerequisites) ? t.prerequisites.map(String) : [],
@@ -247,15 +278,31 @@ Generate 4 specific, technology-named topic nodes per stage for the career path 
 
     console.log(`[Roadmap] Saving roadmap with ${roadmapStages.length} stages, topics: [${roadmapStages.map(s => s.topics.length).join(", ")}]`);
 
-    roadmap = await Roadmap.create({
+    const payload = {
       userId,
       careerPath,
       overview: String(llmResult.overview || `Complete granular pathway to become a successful ${careerPath}.`),
       totalEstimatedWeeks: String(llmResult.totalEstimatedWeeks || "16-24 weeks"),
       targetRole: String(llmResult.targetRole || `Entry-level ${careerPath}`),
       stages: roadmapStages,
-      currentStage: "beginner",
-    });
+      currentStage: "beginner" as const,
+    };
+
+    // Replace only after a successful generation so LLM failures keep the old roadmap.
+    if (refresh) {
+      await Course.deleteMany({ userId, careerPath });
+    }
+    await Roadmap.deleteMany({ userId, careerPath });
+    try {
+      roadmap = await Roadmap.create(payload);
+    } catch (createErr: unknown) {
+      const code = (createErr as { code?: number })?.code;
+      if (code === 11000) {
+        const existing = await Roadmap.findOne({ userId, careerPath });
+        if (existing) return NextResponse.json(existing.toJSON());
+      }
+      throw createErr;
+    }
 
     const savedJson = roadmap.toJSON();
     console.log(`[Roadmap] Saved. Stages: ${savedJson.stages?.length}, Topics per stage: [${savedJson.stages?.map((s: any) => s.topics?.length ?? 0).join(", ")}]`);

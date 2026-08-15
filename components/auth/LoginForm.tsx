@@ -13,6 +13,7 @@ import CaptchaWidget, {
   resetCaptcha,
   useCaptchaRequired,
 } from "@/components/auth/CaptchaWidget";
+import { demoSignInAction } from "@/app/(auth)/login/actions";
 
 const loginSchema = z.object({
   email: z
@@ -44,54 +45,11 @@ export default function LoginForm() {
   const handleDemoLogin = async () => {
     if (demoLoading) return;
     setDemoLoading(true);
-    setDemoStep("Creating demo account...");
+    setDemoStep("Signing in...");
     try {
-      // 1. Ensure demo user exists (ignore "already registered" responses).
-      // Demo email bypasses captcha server-side.
-      const regAbort = new AbortController();
-      const regTimeout = setTimeout(() => regAbort.abort(), 15_000);
-      let registerRes: Response;
-      try {
-        registerRes = await fetch("/api/auth/register", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            name: "Demo Student",
-            email: "demo@careerpilot.com",
-            password: "demo1234",
-          }),
-          signal: regAbort.signal,
-        });
-      } catch (fetchErr) {
-        if ((fetchErr as Error).name === "AbortError") {
-          throw new Error("Demo account setup timed out. Is the server running?");
-        }
-        throw fetchErr;
-      } finally {
-        clearTimeout(regTimeout);
-      }
-
-      if (!registerRes.ok && registerRes.status !== 400) {
-        const body = await registerRes.json().catch(() => ({}));
-        throw new Error(
-          body.message ||
-            "Could not create demo account. Check AUTH_SECRET and MONGODB_URI in .env.local."
-        );
-      }
-
-      setDemoStep("Signing in...");
-      const res = await signIn("credentials", {
-        email: "demo@careerpilot.com",
-        password: "demo1234",
-        captchaToken: "",
-        loginTicket: "",
-        redirect: false,
-      });
-
-      if (res?.error) {
-        throw new Error(
-          "Demo sign-in failed. Check AUTH_SECRET / MONGODB_URI in .env.local."
-        );
+      const demoAuth = await demoSignInAction();
+      if (!demoAuth.ok) {
+        throw new Error(demoAuth.message);
       }
 
       setDemoStep("Seeding demo data...");

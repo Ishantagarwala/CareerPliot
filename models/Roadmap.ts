@@ -1,10 +1,11 @@
 import mongoose, { Schema, Document as MongooseDocument } from 'mongoose';
 
 export interface ITopicSubtopic {
+  _id?: mongoose.Types.ObjectId;
   id?: string;
   title: string;
   completed: boolean;
-  completedAt?: Date;
+  completedAt?: Date | null;
 }
 
 export interface ITopicResource {
@@ -22,6 +23,7 @@ export interface IYouTubeVideo {
 }
 
 export interface IRoadmapTopic {
+  _id?: mongoose.Types.ObjectId;
   id: string;
   title: string;
   description: string;
@@ -35,14 +37,14 @@ export interface IRoadmapTopic {
   deliverable?: string;
   prerequisites?: string[];
   completed: boolean;
-  completedAt?: Date;
+  completedAt?: Date | null;
 }
 
 export interface IMilestone {
   _id?: mongoose.Types.ObjectId;
   title: string;
   completed: boolean;
-  completedAt?: Date;
+  completedAt?: Date | null;
 }
 
 export interface IRoadmapStage {

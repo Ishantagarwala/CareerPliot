@@ -5,6 +5,44 @@ export interface YouTubeVideoRec {
   duration?: string;
 }
 
+function isAllowedYoutubeUrl(url: string): boolean {
+  try {
+    const parsed = new URL(url);
+    if (parsed.protocol !== "http:" && parsed.protocol !== "https:") return false;
+    const host = parsed.hostname.replace(/^www\./, "").toLowerCase();
+    return host === "youtube.com" || host === "youtu.be" || host.endsWith(".youtube.com");
+  } catch {
+    return false;
+  }
+}
+
+function validRecs(recs?: YouTubeVideoRec[]): YouTubeVideoRec[] {
+  if (!recs?.length) return [];
+  return recs.filter(
+    (v) =>
+      typeof v?.title === "string" &&
+      v.title.trim() &&
+      typeof v?.channel === "string" &&
+      v.channel.trim() &&
+      typeof v?.url === "string" &&
+      isAllowedYoutubeUrl(v.url)
+  );
+}
+
+function skillMatchesKey(skillLower: string, key: string): boolean {
+  const escaped = key.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  // Short keys ("git", "css", "sql") must be whole words so "digital" / "scss" do not match.
+  if (key.replace(/[^a-z0-9]/g, "").length <= 4) {
+    return new RegExp(`(?:^|[^a-z0-9])${escaped}(?:$|[^a-z0-9])`, "i").test(skillLower);
+  }
+
+  if (skillLower.includes(key)) return true;
+
+  const compactSkill = skillLower.replace(/[^a-z0-9]+/g, "");
+  const compactKey = key.replace(/[^a-z0-9]+/g, "");
+  return compactKey.length > 0 && compactSkill.includes(compactKey);
+}
+
 /**
  * Maps a skill topic to 3-4 high-quality, most-viewed YouTube tutorial links.
  * Uses popular search terms that surface the most-viewed tutorials for the skill.
@@ -13,10 +51,9 @@ export function getRecommendedYouTubeVideos(
   skillTitle: string,
   existingRecs?: YouTubeVideoRec[]
 ): YouTubeVideoRec[] {
-  // If valid recs already provided (e.g. from LLM), use them
-  if (existingRecs && existingRecs.length >= 3) return existingRecs;
+  const usable = validRecs(existingRecs);
+  if (usable.length >= 3) return usable.slice(0, 4);
 
-  const q = encodeURIComponent(skillTitle);
   const sortPopular = `&sp=CAMSAhAB`; // YouTube sort=Most Popular filter
 
   const skillLower = skillTitle.toLowerCase();
@@ -26,8 +63,7 @@ export function getRecommendedYouTubeVideos(
     skillLower.includes("project") ||
     skillLower.includes("portfolio") ||
     skillLower.includes("capstone") ||
-    skillLower.includes("build") ||
-    skillLower.includes("deploy") ||
+    /\bbuild(?:ing)?\b/.test(skillLower) ||
     skillLower.includes("interview");
 
   if (isProjectTopic) {
@@ -35,24 +71,23 @@ export function getRecommendedYouTubeVideos(
       {
         title: `Build a ${skillTitle} – Full Project Tutorial`,
         channel: "Traversy Media",
-        url: `https://www.youtube.com/results?search_query=build+${q}+project+tutorial+2024${sortPopular}`,
+        url: `https://www.youtube.com/results?search_query=${encodeURIComponent(`build ${skillTitle} project tutorial`)}${sortPopular}`,
         duration: "2-4h",
       },
       {
         title: `${skillTitle} – Step by Step Project from Scratch`,
         channel: "Top Tutorial",
-        url: `https://www.youtube.com/results?search_query=${q}+from+scratch+full+project${sortPopular}`,
+        url: `https://www.youtube.com/results?search_query=${encodeURIComponent(`${skillTitle} from scratch full project`)}${sortPopular}`,
         duration: "3h+",
       },
       {
         title: `${skillTitle} Project for Your Portfolio (Complete Guide)`,
         channel: "freeCodeCamp",
-        url: `https://www.youtube.com/results?search_query=${q}+portfolio+project+for+beginners${sortPopular}`,
+        url: `https://www.youtube.com/results?search_query=${encodeURIComponent(`${skillTitle} portfolio project for beginners`)}${sortPopular}`,
         duration: "Series",
       },
     ];
   }
-
 
   const CURATED: Record<string, YouTubeVideoRec[]> = {
     html: [
@@ -78,7 +113,7 @@ export function getRecommendedYouTubeVideos(
     python: [
       { title: "Python Tutorial for Beginners – Full Course", channel: "Programming with Mosh", url: "https://www.youtube.com/watch?v=_uQrJ0TkZlc", duration: "6h" },
       { title: "Python for Everybody – Full Course", channel: "freeCodeCamp", url: "https://www.youtube.com/watch?v=8DvywoWv6fI", duration: "13h" },
-      { title: "100 Days of Code – Python Bootcamp", channel: "Angela Yu", url: `https://www.youtube.com/results?search_query=100+days+of+code+python+angela+yu${sortPopular}`, duration: "Full Bootcamp" },
+      { title: "100 Days of Code – Python Bootcamp", channel: "Angela Yu", url: `https://www.youtube.com/results?search_query=${encodeURIComponent("100 days of code python angela yu")}${sortPopular}`, duration: "Full Bootcamp" },
     ],
     git: [
       { title: "Git and GitHub for Beginners – Crash Course", channel: "freeCodeCamp", url: "https://www.youtube.com/watch?v=RGOj5yH7evk", duration: "1h" },
@@ -108,17 +143,17 @@ export function getRecommendedYouTubeVideos(
     "machine learning": [
       { title: "Machine Learning Course for Beginners", channel: "freeCodeCamp", url: "https://www.youtube.com/watch?v=NWONeJKn6kc", duration: "10h" },
       { title: "Machine Learning Crash Course", channel: "Google Developers", url: "https://www.youtube.com/watch?v=KNAWp2S3w94", duration: "3h" },
-      { title: "Machine Learning Full Course – Learn ML in 6 Hours", channel: "Edureka", url: `https://www.youtube.com/results?search_query=machine+learning+full+course+edureka${sortPopular}`, duration: "6h" },
+      { title: "Machine Learning Full Course – Learn ML in 6 Hours", channel: "Edureka", url: `https://www.youtube.com/results?search_query=${encodeURIComponent("machine learning full course edureka")}${sortPopular}`, duration: "6h" },
     ],
     "data science": [
       { title: "Data Science Full Course 2024", channel: "freeCodeCamp", url: "https://www.youtube.com/watch?v=ua-CiDNNj30", duration: "12h" },
-      { title: "Data Science for Beginners – Complete Playlist", channel: "Ken Jee", url: `https://www.youtube.com/results?search_query=data+science+full+course+ken+jee${sortPopular}`, duration: "Series" },
-      { title: "Python for Data Science – Crash Course", channel: "Sentdex", url: `https://www.youtube.com/results?search_query=python+for+data+science+sentdex${sortPopular}`, duration: "Series" },
+      { title: "Data Science for Beginners – Complete Playlist", channel: "Ken Jee", url: `https://www.youtube.com/results?search_query=${encodeURIComponent("data science full course ken jee")}${sortPopular}`, duration: "Series" },
+      { title: "Python for Data Science – Crash Course", channel: "Sentdex", url: `https://www.youtube.com/results?search_query=${encodeURIComponent("python for data science sentdex")}${sortPopular}`, duration: "Series" },
     ],
     "ui/ux": [
       { title: "UI UX Design Tutorial for Beginners", channel: "DesignCourse", url: "https://www.youtube.com/watch?v=c9Wg6Cb_YlU", duration: "3h" },
       { title: "Figma Tutorial for Beginners 2024", channel: "freeCodeCamp", url: "https://www.youtube.com/watch?v=jwCmIBJ8Jtc", duration: "4h" },
-      { title: "UX Research Full Crash Course", channel: "Google UX Design", url: `https://www.youtube.com/results?search_query=ux+design+full+course+google${sortPopular}`, duration: "Series" },
+      { title: "UX Research Full Crash Course", channel: "Google UX Design", url: `https://www.youtube.com/results?search_query=${encodeURIComponent("ux design full course google")}${sortPopular}`, duration: "Series" },
     ],
     docker: [
       { title: "Docker Tutorial for Beginners – Full Course", channel: "freeCodeCamp", url: "https://www.youtube.com/watch?v=fqMOX6JJhGo", duration: "2h" },
@@ -126,14 +161,13 @@ export function getRecommendedYouTubeVideos(
     ],
   };
 
-  // Fuzzy match skill to curated map
-  for (const [key, recs] of Object.entries(CURATED)) {
-    if (skillLower.includes(key) || key.split(" ").every((w) => skillLower.includes(w))) {
-      return recs;
+  const curatedKeys = Object.keys(CURATED).sort((a, b) => b.length - a.length);
+  for (const key of curatedKeys) {
+    if (skillMatchesKey(skillLower, key)) {
+      return CURATED[key];
     }
   }
 
-  // Fallback: Generate smart YouTube search URLs for any topic
   const titleEncoded = encodeURIComponent(skillTitle);
   return [
     {
@@ -145,7 +179,7 @@ export function getRecommendedYouTubeVideos(
     {
       title: `${skillTitle} Crash Course – Learn Fast`,
       channel: "Top YouTube Tutorial",
-      url: `https://www.youtube.com/results?search_query=${titleEncoded}+crash+course+2024${sortPopular}`,
+      url: `https://www.youtube.com/results?search_query=${titleEncoded}+crash+course${sortPopular}`,
       duration: "1-2h",
     },
     {

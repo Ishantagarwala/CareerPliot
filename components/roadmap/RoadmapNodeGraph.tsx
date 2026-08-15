@@ -80,7 +80,7 @@ const TYPE_CONFIG: Record<string, { label: string; cls: string }> = {
   career: { label: "Career", cls: "text-amber-400 bg-amber-400/10 border-amber-400/20" },
 };
 
-function YTCard({ vid, idx }: { vid: any; idx: number }) {
+function YTCard({ vid }: { vid: { title: string; channel: string; url: string } }) {
   return (
     <a
       href={vid.url}
@@ -352,7 +352,7 @@ export default function RoadmapNodeGraph({
                                     </span>
                                   </div>
                                   {topic.youtubeVideos.slice(0, 3).map((vid, i) => (
-                                    <YTCard key={i} vid={vid} idx={i} />
+                                    <YTCard key={i} vid={vid} />
                                   ))}
                                 </div>
                               )}
