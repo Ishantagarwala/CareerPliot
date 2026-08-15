@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import YouTubeShelf from "./YouTubeShelf";
 import { YouTubeVideoRec } from "@/lib/youtubeHelper";
 import {
@@ -16,7 +16,7 @@ import {
   BookOpen,
   PlayCircle,
   Wrench,
-  GraduationCap
+  GraduationCap,
 } from "lucide-react";
 
 export interface TopicSubtopic {
@@ -66,6 +66,22 @@ export default function TopicDetailModal({
   onToggleSubtopic,
 }: TopicDetailModalProps) {
   const [updating, setUpdating] = useState(false);
+  const onCloseRef = useRef(onClose);
+  onCloseRef.current = onClose;
+
+  useEffect(() => {
+    if (!topic) return;
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onCloseRef.current();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => {
+      document.body.style.overflow = prevOverflow;
+      window.removeEventListener("keydown", onKey);
+    };
+  }, [topic]);
 
   if (!topic) return null;
 
@@ -92,30 +108,30 @@ export default function TopicDetailModal({
   const getTypeBadge = (type?: string) => {
     switch (type) {
       case "project":
-        return { label: "PORTFOLIO PROJECT", bg: "bg-purple-500/10 border-purple-500/30 text-purple-600 dark:text-purple-300" };
+        return { label: "Portfolio project" };
       case "career":
-        return { label: "CAREER MILESTONE", bg: "bg-amber-500/10 border-amber-500/30 text-amber-600 dark:text-amber-300" };
+        return { label: "Career milestone" };
       case "recommended":
-        return { label: "RECOMMENDED", bg: "bg-blue-500/10 border-blue-500/30 text-blue-600 dark:text-blue-300" };
+        return { label: "Recommended" };
       case "optional":
-        return { label: "OPTIONAL", bg: "bg-secondary border-border text-muted-foreground" };
+        return { label: "Optional" };
       default:
-        return { label: "MUST LEARN (REQUIRED)", bg: "bg-emerald-500/10 border-emerald-500/30 text-emerald-600 dark:text-emerald-300" };
+        return { label: "Required" };
     }
   };
 
   const getResourceIcon = (type?: string) => {
     switch (type) {
       case "video":
-        return <PlayCircle className="w-4 h-4 text-red-500" />;
+        return <PlayCircle className="w-4 h-4 text-foreground shrink-0" />;
       case "course":
-        return <GraduationCap className="w-4 h-4 text-blue-500" />;
+        return <GraduationCap className="w-4 h-4 text-foreground shrink-0" />;
       case "tool":
-        return <Wrench className="w-4 h-4 text-amber-500" />;
+        return <Wrench className="w-4 h-4 text-foreground shrink-0" />;
       case "practice":
-        return <FileCode2 className="w-4 h-4 text-emerald-500" />;
+        return <FileCode2 className="w-4 h-4 text-foreground shrink-0" />;
       default:
-        return <BookOpen className="w-4 h-4 text-sky-500" />;
+        return <BookOpen className="w-4 h-4 text-foreground shrink-0" />;
     }
   };
 
@@ -126,36 +142,40 @@ export default function TopicDetailModal({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-md animate-fade-in"
+      className="fixed inset-0 z-[80] flex items-end sm:items-center justify-center sm:p-4 bg-black/50"
       onClick={onClose}
+      role="presentation"
     >
       <div
-        className="relative w-full max-w-2xl max-h-[90vh] bg-card border border-border text-card-foreground shadow-2xl overflow-hidden flex flex-col rounded-none"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="topic-modal-title"
+        className="relative w-full sm:max-w-2xl max-h-[100dvh] sm:max-h-[90vh] bg-card border-t sm:border border-border text-card-foreground shadow-[6px_6px_0_0_#000] overflow-hidden flex flex-col"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Modal Header */}
-        <div className="p-6 border-b border-border bg-muted/40 flex items-start justify-between gap-4">
-          <div className="space-y-2">
+        <div className="p-4 sm:p-6 border-b border-border bg-muted/40 flex items-start justify-between gap-3 shrink-0">
+          <div className="space-y-2 min-w-0">
             <div className="flex flex-wrap items-center gap-2">
               <span
-                className={`px-2.5 py-0.5 border text-[10px] font-semibold uppercase tracking-wider ${badge.bg}`}
+                className="monolith-chip"
                 style={{ fontFamily: "'JetBrains Mono', monospace" }}
               >
                 {badge.label}
               </span>
               {topic.timeEstimate && (
                 <span
-                  className="px-2 py-0.5 border border-border bg-background text-muted-foreground text-[10px] flex items-center gap-1"
+                  className="inline-flex items-center gap-1 text-[11px] text-muted-foreground"
                   style={{ fontFamily: "'JetBrains Mono', monospace" }}
                 >
-                  <Clock className="w-3 h-3 text-muted-foreground" />
-                  {topic.timeEstimate}
+                  <Clock className="w-3.5 h-3.5 shrink-0" />
+                  <span className="truncate max-w-[12rem]">{topic.timeEstimate}</span>
                 </span>
               )}
             </div>
 
             <h2
-              className="text-2xl font-bold text-foreground tracking-tight leading-snug"
+              id="topic-modal-title"
+              className="text-xl sm:text-2xl font-bold text-foreground tracking-tight leading-snug"
               style={{ fontFamily: "'Hanken Grotesk', system-ui, sans-serif" }}
             >
               {topic.title}
@@ -163,80 +183,92 @@ export default function TopicDetailModal({
           </div>
 
           <button
+            type="button"
             onClick={onClose}
-            className="p-2 text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors rounded-none"
+            aria-label="Close topic details"
+            className="h-10 w-10 shrink-0 flex items-center justify-center border border-border text-muted-foreground hover:text-foreground hover:border-foreground transition-colors"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
-        {/* Modal Body */}
-        <div className="p-6 overflow-y-auto space-y-6 flex-1 text-foreground text-sm">
-          {/* Main Description */}
-          <div className="space-y-2 bg-secondary/40 p-4 border border-border">
-            <h3 className="text-xs uppercase font-semibold text-muted-foreground tracking-wider" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
+        <div className="p-4 sm:p-6 overflow-y-auto overscroll-contain space-y-6 flex-1 min-h-0 text-foreground text-sm">
+          <div className="space-y-2 bg-background p-4 border border-border">
+            <h3
+              className="text-[11px] uppercase font-semibold text-muted-foreground tracking-wider"
+              style={{ fontFamily: "'JetBrains Mono', monospace" }}
+            >
               Overview
             </h3>
             <p className="leading-relaxed text-foreground">{topic.description}</p>
           </div>
 
-          {/* Why it matters & Non-tech tip grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {topic.whyItMatters && (
-              <div className="p-4 border border-blue-500/20 bg-blue-500/5 space-y-1">
-                <div className="flex items-center gap-2 text-blue-600 dark:text-blue-400 font-semibold text-xs uppercase tracking-wider">
-                  <Briefcase className="w-4 h-4" />
-                  Why It Matters
+          {(topic.whyItMatters || topic.nonTechTip) && (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              {topic.whyItMatters && (
+                <div className="p-4 border border-border bg-card space-y-1.5">
+                  <div
+                    className="flex items-center gap-2 text-foreground font-semibold text-[11px] uppercase tracking-wider"
+                    style={{ fontFamily: "'JetBrains Mono', monospace" }}
+                  >
+                    <Briefcase className="w-4 h-4 shrink-0" />
+                    Why it matters
+                  </div>
+                  <p className="text-xs text-muted-foreground leading-relaxed">{topic.whyItMatters}</p>
                 </div>
-                <p className="text-xs text-muted-foreground leading-relaxed">{topic.whyItMatters}</p>
-              </div>
-            )}
+              )}
 
-            {topic.nonTechTip && (
-              <div className="p-4 border border-amber-500/20 bg-amber-500/5 space-y-1">
-                <div className="flex items-center gap-2 text-amber-600 dark:text-amber-400 font-semibold text-xs uppercase tracking-wider">
-                  <Lightbulb className="w-4 h-4" />
-                  Non-Tech Beginner Tip
+              {topic.nonTechTip && (
+                <div className="p-4 border border-border bg-card space-y-1.5">
+                  <div
+                    className="flex items-center gap-2 text-foreground font-semibold text-[11px] uppercase tracking-wider"
+                    style={{ fontFamily: "'JetBrains Mono', monospace" }}
+                  >
+                    <Lightbulb className="w-4 h-4 shrink-0" />
+                    Beginner tip
+                  </div>
+                  <p className="text-xs text-muted-foreground leading-relaxed">{topic.nonTechTip}</p>
                 </div>
-                <p className="text-xs text-muted-foreground leading-relaxed">{topic.nonTechTip}</p>
-              </div>
-            )}
-          </div>
+              )}
+            </div>
+          )}
 
-          {/* YouTube Learning Shelf */}
           {topic.youtubeVideos && topic.youtubeVideos.length > 0 && (
             <YouTubeShelf videos={topic.youtubeVideos} skillTitle={topic.title} />
           )}
 
-          {/* Subtopics Checklist */}
           {topic.subtopics && topic.subtopics.length > 0 && (
             <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-2" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
-                  <Sparkles className="w-3.5 h-3.5 text-muted-foreground" />
-                  Skill Checklist ({completedSubtopics}/{totalSubtopics})
+              <div className="flex items-center justify-between gap-3">
+                <h3
+                  className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-2 min-w-0"
+                  style={{ fontFamily: "'JetBrains Mono', monospace" }}
+                >
+                  <Sparkles className="w-3.5 h-3.5 shrink-0" />
+                  <span className="truncate">Checklist ({completedSubtopics}/{totalSubtopics})</span>
                 </h3>
-                <span className="text-xs text-muted-foreground font-mono">{subPercent}%</span>
+                <span className="text-xs text-muted-foreground font-mono shrink-0">{subPercent}%</span>
               </div>
 
-              <div className="space-y-2 border border-border bg-secondary/20 p-2">
+              <div className="space-y-2 border border-border bg-background p-2">
                 {topic.subtopics.map((sub, idx) => (
                   <button
                     key={sub.id || idx}
+                    type="button"
                     disabled={updating}
                     onClick={() => handleSubtopicToggle(sub)}
-                    className={`w-full flex items-start gap-3 p-3 text-left border transition-all ${
+                    className={`w-full flex items-start gap-3 p-3 min-h-11 text-left border transition-colors ${
                       sub.completed
-                        ? "border-emerald-500/30 bg-emerald-500/10 text-muted-foreground"
-                        : "border-border bg-card text-foreground hover:border-primary"
+                        ? "border-border bg-muted/50 text-muted-foreground"
+                        : "border-border bg-card text-foreground hover:border-foreground"
                     }`}
                   >
                     {sub.completed ? (
-                      <CheckCircle2 className="w-4 h-4 text-emerald-500 mt-0.5 shrink-0" />
+                      <CheckCircle2 className="w-5 h-5 text-foreground mt-0.5 shrink-0" />
                     ) : (
-                      <Circle className="w-4 h-4 text-muted-foreground mt-0.5 shrink-0" />
+                      <Circle className="w-5 h-5 text-muted-foreground mt-0.5 shrink-0" />
                     )}
-                    <span className={`text-xs font-medium leading-normal ${sub.completed ? "line-through text-muted-foreground" : ""}`}>
+                    <span className={`text-sm font-medium leading-normal ${sub.completed ? "line-through text-muted-foreground" : ""}`}>
                       {sub.title}
                     </span>
                   </button>
@@ -245,11 +277,13 @@ export default function TopicDetailModal({
             </div>
           )}
 
-          {/* Curated Resources */}
           {topic.resources && topic.resources.length > 0 && (
             <div className="space-y-3">
-              <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
-                Curated Documentation & Articles
+              <h3
+                className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground"
+                style={{ fontFamily: "'JetBrains Mono', monospace" }}
+              >
+                Resources
               </h3>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                 {topic.resources.map((res, idx) => (
@@ -258,60 +292,65 @@ export default function TopicDetailModal({
                     href={res.url || "#"}
                     target={res.url ? "_blank" : "_self"}
                     rel="noreferrer"
-                    className="flex items-center justify-between p-3 border border-border bg-card hover:bg-secondary transition-colors group"
+                    className="flex items-center justify-between gap-2 min-w-0 p-3 min-h-11 border border-border bg-card hover:border-foreground transition-colors group"
                   >
-                    <div className="flex items-center gap-2 overflow-hidden">
+                    <div className="flex items-center gap-2 min-w-0">
                       {getResourceIcon(res.type)}
-                      <span className="text-xs font-medium text-foreground truncate group-hover:text-primary">
+                      <span className="text-xs font-medium text-foreground truncate">
                         {res.title}
                       </span>
                     </div>
-                    <ExternalLink className="w-3.5 h-3.5 text-muted-foreground opacity-70 group-hover:opacity-100 shrink-0 ml-2" />
+                    <ExternalLink className="w-3.5 h-3.5 text-muted-foreground shrink-0 group-hover:text-foreground" />
                   </a>
                 ))}
               </div>
             </div>
           )}
 
-          {/* Deliverable Outcome */}
           {topic.deliverable && (
-            <div className="p-4 border border-purple-500/20 bg-purple-500/5 space-y-1">
-              <div className="flex items-center gap-2 text-purple-600 dark:text-purple-400 font-semibold text-xs uppercase tracking-wider">
-                <FileCode2 className="w-4 h-4" />
-                Key Portfolio Deliverable
+            <div className="p-4 border border-border bg-background space-y-1.5">
+              <div
+                className="flex items-center gap-2 text-foreground font-semibold text-[11px] uppercase tracking-wider"
+                style={{ fontFamily: "'JetBrains Mono', monospace" }}
+              >
+                <FileCode2 className="w-4 h-4 shrink-0" />
+                Portfolio deliverable
               </div>
               <p className="text-xs text-muted-foreground leading-relaxed">{topic.deliverable}</p>
             </div>
           )}
         </div>
 
-        {/* Modal Footer */}
-        <div className="p-4 border-t border-border bg-muted/40 flex items-center justify-between gap-4">
+        <div className="p-4 border-t border-border bg-muted/40 flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-between gap-2 shrink-0 pb-[max(1rem,env(safe-area-inset-bottom))]">
           <button
+            type="button"
             onClick={onClose}
-            className="px-4 py-2 border border-border text-muted-foreground text-xs hover:bg-secondary hover:text-foreground transition-colors"
+            className="min-h-10 px-4 py-2 border border-border text-muted-foreground text-xs hover:border-foreground hover:text-foreground transition-colors"
+            style={{ fontFamily: "'JetBrains Mono', monospace", letterSpacing: "0.04em" }}
           >
-            Close Details
+            Close
           </button>
 
           <button
+            type="button"
             disabled={updating}
             onClick={handleTopicToggle}
-            className={`px-5 py-2 text-xs font-bold transition-all flex items-center gap-2 ${
+            className={`min-h-10 px-5 py-2 text-xs font-bold border-2 border-black flex items-center justify-center gap-2 disabled:opacity-50 ${
               topic.completed
-                ? "border border-border bg-secondary text-foreground hover:bg-muted"
-                : "bg-primary text-primary-foreground hover:opacity-90"
+                ? "bg-background text-foreground"
+                : "bg-primary text-primary-foreground shadow-[3px_3px_0_0_#000]"
             }`}
+            style={{ fontFamily: "'JetBrains Mono', monospace", letterSpacing: "0.04em" }}
           >
             {topic.completed ? (
               <>
-                <CheckCircle2 className="w-4 h-4 text-emerald-500" />
-                Mark Topic as Incomplete
+                <CheckCircle2 className="w-4 h-4" />
+                Mark incomplete
               </>
             ) : (
               <>
                 <CheckCircle2 className="w-4 h-4" />
-                Mark Topic Complete
+                Mark complete
               </>
             )}
           </button>
@@ -320,4 +359,3 @@ export default function TopicDetailModal({
     </div>
   );
 }
-

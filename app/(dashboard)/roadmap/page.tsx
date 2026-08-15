@@ -98,10 +98,10 @@ export default function RoadmapPage() {
           style={{ fontFamily: "'Hanken Grotesk', system-ui, sans-serif" }}
         >
           <span className="material-symbols-outlined text-[28px]">map</span>
-          Interactive Career Roadmap
+          Learning Roadmap
         </h1>
         <p className="text-sm text-muted-foreground mt-2">
-          Interactive zero-to-hero node graph designed for non-technical career switchers.
+          A beginner → advanced plan for your path. Tap a topic for videos, checklist, and resources.
         </p>
       </div>
 

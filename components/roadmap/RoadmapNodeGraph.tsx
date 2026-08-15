@@ -11,12 +11,10 @@ import {
   ChevronRight,
   Search,
   Play,
-  ExternalLink,
   BookOpen,
   Zap,
   Target,
   Trophy,
-  ArrowDown,
 } from "lucide-react";
 
 export interface RoadmapStageData {
@@ -36,72 +34,28 @@ interface RoadmapNodeGraphProps {
 const STAGE_CONFIG = {
   beginner: {
     icon: Zap,
-    color: "emerald",
-    gradient: "from-emerald-500/20 via-emerald-500/5 to-transparent",
-    border: "border-emerald-500/30",
-    badge: "bg-emerald-500/10 text-emerald-400 border-emerald-500/30",
-    glow: "shadow-emerald-500/10",
-    dot: "bg-emerald-400",
-    ring: "ring-emerald-500/30",
     number: "01",
     label: "Foundation",
   },
   intermediate: {
     icon: Target,
-    color: "blue",
-    gradient: "from-blue-500/20 via-blue-500/5 to-transparent",
-    border: "border-blue-500/30",
-    badge: "bg-blue-500/10 text-blue-400 border-blue-500/30",
-    glow: "shadow-blue-500/10",
-    dot: "bg-blue-400",
-    ring: "ring-blue-500/30",
     number: "02",
-    label: "Core Skills",
+    label: "Core skills",
   },
   advanced: {
     icon: Trophy,
-    color: "purple",
-    gradient: "from-purple-500/20 via-purple-500/5 to-transparent",
-    border: "border-purple-500/30",
-    badge: "bg-purple-500/10 text-purple-400 border-purple-500/30",
-    glow: "shadow-purple-500/10",
-    dot: "bg-purple-400",
-    ring: "ring-purple-500/30",
     number: "03",
     label: "Mastery",
   },
 };
 
-const TYPE_CONFIG: Record<string, { label: string; cls: string }> = {
-  required: { label: "Required", cls: "text-emerald-400 bg-emerald-400/10 border-emerald-400/20" },
-  recommended: { label: "Recommended", cls: "text-blue-400 bg-blue-400/10 border-blue-400/20" },
-  optional: { label: "Optional", cls: "text-zinc-400 bg-zinc-400/10 border-zinc-400/20" },
-  project: { label: "Project", cls: "text-purple-400 bg-purple-400/10 border-purple-400/20" },
-  career: { label: "Career", cls: "text-amber-400 bg-amber-400/10 border-amber-400/20" },
+const TYPE_LABEL: Record<string, string> = {
+  required: "Required",
+  recommended: "Recommended",
+  optional: "Optional",
+  project: "Project",
+  career: "Career",
 };
-
-function YTCard({ vid }: { vid: { title: string; channel: string; url: string } }) {
-  return (
-    <a
-      href={vid.url}
-      target="_blank"
-      rel="noreferrer"
-      onClick={(e) => e.stopPropagation()}
-      className="group/yt flex items-center gap-2.5 p-2 rounded-lg hover:bg-white/5 border border-transparent hover:border-white/10 transition-all"
-    >
-      <div className="w-7 h-7 rounded-lg bg-red-500/15 border border-red-500/25 flex items-center justify-center shrink-0 group-hover/yt:bg-red-500 group-hover/yt:border-red-500 transition-all">
-        <Play className="w-3 h-3 text-red-400 fill-red-400 group-hover/yt:text-white group-hover/yt:fill-white ml-0.5" />
-      </div>
-      <div className="flex-1 min-w-0">
-        <p className="text-[11px] font-medium text-zinc-300 truncate group-hover/yt:text-white transition-colors">
-          {vid.title}
-        </p>
-        <p className="text-[10px] text-zinc-500 truncate">{vid.channel}</p>
-      </div>
-      <ExternalLink className="w-3 h-3 text-zinc-600 opacity-0 group-hover/yt:opacity-100 shrink-0 transition-opacity" />
-    </a>
-  );
-}
 
 export default function RoadmapNodeGraph({
   stages,
@@ -112,35 +66,39 @@ export default function RoadmapNodeGraph({
   const [searchQuery, setSearchQuery] = useState("");
   const [filterType, setFilterType] = useState("all");
 
+  const chipBase =
+    "min-h-10 px-3.5 py-2 text-xs border-2 font-medium transition-colors shrink-0";
+
   return (
     <div className="space-y-6">
-      {/* Search & Filter Bar */}
       <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center">
-        <div className="relative flex-1">
-          <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500" />
+        <div className="relative flex-1 min-w-0">
+          <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none" />
           <input
-            type="text"
+            type="search"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search skills — html, python, react, sql..."
-            className="w-full pl-10 pr-4 py-2.5 text-sm bg-white/5 border border-white/10 rounded-xl text-zinc-300 placeholder:text-zinc-600 focus:outline-none focus:border-white/25 focus:bg-white/8 transition-all"
+            placeholder="Search topics…"
+            className="w-full min-h-10 pl-10 pr-4 py-2.5 text-sm bg-background border border-border text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-foreground"
           />
         </div>
-        <div className="flex gap-1.5 flex-wrap">
+        <div className="flex gap-2 overflow-x-auto pb-0.5 -mx-1 px-1">
           {[
             { id: "all", label: "All" },
             { id: "required", label: "Required" },
             { id: "project", label: "Projects" },
-            { id: "completed", label: "Done ✓" },
+            { id: "completed", label: "Done" },
           ].map((f) => (
             <button
               key={f.id}
+              type="button"
               onClick={() => setFilterType(f.id)}
-              className={`px-3.5 py-2 text-xs rounded-xl border font-medium transition-all ${
+              className={`${chipBase} ${
                 filterType === f.id
-                  ? "bg-white text-black border-white"
-                  : "bg-white/5 text-zinc-400 border-white/10 hover:border-white/25 hover:text-white"
+                  ? "bg-primary text-primary-foreground border-black shadow-[3px_3px_0_0_#000]"
+                  : "bg-card text-foreground border-border hover:border-foreground"
               }`}
+              style={{ fontFamily: "'JetBrains Mono', monospace", letterSpacing: "0.04em" }}
             >
               {f.label}
             </button>
@@ -148,8 +106,7 @@ export default function RoadmapNodeGraph({
         </div>
       </div>
 
-      {/* Stages */}
-      <div className="space-y-6">
+      <div className="space-y-5">
         {stages.map((stage, stageIdx) => {
           const cfg = STAGE_CONFIG[stage.name] || STAGE_CONFIG.beginner;
           const StageIcon = cfg.icon;
@@ -175,60 +132,63 @@ export default function RoadmapNodeGraph({
 
           return (
             <div key={stage.name}>
-              {/* Stage Container */}
-              <div
-                className={`relative rounded-2xl border overflow-hidden ${
-                  isActive
-                    ? `${cfg.border} shadow-xl ${cfg.glow}`
-                    : "border-white/8"
+              <section
+                className={`bg-card overflow-hidden ${
+                  isActive ? "border-2 border-black" : "border border-border"
                 }`}
-                style={{ background: "rgba(255,255,255,0.02)" }}
               >
-                {/* Glow gradient at top when active */}
-                {isActive && (
-                  <div
-                    className={`absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-current to-transparent opacity-60`}
-                    style={{ color: `var(--${cfg.color}-500, #10b981)` }}
-                  />
-                )}
-
-                {/* Stage Header */}
-                <div className={`relative p-6 border-b border-white/8 bg-gradient-to-b ${cfg.gradient}`}>
-                  <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-                    <div className="flex items-start gap-4">
-                      <div className={`w-12 h-12 rounded-2xl border ${cfg.badge} flex items-center justify-center shrink-0`}>
+                <div className="p-4 sm:p-6 border-b border-border bg-muted/40">
+                  <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
+                    <div className="flex items-start gap-3 min-w-0">
+                      <div className="h-10 w-10 sm:h-12 sm:w-12 shrink-0 border-2 border-black bg-primary text-primary-foreground flex items-center justify-center">
                         <StageIcon className="w-5 h-5" />
                       </div>
-                      <div>
+                      <div className="min-w-0">
                         <div className="flex items-center gap-2 mb-1 flex-wrap">
-                          <span className="text-[10px] font-mono text-zinc-600 uppercase tracking-widest">
+                          <span
+                            className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground"
+                            style={{ fontFamily: "'JetBrains Mono', monospace" }}
+                          >
                             Stage {cfg.number} · {cfg.label}
                           </span>
                           {isActive && (
-                            <span className={`px-2 py-0.5 text-[10px] font-bold rounded-full border ${cfg.badge} flex items-center gap-1`}>
-                              <span className={`w-1.5 h-1.5 rounded-full ${cfg.dot} animate-pulse`} />
+                            <span
+                              className="inline-flex items-center gap-1 px-2 py-0.5 text-[10px] font-bold border border-border bg-background"
+                              style={{ fontFamily: "'JetBrains Mono', monospace" }}
+                            >
+                              <span className="w-1.5 h-1.5 rounded-full bg-primary" />
                               Active
                             </span>
                           )}
                           {!isActive && completedCount === totalCount && totalCount > 0 && (
-                            <span className="px-2 py-0.5 text-[10px] font-bold rounded-full border bg-emerald-500/10 text-emerald-400 border-emerald-500/30">
-                              ✓ Complete
+                            <span
+                              className="px-2 py-0.5 text-[10px] font-bold border-2 border-black bg-primary text-primary-foreground"
+                              style={{ fontFamily: "'JetBrains Mono', monospace" }}
+                            >
+                              Complete
                             </span>
                           )}
                           {!isActive && stageIdx > 0 && completedCount === 0 && (
-                            <span className="px-2 py-0.5 text-[10px] rounded-full border bg-white/5 text-zinc-500 border-white/10 flex items-center gap-1">
-                              <Lock className="w-2.5 h-2.5" /> Upcoming
+                            <span
+                              className="inline-flex items-center gap-1 px-2 py-0.5 text-[10px] border border-border text-muted-foreground"
+                              style={{ fontFamily: "'JetBrains Mono', monospace" }}
+                            >
+                              <Lock className="w-2.5 h-2.5" />
+                              Upcoming
                             </span>
                           )}
                         </div>
-                        <h3 className="text-lg font-bold text-white leading-tight">
+                        <h3
+                          className="text-lg font-bold text-foreground leading-tight"
+                          style={{ fontFamily: "'Hanken Grotesk', system-ui, sans-serif" }}
+                        >
                           {stage.title || (
-                            stage.name === "beginner" ? "Foundations & Core Concepts"
-                            : stage.name === "intermediate" ? "Frameworks, Tools & Real Workflows"
-                            : "Portfolio Projects & Career Launch"
+                            stage.name === "beginner" ? "Foundations & core concepts"
+                            : stage.name === "intermediate" ? "Frameworks, tools & real workflows"
+                            : "Portfolio projects & career launch"
                           )}
                         </h3>
-                        <p className="text-sm text-zinc-500 mt-0.5">
+                        <p className="text-sm text-muted-foreground mt-1 leading-relaxed">
                           {stage.description || (
                             stage.name === "beginner" ? "Start from zero. Build your vocabulary and foundational skills."
                             : stage.name === "intermediate" ? "Go hands-on with real tools, APIs, and industry workflows."
@@ -238,135 +198,161 @@ export default function RoadmapNodeGraph({
                       </div>
                     </div>
 
-                    {/* Progress Ring */}
                     <div className="flex items-center gap-3 shrink-0">
-                      <div className="text-right">
-                        <div className="text-2xl font-black text-white tabular-nums">{pct}%</div>
-                        <div className="text-[10px] text-zinc-600 font-mono">{completedCount}/{totalCount} done</div>
+                      <div className="text-left sm:text-right">
+                        <div
+                          className="text-2xl font-bold text-foreground tabular-nums"
+                          style={{ fontFamily: "'Hanken Grotesk', system-ui, sans-serif" }}
+                        >
+                          {pct}%
+                        </div>
+                        <div
+                          className="text-[10px] text-muted-foreground uppercase tracking-wider"
+                          style={{ fontFamily: "'JetBrains Mono', monospace" }}
+                        >
+                          {completedCount}/{totalCount} done
+                        </div>
                       </div>
-                      <div className="w-12 h-12 relative">
-                        <svg className="w-12 h-12 -rotate-90" viewBox="0 0 36 36">
-                          <circle cx="18" cy="18" r="15" fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth="3" />
+                      <div className="w-10 h-10 relative" aria-hidden>
+                        <svg className="w-10 h-10 -rotate-90" viewBox="0 0 36 36">
+                          <circle cx="18" cy="18" r="15" fill="none" stroke="var(--border)" strokeWidth="3" />
                           <circle
-                            cx="18" cy="18" r="15" fill="none"
-                            stroke={cfg.color === "emerald" ? "#10b981" : cfg.color === "blue" ? "#3b82f6" : "#a855f7"}
+                            cx="18"
+                            cy="18"
+                            r="15"
+                            fill="none"
+                            stroke="var(--primary)"
                             strokeWidth="3"
                             strokeLinecap="round"
                             strokeDasharray={`${pct * 0.942} 94.2`}
-                            className="transition-all duration-700"
                           />
                         </svg>
-                        <div className="absolute inset-0 flex items-center justify-center">
-                          <CheckCircle2 className={`w-4 h-4 ${pct === 100 ? "text-emerald-400" : "text-zinc-700"}`} />
-                        </div>
                       </div>
                     </div>
                   </div>
                 </div>
 
-                {/* Topic Nodes Grid */}
-                <div className="p-6">
+                <div className="p-4 sm:p-6">
                   {filtered.length === 0 ? (
-                    <div className="py-16 text-center">
-                      <BookOpen className="w-10 h-10 text-zinc-800 mx-auto mb-3" />
-                      <p className="text-sm text-zinc-600">
+                    <div className="py-12 text-center border-2 border-dashed border-border bg-background/50">
+                      <BookOpen className="w-8 h-8 text-muted-foreground mx-auto mb-3" />
+                      <p className="text-sm text-muted-foreground max-w-sm mx-auto px-4">
                         {allTopics.length === 0
-                          ? "No nodes yet — click Regenerate AI Roadmap above to build your curriculum."
-                          : "No nodes match your search or filter."}
+                          ? "No topics yet — use Regenerate above to build this stage."
+                          : "No topics match your search or filter."}
                       </p>
                     </div>
                   ) : (
-                    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       {filtered.map((topic, topicIdx) => {
-                        const typeCfg = TYPE_CONFIG[topic.type || "required"] || TYPE_CONFIG.required;
                         const subDone = (topic.subtopics || []).filter((s) => s.completed).length;
                         const subTotal = (topic.subtopics || []).length;
+                        const videos = topic.youtubeVideos || [];
+                        const typeLabel = TYPE_LABEL[topic.type || "required"] || TYPE_LABEL.required;
 
                         return (
                           <div
                             key={topic.id || topicIdx}
+                            role="button"
+                            tabIndex={0}
                             onClick={() => onSelectTopic(topic)}
-                            className={`group relative flex flex-col rounded-xl border cursor-pointer transition-all duration-200 overflow-hidden hover:-translate-y-0.5 ${
+                            onKeyDown={(e) => {
+                              if (e.key === "Enter" || e.key === " ") {
+                                e.preventDefault();
+                                onSelectTopic(topic);
+                              }
+                            }}
+                            className={`group flex flex-col min-w-0 cursor-pointer transition-colors ${
                               topic.completed
-                                ? "border-emerald-500/25 bg-emerald-500/5"
-                                : "border-white/8 bg-white/3 hover:border-white/20 hover:bg-white/5"
+                                ? "border-2 border-foreground bg-card"
+                                : "border border-border bg-card hover:border-foreground"
                             }`}
                           >
-                            {/* Completed strip */}
-                            {topic.completed && (
-                              <div className="h-0.5 w-full bg-gradient-to-r from-emerald-500 to-teal-500" />
-                            )}
-
-                            <div className="p-5 flex-1 flex flex-col gap-4">
-                              {/* Top Row */}
+                            <div className="p-4 sm:p-5 flex-1 flex flex-col gap-3 min-w-0">
                               <div className="flex items-start justify-between gap-3">
-                                <span className={`px-2 py-0.5 text-[10px] font-semibold rounded-full border ${typeCfg.cls}`}>
-                                  {typeCfg.label}
+                                <span
+                                  className="monolith-chip"
+                                  style={{ fontFamily: "'JetBrains Mono', monospace" }}
+                                >
+                                  {typeLabel}
                                 </span>
                                 <div className="flex items-center gap-2 shrink-0">
                                   {topic.timeEstimate && (
-                                    <span className="flex items-center gap-1 text-[10px] text-zinc-600 font-mono">
-                                      <Clock className="w-3 h-3" />
+                                    <span
+                                      className="inline-flex items-center gap-1 text-[11px] text-muted-foreground max-w-[7.5rem] truncate"
+                                      style={{ fontFamily: "'JetBrains Mono', monospace" }}
+                                    >
+                                      <Clock className="w-3.5 h-3.5 shrink-0" />
                                       {topic.timeEstimate}
                                     </span>
                                   )}
                                   <button
+                                    type="button"
+                                    aria-label={topic.completed ? "Mark incomplete" : "Mark complete"}
                                     onClick={(e) => {
                                       e.stopPropagation();
                                       onToggleTopic(topic.id, !topic.completed);
                                     }}
-                                    className="transition-transform hover:scale-110 active:scale-95"
+                                    className="h-9 w-9 shrink-0 border border-border flex items-center justify-center hover:border-foreground"
                                   >
                                     {topic.completed ? (
-                                      <CheckCircle2 className="w-5 h-5 text-emerald-400" />
+                                      <CheckCircle2 className="w-5 h-5 text-foreground" />
                                     ) : (
-                                      <Circle className="w-5 h-5 text-zinc-700 group-hover:text-zinc-400 transition-colors" />
+                                      <Circle className="w-5 h-5 text-muted-foreground group-hover:text-foreground" />
                                     )}
                                   </button>
                                 </div>
                               </div>
 
-                              {/* Title */}
-                              <div>
+                              <div className="min-w-0">
                                 <h4
-                                  className={`text-base font-bold leading-snug transition-colors ${
-                                    topic.completed
-                                      ? "line-through text-zinc-600"
-                                      : "text-white group-hover:text-white"
+                                  className={`text-base font-bold leading-snug ${
+                                    topic.completed ? "line-through text-muted-foreground" : "text-foreground"
                                   }`}
+                                  style={{ fontFamily: "'Hanken Grotesk', system-ui, sans-serif" }}
                                 >
                                   {topic.title}
                                 </h4>
-                                <p className="text-xs text-zinc-500 mt-1.5 leading-relaxed line-clamp-2">
+                                <p className="text-xs text-muted-foreground mt-1.5 leading-relaxed line-clamp-2">
                                   {topic.description}
                                 </p>
                               </div>
 
-                              {/* YouTube Videos */}
-                              {topic.youtubeVideos && topic.youtubeVideos.length > 0 && (
-                                <div className="space-y-1 border-t border-white/6 pt-3">
-                                  <div className="flex items-center gap-1.5 mb-2">
-                                    <Play className="w-3 h-3 text-red-400 fill-red-400" />
-                                    <span className="text-[10px] font-bold uppercase tracking-widest text-red-400/80">
-                                      Top Videos
-                                    </span>
-                                  </div>
-                                  {topic.youtubeVideos.slice(0, 3).map((vid, i) => (
-                                    <YTCard key={i} vid={vid} />
+                              {videos.length > 0 && (
+                                <div className="border-t border-border pt-3 space-y-1 min-w-0">
+                                  {videos.slice(0, 2).map((vid, i) => (
+                                    <a
+                                      key={i}
+                                      href={vid.url}
+                                      target="_blank"
+                                      rel="noreferrer"
+                                      onClick={(e) => e.stopPropagation()}
+                                      className="flex items-center gap-2 min-w-0 py-1 text-xs text-foreground hover:underline"
+                                    >
+                                      <Play className="w-3.5 h-3.5 shrink-0" />
+                                      <span className="truncate">{vid.title}</span>
+                                    </a>
                                   ))}
+                                  {videos.length > 2 && (
+                                    <p className="text-[11px] text-muted-foreground pl-5">
+                                      +{videos.length - 2} more in details
+                                    </p>
+                                  )}
                                 </div>
                               )}
                             </div>
 
-                            {/* Footer */}
-                            <div className="px-5 py-3 border-t border-white/5 flex items-center justify-between">
-                              <div className="flex items-center gap-1.5 text-zinc-600">
-                                <Sparkles className="w-3 h-3" />
-                                <span className="text-[11px] font-mono">
-                                  {subTotal > 0 ? `${subDone}/${subTotal} subtopics` : "Tap to explore"}
+                            <div className="px-4 sm:px-5 py-3 border-t border-border flex items-center justify-between gap-2 min-w-0">
+                              <span
+                                className="inline-flex items-center gap-1.5 text-[11px] text-muted-foreground min-w-0"
+                                style={{ fontFamily: "'JetBrains Mono', monospace" }}
+                              >
+                                <Sparkles className="w-3 h-3 shrink-0" />
+                                <span className="truncate">
+                                  {subTotal > 0 ? `${subDone}/${subTotal} subtopics` : "Open details"}
                                 </span>
-                              </div>
-                              <span className="text-xs text-zinc-600 group-hover:text-zinc-300 flex items-center gap-0.5 transition-colors font-medium">
+                              </span>
+                              <span className="text-xs text-foreground flex items-center gap-0.5 font-medium shrink-0 group-hover:translate-x-0.5 transition-transform">
                                 Details <ChevronRight className="w-3.5 h-3.5" />
                               </span>
                             </div>
@@ -376,19 +362,7 @@ export default function RoadmapNodeGraph({
                     </div>
                   )}
                 </div>
-              </div>
-
-              {/* Connector */}
-              {stageIdx < stages.length - 1 && (
-                <div className="flex justify-center py-4">
-                  <div className="flex flex-col items-center gap-1">
-                    <div className="w-px h-6 bg-gradient-to-b from-white/10 to-transparent" />
-                    <div className="w-8 h-8 rounded-full border border-white/10 bg-black flex items-center justify-center">
-                      <ArrowDown className="w-3.5 h-3.5 text-zinc-500 animate-bounce" />
-                    </div>
-                  </div>
-                </div>
-              )}
+              </section>
             </div>
           );
         })}

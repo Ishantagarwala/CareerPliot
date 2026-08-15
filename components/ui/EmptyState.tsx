@@ -32,18 +32,18 @@ export default function EmptyState({
   children,
 }: EmptyStateProps) {
   const primaryClass =
-    "inline-flex items-center justify-center rounded-lg bg-primary text-primary-foreground font-semibold px-6 py-2.5 hover:bg-primary/90 transition-all text-xs shadow-sm";
+    "inline-flex items-center justify-center min-h-10 rounded-none bg-primary text-primary-foreground font-semibold px-6 py-2.5 border-2 border-black shadow-[3px_3px_0_0_#000] hover:opacity-90 transition-all text-xs";
   const secondaryClass =
-    "inline-flex items-center justify-center rounded-lg border border-border bg-background text-foreground font-semibold px-4 py-2 hover:bg-muted transition-all text-xs";
+    "inline-flex items-center justify-center min-h-10 rounded-none border border-border bg-background text-foreground font-semibold px-4 py-2 hover:border-foreground transition-all text-xs";
 
   return (
     <div
       className={cn(
-        "flex flex-col items-center justify-center text-center border border-border bg-card p-12 space-y-5 shadow-sm max-w-xl mx-auto animate-fade-in-up",
+        "flex flex-col items-center justify-center text-center border-2 border-dashed border-border bg-card/40 p-8 sm:p-12 space-y-5 max-w-xl mx-auto animate-fade-in-up",
         className
       )}
     >
-      <div className="h-14 w-14 border border-border flex items-center justify-center text-foreground bg-card">
+      <div className="h-14 w-14 border-2 border-black bg-primary text-primary-foreground flex items-center justify-center shadow-[3px_3px_0_0_#000]">
         <span className="material-symbols-outlined text-[28px]">{icon}</span>
       </div>
       <div className="space-y-2 max-w-md">
@@ -60,7 +60,7 @@ export default function EmptyState({
           {primaryLabel && primaryHref && (
             <Link
               href={primaryHref}
-              className={primaryClass}
+              className={`${primaryClass} group`}
               style={{ fontFamily: "'JetBrains Mono', monospace", letterSpacing: "0.04em" }}
             >
               {primaryLabel}
