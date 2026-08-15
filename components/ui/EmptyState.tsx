@@ -32,14 +32,14 @@ export default function EmptyState({
   children,
 }: EmptyStateProps) {
   const primaryClass =
-    "inline-flex items-center px-6 py-2.5 bg-primary text-primary-foreground border-2 border-black font-bold hover:opacity-90 transition-colors text-xs group shadow-[3px_3px_0_0_#000]";
+    "inline-flex items-center justify-center rounded-lg bg-primary text-primary-foreground font-semibold px-6 py-2.5 hover:bg-primary/90 transition-all text-xs shadow-sm";
   const secondaryClass =
-    "inline-flex items-center px-4 py-2 border border-border text-foreground text-xs hover:border-foreground transition-colors";
+    "inline-flex items-center justify-center rounded-lg border border-border bg-background text-foreground font-semibold px-4 py-2 hover:bg-muted transition-all text-xs";
 
   return (
     <div
       className={cn(
-        "flex flex-col items-center justify-center text-center border-2 border-dashed border-border bg-card/40 py-16 px-8 space-y-5 animate-fade-in-up",
+        "flex flex-col items-center justify-center text-center border border-border bg-card p-12 space-y-5 shadow-sm max-w-xl mx-auto animate-fade-in-up",
         className
       )}
     >

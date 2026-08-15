@@ -1,102 +1,185 @@
 import OpenAI from "openai";
 import type { ChatCompletionCreateParamsNonStreaming } from "openai/resources/chat/completions";
 
+// ─── Helpers ─────────────────────────────────────────────────────────────────
+
 const isPlaceholder = (val?: string) =>
   !val ||
   val.includes("your_") ||
   val.includes("_here") ||
   val === "dummy-key";
 
-function requireRouterConfig(): { apiKey: string; baseURL: string } {
-  const apiKey = process.env.LLM_ROUTER_API_KEY?.trim();
-  const baseURL = process.env.LLM_ROUTER_BASE_URL?.trim();
+function isOllamaEnabled(): boolean {
+  return process.env.USE_LOCAL_OLLAMA?.trim().toLowerCase() === "true";
+}
 
-  if (!apiKey || isPlaceholder(apiKey) || !baseURL) {
+function getOllamaConfig(): { apiKey: string; baseURL: string } {
+  const baseURL = process.env.OLLAMA_BASE_URL?.trim() || "http://localhost:11434/v1";
+  return { apiKey: "ollama", baseURL };
+}
+
+// ─── Provider Definitions ────────────────────────────────────────────────────
+
+interface LlmProvider {
+  name: string;
+  client: OpenAI;
+  model: string;
+}
+
+/**
+ * Returns an ordered list of providers to try, from most capable to fallback.
+ * Order: Zenmux claude-opus-5 → Zenmux gpt-5.6-sol → Groq llama → Ollama (if enabled)
+ */
+function buildProviderChain(): LlmProvider[] {
+  const chain: LlmProvider[] = [];
+
+  // 1. Zenmux (api.17.wtf) — most capable, primary router
+  const zenmuxKey = process.env.ZENMUX_API_KEY?.trim();
+  const zenmuxBase = process.env.ZENMUX_BASE_URL?.trim();
+  if (zenmuxKey && !isPlaceholder(zenmuxKey) && zenmuxBase) {
+    const client = new OpenAI({ apiKey: zenmuxKey, baseURL: zenmuxBase });
+
+    const primaryModel = process.env.ZENMUX_MODEL?.trim() || "zeus/claude-opus-5";
+    chain.push({ name: `Zenmux/${primaryModel}`, client, model: primaryModel });
+
+    const pdfModel = process.env.ZENMUX_PDF_MODEL?.trim();
+    if (pdfModel && pdfModel !== primaryModel) {
+      chain.push({ name: `Zenmux/${pdfModel}`, client, model: pdfModel });
+    }
+  }
+
+  // 2. Groq / LLM Router fallback
+  const groqKey = process.env.LLM_ROUTER_API_KEY?.trim();
+  const groqBase = process.env.LLM_ROUTER_BASE_URL?.trim();
+  if (groqKey && !isPlaceholder(groqKey) && groqBase) {
+    const client = new OpenAI({ apiKey: groqKey, baseURL: groqBase });
+
+    const model1 = process.env.LLM_ROUTER_MODEL?.trim() || "llama-3.1-8b-instant";
+    chain.push({ name: `Groq/${model1}`, client, model: model1 });
+
+    const model2 = process.env.LLM_ROUTER_FALLBACK_MODEL?.trim();
+    if (model2 && model2 !== model1) {
+      chain.push({ name: `Groq/${model2}`, client, model: model2 });
+    }
+  }
+
+  // 3. Local Ollama (if enabled)
+  if (isOllamaEnabled()) {
+    const ollamaClient = new OpenAI(getOllamaConfig());
+    const ollamaModel = process.env.OLLAMA_MODEL?.trim() || "llama3";
+    chain.push({ name: `Ollama/${ollamaModel}`, client: ollamaClient, model: ollamaModel });
+
+    const ollamaFallback = process.env.OLLAMA_FALLBACK_MODEL?.trim();
+    if (ollamaFallback && ollamaFallback !== ollamaModel) {
+      chain.push({ name: `Ollama/${ollamaFallback}`, client: ollamaClient, model: ollamaFallback });
+    }
+  }
+
+  if (chain.length === 0) {
     throw new Error(
-      "LLM router is not configured. Set LLM_ROUTER_API_KEY and LLM_ROUTER_BASE_URL in .env.local."
+      "No LLM providers configured. Set ZENMUX_API_KEY or LLM_ROUTER_API_KEY in your .env file."
     );
   }
 
-  return { apiKey, baseURL };
+  return chain;
 }
 
-/** OpenAI-compatible client pointed at the configured LLM router. */
+// ─── Legacy model helpers (for existing callers) ─────────────────────────────
+
+/** OpenAI-compatible client pointed at the primary configured router. */
 export function getLlmClient(): OpenAI {
-  const { apiKey, baseURL } = requireRouterConfig();
-  return new OpenAI({ apiKey, baseURL });
+  const chain = buildProviderChain();
+  return chain[0].client;
 }
 
-const FLAGSHIP_MODEL = "zeus/claude-opus-5";
-const FALLBACK_MODEL = "posiden/deepseek-v4-flash";
+/** Returns primary model id. */
+export function getLlmModel(isPdf = false, _modelSelection?: string): string {
+  const chain = buildProviderChain();
+  if (isPdf && chain.length > 1) return chain[1].model;
+  return chain[0].model;
+}
+
+// ─── JSON Repair ─────────────────────────────────────────────────────────────
 
 /**
- * Model id for the LLM router.
- * - Explicit AI Hub selections (full model ids) are passed through
- * - Default: LLM_ROUTER_MODEL
- * - PDF / "gemini" alias: LLM_ROUTER_FALLBACK_MODEL
+ * Attempts to repair truncated JSON output from LLMs.
+ * Closes unclosed arrays and objects and strips trailing broken values.
  */
-export function getLlmModel(isPdf = false, modelSelection?: string): string {
-  const flagship = process.env.LLM_ROUTER_MODEL?.trim() || FLAGSHIP_MODEL;
-  const fallback =
-    process.env.LLM_ROUTER_FALLBACK_MODEL?.trim() || FALLBACK_MODEL;
-
-  if (
-    modelSelection &&
-    modelSelection !== "primary" &&
-    modelSelection !== "opus" &&
-    modelSelection !== "gemini"
-  ) {
-    return modelSelection;
+function repairTruncatedJson(raw: string): string {
+  // Fast path — valid JSON
+  try {
+    JSON.parse(raw);
+    return raw;
+  } catch {
+    // continue to repair
   }
 
-  if (modelSelection === "opus" || modelSelection === "primary") {
-    return flagship;
+  let s = raw.trimEnd();
+
+  // Strip trailing comma or colon
+  s = s.replace(/[,:\s]+$/, "");
+
+  // Strip an unclosed string value (last " opened but never closed)
+  const lastQuoteIdx = s.lastIndexOf('"');
+  if (lastQuoteIdx !== -1) {
+    const afterLastQuote = s.slice(lastQuoteIdx + 1);
+    if (!afterLastQuote.includes('"') && !afterLastQuote.match(/^\s*[,\}\]]/)) {
+      s = s.slice(0, lastQuoteIdx).trimEnd().replace(/[,:\s]+$/, "");
+    }
   }
 
-  if (modelSelection === "gemini" || isPdf) {
-    return fallback;
+  // Strip trailing commas exposed by above
+  s = s.replace(/,\s*$/, "");
+
+  // Walk string tracking open bracket/brace depth
+  const stack: string[] = [];
+  let inString = false;
+  let escape = false;
+
+  for (let i = 0; i < s.length; i++) {
+    const ch = s[i];
+    if (escape) { escape = false; continue; }
+    if (ch === "\\") { escape = true; continue; }
+    if (ch === '"') { inString = !inString; continue; }
+    if (inString) continue;
+
+    if (ch === "{") stack.push("}");
+    else if (ch === "[") stack.push("]");
+    else if (ch === "}" || ch === "]") {
+      if (stack.length > 0 && stack[stack.length - 1] === ch) stack.pop();
+    }
   }
 
-  return flagship;
+  const repaired = s + stack.reverse().join("");
+
+  try {
+    JSON.parse(repaired);
+    return repaired;
+  } catch {
+    return raw; // let outer handler deal with it
+  }
 }
+
+function extractJsonContent(content: string): string {
+  const trimmed = content.trim();
+
+  // Strip markdown code fences
+  const fencedMatch = trimmed.match(/```(?:json)?\s*([\s\S]*?)```/);
+  if (fencedMatch) return repairTruncatedJson(fencedMatch[1].trim());
+
+  // Extract from first {
+  const firstBrace = trimmed.indexOf("{");
+  if (firstBrace !== -1) return repairTruncatedJson(trimmed.slice(firstBrace));
+
+  return repairTruncatedJson(trimmed);
+}
+
+// ─── Completion ───────────────────────────────────────────────────────────────
 
 /** Many routers reject response_format=json_object; enable with LLM_ROUTER_JSON_MODE=true. */
 function skipJsonResponseFormat(): boolean {
   const flag = process.env.LLM_ROUTER_JSON_MODE?.trim().toLowerCase();
   return flag !== "1" && flag !== "true" && flag !== "yes";
-}
-
-function extractJsonContent(content: string): string {
-  const trimmed = content.trim();
-  const fencedMatch = trimmed.match(/```(?:json)?\s*([\s\S]*?)```/);
-  if (fencedMatch) {
-    return fencedMatch[1].trim();
-  }
-
-  const firstBrace = trimmed.indexOf("{");
-  const lastBrace = trimmed.lastIndexOf("}");
-  if (firstBrace !== -1 && lastBrace !== -1 && lastBrace > firstBrace) {
-    return trimmed.slice(firstBrace, lastBrace + 1);
-  }
-
-  return trimmed;
-}
-
-function isModelAccessError(error: unknown): boolean {
-  const status = (error as { status?: number })?.status;
-  if (status === 403 || status === 404) return true;
-  const message = String(
-    (error as { message?: string })?.message ||
-      (error as { error?: { message?: string } })?.error?.message ||
-      ""
-  ).toLowerCase();
-  return (
-    message.includes("permission") ||
-    message.includes("无权") ||
-    message.includes("not found") ||
-    message.includes("does not exist") ||
-    message.includes("model_not_found")
-  );
 }
 
 async function createStructuredCompletion(
@@ -112,6 +195,7 @@ async function createStructuredCompletion(
       { role: "user", content: userPrompt },
     ],
     temperature: 0.2,
+    max_tokens: 4000,
   };
 
   return client.chat.completions.create(
@@ -121,46 +205,51 @@ async function createStructuredCompletion(
   );
 }
 
-/** Call the LLM router and parse a JSON response. Falls back to LLM_ROUTER_FALLBACK_MODEL on access errors. */
+// ─── Main Public Function ─────────────────────────────────────────────────────
+
+/**
+ * Calls the LLM provider chain and returns a parsed JSON response.
+ * Cascades through: Zenmux claude-opus-5 → Zenmux gpt-5.6-sol → Groq → Ollama
+ * Retries on EVERY error (access errors AND JSON parse errors).
+ */
 export async function generateStructuredJson<T>(
   systemPrompt: string,
   userPrompt: string,
-  isPdf = false
+  _isPdf = false
 ): Promise<T> {
-  const client = getLlmClient();
-  const primary = getLlmModel(isPdf);
-  const fallback = getLlmModel(true);
-  const models =
-    !isPdf && fallback !== primary ? [primary, fallback] : [primary];
+  let chain: LlmProvider[];
+  try {
+    chain = buildProviderChain();
+  } catch (configErr) {
+    throw configErr;
+  }
 
   let lastError: unknown;
 
-  for (let i = 0; i < models.length; i++) {
-    const model = models[i];
+  for (let i = 0; i < chain.length; i++) {
+    const { name, client, model } = chain[i];
     try {
-      const response = await createStructuredCompletion(
-        client,
-        model,
-        systemPrompt,
-        userPrompt
-      );
+      console.log(`[LLM] Trying provider ${i + 1}/${chain.length}: ${name}`);
+
+      const response = await createStructuredCompletion(client, model, systemPrompt, userPrompt);
 
       const content = response.choices[0]?.message?.content;
-      if (!content) {
-        throw new Error("Empty response from LLM");
-      }
+      if (!content) throw new Error(`Empty response from ${name}`);
 
       const cleanContent = extractJsonContent(content);
-      return JSON.parse(cleanContent) as T;
+      const parsed = JSON.parse(cleanContent) as T;
+
+      console.log(`[LLM] ✅ Success with ${name}`);
+      return parsed;
     } catch (error) {
       lastError = error;
-      console.error(`LLM Generation Error (${model}):`, error);
-      const canRetry =
-        i < models.length - 1 && isModelAccessError(error);
-      if (!canRetry) break;
-      console.warn(`Retrying structured JSON with fallback model: ${models[i + 1]}`);
+      console.error(`[LLM] ❌ Provider ${name} failed:`, (error as Error).message || error);
+
+      if (i < chain.length - 1) {
+        console.warn(`[LLM] ⚡ Falling back to next provider: ${chain[i + 1].name}`);
+      }
     }
   }
 
-  throw lastError;
+  throw lastError ?? new Error("All LLM providers failed to generate a response.");
 }

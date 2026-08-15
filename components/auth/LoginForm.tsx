@@ -48,15 +48,28 @@ export default function LoginForm() {
     try {
       // 1. Ensure demo user exists (ignore "already registered" responses).
       // Demo email bypasses captcha server-side.
-      const registerRes = await fetch("/api/auth/register", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name: "Demo Student",
-          email: "demo@careerpilot.com",
-          password: "demo1234",
-        }),
-      });
+      const regAbort = new AbortController();
+      const regTimeout = setTimeout(() => regAbort.abort(), 15_000);
+      let registerRes: Response;
+      try {
+        registerRes = await fetch("/api/auth/register", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            name: "Demo Student",
+            email: "demo@careerpilot.com",
+            password: "demo1234",
+          }),
+          signal: regAbort.signal,
+        });
+      } catch (fetchErr) {
+        if ((fetchErr as Error).name === "AbortError") {
+          throw new Error("Demo account setup timed out. Is the server running?");
+        }
+        throw fetchErr;
+      } finally {
+        clearTimeout(regTimeout);
+      }
 
       if (!registerRes.ok && registerRes.status !== 400) {
         const body = await registerRes.json().catch(() => ({}));
@@ -82,8 +95,24 @@ export default function LoginForm() {
       }
 
       setDemoStep("Seeding demo data...");
+      // Brief pause: let Next.js flush the session cookie before we call /api/seed,
+      // which checks auth() server-side. Without this, the cookie may not be set yet.
+      await new Promise((resolve) => setTimeout(resolve, 600));
       // Seed via POST so we stay in-app (GET /api/seed was dumping JSON in the browser).
-      const seedRes = await fetch("/api/seed", { method: "POST" });
+      // Use a 30s timeout so the spinner never hangs indefinitely on a DB connection failure.
+      const seedAbort = new AbortController();
+      const seedTimeout = setTimeout(() => seedAbort.abort(), 30_000);
+      let seedRes: Response;
+      try {
+        seedRes = await fetch("/api/seed", { method: "POST", signal: seedAbort.signal });
+      } catch (fetchErr) {
+        if ((fetchErr as Error).name === "AbortError") {
+          throw new Error("Demo setup timed out. MongoDB may be unreachable — check your MONGODB_URI in .env.");
+        }
+        throw fetchErr;
+      } finally {
+        clearTimeout(seedTimeout);
+      }
       if (!seedRes.ok && seedRes.status !== 200) {
         const body = await seedRes.json().catch(() => ({}));
         // Already seeded is fine — treat as success via status 200 above.

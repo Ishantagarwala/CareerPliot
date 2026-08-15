@@ -6,48 +6,38 @@ import RoadmapViewer from "@/components/roadmap/RoadmapViewer";
 import EmptyState from "@/components/ui/EmptyState";
 import { toast } from "sonner";
 
-interface Milestone {
-  _id?: string;
-  title: string;
-  completed: boolean;
-  completedAt?: Date | string;
-}
-
-interface RoadmapStage {
-  name: "beginner" | "intermediate" | "advanced";
-  milestones: Milestone[];
-}
-
-interface Roadmap {
-  _id: string;
-  careerPath: string;
-  stages: RoadmapStage[];
-  currentStage: "beginner" | "intermediate" | "advanced";
-}
-
 export default function RoadmapPage() {
-  const [roadmap, setRoadmap] = useState<Roadmap | null>(null);
+  const [roadmap, setRoadmap] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [errorStatus, setErrorStatus] = useState<number | null>(null);
 
-  const fetchRoadmap = async () => {
+  const fetchRoadmap = async (refresh = false) => {
+    if (refresh) setRefreshing(true);
     try {
-      const res = await fetch("/api/roadmap");
+      const url = refresh ? "/api/roadmap?refresh=1" : "/api/roadmap";
+      const res = await fetch(url);
       if (!res.ok) {
         setErrorStatus(res.status);
-        if (res.status !== 404) {
-          throw new Error("Failed to load learning roadmap");
+        const errData = await res.json().catch(() => ({}));
+        if (refresh) {
+          toast.error(errData.message || "Failed to regenerate roadmap");
         }
         return;
       }
       const data = await res.json();
       setRoadmap(data);
       setErrorStatus(null);
-    } catch (err) {
-      console.error(err);
-      toast.error("Failed to fetch roadmap details");
+      if (refresh) {
+        toast.success("Roadmap refreshed with latest AI node graph!");
+      }
+    } catch (err: any) {
+      console.error("Roadmap fetch error:", err);
+      setErrorStatus(500);
+      toast.error(err?.message || "Failed to fetch roadmap details");
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
   };
 
@@ -55,32 +45,49 @@ export default function RoadmapPage() {
     fetchRoadmap();
   }, []);
 
-  const handleMilestoneToggle = async (milestoneId: string, completed: boolean) => {
+  const handleTopicToggle = async (topicId: string, completed: boolean) => {
     try {
       const res = await fetch("/api/roadmap/progress", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ milestoneId, completed }),
+        body: JSON.stringify({ topicId, completed }),
       });
 
       const data = await res.json();
-      if (!res.ok) throw new Error(data.message || "Failed to update milestone progress");
+      if (!res.ok) throw new Error(data.message || "Failed to update progress");
 
       setRoadmap(data.roadmap);
-
       if (completed) {
-        toast.success("Milestone marked completed!");
+        toast.success("Learning node marked complete!");
       } else {
-        toast.info("Milestone unchecked.");
+        toast.info("Learning node marked incomplete.");
       }
     } catch (err: any) {
       console.error(err);
-      toast.error(err.message || "Could not update milestone progress.");
+      toast.error(err.message || "Could not update node progress.");
+    }
+  };
+
+  const handleSubtopicToggle = async (topicId: string, subtopicId: string, completed: boolean) => {
+    try {
+      const res = await fetch("/api/roadmap/progress", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ topicId, subtopicId, completed }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || "Failed to update subtopic");
+
+      setRoadmap(data.roadmap);
+    } catch (err: any) {
+      console.error(err);
+      toast.error(err.message || "Could not update subtopic progress.");
     }
   };
 
   if (loading) {
-    return <PageLoader label="Building your roadmap" />;
+    return <PageLoader label="Generating your Zero-to-Hero node roadmap..." />;
   }
 
   return (
@@ -91,10 +98,10 @@ export default function RoadmapPage() {
           style={{ fontFamily: "'Hanken Grotesk', system-ui, sans-serif" }}
         >
           <span className="material-symbols-outlined text-[28px]">map</span>
-          Roadmap
+          Interactive Career Roadmap
         </h1>
         <p className="text-sm text-muted-foreground mt-2">
-          Your step-by-step plan from beginner to advanced for your chosen career path.
+          Interactive zero-to-hero node graph designed for non-technical career switchers.
         </p>
       </div>
 
@@ -103,23 +110,30 @@ export default function RoadmapPage() {
           <EmptyState
             icon="explore"
             title="Pick a career path first"
-            description="Complete Career Discovery and select a path — then we’ll build your personalized roadmap."
+            description="Complete Career Discovery and select a path — then we’ll build your personalized zero-to-hero roadmap."
             primaryHref="/career"
             primaryLabel="Start Career Discovery"
             className="max-w-lg mx-auto"
           />
         ) : roadmap ? (
-          <RoadmapViewer roadmap={roadmap} onMilestoneToggle={handleMilestoneToggle} />
+          <RoadmapViewer
+            roadmap={roadmap}
+            onMilestoneToggle={handleTopicToggle}
+            onTopicToggle={handleTopicToggle}
+            onSubtopicToggle={handleSubtopicToggle}
+            onRefreshRoadmap={() => fetchRoadmap(true)}
+            refreshing={refreshing}
+          />
         ) : (
           <EmptyState
             icon="error"
-            title="Couldn’t load roadmap"
-            description="Something went wrong. Try again in a moment."
+            title="Couldn’t load learning roadmap"
+            description="We ran into an issue loading or building your interactive roadmap. Click below to regenerate a fresh AI node graph."
             onPrimaryClick={() => {
               setLoading(true);
-              fetchRoadmap();
+              fetchRoadmap(true);
             }}
-            primaryLabel="Try again"
+            primaryLabel="Regenerate AI Roadmap"
             className="max-w-lg mx-auto"
           />
         )}
@@ -127,3 +141,4 @@ export default function RoadmapPage() {
     </div>
   );
 }
+
