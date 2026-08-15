@@ -1,10 +1,15 @@
 import type { NextAuthConfig } from 'next-auth';
 import NextAuth from 'next-auth';
 
-// Fail fast in production if no session secret is configured, rather than
+// Fail fast at runtime if no session secret is configured, rather than
 // silently running with an auto-generated (rotating) ephemeral secret.
+// Skip during `next build` — Next sets NODE_ENV=production while collecting
+// page data, and secrets may only be injected at runtime on the host.
+const isBuildPhase = process.env.NEXT_PHASE === 'phase-production-build';
+
 if (
   process.env.NODE_ENV === 'production' &&
+  !isBuildPhase &&
   !process.env.AUTH_SECRET &&
   !process.env.NEXTAUTH_SECRET
 ) {
