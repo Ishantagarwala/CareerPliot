@@ -8,6 +8,7 @@ export const metadata: Metadata = pageMetadata({
   description:
     "Sign in to Career Pilot to access your AI career roadmap, courses, jobs, resume tools, and AI tutor.",
   path: "/login",
+  index: false,
 });
 
 export default function LoginPage() {

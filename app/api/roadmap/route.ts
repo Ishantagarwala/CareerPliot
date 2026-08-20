@@ -49,6 +49,99 @@ interface LlmRoadmapResponse {
   stages: LlmStage[];
 }
 
+const validTypes = ["required", "recommended", "optional", "project", "career"] as const;
+const validResourceTypes = ["video", "article", "course", "tool", "practice"] as const;
+const validStageNames = ["beginner", "intermediate", "advanced"] as const;
+
+const safeHttpUrl = (raw: string) => {
+  try {
+    const parsed = new URL(raw);
+    return parsed.protocol === "http:" || parsed.protocol === "https:" ? parsed.toString() : "";
+  } catch {
+    return "";
+  }
+};
+
+// Transform LLM response into database schema with strict sanitization.
+function sanitizeRoadmap(llmResult: LlmRoadmapResponse, careerPath: string) {
+  return llmResult.stages.map((stage, stageIdx) => {
+    const rawName = String(stage.name || "").toLowerCase();
+    const stageName = (validStageNames as readonly string[]).includes(rawName)
+      ? (rawName as (typeof validStageNames)[number])
+      : stageIdx === 0
+      ? "beginner"
+      : stageIdx === 1
+      ? "intermediate"
+      : "advanced";
+
+    const rawTopics = Array.isArray(stage.topics) ? stage.topics : [];
+    console.log(`[Roadmap] Processing stage "${stageName}" with ${rawTopics.length} raw topics`);
+
+    const topics = rawTopics.map((t, idx) => {
+      const topicId = String(t.id || `node-${stageName}-${idx + 1}`);
+      const title = String(t.title || `Skill Node ${idx + 1}`);
+      const description = String(t.description || `Master core concepts and practical skills for ${title}.`);
+      const rawType = String(t.type || "").toLowerCase();
+      const type = (validTypes as readonly string[]).includes(rawType)
+        ? (rawType as (typeof validTypes)[number])
+        : "required";
+      const ytVideos = getRecommendedYouTubeVideos(title, t.youtubeVideos);
+
+      return {
+        id: topicId,
+        title,
+        description,
+        type,
+        whyItMatters: String(t.whyItMatters || `Essential competency for entry-level ${careerPath}.`),
+        nonTechTip: String(t.nonTechTip || "Take it step-by-step and practice with hands-on exercises."),
+        timeEstimate: String(t.timeEstimate || "1-2 weeks"),
+        subtopics: (Array.isArray(t.subtopics) ? t.subtopics : []).map((sub: any, sIdx: number) => {
+          const subTitle = typeof sub === "string" ? sub : (sub?.title ? String(sub.title) : `Subtopic ${sIdx + 1}`);
+          return {
+            id: `sub-${topicId}-${sIdx + 1}`,
+            title: subTitle,
+            completed: false,
+          };
+        }),
+        resources: (Array.isArray(t.resources) ? t.resources : []).map((r: { title?: string; url?: string; type?: string; free?: boolean }) => {
+          const rawResType = String(r?.type || "article").toLowerCase();
+          return {
+            title: String(r?.title || "Documentation Guide"),
+            url: r?.url ? safeHttpUrl(String(r.url)) : "",
+            type: (validResourceTypes as readonly string[]).includes(rawResType)
+              ? (rawResType as (typeof validResourceTypes)[number])
+              : "article",
+            free: r?.free !== false,
+          };
+        }),
+        youtubeVideos: ytVideos,
+        deliverable: String(t.deliverable || `Build a practical ${title} mini-project`),
+        prerequisites: Array.isArray(t.prerequisites) ? t.prerequisites.map(String) : [],
+        completed: false,
+      };
+    });
+
+    const milestones = topics.map((t) => ({ title: t.title, completed: false }));
+
+    return {
+      name: stageName,
+      title: String(stage.title || `Stage ${stageIdx + 1}: ${stageName.charAt(0).toUpperCase() + stageName.slice(1)}`),
+      description: String(stage.description || `Mastery stage for ${stageName}.`),
+      milestones,
+      topics,
+    };
+  });
+}
+
+// A usable roadmap has all 3 stages with 4 real topics each — never generic filler.
+function isCompleteRoadmap(stages: ReturnType<typeof sanitizeRoadmap>): boolean {
+  return (
+    stages.length === 3 &&
+    stages.every((s) => s.topics.length === 4) &&
+    stages.every((s) => s.topics.every((t) => !/^Skill Node \d+$/.test(t.title) && t.title.length > 3))
+  );
+}
+
 export async function GET(req: Request) {
   try {
     const session = await auth();
@@ -129,6 +222,7 @@ Hard rules:
 - Do NOT invent hybrid careers (never turn a non-software path into coding, DevOps, or "tech + X").
 - Student skills may only adjust starting difficulty. Ignore listed skills that are outside the career path.
 - Use real in-domain topic titles (tools, certifications, coursework, methods, or technologies actually used in that field).
+- Be concise so the response fits in one output: descriptions under 40 words, 2-3 subtopics, 2 resources per topic.
 
 Return this exact JSON structure (fill every field with real content, keep strings under 120 chars):
 {
@@ -179,111 +273,50 @@ Return this exact JSON structure (fill every field with real content, keep strin
 Student Background: ${skillsList}
 Goal: ${userProfile?.goals || "Get hired as an entry-level professional"}
 
-Generate 4 specific, in-domain topic nodes per stage for "${careerPath}". Titles should name real skills, methods, or tools used in that career — not generic filler and not unrelated tech.`;
+Generate 4 specific, in-domain topic nodes per stage for "${careerPath}". Titles should name real skills, methods, or tools used in that career — not generic filler and not unrelated tech. Be concise: each description under 40 words, 2-3 subtopics, 2 resources.`;
 
     console.log(`[Roadmap] Generating roadmap for "${careerPath}" via LLM...`);
-    const llmResult = await generateStructuredJson<LlmRoadmapResponse>(systemPrompt, userPrompt);
 
-    // Debug log the raw LLM result
-    console.log(`[Roadmap] LLM result stages count: ${llmResult?.stages?.length}`);
-    llmResult?.stages?.forEach((s, i) => {
-      console.log(`[Roadmap]   Stage ${i} "${s.name}": ${s.topics?.length ?? 0} topics`);
-    });
+    // Generate with a retry: if the LLM is cut off or drifts off-path, the first
+    // attempt is never saved as a broken roadmap.
+    const retryPrompt = `Career Path (authoritative): ${careerPath}
+Student Background: ${skillsList}
+Goal: ${userProfile?.goals || "Get hired as an entry-level professional"}
 
-    if (!llmResult || !llmResult.stages || !Array.isArray(llmResult.stages)) {
-      throw new Error("Invalid output format from LLM — no stages array");
+Your previous response was incomplete or off-topic. Retry and COMPLETE the full JSON: exactly 3 stages (beginner, intermediate, advanced) with exactly 4 in-domain topics each (12 total). Be more concise so the response fits: descriptions under 30 words, 2 subtopics, 2 resources. Every topic must be a real skill, tool, certification, or method used by ${careerPath}s — nothing generic, nothing from unrelated fields.`;
+
+    let llmResult: LlmRoadmapResponse | null = null;
+    let roadmapStages: ReturnType<typeof sanitizeRoadmap> = [];
+
+    for (let attempt = 1; attempt <= 2; attempt++) {
+      const prompt = attempt === 1 ? userPrompt : retryPrompt;
+      llmResult = await generateStructuredJson<LlmRoadmapResponse>(systemPrompt, prompt);
+
+      if (!llmResult || !llmResult.stages || !Array.isArray(llmResult.stages)) {
+        console.warn(`[Roadmap] Attempt ${attempt} invalid output format — retrying...`);
+        continue;
+      }
+
+      roadmapStages = sanitizeRoadmap(llmResult, careerPath);
+
+      console.log(`[Roadmap] Attempt ${attempt}: ${roadmapStages.length} stages, topics: [${roadmapStages.map((s) => s.topics.length).join(", ")}]`);
+
+      if (isCompleteRoadmap(roadmapStages)) break;
+      console.warn(`[Roadmap] Attempt ${attempt} incomplete — regenerating...`);
     }
 
-    const validTypes = ["required", "recommended", "optional", "project", "career"] as const;
-    const validResourceTypes = ["video", "article", "course", "tool", "practice"] as const;
-    const validStageNames = ["beginner", "intermediate", "advanced"] as const;
-
-    const safeHttpUrl = (raw: string) => {
-      try {
-        const parsed = new URL(raw);
-        return parsed.protocol === "http:" || parsed.protocol === "https:" ? parsed.toString() : "";
-      } catch {
-        return "";
-      }
-    };
-
-    // Transform LLM response into database schema with strict sanitization
-    const roadmapStages = llmResult.stages.map((stage, stageIdx) => {
-      const rawName = String(stage.name || "").toLowerCase();
-      const stageName = (validStageNames as readonly string[]).includes(rawName)
-        ? (rawName as (typeof validStageNames)[number])
-        : stageIdx === 0
-        ? "beginner"
-        : stageIdx === 1
-        ? "intermediate"
-        : "advanced";
-
-      const rawTopics = Array.isArray(stage.topics) ? stage.topics : [];
-      console.log(`[Roadmap] Processing stage "${stageName}" with ${rawTopics.length} raw topics`);
-
-      const topics = rawTopics.map((t, idx) => {
-        const topicId = String(t.id || `node-${stageName}-${idx + 1}`);
-        const title = String(t.title || `Skill Node ${idx + 1}`);
-        const description = String(t.description || `Master core concepts and practical skills for ${title}.`);
-        const rawType = String(t.type || "").toLowerCase();
-        const type = (validTypes as readonly string[]).includes(rawType)
-          ? (rawType as (typeof validTypes)[number])
-          : "required";
-        const ytVideos = getRecommendedYouTubeVideos(title, t.youtubeVideos);
-
-        return {
-          id: topicId,
-          title,
-          description,
-          type,
-          whyItMatters: String(t.whyItMatters || `Essential competency for entry-level ${careerPath}.`),
-          nonTechTip: String(t.nonTechTip || "Take it step-by-step and practice with hands-on exercises."),
-          timeEstimate: String(t.timeEstimate || "1-2 weeks"),
-          subtopics: (Array.isArray(t.subtopics) ? t.subtopics : []).map((sub: any, sIdx: number) => {
-            const subTitle = typeof sub === "string" ? sub : (sub?.title ? String(sub.title) : `Subtopic ${sIdx + 1}`);
-            return {
-              id: `sub-${topicId}-${sIdx + 1}`,
-              title: subTitle,
-              completed: false,
-            };
-          }),
-          resources: (Array.isArray(t.resources) ? t.resources : []).map((r: { title?: string; url?: string; type?: string; free?: boolean }) => {
-            const rawResType = String(r?.type || "article").toLowerCase();
-            return {
-              title: String(r?.title || "Documentation Guide"),
-              url: r?.url ? safeHttpUrl(String(r.url)) : "",
-              type: (validResourceTypes as readonly string[]).includes(rawResType)
-                ? (rawResType as (typeof validResourceTypes)[number])
-                : "article",
-              free: r?.free !== false,
-            };
-          }),
-          youtubeVideos: ytVideos,
-          deliverable: String(t.deliverable || `Build a practical ${title} mini-project`),
-          prerequisites: Array.isArray(t.prerequisites) ? t.prerequisites.map(String) : [],
-          completed: false,
-        };
-      });
-
-      const milestones = topics.map((t) => ({ title: t.title, completed: false }));
-
-      return {
-        name: stageName,
-        title: String(stage.title || `Stage ${stageIdx + 1}: ${stageName.charAt(0).toUpperCase() + stageName.slice(1)}`),
-        description: String(stage.description || `Mastery stage for ${stageName}.`),
-        milestones,
-        topics,
-      };
-    });
-
-    console.log(`[Roadmap] Saving roadmap with ${roadmapStages.length} stages, topics: [${roadmapStages.map(s => s.topics.length).join(", ")}]`);
+    if (!isCompleteRoadmap(roadmapStages)) {
+      throw new Error(
+        `Roadmap generation was cut off before completing all 12 topics for "${careerPath}". Please try again.`
+      );
+    }
 
     const payload = {
       userId,
       careerPath,
-      overview: String(llmResult.overview || `Complete granular pathway to become a successful ${careerPath}.`),
-      totalEstimatedWeeks: String(llmResult.totalEstimatedWeeks || "16-24 weeks"),
-      targetRole: String(llmResult.targetRole || `Entry-level ${careerPath}`),
+      overview: String(llmResult?.overview || `Complete granular pathway to become a successful ${careerPath}.`),
+      totalEstimatedWeeks: String(llmResult?.totalEstimatedWeeks || "16-24 weeks"),
+      targetRole: String(llmResult?.targetRole || `Entry-level ${careerPath}`),
       stages: roadmapStages,
       currentStage: "beginner" as const,
     };

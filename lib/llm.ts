@@ -199,6 +199,11 @@ function skipJsonResponseFormat(): boolean {
   return flag !== "1" && flag !== "true" && flag !== "yes";
 }
 
+// Routers commonly cap completions at a small default (e.g. 4096 tokens), which
+// truncates large structured outputs like career roadmaps mid-JSON. Request a
+// generous ceiling; the model only pays for what it actually emits.
+const MAX_COMPLETION_TOKENS = Number(process.env.LLM_MAX_TOKENS?.trim()) || 12000;
+
 async function createStructuredCompletion(
   client: OpenAI,
   model: string,
@@ -212,6 +217,7 @@ async function createStructuredCompletion(
       { role: "user", content: userPrompt },
     ],
     temperature: 0.2,
+    max_tokens: MAX_COMPLETION_TOKENS,
   };
 
   return client.chat.completions.create(

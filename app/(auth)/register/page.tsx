@@ -7,6 +7,7 @@ export const metadata: Metadata = pageMetadata({
   description:
     "Join Career Pilot free — get AI career discovery, personalized learning roadmaps, course recommendations, and 24/7 tutoring.",
   path: "/register",
+  index: false,
 });
 
 export default function RegisterPage() {
