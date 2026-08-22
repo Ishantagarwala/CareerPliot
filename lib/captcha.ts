@@ -21,6 +21,15 @@ export function isRegistrationDisabled(): boolean {
   return flag === "1" || flag === "true" || flag === "yes";
 }
 
+/**
+ * Demo account (demo@careerpilot.com / demo1234) skips captcha and IP-reputation
+ * checks, so it must be opt-in. Enabled explicitly via DEMO_MODE=1/true/yes.
+ */
+export function isDemoLoginEnabled(): boolean {
+  const flag = process.env.DEMO_MODE?.trim().toLowerCase();
+  return flag === "1" || flag === "true" || flag === "yes";
+}
+
 const DISPOSABLE_DOMAINS = new Set([
   "mailinator.com",
   "guerrillamail.com",

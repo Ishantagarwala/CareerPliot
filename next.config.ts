@@ -6,6 +6,55 @@ try {
 } catch {}
 
 const nextConfig: NextConfig = {
+  async headers() {
+    // Content-Security-Policy notes (keep in sync with frontend deps):
+    // - script/style 'unsafe-inline': Next.js hydration + next-themes anti-FOUC
+    //   inline scripts, React inline style attrs. Upgrading to nonce-based CSP
+    //   requires forwarding a nonce through middleware — see Auth.js docs.
+    // - fonts.googleapis/gstatic: Material Symbols (app/layout.tsx).
+    // - hcaptcha origins: login/register widgets (script, challenge iframe,
+    //   api XHR, badge images).
+    // - media-src data:: Sarvam TTS returns base64 WAV played via data: URL.
+    // - img-src unsplash/lh3: news thumbnails and Google avatar images.
+    const csp = [
+      "default-src 'self'",
+      "script-src 'self' 'unsafe-inline'",
+      "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+      "font-src 'self' https://fonts.gstatic.com",
+      "img-src 'self' data: blob: https://images.unsplash.com https://lh3.googleusercontent.com",
+      "media-src 'self' data:",
+      "connect-src 'self' https://api.hcaptcha.com",
+      "frame-src https://hcaptcha.com https://*.hcaptcha.com",
+      "worker-src 'self' blob:",
+      "object-src 'none'",
+      "base-uri 'self'",
+      "form-action 'self'",
+      "frame-ancestors 'none'",
+      "upgrade-insecure-requests",
+    ].join("; ");
+
+    return [
+      {
+        source: "/:path*",
+        headers: [
+          { key: "Content-Security-Policy", value: csp },
+          // 6 months, no preload flag (don't submit until confident in HTTPS story)
+          {
+            key: "Strict-Transport-Security",
+            value: "max-age=15552000",
+          },
+          { key: "X-Content-Type-Options", value: "nosniff" },
+          { key: "X-Frame-Options", value: "DENY" },
+          { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
+          // Microphone intentionally NOT restricted — voice input feature.
+          {
+            key: "Permissions-Policy",
+            value: "camera=(), geolocation=(), payment=()",
+          },
+        ],
+      },
+    ];
+  },
   async redirects() {
     return [
       { source: "/tutor", destination: "/ai-hub", permanent: false },

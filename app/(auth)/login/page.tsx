@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Suspense } from "react";
 import LoginForm from "@/components/auth/LoginForm";
 import { pageMetadata } from "@/lib/seo";
+import { isDemoLoginEnabled } from "@/lib/captcha";
 
 export const metadata: Metadata = pageMetadata({
   title: "Log In",
@@ -23,7 +24,7 @@ export default function LoginPage() {
             Loading form...
           </div>
         }>
-          <LoginForm />
+          <LoginForm demoEnabled={isDemoLoginEnabled()} />
         </Suspense>
       </div>
     </div>

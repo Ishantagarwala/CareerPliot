@@ -6,6 +6,7 @@ import { getClientIp, rateLimit } from '@/lib/security';
 import {
   DEMO_ACCOUNT_EMAIL,
   createLoginTicket,
+  isDemoLoginEnabled,
   isDisposableEmail,
   isRegistrationDisabled,
   verifyCaptchaToken,
@@ -27,7 +28,15 @@ export async function POST(req: Request) {
     const { name, email, password, captchaToken, website } = body;
     const normalizedEmailEarly =
       typeof email === "string" ? email.toLowerCase().trim() : "";
-    const isDemo = normalizedEmailEarly === DEMO_ACCOUNT_EMAIL;
+    // Demo email gets captcha/IP/rate-limit bypasses — only honor it when the
+    // deployment explicitly opted in (DEMO_MODE=true).
+    const isDemo = normalizedEmailEarly === DEMO_ACCOUNT_EMAIL && isDemoLoginEnabled();
+    if (normalizedEmailEarly === DEMO_ACCOUNT_EMAIL && !isDemo) {
+      return NextResponse.json(
+        { message: 'Registration for this account is not available.' },
+        { status: 403 }
+      );
+    }
 
     // Emergency kill switch — set DISABLE_REGISTRATION=true during an active attack
     // (demo account still allowed so demos keep working)

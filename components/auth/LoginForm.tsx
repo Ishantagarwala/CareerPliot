@@ -32,7 +32,7 @@ const loginSchema = z.object({
 
 type LoginFormValues = z.infer<typeof loginSchema>;
 
-export default function LoginForm() {
+export default function LoginForm({ demoEnabled = false }: { demoEnabled?: boolean }) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [loading, setLoading] = useState(false);
@@ -98,7 +98,7 @@ export default function LoginForm() {
   };
 
   useEffect(() => {
-    if (searchParams?.get("demo") !== "true" || demoStarted.current) return;
+    if (!demoEnabled || searchParams?.get("demo") !== "true" || demoStarted.current) return;
     demoStarted.current = true;
     // Drop the query param without remounting mid-login.
     router.replace("/login", { scroll: false });
@@ -272,21 +272,25 @@ export default function LoginForm() {
             )}
           </button>
 
-          <div className="relative flex py-1 items-center">
-            <div className="flex-grow border-t border-border"></div>
-            <span className="flex-shrink mx-4 text-[10px] text-muted-foreground uppercase tracking-wider" style={{ fontFamily: "'JetBrains Mono', monospace" }}>or</span>
-            <div className="flex-grow border-t border-border"></div>
-          </div>
+          {demoEnabled && (
+            <>
+              <div className="relative flex py-1 items-center">
+                <div className="flex-grow border-t border-border"></div>
+                <span className="flex-shrink mx-4 text-[10px] text-muted-foreground uppercase tracking-wider" style={{ fontFamily: "'JetBrains Mono', monospace" }}>or</span>
+                <div className="flex-grow border-t border-border"></div>
+              </div>
 
-          <button
-            type="button"
-            onClick={handleDemoLogin}
-            className="w-full py-2.5 border border-indigo-500/30 text-indigo-400 font-bold text-xs hover:bg-indigo-500/10 hover:border-indigo-500 hover:text-foreground transition-all flex items-center justify-center gap-2"
-            style={{ fontFamily: "'JetBrains Mono', monospace", letterSpacing: "0.04em" }}
-          >
-            Try Demo Login
-            <span className="material-symbols-outlined text-[16px]">bolt</span>
-          </button>
+              <button
+                type="button"
+                onClick={handleDemoLogin}
+                className="w-full py-2.5 border border-indigo-500/30 text-indigo-400 font-bold text-xs hover:bg-indigo-500/10 hover:border-indigo-500 hover:text-foreground transition-all flex items-center justify-center gap-2"
+                style={{ fontFamily: "'JetBrains Mono', monospace", letterSpacing: "0.04em" }}
+              >
+                Try Demo Login
+                <span className="material-symbols-outlined text-[16px]">bolt</span>
+              </button>
+            </>
+          )}
 
           <div className="text-sm text-center text-muted-foreground pt-2">
             Don&apos;t have an account?{" "}

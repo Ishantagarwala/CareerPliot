@@ -1,7 +1,21 @@
 import { NextResponse } from "next/server";
+import { auth } from "@/lib/auth";
+import { MAX_UPLOAD_BYTES, rateLimit } from "@/lib/security";
 
 export async function POST(req: Request) {
   try {
+    const session = await auth();
+    if (!session?.user?.id) {
+      return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+    }
+
+    if (!rateLimit(`voice-transcribe:${session.user.id}`, 40, 60 * 60 * 1000)) {
+      return NextResponse.json(
+        { message: "Too many transcription requests. Try again later." },
+        { status: 429 }
+      );
+    }
+
     const sarvamApiKey = process.env.SARVAM_AI_API_KEY?.trim();
     if (!sarvamApiKey) {
       return NextResponse.json({ message: "Sarvam AI API key is not configured on the server." }, { status: 500 });
@@ -13,6 +27,10 @@ export async function POST(req: Request) {
 
     if (!audioFile) {
       return NextResponse.json({ message: "No audio file provided." }, { status: 400 });
+    }
+
+    if (audioFile.size > MAX_UPLOAD_BYTES) {
+      return NextResponse.json({ message: "Audio file too large (max 10 MB)." }, { status: 413 });
     }
 
     // Forward the file directly to Sarvam.ai API

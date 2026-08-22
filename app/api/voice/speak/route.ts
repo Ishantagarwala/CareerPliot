@@ -1,7 +1,21 @@
 import { NextResponse } from "next/server";
+import { auth } from "@/lib/auth";
+import { rateLimit } from "@/lib/security";
 
 export async function POST(req: Request) {
   try {
+    const session = await auth();
+    if (!session?.user?.id) {
+      return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+    }
+
+    if (!rateLimit(`voice-speak:${session.user.id}`, 60, 60 * 60 * 1000)) {
+      return NextResponse.json(
+        { message: "Too many speech requests. Try again later." },
+        { status: 429 }
+      );
+    }
+
     const sarvamApiKey = process.env.SARVAM_AI_API_KEY?.trim();
     if (!sarvamApiKey) {
       return NextResponse.json({ message: "Sarvam AI API key is not configured on the server." }, { status: 500 });
@@ -9,8 +23,11 @@ export async function POST(req: Request) {
 
     const { text, languageCode, speaker } = await req.json();
 
-    if (!text) {
+    if (typeof text !== "string" || !text.trim()) {
       return NextResponse.json({ message: "No text provided." }, { status: 400 });
+    }
+    if (text.length > 5000) {
+      return NextResponse.json({ message: "Text too long (max 5000 characters)." }, { status: 413 });
     }
 
     const response = await fetch("https://api.sarvam.ai/text-to-speech", {
@@ -20,7 +37,7 @@ export async function POST(req: Request) {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        text,
+        text: text.trim(),
         target_language_code: languageCode || "en-IN",
         speaker: speaker || "meera",
         model: "bulbul:v3",

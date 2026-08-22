@@ -1,8 +1,28 @@
 import { NextResponse } from "next/server";
+import { z } from "zod";
 import { auth } from "@/lib/auth";
 import dbConnect from "@/lib/db";
 import UserProfile from "@/models/UserProfile";
 import User from "@/models/User";
+
+const activeCourseSchema = z.object({
+  title: z.string().trim().min(1).max(200),
+  platform: z.string().trim().min(1).max(100),
+  progress: z.number().min(0).max(100),
+  estCompletion: z.string().trim().min(1).max(100),
+});
+
+const profileUpdateSchema = z.object({
+  name: z.string().trim().min(1).max(100).optional(),
+  currentCourse: z.string().trim().max(200).optional(),
+  activeCurriculum: z.array(activeCourseSchema).max(50).optional(),
+  futureGoals: z
+    .object({
+      shortTerm: z.array(z.string().trim().min(1).max(300)).max(20),
+      longTerm: z.array(z.string().trim().min(1).max(300)).max(20),
+    })
+    .optional(),
+});
 
 export async function GET() {
   try {
@@ -67,8 +87,15 @@ export async function PUT(req: Request) {
     }
 
     const userId = session.user.id;
-    const body = await req.json();
-    const { name, currentCourse, activeCurriculum, futureGoals } = body;
+
+    const parsed = profileUpdateSchema.safeParse(await req.json());
+    if (!parsed.success) {
+      return NextResponse.json(
+        { message: "Invalid profile data", errors: z.treeifyError(parsed.error) },
+        { status: 400 }
+      );
+    }
+    const { name, currentCourse, activeCurriculum, futureGoals } = parsed.data;
 
     await dbConnect();
 

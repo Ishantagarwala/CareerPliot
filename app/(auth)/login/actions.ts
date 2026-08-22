@@ -5,7 +5,7 @@ import { AuthError } from "next-auth";
 import bcrypt from "bcryptjs";
 import dbConnect from "@/lib/db";
 import User from "@/models/User";
-import { DEMO_ACCOUNT_EMAIL } from "@/lib/captcha";
+import { DEMO_ACCOUNT_EMAIL, isDemoLoginEnabled } from "@/lib/captcha";
 
 const DEMO_PASSWORD = "demo1234";
 
@@ -39,6 +39,12 @@ export async function demoSignInAction(): Promise<
   { ok: true } | { ok: false; message: string }
 > {
   try {
+    // Demo login bypasses captcha + IP-reputation checks, so it only exists
+    // when explicitly enabled (DEMO_MODE=true). Never in default prod config.
+    if (!isDemoLoginEnabled()) {
+      return { ok: false, message: "Demo login is disabled on this server." };
+    }
+
     await ensureDemoUser();
     await signIn("credentials", {
       email: DEMO_ACCOUNT_EMAIL,

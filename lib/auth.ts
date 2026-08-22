@@ -5,7 +5,7 @@ import User from '@/models/User';
 import bcrypt from 'bcryptjs';
 import { authConfig } from './auth.config';
 import { getClientIp, rateLimit } from './security';
-import { DEMO_ACCOUNT_EMAIL, requireBotVerification } from './captcha';
+import { DEMO_ACCOUNT_EMAIL, isDemoLoginEnabled, requireBotVerification } from './captcha';
 import { isAllowedEmailProvider } from './allowedEmail';
 import { assertResidentialIp } from './ipReputation';
 
@@ -59,8 +59,12 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           throw new NetworkBlockedError();
         }
 
-        // Shared demo account is used by many people — don't lock it out.
-        const isDemo = email === DEMO_ACCOUNT_EMAIL;
+        // Shared demo account skips captcha/IP checks — only allow when the
+        // deployment explicitly opted in (DEMO_MODE=true).
+        const isDemo = email === DEMO_ACCOUNT_EMAIL && isDemoLoginEnabled();
+        if (email === DEMO_ACCOUNT_EMAIL && !isDemo) {
+          return null;
+        }
         if (!isDemo && !rateLimit(`login:${email}`, 5, 60_000)) {
           return null;
         }
