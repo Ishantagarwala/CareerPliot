@@ -25,7 +25,7 @@ const registerSchema = z.object({
     .refine((v) => ALLOWED_EMAIL_RE.test(v.trim()), {
       message: "Use a Gmail, iCloud, Yahoo, or Outlook/Hotmail email.",
     }),
-  password: z.string().min(6, { message: "Password must be at least 6 characters" }),
+  password: z.string().min(8, { message: "Password must be at least 8 characters" }),
   confirmPassword: z.string(),
   website: z.string().optional(), // honeypot
 }).refine((data) => data.password === data.confirmPassword, {

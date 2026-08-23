@@ -54,11 +54,20 @@ export function isDisposableEmail(email: string): boolean {
 }
 
 function ticketSecret(): string {
-  return (
-    process.env.AUTH_SECRET?.trim() ||
-    process.env.HCAPTCHA_SECRET_KEY?.trim() ||
-    "dev-insecure-secret"
-  );
+  const secret =
+    process.env.AUTH_SECRET?.trim() || process.env.HCAPTCHA_SECRET_KEY?.trim();
+  if (!secret) {
+    if (process.env.NODE_ENV === "production") {
+      // Fail loudly rather than sign tickets with a publicly-known constant.
+      throw new Error(
+        "[captcha] No secret configured for login tickets — set AUTH_SECRET (or HCAPTCHA_SECRET_KEY)."
+      );
+    }
+    // Dev-only escape hatch: hCaptcha/AUTH_SECRET are often unset outside prod,
+    // and AUTH_SECRET is already enforced at startup in production.
+    return "dev-insecure-secret";
+  }
+  return secret;
 }
 
 /** Short-lived ticket so post-register auto-login can skip a second captcha. */
