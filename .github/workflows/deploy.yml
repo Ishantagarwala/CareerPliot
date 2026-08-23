@@ -1,0 +1,59 @@
+# Auto-deploy to the production VPS on every push to main.
+#
+# Flow: checkout -> rsync source to /opt/careerpliot (server has no .git;
+# .env*/storage live only there) -> docker compose rebuild -> smoke check.
+#
+# Required GitHub secret: SSH_PRIVATE_KEY — the ed25519 deploy key whose
+# public half is authorized on the VPS (github-actions-deploy-careerpilot).
+# Host/user are hardcoded because they are already public (Caddyfile).
+
+name: Deploy
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch: # manual re-run from the Actions tab
+
+concurrency:
+  group: deploy-main
+  cancel-in-progress: false # queue overlapping pushes; never kill a running build
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up SSH
+        run: |
+          mkdir -p ~/.ssh
+          printf '%s\n' "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          cat > ~/.ssh/known_hosts <<'HOSTKEY'
+          REDACTED-VPS-IP ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIBzq4lO4lDGyBlxzS7B9wKNV7LdFUlqzQCpZ1RwfSWEJ
+          HOSTKEY
+
+      - name: Rsync source to VPS
+        run: |
+          rsync -az --delete \
+            --exclude node_modules --exclude .next --exclude .git \
+            --exclude '.env*' --exclude storage \
+            -e "ssh -i ~/.ssh/deploy_key -o IdentitiesOnly=yes" \
+            ./ root@REDACTED-VPS-IP:/opt/careerpliot/
+
+      - name: Rebuild and restart container
+        run: |
+          ssh -i ~/.ssh/deploy_key -o IdentitiesOnly=yes root@REDACTED-VPS-IP \
+            'cd /opt/careerpliot && docker compose up -d --build web'
+
+      - name: Smoke check login page
+        run: |
+          code=000
+          for i in $(seq 1 30); do
+            code=$(curl -s -o /dev/null -w '%{http_code}' https://careerpilot.cc/login || true)
+            if [ "$code" = "200" ]; then echo "login page OK (200)"; exit 0; fi
+            sleep 5
+          done
+          echo "::error::Smoke check failed — https://careerpilot.cc/login returned $code"
+          exit 1
