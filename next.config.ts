@@ -12,18 +12,20 @@ const nextConfig: NextConfig = {
     //   inline scripts, React inline style attrs. Upgrading to nonce-based CSP
     //   requires forwarding a nonce through middleware — see Auth.js docs.
     // - fonts.googleapis/gstatic: Material Symbols (app/layout.tsx).
-    // - hcaptcha origins: login/register widgets (script, challenge iframe,
-    //   api XHR, badge images).
+    // - hcaptcha origins (https://docs.hcaptcha.com/#content-security-policy-settings):
+    //   widget script js.hcaptcha.com, challenge assets newassets.hcaptcha.com,
+    //   api XHRs, badge images, challenge iframe. Missing these makes the
+    //   login/register captcha silently never render.
     // - media-src data:: Sarvam TTS returns base64 WAV played via data: URL.
     // - img-src unsplash/lh3: news thumbnails and Google avatar images.
     const csp = [
       "default-src 'self'",
-      "script-src 'self' 'unsafe-inline'",
-      "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+      "script-src 'self' 'unsafe-inline' https://hcaptcha.com https://*.hcaptcha.com",
+      "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://hcaptcha.com https://*.hcaptcha.com",
       "font-src 'self' https://fonts.gstatic.com",
-      "img-src 'self' data: blob: https://images.unsplash.com https://lh3.googleusercontent.com",
+      "img-src 'self' data: blob: https://images.unsplash.com https://lh3.googleusercontent.com https://hcaptcha.com https://*.hcaptcha.com",
       "media-src 'self' data:",
-      "connect-src 'self' https://api.hcaptcha.com",
+      "connect-src 'self' https://api.hcaptcha.com https://hcaptcha.com https://*.hcaptcha.com",
       "frame-src https://hcaptcha.com https://*.hcaptcha.com",
       "worker-src 'self' blob:",
       "object-src 'none'",
