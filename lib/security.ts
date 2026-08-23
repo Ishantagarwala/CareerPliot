@@ -133,8 +133,20 @@ export function rateLimit(key: string, limit: number, windowMs: number): boolean
   return true;
 }
 
-/** Best-effort client IP from common proxy headers. */
+/**
+ * Best-effort client IP from proxy headers.
+ *
+ * Behind Cloudflare, prefer CF-Connecting-IP: X-Forwarded-For's leftmost entry
+ * is client-controlled (spoofable) unless every hop is trusted. Only trust
+ * CF-Connecting-IP when the request actually arrived via Cloudflare
+ * (TRUST_CF_CONNECTING_IP=true on the server), otherwise fall back to the
+ * Caddy-set headers so direct/local traffic still rate-limits correctly.
+ */
 export function getClientIp(req: Request): string {
+  const cfIp = req.headers.get("cf-connecting-ip")?.trim();
+  if (cfIp && process.env.TRUST_CF_CONNECTING_IP === "true") {
+    return cfIp;
+  }
   const forwarded = req.headers.get("x-forwarded-for");
   if (forwarded) {
     const first = forwarded.split(",")[0]?.trim();
