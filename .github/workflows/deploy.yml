@@ -42,11 +42,14 @@ jobs:
             -e "ssh -i ~/.ssh/deploy_key -o IdentitiesOnly=yes" \
             ./ ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:/opt/careerpliot/
 
-      - name: Rebuild and restart container
+      - name: Rebuild web and recreate caddy
         run: |
           ssh -i ~/.ssh/deploy_key -o IdentitiesOnly=yes \
             ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} \
-            'cd /opt/careerpliot && docker compose up -d --build web'
+            'cd /opt/careerpliot && docker compose up -d --build web && docker compose up -d --force-recreate caddy'
+        # force-recreate caddy every deploy: its Caddyfile is a single-file
+        # bind mount, so rsync replacing the file leaves the old inode
+        # mounted — a plain restart would keep serving stale config.
 
       - name: Smoke check login page
         run: |
