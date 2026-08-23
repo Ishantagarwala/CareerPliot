@@ -19,6 +19,8 @@ www.careerpilot.cc {
 	redir https://careerpilot.cc{uri} permanent
 }
 
-http://REDACTED-VPS-IP {
+# Raw-IP convenience redirect; the actual IP is injected via the VPS_IP env var
+# (set in the server-side .env, never committed).
+http://{$VPS_IP} {
 	redir https://careerpilot.cc{uri} permanent
 }

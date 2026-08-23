@@ -27,6 +27,10 @@ services:
     image: caddy:2-alpine
     container_name: careerpliot-caddy
     restart: unless-stopped
+    environment:
+      # Interpolated into the Caddyfile's raw-IP redirect. Real value lives in
+      # the server-side .env (gitignored) — never commit it.
+      VPS_IP: ${VPS_IP:?VPS_IP must be set (see .env.example)}
     depends_on:
       - web
     ports:

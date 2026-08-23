@@ -66,7 +66,7 @@ const nextConfig: NextConfig = {
   },
   experimental: {
     serverActions: {
-      allowedOrigins: ["careerpilot.cc", "www.careerpilot.cc", "REDACTED-VPS-IP"],
+      allowedOrigins: ["careerpilot.cc", "www.careerpilot.cc"],
     },
   },
   serverExternalPackages: ["pdfjs-dist", "pdf-parse"],

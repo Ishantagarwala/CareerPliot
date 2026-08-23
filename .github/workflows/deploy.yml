@@ -3,9 +3,11 @@
 # Flow: checkout -> rsync source to /opt/careerpliot (server has no .git;
 # .env*/storage live only there) -> docker compose rebuild -> smoke check.
 #
-# Required GitHub secret: SSH_PRIVATE_KEY — the ed25519 deploy key whose
-# public half is authorized on the VPS (github-actions-deploy-careerpilot).
-# Host/user are hardcoded because they are already public (Caddyfile).
+# Required GitHub secrets (all server-specific values stay out of the repo):
+#   SSH_PRIVATE_KEY  — ed25519 deploy key authorized on the VPS
+#   SSH_HOST         — server address
+#   SSH_USER         — SSH user on the server
+#   SSH_KNOWN_HOSTS  — pinned known_hosts line for the host (TOFU protection)
 
 name: Deploy
 
@@ -29,10 +31,8 @@ jobs:
         run: |
           mkdir -p ~/.ssh
           printf '%s\n' "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/deploy_key
-          chmod 600 ~/.ssh/deploy_key
-          cat > ~/.ssh/known_hosts <<'HOSTKEY'
-          REDACTED-VPS-IP ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIBzq4lO4lDGyBlxzS7B9wKNV7LdFUlqzQCpZ1RwfSWEJ
-          HOSTKEY
+          printf '%s\n' "${{ secrets.SSH_KNOWN_HOSTS }}" > ~/.ssh/known_hosts
+          chmod 600 ~/.ssh/deploy_key ~/.ssh/known_hosts
 
       - name: Rsync source to VPS
         run: |
@@ -40,11 +40,12 @@ jobs:
             --exclude node_modules --exclude .next --exclude .git \
             --exclude '.env*' --exclude storage \
             -e "ssh -i ~/.ssh/deploy_key -o IdentitiesOnly=yes" \
-            ./ root@REDACTED-VPS-IP:/opt/careerpliot/
+            ./ ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:/opt/careerpliot/
 
       - name: Rebuild and restart container
         run: |
-          ssh -i ~/.ssh/deploy_key -o IdentitiesOnly=yes root@REDACTED-VPS-IP \
+          ssh -i ~/.ssh/deploy_key -o IdentitiesOnly=yes \
+            ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} \
             'cd /opt/careerpliot && docker compose up -d --build web'
 
       - name: Smoke check login page
