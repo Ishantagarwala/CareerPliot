@@ -19,6 +19,10 @@ services:
       - AUTH_URL=https://careerpilot.cc
       - NEXTAUTH_URL=https://careerpilot.cc
       - NEXT_PUBLIC_SITE_URL=https://careerpilot.cc
+      # This compose file is the public Career Pilot VPS deployment. Enable
+      # the opt-in shared demo flow while keeping the application default off
+      # for every other deployment.
+      - DEMO_MODE=true
     volumes:
       - careerpliot_uploads:/app/public/uploads
       - careerpliot_storage:/app/storage/uploads

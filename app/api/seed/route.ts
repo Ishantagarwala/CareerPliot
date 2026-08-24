@@ -17,6 +17,7 @@ import Hackathon from "@/models/Hackathon";
 import TeamPost from "@/models/TeamPost";
 import Application from "@/models/Application";
 import { rateLimit } from "@/lib/security";
+import { DEMO_ACCOUNT_EMAIL, isDemoLoginEnabled } from "@/lib/captcha";
 
 export async function GET(req: Request) {
   const response = await handleSeed(req);
@@ -37,9 +38,17 @@ export async function POST(req: Request) {
   return handleSeed(req);
 }
 
-function seedAllowedInEnvironment(req: Request): boolean {
+function seedAllowedInEnvironment(req: Request, email?: string | null): boolean {
   // Non-production: allow for local/demo onboarding.
   if (process.env.NODE_ENV !== "production") {
+    return true;
+  }
+  // The public demo button seeds only the explicitly enabled shared demo
+  // account. Other production accounts still require SEED_SECRET.
+  if (
+    isDemoLoginEnabled() &&
+    email?.toLowerCase().trim() === DEMO_ACCOUNT_EMAIL
+  ) {
     return true;
   }
   // Production: require an explicit SEED_SECRET header match.
@@ -50,13 +59,13 @@ function seedAllowedInEnvironment(req: Request): boolean {
 
 async function handleSeed(req: Request) {
   try {
-    if (!seedAllowedInEnvironment(req)) {
-      return NextResponse.json({ message: "Forbidden" }, { status: 403 });
-    }
-
     const session = await auth();
     if (!session || !session.user || !session.user.id) {
       return NextResponse.json({ message: "Unauthorized. Please log in first." }, { status: 401 });
+    }
+
+    if (!seedAllowedInEnvironment(req, session.user.email)) {
+      return NextResponse.json({ message: "Forbidden" }, { status: 403 });
     }
 
     const userId = session.user.id;
@@ -673,4 +682,3 @@ async function handleSeed(req: Request) {
     );
   }
 }
-

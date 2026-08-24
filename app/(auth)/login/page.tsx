@@ -4,6 +4,11 @@ import LoginForm from "@/components/auth/LoginForm";
 import { pageMetadata } from "@/lib/seo";
 import { isDemoLoginEnabled } from "@/lib/captcha";
 
+// DEMO_MODE is a runtime-only VPS setting. Without forcing dynamic rendering,
+// Next.js bakes demoEnabled=false into the statically generated login page
+// because .env.production is intentionally excluded from the Docker build.
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = pageMetadata({
   title: "Log In",
   description:
