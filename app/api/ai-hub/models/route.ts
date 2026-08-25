@@ -12,6 +12,25 @@ function providerPrefix(id: string): string {
   return slash === -1 ? "" : id.slice(0, slash).toLowerCase();
 }
 
+/**
+ * Routers list non-chat models too (transcription, TTS, safety classifiers).
+ * Exclude them so the picker only offers models the chat endpoint can serve.
+ */
+const NON_CHAT_NAME_PATTERN = /prompt[-_]?guard/i;
+
+function isChatCapable(model: Record<string, unknown>): boolean {
+  const id = typeof model.id === "string" ? model.id : "";
+  const name = typeof model.name === "string" ? model.name : "";
+  if (NON_CHAT_NAME_PATTERN.test(id) || NON_CHAT_NAME_PATTERN.test(name)) {
+    return false;
+  }
+  const outputs = Array.isArray(model.output_modalities)
+    ? (model.output_modalities as unknown[])
+    : null;
+  // Absent metadata (plain OpenAI-compatible routers) means "assume chat".
+  return !outputs || outputs.includes("text");
+}
+
 /** Prefer env default, then a stable provider order, then first seen. */
 function preferenceScore(id: string, preferred?: string): number {
   if (preferred && id === preferred) return 1000;
@@ -57,7 +76,8 @@ export async function GET() {
         return;
       }
       for (const model of listing.value.data || []) {
-        if (typeof model?.id !== "string" || !model.id.trim()) continue;
+        if (!model || typeof model.id !== "string" || !model.id.trim()) continue;
+        if (!isChatCapable(model as unknown as Record<string, unknown>)) continue;
         rawIds.push(`${router.prefix}${model.id.trim()}`);
       }
     });
