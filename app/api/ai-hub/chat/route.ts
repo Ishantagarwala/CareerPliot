@@ -6,7 +6,7 @@ import CareerRecommendation from "@/models/CareerRecommendation";
 import Document from "@/models/Document";
 import UserProgress from "@/models/UserProgress";
 import { buildAiHubSystemPrompt, buildDocumentContext } from "@/lib/aiHub";
-import { getLlmClient, getLlmModel } from "@/lib/llm";
+import { resolveLlmEndpoint } from "@/lib/llm";
 import { enforceLlmBudget } from "@/lib/llmGuard";
 import {
   isOwnedUploadFilename,
@@ -381,8 +381,7 @@ export async function POST(req: Request) {
     const limited = enforceLlmBudget(userId, "ai-hub-chat", 30);
     if (limited) return limited;
 
-    const client = getLlmClient();
-    const model = getLlmModel(false, modelSelection);
+    const { client, model } = resolveLlmEndpoint(modelSelection);
     const threadIdStr = String(chat._id);
 
     const docsUsed = documents.map((doc) => ({

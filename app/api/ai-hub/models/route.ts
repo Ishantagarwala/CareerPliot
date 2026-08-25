@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
-import { getLlmClient } from "@/lib/llm";
+import { listConfiguredRouters } from "@/lib/llm";
 
 function baseModelName(id: string): string {
   const slash = id.indexOf("/");
@@ -24,9 +24,11 @@ function preferenceScore(id: string, preferred?: string): number {
 }
 
 /**
- * Fetch models from the configured LLM router and return unique entries.
- * Models that only differ by provider prefix (e.g. ares/gpt-5.6-sol vs
- * latina/gpt-5.6-sol) are collapsed to a single option.
+ * Fetch models from every configured router (primary + secondary e.g. Groq)
+ * and return unique entries. Secondary-router ids are prefixed with their
+ * host label ("groq/llama-3.1-8b-instant") so the chat route can send the
+ * request to the right provider; models that only differ by provider prefix
+ * on the same router are collapsed to a single option.
  */
 export async function GET() {
   try {
@@ -35,14 +37,37 @@ export async function GET() {
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }
 
-    const client = getLlmClient();
-    const list = await client.models.list();
+    const routers = listConfiguredRouters();
+    const listings = await Promise.allSettled(
+      routers.map((router) => router.client.models.list())
+    );
 
     const preferred = process.env.LLM_ROUTER_MODEL?.trim() || undefined;
+    const rawIds: string[] = [];
+    let failedRouters = 0;
 
-    const rawIds = (list.data || [])
-      .map((m) => (typeof m?.id === "string" ? m.id.trim() : ""))
-      .filter(Boolean);
+    routers.forEach((router, index) => {
+      const listing = listings[index];
+      if (listing.status !== "fulfilled") {
+        failedRouters += 1;
+        console.error(
+          `Failed to fetch models from ${router.baseURL}:`,
+          listing.reason
+        );
+        return;
+      }
+      for (const model of listing.value.data || []) {
+        if (typeof model?.id !== "string" || !model.id.trim()) continue;
+        rawIds.push(`${router.prefix}${model.id.trim()}`);
+      }
+    });
+
+    if (rawIds.length === 0) {
+      return NextResponse.json(
+        { message: "Failed to fetch models from all configured routers" },
+        { status: 502 }
+      );
+    }
 
     // First pass: unique full IDs
     const uniqueIds = Array.from(new Set(rawIds));
@@ -80,6 +105,8 @@ export async function GET() {
         totalFromRouter: rawIds.length,
         uniqueIds: uniqueIds.length,
         uniqueModels: models.length,
+        routersConfigured: routers.length,
+        routersFailed: failedRouters,
       },
     });
   } catch (error: unknown) {

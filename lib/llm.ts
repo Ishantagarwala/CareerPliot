@@ -166,6 +166,68 @@ export function getLlmClient(): OpenAI {
   return chain[0].client;
 }
 
+// ─── Router-aware model catalog (AI Hub) ─────────────────────────────────────
+
+export interface ConfiguredRouter {
+  client: OpenAI;
+  baseURL: string;
+  /** Prefix added to this router's model ids; empty for the primary router. */
+  prefix: string;
+}
+
+/**
+ * Every configured router client in chain order, with the display prefix its
+ * models get in the AI Hub picker (e.g. "groq/" for the secondary router).
+ * The primary router keeps unprefixed ids for backward compatibility.
+ */
+export function listConfiguredRouters(): ConfiguredRouter[] {
+  const chain = buildProviderChain();
+  const primaryBaseURL = chain[0].baseURL;
+
+  const routers = new Map<string, ConfiguredRouter>();
+  for (const provider of chain) {
+    if (!routers.has(provider.baseURL)) {
+      routers.set(provider.baseURL, {
+        client: provider.client,
+        baseURL: provider.baseURL,
+        prefix: provider.baseURL === primaryBaseURL ? "" : `${routerLabel(provider.baseURL)}/`,
+      });
+    }
+  }
+  return Array.from(routers.values());
+}
+
+/**
+ * Resolves a model selection to a concrete client + native model id.
+ * - Native ids present in any router's chain entry match directly
+ * - "<label>/<id>" (e.g. "groq/llama-3.1-8b-instant") selects that router
+ * - Anything else falls back to the legacy alias handling on the primary router
+ */
+export function resolveLlmEndpoint(modelSelection?: string): {
+  client: OpenAI;
+  model: string;
+} {
+  const chain = buildProviderChain();
+
+  const direct = chain.find((provider) => provider.model === modelSelection);
+  if (direct) return { client: direct.client, model: direct.model };
+
+  const slashIdx = modelSelection ? modelSelection.indexOf("/") : -1;
+  if (modelSelection && slashIdx > 0) {
+    const label = modelSelection.slice(0, slashIdx).toLowerCase();
+    const nativeId = modelSelection.slice(slashIdx + 1);
+    const prefixed = chain.find(
+      (provider) =>
+        provider.baseURL !== chain[0].baseURL &&
+        routerLabel(provider.baseURL) === label &&
+        provider.model === nativeId
+    );
+    if (prefixed) return { client: prefixed.client, model: prefixed.model };
+  }
+
+  return { client: chain[0].client, model: getLlmModel(false, modelSelection) };
+}
+
 /**
  * Model id for the LLM router.
  * - Explicit AI Hub selections (full model ids) are passed through
