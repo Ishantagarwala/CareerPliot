@@ -13,14 +13,11 @@ import {
 import BrandLogo from "@/components/layout/BrandLogo";
 import DocumentLibrary from "./DocumentLibrary";
 import UnifiedChat from "./UnifiedChat";
-
-interface HubDocument {
-  _id: string;
-  id?: string;
-  filename: string;
-  summary?: string;
-  createdAt?: string;
-}
+import {
+  getDocumentId,
+  type HubDocument,
+  type HubThread,
+} from "./types";
 
 const THEME_ACCENTS = [
   { id: "lime", name: "Lime Green", primary: "#baf600", foreground: "#151f00" },
@@ -48,7 +45,7 @@ export default function AIHubLayout() {
 
   const [themeColor, setThemeColor] = useState<string>("lime");
 
-  const [threads, setThreads] = useState<any[]>([]);
+  const [threads, setThreads] = useState<HubThread[]>([]);
   const [activeThreadId, setActiveThreadId] = useState<string | null>(null);
   const [loadingThreads, setLoadingThreads] = useState(true);
   const [editingThreadId, setEditingThreadId] = useState<string | null>(null);
@@ -60,8 +57,10 @@ export default function AIHubLayout() {
   const [isMobile, setIsMobile] = useState(false);
 
   const [threadToDeleteId, setThreadToDeleteId] = useState<string | null>(null);
+  const [deletingThreadId, setDeletingThreadId] = useState<string | null>(null);
   const [docToDelete, setDocToDelete] = useState<{ id: string; filename: string } | null>(null);
   const [deletingDocId, setDeletingDocId] = useState<string | null>(null);
+  const cancelRenameOnBlurRef = useRef(false);
 
   const isDark = resolvedTheme === "dark";
 
@@ -71,11 +70,17 @@ export default function AIHubLayout() {
       if (!res.ok) {
         throw new Error("Failed to load documents");
       }
-      const data = await res.json();
-      setDocuments(data);
-    } catch (error: any) {
+      const data = (await res.json()) as HubDocument[];
+      setDocuments(
+        Array.isArray(data)
+          ? data.filter((document) => Boolean(getDocumentId(document)))
+          : []
+      );
+    } catch (error: unknown) {
       console.error(error);
-      toast.error(error.message || "Failed to load documents");
+      toast.error(
+        error instanceof Error ? error.message : "Failed to load documents"
+      );
     } finally {
       setLoadingDocuments(false);
     }
@@ -86,8 +91,11 @@ export default function AIHubLayout() {
   const fetchThreads = useCallback(async (opts?: { autoSelect?: boolean }) => {
     try {
       const res = await fetch("/api/ai-hub/threads");
-      if (res.ok) {
-        const data = await res.json();
+      if (!res.ok) {
+        throw new Error("Failed to load conversation history");
+      }
+      const data = (await res.json()) as HubThread[];
+      if (Array.isArray(data)) {
         setThreads(data);
         // Only auto-select once on first load — never yank "New Thread" or an active stream.
         if (
@@ -162,52 +170,83 @@ export default function AIHubLayout() {
   };
 
   const handleRenameThread = async (id: string, newTitle: string) => {
-    if (!newTitle.trim()) return;
+    const title = newTitle.trim();
+    if (!title) {
+      setEditingThreadId(null);
+      return;
+    }
     try {
       const res = await fetch(`/api/ai-hub/threads/${id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ title: newTitle }),
+        body: JSON.stringify({ title }),
       });
-      if (res.ok) {
-        const updated = await res.json();
-        setThreads((prev) =>
-          prev.map((t) => (t._id === id ? { ...t, threadTitle: updated.threadTitle } : t))
-        );
-        toast.success("Conversation renamed");
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.message || "Failed to rename conversation");
       }
-    } catch {
-      toast.error("Failed to rename conversation");
+      const updated = (await res.json()) as HubThread;
+      setThreads((prev) =>
+        prev.map((thread) =>
+          thread._id === id
+            ? { ...thread, threadTitle: updated.threadTitle }
+            : thread
+        )
+      );
+      toast.success("Conversation renamed");
+    } catch (error: unknown) {
+      toast.error(
+        error instanceof Error ? error.message : "Failed to rename conversation"
+      );
+    } finally {
+      setEditingThreadId(null);
     }
   };
 
   const handleDeleteThread = async (id: string) => {
+    setDeletingThreadId(id);
     try {
       const res = await fetch(`/api/ai-hub/threads/${id}`, {
         method: "DELETE",
       });
-      if (res.ok) {
-        setThreads((prev) => prev.filter((t) => t._id !== id));
-        if (activeThreadId === id) {
-          setActiveThreadId(null);
-        }
-        toast.success("Conversation deleted");
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.message || "Failed to delete conversation");
       }
-    } catch {
-      toast.error("Failed to delete conversation");
+      setThreads((prev) => prev.filter((thread) => thread._id !== id));
+      if (activeThreadId === id) {
+        setActiveThreadId(null);
+      }
+      setThreadToDeleteId(null);
+      toast.success("Conversation deleted");
+    } catch (error: unknown) {
+      toast.error(
+        error instanceof Error ? error.message : "Failed to delete conversation"
+      );
+    } finally {
+      setDeletingThreadId(null);
     }
   };
 
-  const handleUploadSuccess = (document: any) => {
-    const id = document.id || document._id;
-    const formattedDocument = {
+  const handleUploadSuccess = (document: HubDocument) => {
+    const id = getDocumentId(document);
+    if (!id) {
+      toast.error("Upload succeeded, but the document id was missing. Refreshing library.");
+      void fetchDocuments();
+      return;
+    }
+    const formattedDocument: HubDocument = {
       _id: id,
       filename: document.filename,
+      fileUrl: document.fileUrl,
       summary: document.summary,
-      createdAt: new Date().toISOString(),
+      createdAt: document.createdAt || new Date().toISOString(),
     };
 
-    setDocuments((prev) => [formattedDocument, ...prev]);
+    setDocuments((prev) => [
+      formattedDocument,
+      ...prev.filter((item) => getDocumentId(item) !== id),
+    ]);
     setSelectedDocumentIds([id]);
   };
 
@@ -227,12 +266,12 @@ export default function AIHubLayout() {
         const data = await res.json().catch(() => ({}));
         throw new Error(data.message || "Failed to delete document");
       }
-      setDocuments((prev) => prev.filter((d) => (d._id || d.id) !== id));
+      setDocuments((prev) => prev.filter((document) => getDocumentId(document) !== id));
       setSelectedDocumentIds((prev) => prev.filter((docId) => docId !== id));
       toast.success("PDF deleted");
       setDocToDelete(null);
-    } catch (error: any) {
-      toast.error(error.message || "Failed to delete PDF");
+    } catch (error: unknown) {
+      toast.error(error instanceof Error ? error.message : "Failed to delete PDF");
     } finally {
       setDeletingDocId(null);
     }
@@ -371,16 +410,21 @@ export default function AIHubLayout() {
                         onChange={(e) => setEditingTitle(e.target.value)}
                         onKeyDown={(e) => {
                           if (e.key === "Enter") {
-                            handleRenameThread(thread._id, editingTitle);
-                            setEditingThreadId(null);
+                            e.preventDefault();
+                            e.currentTarget.blur();
                           } else if (e.key === "Escape") {
+                            cancelRenameOnBlurRef.current = true;
                             setEditingThreadId(null);
                           }
                         }}
                         onBlur={() => {
-                          handleRenameThread(thread._id, editingTitle);
-                          setEditingThreadId(null);
+                          if (cancelRenameOnBlurRef.current) {
+                            cancelRenameOnBlurRef.current = false;
+                            return;
+                          }
+                          void handleRenameThread(thread._id, editingTitle);
                         }}
+                        maxLength={80}
                         className="bg-transparent text-[11px] text-foreground w-full focus:outline-none"
                         autoFocus
                       />
@@ -419,6 +463,7 @@ export default function AIHubLayout() {
                           e.stopPropagation();
                           setEditingThreadId(thread._id);
                           setEditingTitle(thread.threadTitle || "");
+                          cancelRenameOnBlurRef.current = false;
                         }}
                         className="hover:text-foreground text-muted-foreground p-1.5 -my-1 touch-manipulation"
                         aria-label={`Rename ${thread.threadTitle || "conversation"}`}
@@ -465,6 +510,7 @@ export default function AIHubLayout() {
             onClick={() => signOut({ callbackUrl: "/" })}
             className="p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-card transition-colors cursor-pointer"
             title="Sign Out"
+            aria-label="Sign out"
           >
             <span className="material-symbols-outlined text-[18px]">logout</span>
           </button>
@@ -540,10 +586,15 @@ export default function AIHubLayout() {
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
           <div
             className="fixed inset-0 bg-black/60 backdrop-blur-xs"
-            onClick={() => setThreadToDeleteId(null)}
+            onClick={() => !deletingThreadId && setThreadToDeleteId(null)}
           />
-          <div className="relative w-full max-w-sm bg-card border-2 border-border p-6 rounded-xl animate-fade-in-up z-[101]">
-            <h3 className="text-sm font-bold text-foreground uppercase tracking-wider font-mono mb-2">
+          <div
+            className="relative w-full max-w-sm bg-card border-2 border-border p-6 rounded-xl animate-fade-in-up z-[101]"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="delete-thread-title"
+          >
+            <h3 id="delete-thread-title" className="text-sm font-bold text-foreground uppercase tracking-wider font-mono mb-2">
               Delete Conversation?
             </h3>
             <p className="text-xs text-muted-foreground leading-relaxed mb-6">
@@ -553,6 +604,7 @@ export default function AIHubLayout() {
               <button
                 type="button"
                 onClick={() => setThreadToDeleteId(null)}
+                disabled={Boolean(deletingThreadId)}
                 className="px-4 py-2 text-xs font-bold text-muted-foreground border border-border rounded-lg hover:bg-sidebar transition-colors cursor-pointer"
               >
                 Cancel
@@ -561,13 +613,13 @@ export default function AIHubLayout() {
                 type="button"
                 onClick={() => {
                   if (threadToDeleteId) {
-                    handleDeleteThread(threadToDeleteId);
-                    setThreadToDeleteId(null);
+                    void handleDeleteThread(threadToDeleteId);
                   }
                 }}
-                className="px-4 py-2 text-xs font-bold bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors cursor-pointer"
+                disabled={Boolean(deletingThreadId)}
+                className="px-4 py-2 text-xs font-bold bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors cursor-pointer disabled:opacity-50"
               >
-                Delete
+                {deletingThreadId ? "Deleting..." : "Delete"}
               </button>
             </div>
           </div>
@@ -580,8 +632,13 @@ export default function AIHubLayout() {
             className="fixed inset-0 bg-black/60 backdrop-blur-xs"
             onClick={() => !deletingDocId && setDocToDelete(null)}
           />
-          <div className="relative w-full max-w-sm bg-card border-2 border-border p-6 rounded-xl animate-fade-in-up z-[101]">
-            <h3 className="text-sm font-bold text-foreground uppercase tracking-wider font-mono mb-2">
+          <div
+            className="relative w-full max-w-sm bg-card border-2 border-border p-6 rounded-xl animate-fade-in-up z-[101]"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="delete-document-title"
+          >
+            <h3 id="delete-document-title" className="text-sm font-bold text-foreground uppercase tracking-wider font-mono mb-2">
               Delete PDF?
             </h3>
             <p className="text-xs text-muted-foreground leading-relaxed mb-6">

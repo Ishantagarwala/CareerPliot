@@ -1,12 +1,6 @@
 "use client";
 
-interface HubDocument {
-  _id: string;
-  id?: string;
-  filename: string;
-  summary?: string;
-  createdAt?: string;
-}
+import { getDocumentId, type HubDocument } from "./types";
 
 interface DocumentLibraryProps {
   documents: HubDocument[];
@@ -45,7 +39,9 @@ export default function DocumentLibrary({
           </div>
         ) : (
           documents.map((doc) => {
-            const id = doc._id || doc.id || "";
+            const id = getDocumentId(doc);
+            if (!id) return null;
+
             const selected = selectedDocumentIds.includes(id);
             const isDeleting = deletingId === id;
 
@@ -64,6 +60,8 @@ export default function DocumentLibrary({
                     onClick={() => onToggleDocument(id)}
                     className="flex items-start gap-2.5 min-w-0 flex-1 text-left cursor-pointer"
                     disabled={isDeleting}
+                    aria-pressed={selected}
+                    aria-label={`${selected ? "Deselect" : "Select"} ${doc.filename}`}
                   >
                     <span
                       className={`material-symbols-outlined text-[16px] shrink-0 mt-0.5 ${

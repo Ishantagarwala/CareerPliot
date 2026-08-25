@@ -6,6 +6,7 @@ import UserProgress from "@/models/UserProgress";
 import { mkdir, writeFile } from "fs/promises";
 import path from "path";
 
+import { prepareStoredDocumentText } from "@/lib/aiHub";
 import { extractTextFromPdf } from "@/lib/pdf";
 import {
   MAX_UPLOAD_BYTES,
@@ -33,11 +34,12 @@ export async function POST(req: Request) {
     }
 
     const formData = await req.formData();
-    const file = formData.get("file") as File;
+    const file = formData.get("file");
 
-    if (!file) {
+    if (!(file instanceof File)) {
       return NextResponse.json({ message: "No file uploaded" }, { status: 400 });
     }
+    const displayFilename = file.name.trim().slice(0, 200) || "document.pdf";
 
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
@@ -50,7 +52,8 @@ export async function POST(req: Request) {
     }
 
     // Validate true file type from magic bytes, not the client-supplied name/type.
-    if (sniffFileType(buffer) !== "pdf") {
+    const sniffedType = sniffFileType(buffer);
+    if (sniffedType !== "pdf") {
       return NextResponse.json(
         { message: "Only PDF files are accepted." },
         { status: 415 }
@@ -60,7 +63,7 @@ export async function POST(req: Request) {
     // 1. Extract text from PDF using extractTextFromPdf (PDF.co with PDF.js fallback)
     let pdfText = "";
     try {
-      pdfText = await extractTextFromPdf(buffer, file.name);
+      pdfText = await extractTextFromPdf(buffer, displayFilename);
     } catch (parseError: unknown) {
       console.error("PDF Parsing Error:", parseError);
       return NextResponse.json(
@@ -77,16 +80,18 @@ export async function POST(req: Request) {
     }
 
     // 2. Save file to private storage (not under public/)
-    const uniqueFilename = buildOwnedUploadFilename(userId, file.name);
+    const uniqueFilename = buildOwnedUploadFilename(
+      userId,
+      displayFilename,
+      sniffedType
+    );
     const fileUrl = toUploadFileUrl(uniqueFilename);
 
-    if (!process.env.VERCEL && process.env.NODE_ENV !== "production") {
-      try {
-        await mkdir(UPLOADS_DIR, { recursive: true });
-        await writeFile(path.join(UPLOADS_DIR, uniqueFilename), buffer);
-      } catch (writeError) {
-        console.error("Local file write error (non-fatal):", writeError);
-      }
+    // The VPS mounts storage/uploads as a persistent writable volume. Only
+    // Vercel's ephemeral runtime must skip local persistence.
+    if (!process.env.VERCEL) {
+      await mkdir(UPLOADS_DIR, { recursive: true });
+      await writeFile(path.join(UPLOADS_DIR, uniqueFilename), buffer);
     }
 
     // 3. Connect to Database
@@ -96,9 +101,9 @@ export async function POST(req: Request) {
     // on demand later via chat, so they start empty here.
     const newDoc = new Document({
       userId,
-      filename: file.name,
+      filename: displayFilename,
       fileUrl,
-      contentText: pdfText,
+      contentText: prepareStoredDocumentText(pdfText),
       questions: [],
     });
 
@@ -112,16 +117,26 @@ export async function POST(req: Request) {
         $set: { lastActive: new Date() }
       },
       { upsert: true, new: true }
-    );
+    ).catch((progressError) => {
+      console.error(
+        "Failed to update PDF progress (non-fatal):",
+        progressError
+      );
+    });
+
+    const documentId = String(newDoc._id);
 
     return NextResponse.json({
       message: "File uploaded successfully",
       document: {
-        id: newDoc._id,
+        _id: documentId,
+        id: documentId,
+        docId: documentId,
         filename: newDoc.filename,
         fileUrl: newDoc.fileUrl,
         summary: newDoc.summary,
         questions: newDoc.questions,
+        createdAt: newDoc.createdAt,
       },
     });
   } catch (error) {

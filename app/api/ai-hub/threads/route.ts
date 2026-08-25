@@ -4,6 +4,7 @@ import dbConnect from "@/lib/db";
 import ChatHistory from "@/models/ChatHistory";
 
 export const dynamic = "force-dynamic";
+const MAX_THREAD_TITLE_CHARS = 80;
 
 export async function GET() {
   try {
@@ -19,7 +20,7 @@ export async function GET() {
       .lean();
 
     return NextResponse.json(threads);
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Threads GET API error:", error);
     return NextResponse.json(
       { message: "Internal Server Error" },
@@ -35,7 +36,13 @@ export async function POST(req: Request) {
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }
 
-    const { title = "New Chat", type = "general" } = await req.json().catch(() => ({}));
+    const body = (await req.json().catch(() => null)) as
+      | Record<string, unknown>
+      | null;
+    const rawTitle =
+      typeof body?.title === "string" ? body.title.trim() : "New Chat";
+    const title = (rawTitle || "New Chat").slice(0, MAX_THREAD_TITLE_CHARS);
+    const type = body?.type === "document" ? "document" : "general";
 
     await dbConnect();
     const newThread = new ChatHistory({
@@ -48,7 +55,7 @@ export async function POST(req: Request) {
     await newThread.save();
 
     return NextResponse.json(newThread);
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Threads POST API error:", error);
     return NextResponse.json(
       { message: "Internal Server Error" },

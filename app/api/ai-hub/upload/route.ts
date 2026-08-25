@@ -3,9 +3,9 @@ import { auth } from "@/lib/auth";
 import dbConnect from "@/lib/db";
 import Document from "@/models/Document";
 import UserProgress from "@/models/UserProgress";
-import { generateStructuredJson } from "@/lib/llm";
 import { mkdir, writeFile } from "fs/promises";
 import path from "path";
+import { prepareStoredDocumentText } from "@/lib/aiHub";
 import { extractTextFromPdf } from "@/lib/pdf";
 import {
   MAX_UPLOAD_BYTES,
@@ -15,23 +15,9 @@ import {
   sniffFileType,
   toUploadFileUrl,
 } from "@/lib/security";
-import { enforceLlmBudget } from "@/lib/llmGuard";
 
 export const dynamic = "force-dynamic";
-// PDF parsing + LLM summarization can exceed the default 10s function limit.
-export const maxDuration = 60;
-
-interface LlmQuestion {
-  question: string;
-  options?: string[];
-  answer: string;
-  type: "mcq" | "flashcard";
-}
-
-interface LlmResponse {
-  summary: string;
-  questions: LlmQuestion[];
-}
+export const maxDuration = 30;
 
 export async function POST(req: Request) {
   try {
@@ -45,15 +31,13 @@ export async function POST(req: Request) {
       return NextResponse.json({ message: "Too many uploads. Try again later." }, { status: 429 });
     }
 
-    const limited = enforceLlmBudget(userId, "ai-upload", 15);
-    if (limited) return limited;
-
     const formData = await req.formData();
-    const file = formData.get("file") as File;
+    const file = formData.get("file");
 
-    if (!file) {
+    if (!(file instanceof File)) {
       return NextResponse.json({ message: "No file uploaded" }, { status: 400 });
     }
+    const displayFilename = file.name.trim().slice(0, 200) || "upload";
 
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
@@ -73,26 +57,19 @@ export async function POST(req: Request) {
       return NextResponse.json({ message: "Unsupported file type" }, { status: 415 });
     }
 
-    const uniqueFilename = buildOwnedUploadFilename(userId, file.name);
+    const uniqueFilename = buildOwnedUploadFilename(
+      userId,
+      displayFilename,
+      sniffedType
+    );
     const fileUrl = toUploadFileUrl(uniqueFilename);
 
-    // Write file to private storage in local/dev
-    if (!process.env.VERCEL && process.env.NODE_ENV !== "production") {
-      try {
-        await mkdir(UPLOADS_DIR, { recursive: true });
-        await writeFile(path.join(UPLOADS_DIR, uniqueFilename), buffer);
-      } catch (writeError) {
-        console.error("Local file write error (non-fatal):", writeError);
-      }
-    }
-
-    await dbConnect();
-
-    // 1. Process PDF file
+    // Process PDFs without a second LLM call. Chat uses the extracted text as
+    // context and generates summaries/quizzes on demand.
     if (sniffedType === "pdf") {
       let pdfText = "";
       try {
-        pdfText = await extractTextFromPdf(buffer, file.name);
+        pdfText = await extractTextFromPdf(buffer, displayFilename);
       } catch (parseError) {
         console.error("PDF Parsing Error:", parseError);
         return NextResponse.json(
@@ -108,56 +85,19 @@ export async function POST(req: Request) {
         );
       }
 
-      const maxChars = 16000;
-      const textToAnalyze = pdfText.length > maxChars 
-        ? pdfText.substring(0, maxChars) + "\n\n[Content truncated for length limits...]"
-        : pdfText;
-
-      const systemPrompt = `You are an expert AI learning assistant. Your task is to analyze the text extracted from a student's study document (syllabus, notes, textbook chapter) and generate:
-1. A detailed, structured summary using Markdown (with clear headings, bullet points, and key takeaways).
-2. Exactly 6 study questions:
-   - 3 Multiple Choice Questions (type: "mcq"), each with a question, exactly 4 options, and the correct answer (which must match one of the options exactly).
-   - 3 Flashcards (type: "flashcard"), each with a question/front-side and a brief, clear answer/back-side.
-
-Return your response ONLY as a JSON object matching this schema:
-{
-  "summary": "Detailed markdown summary...",
-  "questions": [
-    {
-      "question": "What is ...?",
-      "options": ["Option A", "Option B", "Option C", "Option D"],
-      "answer": "Option A",
-      "type": "mcq"
-    },
-    {
-      "question": "Question/concept for front of flashcard?",
-      "answer": "Brief, clear explanation/answer for back of flashcard",
-      "type": "flashcard"
-    }
-  ]
-}`;
-
-      const userPrompt = `Document Filename: ${file.name}\nExtracted Text:\n${textToAnalyze}`;
-      const llmResponse = await generateStructuredJson<LlmResponse>(systemPrompt, userPrompt, true);
-
-      if (!llmResponse || !llmResponse.summary || !Array.isArray(llmResponse.questions)) {
-        throw new Error("Invalid output format from LLM");
+      if (!process.env.VERCEL) {
+        await mkdir(UPLOADS_DIR, { recursive: true });
+        await writeFile(path.join(UPLOADS_DIR, uniqueFilename), buffer);
       }
 
-      const formattedQuestions = llmResponse.questions.map((q) => ({
-        question: q.question,
-        options: q.type === "mcq" ? q.options || [] : [],
-        answer: q.answer,
-        type: q.type,
-      }));
+      await dbConnect();
 
       const newDoc = new Document({
         userId,
-        filename: file.name,
+        filename: displayFilename,
         fileUrl,
-        contentText: textToAnalyze,
-        summary: llmResponse.summary,
-        questions: formattedQuestions,
+        contentText: prepareStoredDocumentText(pdfText),
+        questions: [],
       });
 
       await newDoc.save();
@@ -169,21 +109,32 @@ Return your response ONLY as a JSON object matching this schema:
           $set: { lastActive: new Date() } 
         },
         { upsert: true, new: true }
-      );
+      ).catch((progressError) => {
+        console.error(
+          "Failed to update AI Hub PDF progress (non-fatal):",
+          progressError
+        );
+      });
+
+      const documentId = String(newDoc._id);
 
       return NextResponse.json({
         type: "pdf",
-        filename: file.name,
+        filename: displayFilename,
         fileUrl,
-        docId: newDoc._id,
-        summary: newDoc.summary,
+        docId: documentId,
       });
     }
 
-    // 2. Process Image file (png/jpeg/gif/webp, validated by magic bytes above)
+    // Images need their bytes later for the vision request.
+    if (!process.env.VERCEL) {
+      await mkdir(UPLOADS_DIR, { recursive: true });
+      await writeFile(path.join(UPLOADS_DIR, uniqueFilename), buffer);
+    }
+
     return NextResponse.json({
       type: "image",
-      filename: file.name,
+      filename: displayFilename,
       fileUrl,
     });
   } catch (error) {

@@ -1,4 +1,8 @@
-import mongoose, { Schema, Document as MongooseDocument } from 'mongoose';
+import mongoose, {
+  Schema,
+  Document as MongooseDocument,
+  type Model,
+} from 'mongoose';
 
 export interface IAttachment {
   type: 'pdf' | 'image';
@@ -27,7 +31,7 @@ export interface IChatHistory extends MongooseDocument {
 
 const ChatHistorySchema = new Schema<IChatHistory>({
   userId: { type: Schema.Types.ObjectId, ref: 'User', required: true, index: true },
-  threadTitle: { type: String, default: 'AI Study Hub' },
+  threadTitle: { type: String, default: 'AI Study Hub', maxlength: 80 },
   threadType: { type: String, enum: ['general', 'document'], default: 'general' },
   documentIds: [{ type: Schema.Types.ObjectId, ref: 'Document' }],
   messages: [{
@@ -36,12 +40,16 @@ const ChatHistorySchema = new Schema<IChatHistory>({
     documentIds: [{ type: Schema.Types.ObjectId, ref: 'Document' }],
     attachments: [{
       type: { type: String, enum: ['pdf', 'image'] },
-      filename: { type: String },
-      fileUrl: { type: String },
+      filename: { type: String, maxlength: 200 },
+      fileUrl: { type: String, maxlength: 500 },
       docId: { type: Schema.Types.ObjectId, ref: 'Document' }
     }],
     sentAt: { type: Date, default: Date.now },
   }],
 }, { timestamps: true });
 
-export default mongoose.models.ChatHistory || mongoose.model<IChatHistory>('ChatHistory', ChatHistorySchema);
+const ChatHistory =
+  (mongoose.models.ChatHistory as Model<IChatHistory> | undefined) ||
+  mongoose.model<IChatHistory>('ChatHistory', ChatHistorySchema);
+
+export default ChatHistory;

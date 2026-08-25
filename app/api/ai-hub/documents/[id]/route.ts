@@ -5,6 +5,7 @@ import { auth } from "@/lib/auth";
 import dbConnect from "@/lib/db";
 import Document from "@/models/Document";
 import { resolveLegacyUploadPath, resolveUploadPath } from "@/lib/security";
+import mongoose from "mongoose";
 
 interface RouteContext {
   params: Promise<{ id: string }>;
@@ -18,6 +19,9 @@ export async function DELETE(_req: Request, { params }: RouteContext) {
     }
 
     const { id } = await params;
+    if (!mongoose.isValidObjectId(id)) {
+      return NextResponse.json({ message: "Document not found" }, { status: 404 });
+    }
     await dbConnect();
 
     const doc = await Document.findOneAndDelete({

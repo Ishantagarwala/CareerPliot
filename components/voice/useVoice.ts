@@ -517,6 +517,11 @@ export function useVoice(options: UseVoiceOptions = {}) {
           setStatus("idle");
           resolve();
         };
+        // stopSpeech() pauses mid-playback (barge-in / end session); resolve so
+        // the awaiting turn isn't left hanging before its finally block runs.
+        audio.onpause = () => {
+          resolve();
+        };
         audio.onerror = () => {
           setStatus("error");
           reject(new Error("Audio playback failed."));

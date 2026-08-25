@@ -5,33 +5,52 @@ interface ContextDocument {
 }
 
 const MAX_DOCUMENT_CONTEXT_CHARS = 12000;
+export const MAX_STORED_DOCUMENT_CHARS = 1_000_000;
+const DOCUMENT_TRUNCATION_NOTICE =
+  "\n\n[Document text truncated during upload.]";
+
+export function prepareStoredDocumentText(text: string): string {
+  const cleaned = text.trim();
+  if (cleaned.length <= MAX_STORED_DOCUMENT_CHARS) {
+    return cleaned;
+  }
+
+  const contentLimit =
+    MAX_STORED_DOCUMENT_CHARS - DOCUMENT_TRUNCATION_NOTICE.length;
+  return `${cleaned.slice(0, contentLimit)}${DOCUMENT_TRUNCATION_NOTICE}`;
+}
 
 export function buildDocumentContext(documents: ContextDocument[]): string {
   if (documents.length === 0) {
     return "";
   }
 
+  const usableDocuments = documents
+    .map((doc) => ({
+      filename: doc.filename.replace(/[\r\n]+/g, " ").trim().slice(0, 200),
+      sourceText: (doc.contentText || doc.summary || "").trim(),
+    }))
+    .filter((doc) => doc.sourceText);
+
+  if (usableDocuments.length === 0) {
+    return "";
+  }
+
   let remaining = MAX_DOCUMENT_CONTEXT_CHARS;
   const sections: string[] = [];
 
-  for (const doc of documents) {
+  for (let index = 0; index < usableDocuments.length; index++) {
     if (remaining <= 0) {
       break;
     }
 
-    const sourceText = (doc.contentText || doc.summary || "").trim();
-    if (!sourceText) {
-      continue;
-    }
-
-    const excerpt = sourceText.slice(0, remaining);
+    const doc = usableDocuments[index];
+    const documentsLeft = usableDocuments.length - index;
+    const fairShare = Math.max(1, Math.floor(remaining / documentsLeft));
+    const excerpt = doc.sourceText.slice(0, fairShare);
     remaining -= excerpt.length;
 
     sections.push(`Document: ${doc.filename}\n${excerpt}`);
-  }
-
-  if (sections.length === 0) {
-    return "";
   }
 
   return `Use the following uploaded study document context when it is relevant. If the answer is not in the documents, say so and answer from general knowledge only when appropriate.\n\n${sections.join("\n\n---\n\n")}`;

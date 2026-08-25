@@ -4,23 +4,20 @@ import React, { useState } from "react";
 import { Copy, Check } from "lucide-react";
 import { toast } from "sonner";
 import MarkdownContent from "@/components/markdown/MarkdownContent";
+import type { ChatAttachment } from "@/components/ai-hub/types";
 
-interface Message {
+export interface MessageBubbleMessage {
   id?: string;
   role: "user" | "assistant";
   content: string;
-  attachments?: {
-    type: "pdf" | "image";
-    filename: string;
-    fileUrl: string;
-    docId?: string;
-  }[];
+  attachments?: ChatAttachment[];
   sentAt?: Date | string;
   streaming?: boolean;
+  error?: string;
 }
 
 interface MessageBubbleProps {
-  message: Message;
+  message: MessageBubbleMessage;
 }
 
 export default function MessageBubble({ message }: MessageBubbleProps) {
@@ -88,9 +85,12 @@ export default function MessageBubble({ message }: MessageBubbleProps) {
                         rel="noopener noreferrer"
                         className="block hover:opacity-85"
                       >
+                        {/* Auth-gated uploads need the browser session cookie. */}
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img
                           src={att.fileUrl}
                           alt={att.filename}
+                          loading="lazy"
                           className="h-16 max-w-[120px] border border-[#262626] object-contain"
                         />
                       </a>
@@ -127,11 +127,25 @@ export default function MessageBubble({ message }: MessageBubbleProps) {
               />
             )}
 
+            {message.error && (
+              <div
+                className="mt-3 flex items-start gap-2 border border-red-500/35 bg-red-500/10 px-3 py-2 text-xs text-red-700 dark:text-red-300"
+                role="alert"
+              >
+                <span className="material-symbols-outlined mt-0.5 text-[15px] shrink-0">
+                  error
+                </span>
+                <span>{message.error} You can try sending the message again.</span>
+              </div>
+            )}
+
             <div className="absolute bottom-2 right-2 opacity-0 transition-opacity group-hover:opacity-100">
               <button
                 type="button"
                 onClick={handleCopyMessage}
                 className="flex h-6 w-6 items-center justify-center border border-[#262626] bg-[#0A0A0A]/80 text-[#8e9192] transition-colors hover:text-white"
+                aria-label={copiedText ? "Message copied" : "Copy message"}
+                title={copiedText ? "Copied" : "Copy message"}
               >
                 {copiedText ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
               </button>

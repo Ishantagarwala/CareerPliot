@@ -1,25 +1,33 @@
 "use client";
 
-import React, { useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
-import MessageBubble from "@/components/tutor/MessageBubble";
+import MessageBubble, {
+  type MessageBubbleMessage,
+} from "@/components/tutor/MessageBubble";
 import UploadDropzone from "./UploadDropzone";
 import { useVoice } from "@/components/voice/useVoice";
 import VoiceHUD from "@/components/voice/VoiceHUD";
+import {
+  getDocumentId,
+  parseChatAttachment,
+  type ChatAttachment,
+  type HubDocument,
+} from "./types";
 
 interface Message {
   id?: string;
   role: "user" | "assistant" | "system";
   content: string;
-  attachments?: {
-    type: "pdf" | "image";
-    filename: string;
-    fileUrl: string;
-    docId?: string;
-  }[];
+  attachments?: ChatAttachment[];
   sentAt?: Date | string;
   streaming?: boolean;
+  error?: string;
 }
+
+const MAX_ATTACHMENTS = 3;
+const MAX_MESSAGE_CHARS = 12_000;
+const MAX_UPLOAD_BYTES = 10 * 1024 * 1024;
 
 function newMessageId(): string {
   if (typeof crypto !== "undefined" && "randomUUID" in crypto) {
@@ -28,14 +36,48 @@ function newMessageId(): string {
   return `msg_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`;
 }
 
-type ModelSelection = "primary" | "opus" | "gemini";
+function isVisibleMessage(
+  message: Message
+): message is Message & MessageBubbleMessage {
+  return message.role === "user" || message.role === "assistant";
+}
+
+function isAbortError(error: unknown): boolean {
+  return (
+    typeof error === "object" &&
+    error !== null &&
+    "name" in error &&
+    (error as { name?: unknown }).name === "AbortError"
+  );
+}
+
+function errorMessage(error: unknown, fallback: string): string {
+  return error instanceof Error && error.message ? error.message : fallback;
+}
+
+function mergeAttachments(
+  current: ChatAttachment[],
+  restored: ChatAttachment[]
+): ChatAttachment[] {
+  const merged: ChatAttachment[] = [];
+  const seen = new Set<string>();
+
+  for (const attachment of [...restored, ...current]) {
+    if (seen.has(attachment.fileUrl)) continue;
+    seen.add(attachment.fileUrl);
+    merged.push(attachment);
+    if (merged.length >= MAX_ATTACHMENTS) break;
+  }
+
+  return merged;
+}
 
 interface UnifiedChatProps {
   activeThreadId: string | null;
   setActiveThreadId: (id: string | null) => void;
-  onThreadCreated: () => void;
+  onThreadCreated: () => void | Promise<void>;
   selectedDocumentIds: string[];
-  onUploadSuccess: (document: any) => void;
+  onUploadSuccess: (document: HubDocument) => void;
   draftPrompt: string;
   onDraftPromptConsumed: () => void;
   onToggleLeftSidebar?: () => void;
@@ -156,10 +198,17 @@ export default function UnifiedChat({
   const [loadingHistory, setLoadingHistory] = useState(false);
   const [showUpload, setShowUpload] = useState(false);
 
-  // Voice Chat States
-  const [isVoiceChatActive, setIsVoiceChatActive] = useState(false);
   const [voiceHUDOpen, setVoiceHUDOpen] = useState(false);
-  const voice = useVoice();
+  const [voiceTurnBusy, setVoiceTurnBusy] = useState(false);
+  const voiceBusyRef = useRef(false);
+  const voiceHUDOpenRef = useRef(false);
+  const handleVoiceTurnRef = useRef<(text: string) => Promise<void>>(
+    async () => {}
+  );
+  const voice = useVoice({
+    silenceMs: 1800,
+    onUtteranceEnd: (text) => void handleVoiceTurnRef.current(text),
+  });
 
   const [isMobile, setIsMobile] = useState(false);
 
@@ -167,7 +216,7 @@ export default function UnifiedChat({
   const [showModelDropdown, setShowModelDropdown] = useState(false);
   const [availableModels, setAvailableModels] = useState<string[]>([]);
 
-  const [attachments, setAttachments] = useState<any[]>([]);
+  const [attachments, setAttachments] = useState<ChatAttachment[]>([]);
   const [uploadingAttachment, setUploadingAttachment] = useState(false);
 
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -178,10 +227,18 @@ export default function UnifiedChat({
   const streamOriginThreadRef = useRef<string | null>(null);
   const streamMsgIdRef = useRef<string | null>(null);
   const streamAbortRef = useRef<AbortController | null>(null);
+  const manualStopRef = useRef<AbortController | null>(null);
   const historyFetchGenRef = useRef(0);
   const stickToBottomRef = useRef(true);
   const activeThreadIdRef = useRef(activeThreadId);
-  activeThreadIdRef.current = activeThreadId;
+
+  useEffect(() => {
+    activeThreadIdRef.current = activeThreadId;
+  }, [activeThreadId]);
+
+  useEffect(() => {
+    voiceHUDOpenRef.current = voiceHUDOpen;
+  }, [voiceHUDOpen]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -321,11 +378,35 @@ export default function UnifiedChat({
     const file = e.target.files?.[0];
     if (!file) return;
 
-    const isImage = file.type.startsWith("image/");
-    const isPdf = file.type === "application/pdf" || file.name.endsWith(".pdf");
+    if (loading || uploadingAttachment) {
+      e.currentTarget.value = "";
+      return;
+    }
+    if (attachments.length >= MAX_ATTACHMENTS) {
+      toast.error(`You can attach up to ${MAX_ATTACHMENTS} files per message.`);
+      e.currentTarget.value = "";
+      return;
+    }
+
+    const lowerName = file.name.toLowerCase();
+    const isImage =
+      ["image/png", "image/jpeg", "image/gif", "image/webp"].includes(
+        file.type
+      ) ||
+      [".png", ".jpg", ".jpeg", ".gif", ".webp"].some((extension) =>
+        lowerName.endsWith(extension)
+      );
+    const isPdf =
+      file.type === "application/pdf" || lowerName.endsWith(".pdf");
 
     if (!isImage && !isPdf) {
-      toast.error("Unsupported file type. Please upload a PDF or an Image.");
+      toast.error("Upload a PDF, PNG, JPEG, GIF, or WebP file.");
+      e.currentTarget.value = "";
+      return;
+    }
+    if (file.size > MAX_UPLOAD_BYTES) {
+      toast.error("File is too large. Maximum size is 10 MB.");
+      e.currentTarget.value = "";
       return;
     }
 
@@ -344,25 +425,34 @@ export default function UnifiedChat({
         throw new Error(errorData?.message || "Failed to upload attachment");
       }
 
-      const uploaded = await res.json();
-
-      if (uploaded.type === "pdf") {
-        onUploadSuccess(uploaded);
+      const uploaded = parseChatAttachment(await res.json());
+      if (!uploaded) {
+        throw new Error("The upload response was incomplete. Please try again.");
       }
 
-      setAttachments((prev) => [
-        ...prev,
-        {
-          type: uploaded.type,
+      if (uploaded.type === "pdf") {
+        const docId = uploaded.docId;
+        if (!docId) {
+          throw new Error("The uploaded PDF is missing its document id.");
+        }
+        onUploadSuccess({
+          _id: docId,
+          id: docId,
+          docId,
           filename: uploaded.filename,
           fileUrl: uploaded.fileUrl,
-          docId: uploaded.docId,
-        },
-      ]);
+        });
+      }
+
+      setAttachments((prev) =>
+        prev.length >= MAX_ATTACHMENTS ? prev : [...prev, uploaded]
+      );
       toast.success(`${file.name} uploaded successfully.`);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error(err);
-      toast.error(err.message || "Failed to upload attachment");
+      toast.error(
+        err instanceof Error ? err.message : "Failed to upload attachment"
+      );
     } finally {
       setUploadingAttachment(false);
       if (fileInputRef.current) {
@@ -375,20 +465,41 @@ export default function UnifiedChat({
     setAttachments((prev) => prev.filter((_, i) => i !== index));
   };
 
-  const handleSend = async (e?: React.FormEvent, customText?: string) => {
+  const handleSend = async (
+    e?: React.FormEvent,
+    customText?: string,
+    options?: { speakReply?: boolean }
+  ) => {
     if (e) e.preventDefault();
-    const textToSend = customText !== undefined ? customText : input;
-    if ((!textToSend.trim() && attachments.length === 0) || loading) {
+    const userMessageText = (
+      customText !== undefined ? customText : input
+    ).trim();
+    if ((!userMessageText && attachments.length === 0) || loading) {
+      return;
+    }
+    if (userMessageText.length > MAX_MESSAGE_CHARS) {
+      toast.error(
+        `Messages can be at most ${MAX_MESSAGE_CHARS.toLocaleString()} characters.`
+      );
       return;
     }
 
-    const userMessageText = textToSend;
     const currentAttachments = [...attachments];
+    const attachmentSummary =
+      currentAttachments.length === 1
+        ? `[Attached ${currentAttachments[0].type}: ${currentAttachments[0].filename}]`
+        : `[Attached ${currentAttachments.length} files]`;
+    const messageForApi =
+      userMessageText ||
+      (currentAttachments.length === 1
+        ? `Analyze the attached ${currentAttachments[0].type}`
+        : "Analyze the attached files");
 
     // Abort any in-flight stream before starting a new one
     streamAbortRef.current?.abort();
     const abort = new AbortController();
     streamAbortRef.current = abort;
+    manualStopRef.current = null;
 
     setInput("");
     setAttachments([]);
@@ -402,11 +513,7 @@ export default function UnifiedChat({
       {
         id: userMsgId,
         role: "user",
-        content:
-          userMessageText ||
-          (currentAttachments.length > 0
-            ? `[Attached ${currentAttachments[0].type}: ${currentAttachments[0].filename}]`
-            : ""),
+        content: userMessageText || attachmentSummary,
         attachments: currentAttachments,
         sentAt: new Date().toISOString(),
       },
@@ -419,17 +526,17 @@ export default function UnifiedChat({
     streamingThreadIdRef.current = threadAtStart;
     stickToBottomRef.current = true;
 
+    let requestAccepted = false;
+    let assistantMessageId: string | null = null;
+    let receivedDone = false;
+
     try {
       const res = await fetch("/api/ai-hub/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         signal: abort.signal,
         body: JSON.stringify({
-          message:
-            userMessageText ||
-            (currentAttachments.length > 0
-              ? `Analyze the attached ${currentAttachments[0].type}`
-              : "Analyze the attached file"),
+          message: messageForApi,
           documentIds: selectedDocumentIds,
           threadId: threadAtStart,
           attachments: currentAttachments,
@@ -441,6 +548,7 @@ export default function UnifiedChat({
         const errorData = await res.json().catch(() => null);
         throw new Error(errorData?.message || "Failed to receive response from AI Study Hub");
       }
+      requestAccepted = true;
 
       if (!res.body) {
         throw new Error("No response stream from AI Study Hub");
@@ -454,8 +562,9 @@ export default function UnifiedChat({
 
       const appendToken = (token: string) => {
         fullReply += token;
-        if (!streamMsgIdRef.current) {
+        if (!assistantMessageId) {
           const id = newMessageId();
+          assistantMessageId = id;
           streamMsgIdRef.current = id;
           setMessages((prev) => [
             ...prev,
@@ -469,19 +578,27 @@ export default function UnifiedChat({
           ]);
           return;
         }
-        const id = streamMsgIdRef.current;
+        const id = assistantMessageId;
         setMessages((prev) =>
           prev.map((m) =>
-            m.id === id ? { ...m, content: m.content + token, streaming: true } : m
+            m.id === id
+              ? {
+                  ...m,
+                  content: m.content + token,
+                  streaming: true,
+                  error: undefined,
+                }
+              : m
           )
         );
       };
 
       const finalizeAssistant = (reply: string) => {
         fullReply = reply;
-        const id = streamMsgIdRef.current;
+        const id = assistantMessageId;
         if (!id) {
           const newId = newMessageId();
+          assistantMessageId = newId;
           streamMsgIdRef.current = newId;
           setMessages((prev) => [
             ...prev,
@@ -497,7 +614,9 @@ export default function UnifiedChat({
         }
         setMessages((prev) =>
           prev.map((m) =>
-            m.id === id ? { ...m, content: reply, streaming: false } : m
+            m.id === id
+              ? { ...m, content: reply, streaming: false, error: undefined }
+              : m
           )
         );
       };
@@ -506,8 +625,9 @@ export default function UnifiedChat({
         streamedThreadId = threadId;
         streamingThreadIdRef.current = threadId;
         if (!activeThreadIdRef.current) {
+          activeThreadIdRef.current = threadId;
           setActiveThreadId(threadId);
-          onThreadCreated();
+          void onThreadCreated();
         }
       };
 
@@ -538,16 +658,16 @@ export default function UnifiedChat({
         } else if (event.type === "token" && event.content) {
           appendToken(event.content);
         } else if (event.type === "done") {
+          receivedDone = true;
           if (event.threadId) bindThread(event.threadId);
           if (event.reply) {
             // Always trust the final reply for consistency with DB
             finalizeAssistant(event.reply);
-          } else if (streamMsgIdRef.current) {
+          } else if (assistantMessageId) {
+            const id = assistantMessageId;
             setMessages((prev) =>
               prev.map((m) =>
-                m.id === streamMsgIdRef.current
-                  ? { ...m, streaming: false }
-                  : m
+                m.id === id ? { ...m, streaming: false } : m
               )
             );
           }
@@ -571,10 +691,17 @@ export default function UnifiedChat({
         for (const chunk of buffer.split("\n\n")) processSseChunk(chunk);
       }
 
-      if (streamMsgIdRef.current) {
+      if (!receivedDone) {
+        throw new Error(
+          "The AI response ended unexpectedly before it was complete."
+        );
+      }
+
+      if (assistantMessageId) {
+        const id = assistantMessageId;
         setMessages((prev) =>
           prev.map((m) =>
-            m.id === streamMsgIdRef.current ? { ...m, streaming: false } : m
+            m.id === id ? { ...m, streaming: false } : m
           )
         );
       }
@@ -583,30 +710,151 @@ export default function UnifiedChat({
         bindThread(streamedThreadId);
       }
 
-      if (isVoiceChatActive && fullReply) {
-        voice.speakText(fullReply);
+      if (options?.speakReply && fullReply) {
+        try {
+          await voice.speakText(fullReply);
+        } catch (speechError: unknown) {
+          console.error("Failed to play voice reply:", speechError);
+        }
+        // Hands-free loop: keep listening while the voice HUD stays open.
+        if (voiceHUDOpenRef.current) {
+          try {
+            await voice.startRecording();
+          } catch (resumeError: unknown) {
+            console.error("Failed to resume listening:", resumeError);
+          }
+        }
       }
-    } catch (error: any) {
-      if (error?.name === "AbortError") {
-        // User switched threads / started a new send — silent
+    } catch (error: unknown) {
+      const aborted = isAbortError(error);
+      const manuallyStopped = manualStopRef.current === abort;
+      const failureMessage = errorMessage(
+        error,
+        "AI Study Hub error. Please try again."
+      );
+
+      if (assistantMessageId) {
+        const id = assistantMessageId;
+        setMessages((prev) =>
+          prev.map((message) =>
+            message.id === id
+              ? {
+                  ...message,
+                  streaming: false,
+                  error: aborted ? undefined : failureMessage,
+                }
+              : message
+          )
+        );
+      }
+
+      if (aborted) {
+        if (manuallyStopped) {
+          if (!requestAccepted) {
+            setMessages((prev) =>
+              prev.filter((message) => message.id !== userMsgId)
+            );
+            setInput((current) => current || userMessageText);
+            setAttachments((current) =>
+              mergeAttachments(current, currentAttachments)
+            );
+          }
+          toast.message("Generation stopped.");
+        }
       } else {
         console.error(error);
-        toast.error(error.message || "AI Study Hub error. Please try again.");
+        if (!requestAccepted) {
+          setMessages((prev) =>
+            prev.filter((message) => message.id !== userMsgId)
+          );
+          setInput((current) => current || userMessageText);
+          setAttachments((current) =>
+            mergeAttachments(current, currentAttachments)
+          );
+        } else if (!assistantMessageId) {
+          setMessages((prev) => [
+            ...prev,
+            {
+              id: newMessageId(),
+              role: "assistant",
+              content: "I couldn't complete that response.",
+              sentAt: new Date().toISOString(),
+              error: failureMessage,
+            },
+          ]);
+        }
+        toast.error(failureMessage);
       }
     } finally {
+      if (manualStopRef.current === abort) {
+        manualStopRef.current = null;
+      }
       if (streamAbortRef.current === abort) {
         isStreamingRef.current = false;
         streamingThreadIdRef.current = null;
         streamMsgIdRef.current = null;
+        streamAbortRef.current = null;
         setLoading(false);
       }
     }
   };
 
-  const handleUploadSuccess = (document: any) => {
-    onUploadSuccess(document);
+  const handleStopGeneration = () => {
+    const activeAbort = streamAbortRef.current;
+    if (!activeAbort) return;
+
+    manualStopRef.current = activeAbort;
+    const activeMessageId = streamMsgIdRef.current;
+    if (activeMessageId) {
+      setMessages((prev) =>
+        prev.map((message) =>
+          message.id === activeMessageId
+            ? { ...message, streaming: false }
+            : message
+        )
+      );
+    }
+    activeAbort.abort();
+  };
+
+  const handleVoiceTurn = useCallback(
+    async (text: string) => {
+      const cleaned = text.trim();
+      if (!cleaned || voiceBusyRef.current) return;
+
+      voice.stopListeningOnly();
+      voiceBusyRef.current = true;
+      setVoiceTurnBusy(true);
+      voice.setTranscript("");
+      try {
+        await handleSend(undefined, cleaned, { speakReply: true });
+      } finally {
+        voiceBusyRef.current = false;
+        setVoiceTurnBusy(false);
+      }
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [voice]
+  );
+
+  useEffect(() => {
+    handleVoiceTurnRef.current = handleVoiceTurn;
+  }, [handleVoiceTurn]);
+
+  const startVoiceInput = () => {
+    setVoiceHUDOpen(true);
+    void voice.unlockAudio();
+    void voice.startRecording();
+  };
+
+  const handleUploadSuccess = (document: HubDocument) => {
+    const id = getDocumentId(document);
+    if (!id) {
+      toast.error("The uploaded document is missing its id. Please refresh.");
+      return;
+    }
+    onUploadSuccess({ ...document, _id: id });
     setShowUpload(false);
-    toast.success("Document added to AI Study Hub");
   };
 
   const handleTextareaInput = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
@@ -687,10 +935,12 @@ export default function UnifiedChat({
                 onKeyDown={(e) => {
                   if (e.key === "Enter" && !e.shiftKey) {
                     e.preventDefault();
-                    handleSend();
+                    void handleSend();
                   }
                 }}
                 placeholder="Ask the AI Study Hub..."
+                aria-label="Message AI Study Hub"
+                maxLength={MAX_MESSAGE_CHARS}
                 rows={1}
                 className="w-full bg-transparent border-0 outline-none text-foreground text-sm placeholder:text-muted-foreground resize-none focus:ring-0 px-2 pt-1 pb-1 min-h-[56px] focus:outline-none"
                 style={{
@@ -708,13 +958,19 @@ export default function UnifiedChat({
                     type="file"
                     ref={fileInputRef}
                     onChange={handleFileChange}
-                    accept="image/*,application/pdf"
+                    accept="application/pdf,image/png,image/jpeg,image/gif,image/webp"
                     className="hidden"
                   />
                   <button
                     type="button"
                     onClick={handleFileSelectClick}
-                    className="bg-background hover:bg-card border border-border px-3 py-1.5 rounded-full flex items-center gap-1.5 text-[11px] font-bold text-foreground transition-all cursor-pointer"
+                    disabled={
+                      loading ||
+                      uploadingAttachment ||
+                      attachments.length >= MAX_ATTACHMENTS
+                    }
+                    className="bg-background hover:bg-card border border-border px-3 py-1.5 rounded-full flex items-center gap-1.5 text-[11px] font-bold text-foreground transition-all cursor-pointer disabled:cursor-not-allowed disabled:opacity-40"
+                    aria-label="Attach a PDF or image"
                   >
                     <span className="material-symbols-outlined text-[13px] text-primary">attach_file</span>
                     Attach
@@ -724,14 +980,11 @@ export default function UnifiedChat({
                 <div className="flex items-center gap-2">
                   <button
                     type="button"
-                    onClick={() => {
-                      setIsVoiceChatActive(true);
-                      setVoiceHUDOpen(true);
-                      voice.startRecording();
-                    }}
+                    onClick={startVoiceInput}
                     disabled={loading || uploadingAttachment}
                     className="h-8 w-8 bg-[#1C1C22] border border-cyan-500/50 hover:border-cyan-400 text-cyan-400 flex items-center justify-center rounded-full disabled:opacity-30 transition-colors shrink-0 cursor-pointer"
                     title="Speak instead"
+                    aria-label="Start voice input"
                   >
                     <span className="material-symbols-outlined text-[16px]">mic</span>
                   </button>
@@ -745,14 +998,34 @@ export default function UnifiedChat({
                     placement="up"
                   />
 
-                  <button
-                    type="button"
-                    onClick={() => handleSend()}
-                    disabled={(!input.trim() && attachments.length === 0) || loading || uploadingAttachment}
-                    className="h-8 w-8 bg-primary hover:bg-primary/95 text-primary-foreground flex items-center justify-center rounded-full disabled:opacity-30 border border-border transition-colors shrink-0 cursor-pointer"
-                  >
-                    <span className="material-symbols-outlined text-[16px]">arrow_upward</span>
-                  </button>
+                  {loading ? (
+                    <button
+                      type="button"
+                      onClick={handleStopGeneration}
+                      className="h-8 w-8 bg-foreground text-background flex items-center justify-center rounded-full border border-border transition-colors shrink-0 cursor-pointer"
+                      aria-label="Stop generating"
+                      title="Stop generating"
+                    >
+                      <span className="material-symbols-outlined text-[16px]">
+                        stop
+                      </span>
+                    </button>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => void handleSend()}
+                      disabled={
+                        (!input.trim() && attachments.length === 0) ||
+                        uploadingAttachment
+                      }
+                      className="h-8 w-8 bg-primary hover:bg-primary/95 text-primary-foreground flex items-center justify-center rounded-full disabled:opacity-30 border border-border transition-colors shrink-0 cursor-pointer"
+                      aria-label="Send message"
+                    >
+                      <span className="material-symbols-outlined text-[16px]">
+                        arrow_upward
+                      </span>
+                    </button>
+                  )}
                 </div>
               </div>
             </div>
@@ -805,11 +1078,11 @@ export default function UnifiedChat({
         ) : (
           <div className="w-full px-4 sm:px-8 lg:px-10 xl:px-12 py-6 space-y-6">
             {messages
-              .filter((message) => message.role !== "system")
+              .filter(isVisibleMessage)
               .map((message, index) => (
                 <MessageBubble
                   key={message.id || `msg_${index}`}
-                  message={message as any}
+                  message={message}
                 />
               ))}
             {loading &&
@@ -841,13 +1114,17 @@ export default function UnifiedChat({
           <div className="w-full px-4 sm:px-8 lg:px-10 xl:px-12 py-2 flex flex-wrap gap-2">
             {attachments.map((att, idx) => (
               <div
-                key={idx}
+                key={att.fileUrl}
                 className="relative flex items-center gap-2 bg-card border border-border p-1.5 pr-8 rounded-lg text-xs text-foreground"
               >
                 {att.type === "image" ? (
+                  // Auth-gated upload URLs must be fetched by the browser with
+                  // the user's session cookie, not through Next's image proxy.
+                  // eslint-disable-next-line @next/next/no-img-element
                   <img
                     src={att.fileUrl}
                     alt={att.filename}
+                    loading="lazy"
                     className="h-6 w-6 object-cover rounded border border-border"
                   />
                 ) : (
@@ -858,6 +1135,7 @@ export default function UnifiedChat({
                   type="button"
                   onClick={() => removeAttachment(idx)}
                   className="absolute top-1/2 -translate-y-1/2 right-1.5 text-muted-foreground hover:text-foreground cursor-pointer"
+                  aria-label={`Remove ${att.filename}`}
                 >
                   <span className="material-symbols-outlined text-[14px]">close</span>
                 </button>
@@ -878,7 +1156,7 @@ export default function UnifiedChat({
           <form
             onSubmit={(e) => {
               e.preventDefault();
-              handleSend();
+              void handleSend();
             }}
             className="w-full bg-card border-2 border-border rounded-2xl flex flex-col p-2 focus-within:border-primary transition-colors shadow-[3px_3px_0_0_rgba(0,0,0,0.1)]"
           >
@@ -889,7 +1167,7 @@ export default function UnifiedChat({
               onKeyDown={(e) => {
                 if (e.key === "Enter" && !e.shiftKey) {
                   e.preventDefault();
-                  handleSend();
+                  void handleSend();
                 }
               }}
               placeholder={
@@ -897,6 +1175,8 @@ export default function UnifiedChat({
                   ? "Ask about the selected document..."
                   : "Ask follow-up..."
               }
+              aria-label="Message AI Study Hub"
+              maxLength={MAX_MESSAGE_CHARS}
               rows={1}
               className="w-full bg-transparent border-0 outline-none text-foreground text-sm placeholder:text-muted-foreground resize-none focus:ring-0 px-2 pt-1 pb-1 min-h-[38px] focus:outline-none"
               style={{
@@ -913,14 +1193,20 @@ export default function UnifiedChat({
                   type="file"
                   ref={fileInputRef}
                   onChange={handleFileChange}
-                  accept="image/*,application/pdf"
+                  accept="application/pdf,image/png,image/jpeg,image/gif,image/webp"
                   className="hidden"
                 />
                 <button
                   type="button"
                   onClick={handleFileSelectClick}
-                  className="p-1.5 text-muted-foreground hover:text-foreground hover:bg-background rounded-full transition-colors cursor-pointer"
+                  disabled={
+                    loading ||
+                    uploadingAttachment ||
+                    attachments.length >= MAX_ATTACHMENTS
+                  }
+                  className="min-h-10 min-w-10 p-1.5 text-muted-foreground hover:text-foreground hover:bg-background rounded-full transition-colors cursor-pointer disabled:cursor-not-allowed disabled:opacity-40"
                   title="Attach file"
+                  aria-label="Attach a PDF or image"
                 >
                   <span className="material-symbols-outlined text-[16px]">attach_file</span>
                 </button>
@@ -937,24 +1223,41 @@ export default function UnifiedChat({
               <div className="flex items-center gap-2">
                 <button
                   type="button"
-                  onClick={() => {
-                    setIsVoiceChatActive(true);
-                    setVoiceHUDOpen(true);
-                    voice.startRecording();
-                  }}
+                  onClick={startVoiceInput}
                   disabled={loading || uploadingAttachment}
-                  className="h-7 w-7 bg-[#1C1C22] border border-cyan-500/50 hover:border-cyan-400 text-cyan-400 flex items-center justify-center rounded-full disabled:opacity-30 transition-colors shrink-0 cursor-pointer"
+                  className="h-10 w-10 bg-[#1C1C22] border border-cyan-500/50 hover:border-cyan-400 text-cyan-400 flex items-center justify-center rounded-full disabled:opacity-30 transition-colors shrink-0 cursor-pointer"
                   title="Speak instead"
+                  aria-label="Start voice input"
                 >
                   <span className="material-symbols-outlined text-[14px]">mic</span>
                 </button>
-                <button
-                  type="submit"
-                  disabled={(!input.trim() && attachments.length === 0) || loading || uploadingAttachment}
-                  className="h-7 w-7 bg-primary hover:bg-primary/95 text-primary-foreground flex items-center justify-center rounded-full border border-border disabled:opacity-30 transition-colors shrink-0 cursor-pointer"
-                >
-                  <span className="material-symbols-outlined text-[14px]">arrow_upward</span>
-                </button>
+                {loading ? (
+                  <button
+                    type="button"
+                    onClick={handleStopGeneration}
+                    className="h-10 w-10 bg-foreground text-background flex items-center justify-center rounded-full border border-border transition-colors shrink-0 cursor-pointer"
+                    aria-label="Stop generating"
+                    title="Stop generating"
+                  >
+                    <span className="material-symbols-outlined text-[15px]">
+                      stop
+                    </span>
+                  </button>
+                ) : (
+                  <button
+                    type="submit"
+                    disabled={
+                      (!input.trim() && attachments.length === 0) ||
+                      uploadingAttachment
+                    }
+                    className="h-10 w-10 bg-primary hover:bg-primary/95 text-primary-foreground flex items-center justify-center rounded-full border border-border disabled:opacity-30 transition-colors shrink-0 cursor-pointer"
+                    aria-label="Send message"
+                  >
+                    <span className="material-symbols-outlined text-[14px]">
+                      arrow_upward
+                    </span>
+                  </button>
+                )}
               </div>
             </div>
           </form>
@@ -964,15 +1267,24 @@ export default function UnifiedChat({
       {showUpload && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
           <div className="fixed inset-0 bg-black/60 backdrop-blur-xs" onClick={() => setShowUpload(false)} />
-          <div className="relative w-full max-w-xl bg-card border-2 border-border p-6 rounded-2xl animate-fade-in-up z-[101]">
+          <div
+            className="relative w-full max-w-xl bg-card border-2 border-border p-6 rounded-2xl animate-fade-in-up z-[101]"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="upload-pdf-title"
+          >
             <div className="flex items-center justify-between pb-4 border-b border-border/40 mb-5">
-              <h3 className="text-sm font-bold text-foreground uppercase tracking-widest font-label">
+              <h3
+                id="upload-pdf-title"
+                className="text-sm font-bold text-foreground uppercase tracking-widest font-label"
+              >
                 Upload PDF Document
               </h3>
               <button
                 type="button"
                 onClick={() => setShowUpload(false)}
-                className="text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+                className="min-h-10 min-w-10 text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+                aria-label="Close PDF upload"
               >
                 <span className="material-symbols-outlined text-[18px]">close</span>
               </button>
@@ -985,22 +1297,26 @@ export default function UnifiedChat({
       {voiceHUDOpen && (
         <VoiceHUD
           status={voice.status}
+          thinking={(loading || voiceTurnBusy) && voice.status !== "speaking"}
           transcript={voice.transcript}
           onTranscriptChange={(t) => voice.setTranscript(t)}
           onStartRecord={voice.startRecording}
           onStopRecord={voice.stopRecording}
+          onBargeIn={() => {
+            void voice.bargeIn();
+          }}
           onSubmit={(text) => {
-            setVoiceHUDOpen(false);
-            handleSend(undefined, text);
+            void handleVoiceTurnRef.current(text);
           }}
           onCancel={() => {
+            voice.stopListeningOnly();
             voice.stopSpeech();
             setVoiceHUDOpen(false);
-            setIsVoiceChatActive(false);
           }}
           languages={voice.languages}
           selectedLanguage={voice.selectedLanguage}
           onLanguageChange={(l) => voice.setSelectedLanguage(l)}
+          mode="conversation"
         />
       )}
     </div>

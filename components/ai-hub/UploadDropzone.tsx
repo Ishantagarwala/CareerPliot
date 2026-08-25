@@ -1,9 +1,10 @@
 "use client";
 
 import PdfUploader from "@/components/pdf/PdfUploader";
+import type { HubDocument } from "./types";
 
 interface UploadDropzoneProps {
-  onUploadSuccess: (document: any) => void;
+  onUploadSuccess: (document: HubDocument) => void;
 }
 
 export default function UploadDropzone({ onUploadSuccess }: UploadDropzoneProps) {

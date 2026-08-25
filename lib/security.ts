@@ -70,10 +70,24 @@ export function sanitizeFilename(name: string): string {
   return path.basename(name).replace(/[^a-zA-Z0-9._-]/g, "_").slice(0, 200) || "file";
 }
 
-/** Prefix uploads with userId so download route can enforce ownership. */
-export function buildOwnedUploadFilename(userId: string, originalName: string): string {
+/**
+ * Prefix uploads with userId so the download route can enforce ownership.
+ * When a sniffed type is supplied, use its canonical extension rather than a
+ * client-controlled extension.
+ */
+export function buildOwnedUploadFilename(
+  userId: string,
+  originalName: string,
+  sniffedType?: SniffedType
+): string {
   const safeUserId = sanitizeFilename(userId);
-  return `${safeUserId}-${Date.now()}-${sanitizeFilename(originalName)}`;
+  const safeName = sanitizeFilename(originalName);
+  if (!sniffedType) {
+    return `${safeUserId}-${Date.now()}-${safeName}`;
+  }
+
+  const stem = safeName.replace(/\.[^.]*$/, "").replace(/\.+$/, "") || "file";
+  return `${safeUserId}-${Date.now()}-${stem}.${extensionForSniffedType(sniffedType)}`;
 }
 
 /** True when the upload filename is owned by this user (userId- prefix). */
@@ -83,6 +97,19 @@ export function isOwnedUploadFilename(filename: string, userId: string): boolean
 }
 
 export type SniffedType = "pdf" | "png" | "jpeg" | "gif" | "webp";
+
+const SAFE_UPLOAD_EXTENSIONS: Record<SniffedType, string> = {
+  pdf: "pdf",
+  png: "png",
+  jpeg: "jpg",
+  gif: "gif",
+  webp: "webp",
+};
+
+/** Canonical extension for a type verified from file magic bytes. */
+export function extensionForSniffedType(type: SniffedType): string {
+  return SAFE_UPLOAD_EXTENSIONS[type];
+}
 
 /**
  * Identify a file's true type from its magic bytes. Returns null for anything

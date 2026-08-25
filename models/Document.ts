@@ -1,4 +1,8 @@
-import mongoose, { Schema, Document as MongooseDocument } from 'mongoose';
+import mongoose, {
+  Schema,
+  Document as MongooseDocument,
+  type Model,
+} from 'mongoose';
 
 export interface IQuestion {
   question: string;
@@ -20,9 +24,9 @@ export interface IDocument extends MongooseDocument {
 
 const DocumentSchema = new Schema<IDocument>({
   userId: { type: Schema.Types.ObjectId, ref: 'User', required: true, index: true },
-  filename: { type: String, required: true },
-  fileUrl: { type: String, required: true }, // Local path or cloud storage path
-  contentText: { type: String },
+  filename: { type: String, required: true, maxlength: 200 },
+  fileUrl: { type: String, required: true, maxlength: 500 }, // Local path or cloud storage path
+  contentText: { type: String, maxlength: 1_000_000 },
   summary: { type: String },
   questions: [{
     question: { type: String, required: true },
@@ -32,4 +36,8 @@ const DocumentSchema = new Schema<IDocument>({
   }],
 }, { timestamps: true });
 
-export default mongoose.models.Document || mongoose.model<IDocument>('Document', DocumentSchema);
+const DocumentModel =
+  (mongoose.models.Document as Model<IDocument> | undefined) ||
+  mongoose.model<IDocument>('Document', DocumentSchema);
+
+export default DocumentModel;

@@ -16,7 +16,7 @@ export async function GET() {
       .select("filename fileUrl createdAt summary questions");
 
     return NextResponse.json(documents);
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("AI Hub documents GET error:", error);
     return NextResponse.json(
       { message: "Internal Server Error" },

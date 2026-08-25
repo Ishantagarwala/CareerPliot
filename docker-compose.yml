@@ -1,4 +1,17 @@
 services:
+  storage-init:
+    image: alpine:3.22
+    command:
+      - sh
+      - -c
+      - >-
+        mkdir -p /public-uploads /private-uploads &&
+        chown -R 1001:1001 /public-uploads /private-uploads
+    restart: "no"
+    volumes:
+      - careerpliot_uploads:/public-uploads
+      - careerpliot_storage:/private-uploads
+
   web:
     build:
       context: .
@@ -23,6 +36,9 @@ services:
       # the opt-in shared demo flow while keeping the application default off
       # for every other deployment.
       - DEMO_MODE=true
+    depends_on:
+      storage-init:
+        condition: service_completed_successfully
     volumes:
       - careerpliot_uploads:/app/public/uploads
       - careerpliot_storage:/app/storage/uploads
