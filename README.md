@@ -228,6 +228,7 @@ Start from `.env.example`. Keep all real values in an ignored environment file o
 | `LLM_USER_HOURLY_LIMIT` | Per-user hourly AI Hub request limit; defaults to `25` |
 | `USE_LOCAL_OLLAMA=true` | Adds the configured local Ollama model after router fallbacks |
 | `OLLAMA_BASE_URL` / `OLLAMA_MODEL` / `OLLAMA_FALLBACK_MODEL` | Optional Ollama endpoint and model IDs |
+| `OLAMA_ROUTER_API_KEY` / `_BASE_URL` / `_MODEL` / `_FALLBACK_MODEL` | Optional second OpenAI-compatible router (e.g. Groq); tried between the main router and local Ollama. Correctly spelled `OLLAMA_ROUTER_*` variants are also accepted |
 | `GOOGLE_SITE_VERIFICATION` | Google Search Console verification token |
 
 > `DEMO_MODE` bypasses captcha and IP checks for one shared account. Enable it only when that trade-off is intentional, and never store personal or confidential data in the demo account.

@@ -38,16 +38,56 @@ function getFallbackModel(): string {
   return process.env.LLM_ROUTER_FALLBACK_MODEL?.trim() || FALLBACK_MODEL;
 }
 
+/**
+ * Optional secondary OpenAI-compatible router (e.g. Groq free tier).
+ * Reads OLAMA_ROUTER_* first; the corrected OLLAMA_ROUTER_* spelling is
+ * also accepted.
+ */
+function getSecondaryRouterConfig(): { apiKey: string; baseURL: string } | null {
+  const apiKey =
+    process.env.OLAMA_ROUTER_API_KEY?.trim() ||
+    process.env.OLLAMA_ROUTER_API_KEY?.trim();
+  const baseURL =
+    process.env.OLAMA_ROUTER_BASE_URL?.trim() ||
+    process.env.OLLAMA_ROUTER_BASE_URL?.trim();
+
+  if (!apiKey || isPlaceholder(apiKey) || !baseURL) return null;
+  return { apiKey, baseURL };
+}
+
+function getSecondaryRouterModels(): string[] {
+  const models = [
+    process.env.OLAMA_ROUTER_MODEL?.trim() ||
+      process.env.OLLAMA_ROUTER_MODEL?.trim(),
+    process.env.OLAMA_ROUTER_FALLBACK_MODEL?.trim() ||
+      process.env.OLLAMA_ROUTER_FALLBACK_MODEL?.trim(),
+  ].filter((model): model is string => Boolean(model));
+  return Array.from(new Set(models));
+}
+
+/** Short label derived from the base URL host: api.groq.com → "groq". */
+function routerLabel(baseURL: string): string {
+  try {
+    const host = new URL(baseURL).hostname;
+    const parts = host.split(".");
+    return parts.length >= 2 ? parts[parts.length - 2] : host;
+  } catch {
+    return "router";
+  }
+}
+
 // ─── Provider Definitions ────────────────────────────────────────────────────
 
 interface LlmProvider {
   name: string;
   client: OpenAI;
   model: string;
+  baseURL: string;
 }
 
 /**
- * Ordered providers: documented LLM router (flagship → fallback), then Ollama if enabled.
+ * Ordered providers: documented LLM router (flagship → fallback), then the
+ * secondary OLAMA_ROUTER_* router (e.g. Groq), then Ollama if enabled.
  */
 function buildProviderChain(): LlmProvider[] {
   const chain: LlmProvider[] = [];
@@ -56,22 +96,56 @@ function buildProviderChain(): LlmProvider[] {
   if (router) {
     const client = new OpenAI(router);
     const primary = getFlagshipModel();
-    chain.push({ name: `Router/${primary}`, client, model: primary });
+    chain.push({ name: `Router/${primary}`, client, model: primary, baseURL: router.baseURL });
 
     const fallback = getFallbackModel();
     if (fallback && fallback !== primary) {
-      chain.push({ name: `Router/${fallback}`, client, model: fallback });
+      chain.push({
+        name: `Router/${fallback}`,
+        client,
+        model: fallback,
+        baseURL: router.baseURL,
+      });
+    }
+  }
+
+  const secondary = getSecondaryRouterConfig();
+  if (secondary && !chain.some((p) => p.baseURL === secondary.baseURL)) {
+    const models = getSecondaryRouterModels();
+    if (models.length === 0) {
+      console.warn(
+        "[LLM] Secondary router configured but OLAMA_ROUTER_MODEL is not set; skipping it."
+      );
+    } else {
+      const client = new OpenAI(secondary);
+      const label = routerLabel(secondary.baseURL);
+      for (const model of models) {
+        if (!chain.some((p) => p.model === model && p.baseURL === secondary.baseURL)) {
+          chain.push({ name: `${label}/${model}`, client, model, baseURL: secondary.baseURL });
+        }
+      }
     }
   }
 
   if (isOllamaEnabled()) {
-    const ollamaClient = new OpenAI(getOllamaConfig());
+    const ollamaConfig = getOllamaConfig();
+    const ollamaClient = new OpenAI(ollamaConfig);
     const ollamaModel = process.env.OLLAMA_MODEL?.trim() || "llama3";
-    chain.push({ name: `Ollama/${ollamaModel}`, client: ollamaClient, model: ollamaModel });
+    chain.push({
+      name: `Ollama/${ollamaModel}`,
+      client: ollamaClient,
+      model: ollamaModel,
+      baseURL: ollamaConfig.baseURL,
+    });
 
     const ollamaFallback = process.env.OLLAMA_FALLBACK_MODEL?.trim();
     if (ollamaFallback && ollamaFallback !== ollamaModel) {
-      chain.push({ name: `Ollama/${ollamaFallback}`, client: ollamaClient, model: ollamaFallback });
+      chain.push({
+        name: `Ollama/${ollamaFallback}`,
+        client: ollamaClient,
+        model: ollamaFallback,
+        baseURL: ollamaConfig.baseURL,
+      });
     }
   }
 
@@ -204,11 +278,22 @@ function skipJsonResponseFormat(): boolean {
 // generous ceiling; the model only pays for what it actually emits.
 const MAX_COMPLETION_TOKENS = Number(process.env.LLM_MAX_TOKENS?.trim()) || 12000;
 
+/** Retry ceiling for providers that reject MAX_COMPLETION_TOKENS (e.g. Groq). */
+const RETRY_COMPLETION_TOKENS = Math.min(MAX_COMPLETION_TOKENS, 4096);
+
+function isMaxTokensError(error: unknown): boolean {
+  const status = (error as { status?: number } | null)?.status;
+  const message =
+    error instanceof Error ? error.message : String(error ?? "");
+  return status === 400 && /max[_ ]?tokens/i.test(message);
+}
+
 async function createStructuredCompletion(
   client: OpenAI,
   model: string,
   systemPrompt: string,
-  userPrompt: string
+  userPrompt: string,
+  maxTokens: number = MAX_COMPLETION_TOKENS
 ) {
   const request: ChatCompletionCreateParamsNonStreaming = {
     model,
@@ -217,7 +302,7 @@ async function createStructuredCompletion(
       { role: "user", content: userPrompt },
     ],
     temperature: 0.2,
-    max_tokens: MAX_COMPLETION_TOKENS,
+    max_tokens: maxTokens,
   };
 
   return client.chat.completions.create(
@@ -231,7 +316,8 @@ async function createStructuredCompletion(
 
 /**
  * Calls the LLM provider chain and returns a parsed JSON response.
- * Cascades through: router flagship → router fallback → Ollama (if enabled).
+ * Cascades through: router flagship → router fallback → secondary OLAMA_ROUTER_*
+ * (e.g. Groq) → Ollama (if enabled).
  */
 export async function generateStructuredJson<T>(
   systemPrompt: string,
@@ -255,7 +341,22 @@ export async function generateStructuredJson<T>(
     try {
       console.log(`[LLM] Trying provider ${i + 1}/${providers.length}: ${name}`);
 
-      const response = await createStructuredCompletion(client, model, systemPrompt, userPrompt);
+      let response;
+      try {
+        response = await createStructuredCompletion(client, model, systemPrompt, userPrompt);
+      } catch (error) {
+        if (!isMaxTokensError(error)) throw error;
+        console.warn(
+          `[LLM] ${name} rejected max_tokens=${MAX_COMPLETION_TOKENS}; retrying with ${RETRY_COMPLETION_TOKENS}`
+        );
+        response = await createStructuredCompletion(
+          client,
+          model,
+          systemPrompt,
+          userPrompt,
+          RETRY_COMPLETION_TOKENS
+        );
+      }
 
       const content = response.choices[0]?.message?.content;
       if (!content) throw new Error(`Empty response from ${name}`);
