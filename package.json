@@ -4,6 +4,8 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
+    "dev:local": "node scripts/local-mongo.mjs & next dev",
+    "mongo:local": "node scripts/local-mongo.mjs",
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
@@ -54,6 +56,7 @@
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "16.2.7",
+    "mongodb-memory-server": "^11.2.0",
     "tailwindcss": "^4",
     "typescript": "^5",
     "wrangler": "^4.123.0"

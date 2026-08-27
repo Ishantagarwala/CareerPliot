@@ -18,6 +18,7 @@ const nextConfig: NextConfig = {
     //   login/register captcha silently never render.
     // - media-src data:: Sarvam TTS returns base64 WAV played via data: URL.
     // - img-src unsplash/lh3: news thumbnails and Google avatar images.
+    const isDev = process.env.NODE_ENV !== "production";
     const csp = [
       "default-src 'self'",
       "script-src 'self' 'unsafe-inline' https://hcaptcha.com https://*.hcaptcha.com",
@@ -32,28 +33,33 @@ const nextConfig: NextConfig = {
       "base-uri 'self'",
       "form-action 'self'",
       "frame-ancestors 'none'",
-      "upgrade-insecure-requests",
+      ...(isDev ? [] : ["upgrade-insecure-requests"]),
     ].join("; ");
+
+    const headersList: { key: string; value: string }[] = [
+      { key: "Content-Security-Policy", value: csp },
+      { key: "X-Content-Type-Options", value: "nosniff" },
+      { key: "X-Frame-Options", value: "DENY" },
+      { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
+      // Microphone intentionally NOT restricted — voice input feature.
+      {
+        key: "Permissions-Policy",
+        value: "camera=(), geolocation=(), payment=()",
+      },
+    ];
+
+    if (!isDev) {
+      // 6 months, no preload flag (don't submit until confident in HTTPS story)
+      headersList.push({
+        key: "Strict-Transport-Security",
+        value: "max-age=15552000",
+      });
+    }
 
     return [
       {
         source: "/:path*",
-        headers: [
-          { key: "Content-Security-Policy", value: csp },
-          // 6 months, no preload flag (don't submit until confident in HTTPS story)
-          {
-            key: "Strict-Transport-Security",
-            value: "max-age=15552000",
-          },
-          { key: "X-Content-Type-Options", value: "nosniff" },
-          { key: "X-Frame-Options", value: "DENY" },
-          { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
-          // Microphone intentionally NOT restricted — voice input feature.
-          {
-            key: "Permissions-Policy",
-            value: "camera=(), geolocation=(), payment=()",
-          },
-        ],
+        headers: headersList,
       },
     ];
   },
@@ -66,7 +72,7 @@ const nextConfig: NextConfig = {
   },
   experimental: {
     serverActions: {
-      allowedOrigins: ["careerpilot.cc", "www.careerpilot.cc"],
+      allowedOrigins: ["careerpilot.cc", "www.careerpilot.cc", "localhost:3000", "127.0.0.1:3000"],
     },
   },
   serverExternalPackages: ["pdfjs-dist", "pdf-parse"],
