@@ -20,7 +20,7 @@ export default function Error({
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-zinc-50 dark:bg-zinc-950 px-4 text-center">
       <div className="max-w-md w-full p-8 border border-border bg-card rounded-2xl shadow-xl space-y-6">
-        <div className="h-16 w-16 bg-destructive/10 rounded-full flex items-center justify-center text-destructive mx-auto animate-bounce">
+        <div className="h-16 w-16 bg-destructive/10 rounded-full flex items-center justify-center text-destructive mx-auto animate-scale-in">
           <AlertCircle className="h-8 w-8" />
         </div>
         <div className="space-y-2">

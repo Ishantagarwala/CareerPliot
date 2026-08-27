@@ -25,36 +25,70 @@ export default function Navbar({ showLinks = true }: { showLinks?: boolean }) {
   const isDark = theme === "dark";
   void showLinks;
 
+  const renderItems = (sections: typeof navSections) =>
+    sections.map((section) => (
+      <div key={section.id} className="space-y-1">
+        {section.label ? (
+          <p className="px-3 pb-1 pt-2 text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
+            {section.label}
+          </p>
+        ) : null}
+        {section.items.map((item) => {
+          const isActive = isNavActive(pathname, item.href);
+          return (
+            <Link
+              key={item.href}
+              href={item.href}
+              onClick={() => setMobileMenuOpen(false)}
+              className={cn(
+                "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-colors",
+                isActive
+                  ? "bg-primary/10 font-semibold text-foreground"
+                  : "font-medium text-muted-foreground hover:bg-sidebar-accent hover:text-foreground"
+              )}
+            >
+              <span
+                className={cn(
+                  "material-symbols-outlined text-[20px]",
+                  isActive ? "text-primary" : "text-muted-foreground"
+                )}
+              >
+                {item.icon}
+              </span>
+              <span>{item.name}</span>
+            </Link>
+          );
+        })}
+      </div>
+    ));
+
   return (
     <>
-      <header className="md:hidden flex justify-between items-center w-full px-4 h-16 bg-background border-b border-border sticky top-0 z-50 transition-colors duration-300">
+      <header className="sticky top-0 z-50 flex h-16 w-full items-center justify-between border-b border-border bg-background/90 px-4 backdrop-blur-md transition-colors duration-300 md:hidden">
         <Link href="/dashboard" className="flex items-center gap-2.5">
           <BrandLogo size="sm" />
-          <h1
-            className="text-base font-bold text-foreground tracking-tight"
-            style={{ fontFamily: "'Hanken Grotesk', system-ui, sans-serif" }}
-          >
+          <h1 className="text-[15px] font-bold tracking-tight text-foreground">
             Career Pilot
           </h1>
         </Link>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2">
           {mounted && (
             <button
               onClick={() => setTheme(isDark ? "light" : "dark")}
-              className="text-muted-foreground hover:text-foreground transition-colors p-2 cursor-pointer"
-              aria-label="Toggle Theme"
+              className="cursor-pointer rounded-lg p-2 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+              aria-label="Toggle theme"
             >
-              <div className="relative w-5 h-5 flex items-center justify-center overflow-hidden">
+              <div className="relative flex h-5 w-5 items-center justify-center overflow-hidden">
                 <Sun
                   className={cn(
-                    "absolute w-5 h-5 transition-all duration-500 transform",
+                    "absolute h-5 w-5 transition-all duration-300",
                     isDark ? "rotate-90 scale-0 opacity-0" : "rotate-0 scale-100 opacity-100"
                   )}
                 />
                 <Moon
                   className={cn(
-                    "absolute w-5 h-5 transition-all duration-500 transform",
+                    "absolute h-5 w-5 transition-all duration-300",
                     isDark ? "rotate-0 scale-100 opacity-100" : "-rotate-90 scale-0 opacity-0"
                   )}
                 />
@@ -65,7 +99,9 @@ export default function Navbar({ showLinks = true }: { showLinks?: boolean }) {
           {isAuthenticated && (
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="text-muted-foreground hover:text-foreground transition-colors p-1"
+              aria-expanded={mobileMenuOpen}
+              className="rounded-lg p-2 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+              aria-label={mobileMenuOpen ? "Close menu" : "Open menu"}
             >
               <span className="material-symbols-outlined text-[24px]">
                 {mobileMenuOpen ? "close" : "menu"}
@@ -76,17 +112,15 @@ export default function Navbar({ showLinks = true }: { showLinks?: boolean }) {
             <div className="flex items-center gap-2">
               <Link
                 href="/login"
-                className="px-4 py-2 text-sm font-medium text-foreground border border-border hover:border-ring transition-colors"
-                style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "12px", letterSpacing: "0.05em" }}
+                className="rounded-lg px-3.5 py-2 text-sm font-semibold text-foreground transition-colors hover:bg-muted"
               >
-                Log In
+                Log in
               </Link>
               <Link
                 href="/register"
-                className="px-4 py-2 text-sm font-medium bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
-                style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "12px", letterSpacing: "0.05em" }}
+                className="rounded-lg bg-primary px-3.5 py-2 text-sm font-semibold text-primary-foreground shadow-soft transition-colors hover:bg-[color-mix(in_oklch,var(--primary),black_8%)]"
               >
-                Sign Up
+                Sign up
               </Link>
             </div>
           )}
@@ -94,41 +128,9 @@ export default function Navbar({ showLinks = true }: { showLinks?: boolean }) {
       </header>
 
       {mobileMenuOpen && isAuthenticated && (
-        <div className="md:hidden fixed inset-x-0 top-16 z-40 bg-sidebar border-b border-sidebar-border animate-fade-in-down max-h-[calc(100vh-4rem)] overflow-y-auto">
-          <nav className="px-4 py-4 space-y-4">
-            {navSections.map((section) => (
-              <div key={section.id} className="space-y-1">
-                {section.label ? (
-                  <p
-                    className="px-4 pt-1 text-[10px] font-bold uppercase tracking-[0.14em] text-muted-foreground/80"
-                    style={{ fontFamily: "'JetBrains Mono', monospace" }}
-                  >
-                    {section.label}
-                  </p>
-                ) : null}
-                {section.items.map((item) => {
-                  const isActive = isNavActive(pathname, item.href);
-                  return (
-                    <Link
-                      key={item.href}
-                      href={item.href}
-                      onClick={() => setMobileMenuOpen(false)}
-                      className={`flex items-center gap-3 px-4 py-3 rounded text-sm transition-colors ${
-                        isActive
-                          ? "bg-sidebar-accent text-foreground"
-                          : "text-muted-foreground hover:bg-sidebar-accent/50 hover:text-foreground"
-                      }`}
-                      style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "13px", letterSpacing: "0.04em" }}
-                    >
-                      <span className={`material-symbols-outlined text-[20px] ${isActive ? "text-primary" : "text-muted-foreground"}`}>
-                        {item.icon}
-                      </span>
-                      <span>{item.name}</span>
-                    </Link>
-                  );
-                })}
-              </div>
-            ))}
+        <div className="fixed inset-x-0 top-16 z-40 max-h-[calc(100vh-4rem)] overflow-y-auto border-b border-border bg-sidebar animate-fade-in-down md:hidden">
+          <nav className="space-y-4 px-4 py-4">
+            {renderItems(navSections)}
 
             <div className="space-y-1 border-t border-border pt-3">
               {bottomNavItems.map((item) => {
@@ -138,14 +140,19 @@ export default function Navbar({ showLinks = true }: { showLinks?: boolean }) {
                     key={item.href}
                     href={item.href}
                     onClick={() => setMobileMenuOpen(false)}
-                    className={`flex items-center gap-3 px-4 py-3 rounded text-sm transition-colors ${
+                    className={cn(
+                      "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-colors",
                       isActive
-                        ? "bg-sidebar-accent text-foreground"
-                        : "text-muted-foreground hover:bg-sidebar-accent/50 hover:text-foreground"
-                    }`}
-                    style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "13px", letterSpacing: "0.04em" }}
+                        ? "bg-primary/10 font-semibold text-foreground"
+                        : "font-medium text-muted-foreground hover:bg-sidebar-accent hover:text-foreground"
+                    )}
                   >
-                    <span className={`material-symbols-outlined text-[20px] ${isActive ? "text-primary" : "text-muted-foreground"}`}>
+                    <span
+                      className={cn(
+                        "material-symbols-outlined text-[20px]",
+                        isActive ? "text-primary" : "text-muted-foreground"
+                      )}
+                    >
                       {item.icon}
                     </span>
                     <span>{item.name}</span>
@@ -154,14 +161,14 @@ export default function Navbar({ showLinks = true }: { showLinks?: boolean }) {
               })}
             </div>
 
-            <div className="border-t border-border mt-1 pt-3 flex items-center justify-between px-4">
-              <div className="flex items-center gap-2">
-                <div className="h-8 w-8 rounded-full bg-sidebar-accent flex items-center justify-center text-foreground text-xs font-bold">
+            <div className="mt-1 flex items-center justify-between border-t border-border px-3 pt-3">
+              <div className="flex items-center gap-2.5">
+                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/12 text-xs font-bold text-primary">
                   {session?.user?.name?.charAt(0).toUpperCase() || "U"}
                 </div>
                 <div>
-                  <p className="text-xs font-medium text-foreground">{session?.user?.name}</p>
-                  <p className="text-[10px] text-muted-foreground">{session?.user?.email}</p>
+                  <p className="text-[13px] font-medium text-foreground">{session?.user?.name}</p>
+                  <p className="text-[11px] text-muted-foreground">{session?.user?.email}</p>
                 </div>
               </div>
               <button
@@ -169,7 +176,8 @@ export default function Navbar({ showLinks = true }: { showLinks?: boolean }) {
                   setMobileMenuOpen(false);
                   signOut({ callbackUrl: "/" });
                 }}
-                className="text-muted-foreground hover:text-foreground transition-colors p-2"
+                className="cursor-pointer rounded-lg p-2 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                aria-label="Sign out"
               >
                 <span className="material-symbols-outlined text-[20px]">logout</span>
               </button>

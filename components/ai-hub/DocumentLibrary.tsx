@@ -24,16 +24,16 @@ export default function DocumentLibrary({
   const hasSelection = selectedDocumentIds.length > 0;
 
   return (
-    <div className="h-full flex flex-col overflow-hidden bg-sidebar">
-      <div className="flex-1 overflow-y-auto p-4 space-y-3 custom-scrollbar">
+    <div className="flex h-full flex-col overflow-hidden bg-sidebar">
+      <div className="custom-scrollbar flex-1 space-y-3 overflow-y-auto p-4">
         {loading ? (
           [1, 2, 3].map((item) => (
-            <div key={item} className="h-16 border border-border bg-card/30 rounded-lg animate-pulse" />
+            <div key={item} className="h-16 animate-pulse rounded-lg border border-border bg-muted" />
           ))
         ) : documents.length === 0 ? (
-          <div className="border-2 border-dashed border-border p-6 rounded-xl text-center bg-card/10">
-            <p className="text-xs font-bold text-foreground">No PDFs uploaded yet</p>
-            <p className="text-[10px] text-muted-foreground mt-1.5 leading-relaxed">
+          <div className="rounded-xl border border-dashed border-border bg-card/50 p-6 text-center">
+            <p className="text-xs font-semibold text-foreground">No PDFs uploaded yet</p>
+            <p className="mt-1.5 text-[11px] leading-relaxed text-muted-foreground">
               Upload study materials using the button in the header or drag-and-drop to parse documents.
             </p>
           </div>
@@ -48,31 +48,31 @@ export default function DocumentLibrary({
             return (
               <div
                 key={id}
-                className={`w-full border-2 rounded-xl p-3 transition-colors ${
+                className={`w-full rounded-xl border p-3 transition-all ${
                   selected
-                    ? "border-primary bg-primary/10"
-                    : "border-border bg-card/30 hover:border-primary/50 hover:bg-card/50"
+                    ? "border-ring bg-primary/10 shadow-soft"
+                    : "border-border bg-card hover:-translate-y-0.5 hover:border-ring/40 hover:shadow-lift"
                 }`}
               >
                 <div className="flex items-start gap-2.5">
                   <button
                     type="button"
                     onClick={() => onToggleDocument(id)}
-                    className="flex items-start gap-2.5 min-w-0 flex-1 text-left cursor-pointer"
+                    className="flex min-w-0 flex-1 cursor-pointer items-start gap-2.5 text-left"
                     disabled={isDeleting}
                     aria-pressed={selected}
                     aria-label={`${selected ? "Deselect" : "Select"} ${doc.filename}`}
                   >
                     <span
-                      className={`material-symbols-outlined text-[16px] shrink-0 mt-0.5 ${
+                      className={`material-symbols-outlined mt-0.5 shrink-0 text-[16px] ${
                         selected ? "text-primary" : "text-muted-foreground"
                       }`}
                     >
                       description
                     </span>
                     <div className="min-w-0">
-                      <p className="text-xs font-bold text-foreground truncate">{doc.filename}</p>
-                      <p className="text-[10px] text-muted-foreground mt-1 line-clamp-2 leading-relaxed">
+                      <p className="truncate text-xs font-semibold text-foreground">{doc.filename}</p>
+                      <p className="mt-1 line-clamp-2 text-[11px] leading-relaxed text-muted-foreground">
                         {doc.summary || "Summary available after analysis."}
                       </p>
                     </div>
@@ -84,7 +84,7 @@ export default function DocumentLibrary({
                       onDeleteDocument(id, doc.filename);
                     }}
                     disabled={isDeleting}
-                    className="shrink-0 p-1 text-muted-foreground hover:text-red-500 transition-colors disabled:opacity-40 cursor-pointer"
+                    className="shrink-0 cursor-pointer p-1 text-muted-foreground transition-colors hover:text-destructive disabled:opacity-40"
                     title="Delete PDF"
                     aria-label={`Delete ${doc.filename}`}
                   >
@@ -99,13 +99,13 @@ export default function DocumentLibrary({
         )}
       </div>
 
-      <div className="border-t border-border p-4 space-y-2.5 bg-background">
-        <div className="flex items-center gap-1.5 text-[9px] font-bold text-muted-foreground uppercase tracking-widest font-label">
-          <span className="material-symbols-outlined text-[12px] text-primary">bolt</span>
+      <div className="space-y-2.5 border-t border-sidebar-border bg-sidebar p-4">
+        <div className="flex items-center gap-1.5 text-[13px] font-medium text-muted-foreground">
+          <span className="text-[12px] text-primary material-symbols-outlined">bolt</span>
           Quick Prompts
         </div>
         {!hasSelection && (
-          <p className="text-[10px] text-primary font-bold">
+          <p className="text-[11px] font-medium text-primary">
             Select a document above to unlock actions.
           </p>
         )}
@@ -118,10 +118,10 @@ export default function DocumentLibrary({
             key={prompt}
             onClick={() => onQuickPrompt(prompt)}
             disabled={!hasSelection}
-            className={`w-full text-left text-[11px] border-2 rounded-lg px-3 py-2 transition-all leading-normal cursor-pointer ${
+            className={`w-full rounded-lg border px-3 py-2 text-left text-[11px] leading-normal transition-colors ${
               hasSelection
-                ? "text-foreground border-border bg-card hover:bg-primary hover:text-primary-foreground hover:border-primary font-bold shadow-[2px_2px_0_0_rgba(0,0,0,0.15)] active:translate-x-0.5 active:translate-y-0.5 active:shadow-none"
-                : "text-muted-foreground/50 border-border/40 bg-transparent cursor-not-allowed"
+                ? "cursor-pointer border-border bg-card font-medium text-foreground hover:border-ring hover:bg-primary hover:text-primary-foreground"
+                : "cursor-not-allowed border-border/60 bg-transparent text-muted-foreground/60"
             }`}
           >
             {prompt}

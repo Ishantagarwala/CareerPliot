@@ -49,26 +49,23 @@ export default function MessageBubble({ message }: MessageBubbleProps) {
         }`}
       >
         <div
-          className={`flex h-8 w-8 shrink-0 items-center justify-center border-2 border-black ${
-            isUser ? "bg-accent text-accent-foreground" : "bg-card text-foreground"
+          className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-xl ${
+            isUser ? "bg-accent text-accent-foreground" : "bg-primary/10 text-primary"
           }`}
         >
           {isUser ? (
             <span className="material-symbols-outlined text-[16px]">person</span>
           ) : (
-            <span
-              className="text-xs font-bold text-primary"
-              style={{ fontFamily: "'JetBrains Mono', monospace" }}
-            >
-              AI
-            </span>
+            <span className="text-xs font-bold text-primary">AI</span>
           )}
         </div>
 
         <div className="flex min-w-0 flex-1 flex-col space-y-1">
           <div
-            className={`relative w-full border-2 border-black p-4 pb-10 transition-all ${
-              isUser ? "bg-accent text-accent-foreground" : "bg-card text-foreground"
+            className={`relative w-full rounded-2xl p-4 pb-10 transition-all ${
+              isUser
+                ? "bg-accent text-accent-foreground"
+                : "border border-border bg-card text-foreground shadow-soft"
             }`}
           >
             {message.attachments && message.attachments.length > 0 && (
@@ -76,7 +73,7 @@ export default function MessageBubble({ message }: MessageBubbleProps) {
                 {message.attachments.map((att, idx) => (
                   <div
                     key={idx}
-                    className="flex items-center gap-2 border border-[#262626] bg-[#0A0A0A] p-1.5 text-xs text-white"
+                    className="flex items-center gap-2 rounded-lg border border-border bg-muted p-1.5 text-xs text-foreground"
                   >
                     {att.type === "image" ? (
                       <a
@@ -91,7 +88,7 @@ export default function MessageBubble({ message }: MessageBubbleProps) {
                           src={att.fileUrl}
                           alt={att.filename}
                           loading="lazy"
-                          className="h-16 max-w-[120px] border border-[#262626] object-contain"
+                          className="h-16 max-w-[120px] rounded-md border border-border object-contain"
                         />
                       </a>
                     ) : (
@@ -99,12 +96,12 @@ export default function MessageBubble({ message }: MessageBubbleProps) {
                         href={att.fileUrl}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="flex items-center gap-1.5 text-white hover:underline"
+                        className="flex items-center gap-1.5 text-foreground hover:underline"
                       >
-                        <span className="material-symbols-outlined text-[18px] text-red-500">
+                        <span className="material-symbols-outlined text-[18px] text-destructive">
                           description
                         </span>
-                        <span className="max-w-[150px] truncate font-mono text-[10px]">
+                        <span className="max-w-[150px] truncate text-[10px]">
                           {att.filename}
                         </span>
                       </a>
@@ -129,7 +126,7 @@ export default function MessageBubble({ message }: MessageBubbleProps) {
 
             {message.error && (
               <div
-                className="mt-3 flex items-start gap-2 border border-red-500/35 bg-red-500/10 px-3 py-2 text-xs text-red-700 dark:text-red-300"
+                className="mt-3 flex items-start gap-2 rounded-lg border border-destructive/35 bg-destructive/10 px-3 py-2 text-xs text-destructive"
                 role="alert"
               >
                 <span className="material-symbols-outlined mt-0.5 text-[15px] shrink-0">
@@ -143,7 +140,7 @@ export default function MessageBubble({ message }: MessageBubbleProps) {
               <button
                 type="button"
                 onClick={handleCopyMessage}
-                className="flex h-6 w-6 items-center justify-center border border-[#262626] bg-[#0A0A0A]/80 text-[#8e9192] transition-colors hover:text-white"
+                className="flex h-6 w-6 items-center justify-center rounded-lg border border-border bg-card text-muted-foreground transition-colors hover:text-foreground"
                 aria-label={copiedText ? "Message copied" : "Copy message"}
                 title={copiedText ? "Copied" : "Copy message"}
               >
@@ -154,8 +151,7 @@ export default function MessageBubble({ message }: MessageBubbleProps) {
 
           {timeString && (
             <span
-              className={`px-1 text-[9px] text-[#636565] ${isUser ? "text-right" : "text-left"}`}
-              style={{ fontFamily: "'JetBrains Mono', monospace" }}
+              className={`px-1 text-[10px] text-muted-foreground ${isUser ? "text-right" : "text-left"}`}
             >
               {timeString}
             </span>

@@ -121,27 +121,18 @@ export default function RoadmapViewer({
 
   return (
     <div className="space-y-6 max-w-6xl">
-      <div className="bg-card border border-border p-5 sm:p-8 space-y-5">
+      <div className="rounded-2xl border border-border bg-card p-5 shadow-soft space-y-5 sm:p-8">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="flex items-center gap-2 flex-wrap min-w-0">
-            <span
-              className="inline-flex items-center gap-1.5 px-3 py-1 border border-border bg-background text-muted-foreground text-[11px] font-medium"
-              style={{ fontFamily: "'JetBrains Mono', monospace", letterSpacing: "0.06em" }}
-            >
-              <Sparkles className="w-3 h-3" />
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-background px-3 py-1.5 text-[13px] font-medium text-muted-foreground">
+              <Sparkles className="w-3.5 h-3.5 text-primary" />
               AI roadmap
             </span>
-            <span
-              className="inline-flex items-center gap-1.5 px-3 py-1 border border-border bg-background text-foreground text-[11px]"
-              style={{ fontFamily: "'JetBrains Mono', monospace" }}
-            >
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-background px-3 py-1.5 text-[13px] font-medium text-foreground">
               {roadmap.targetRole || roadmap.careerPath}
             </span>
-            <span
-              className="inline-flex items-center gap-1.5 px-3 py-1 border border-border bg-background text-muted-foreground text-[11px]"
-              style={{ fontFamily: "'JetBrains Mono', monospace" }}
-            >
-              <Clock className="w-3 h-3" />
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-background px-3 py-1.5 text-[13px] font-medium text-muted-foreground">
+              <Clock className="w-3.5 h-3.5" />
               {estimatedWeeks}
             </span>
           </div>
@@ -151,8 +142,7 @@ export default function RoadmapViewer({
               type="button"
               disabled={refreshing}
               onClick={onRefreshRoadmap}
-              className="inline-flex items-center gap-2 min-h-10 px-4 py-2 border border-border bg-background text-foreground text-xs font-bold hover:border-foreground transition-colors disabled:opacity-40"
-              style={{ fontFamily: "'JetBrains Mono', monospace", letterSpacing: "0.04em" }}
+              className="inline-flex h-9 items-center gap-2 self-start rounded-lg border border-border bg-card px-4 text-sm font-semibold text-foreground transition-colors hover:bg-muted disabled:opacity-40"
             >
               <RotateCcw className={`w-4 h-4 ${refreshing ? "animate-spin" : ""}`} />
               {refreshing ? "Regenerating…" : "Regenerate"}
@@ -161,10 +151,7 @@ export default function RoadmapViewer({
         </div>
 
         <div className="min-w-0">
-          <h2
-            className="text-2xl sm:text-3xl font-bold text-foreground tracking-tight leading-tight"
-            style={{ fontFamily: "'Hanken Grotesk', system-ui, sans-serif" }}
-          >
+          <h2 className="font-display text-2xl font-bold tracking-tight leading-tight text-foreground sm:text-3xl">
             {roadmap.careerPath}
           </h2>
           <p className="text-sm text-muted-foreground max-w-2xl leading-relaxed mt-2">
@@ -175,17 +162,17 @@ export default function RoadmapViewer({
         <div className="pt-4 border-t border-border flex flex-col lg:flex-row lg:items-center justify-between gap-4">
           <div className="flex flex-col sm:flex-row sm:items-center gap-4 min-w-0 flex-1">
             <div className="space-y-1.5 min-w-0 sm:min-w-[13rem] flex-1 max-w-xs">
-              <div className="flex items-center justify-between gap-4 text-[11px]" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
-                <span className="text-muted-foreground uppercase tracking-wider">Career readiness</span>
-                <span className="text-foreground font-bold tabular-nums">{pct}%</span>
+              <div className="flex items-center justify-between gap-4 text-[13px]">
+                <span className="font-medium text-muted-foreground">Career readiness</span>
+                <span className="font-bold tabular-nums text-foreground">{pct}%</span>
               </div>
-              <div className="h-2 border border-border bg-background overflow-hidden">
+              <div className="h-2 overflow-hidden rounded-full bg-muted">
                 <div
-                  className="h-full bg-primary transition-all duration-500"
-                  style={{ width: `${pct}%` }}
+                  className="progress-bar-fill h-full w-full rounded-full bg-primary transition-transform duration-500"
+                  style={{ transform: `scaleX(${pct / 100})` }}
                 />
               </div>
-              <div className="text-[10px] text-muted-foreground" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
+              <div className="text-xs text-muted-foreground">
                 {completedCount} of {totalCount} topics complete
               </div>
             </div>
@@ -197,18 +184,12 @@ export default function RoadmapViewer({
                 { icon: CheckCircle2, label: "Done", value: String(completedCount) },
               ].map((stat) => (
                 <div key={stat.label} className="flex items-center gap-2 min-w-0">
-                  <stat.icon className="w-4 h-4 text-foreground shrink-0" />
+                  <stat.icon className="w-4 h-4 shrink-0 text-primary" />
                   <div className="min-w-0">
-                    <div
-                      className="text-base font-bold text-foreground tabular-nums leading-none"
-                      style={{ fontFamily: "'Hanken Grotesk', system-ui, sans-serif" }}
-                    >
+                    <div className="font-display text-base font-bold leading-none tabular-nums text-foreground">
                       {stat.value}
                     </div>
-                    <div
-                      className="text-[10px] text-muted-foreground uppercase tracking-wider mt-0.5"
-                      style={{ fontFamily: "'JetBrains Mono', monospace" }}
-                    >
+                    <div className="mt-0.5 text-[13px] font-medium text-muted-foreground">
                       {stat.label}
                     </div>
                   </div>
@@ -217,7 +198,7 @@ export default function RoadmapViewer({
             </div>
           </div>
 
-          <div className="inline-flex border border-border self-start">
+          <div className="inline-flex self-start gap-1 rounded-lg border border-border bg-muted/50 p-1">
             {[
               { id: "graph" as const, label: "Cards", icon: LayoutGrid },
               { id: "outline" as const, label: "List", icon: ListTree },
@@ -226,12 +207,11 @@ export default function RoadmapViewer({
                 key={id}
                 type="button"
                 onClick={() => setViewMode(id)}
-                className={`flex items-center gap-2 min-h-10 px-4 py-2 text-xs font-medium transition-colors ${
+                className={`flex items-center gap-2 rounded-md px-3.5 py-1.5 text-[13px] font-medium shadow-soft transition-colors ${
                   viewMode === id
                     ? "bg-primary text-primary-foreground"
-                    : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
+                    : "text-muted-foreground hover:bg-card hover:text-foreground"
                 }`}
-                style={{ fontFamily: "'JetBrains Mono', monospace", letterSpacing: "0.04em" }}
               >
                 <Icon className="w-3.5 h-3.5" />
                 {label}
@@ -266,30 +246,21 @@ export default function RoadmapViewer({
             const stagePct = topics.length > 0 ? Math.round((stageDone / topics.length) * 100) : 0;
 
             return (
-              <section key={stage.name} className="bg-card border border-border overflow-hidden">
-                <div className="p-4 sm:p-5 border-b border-border flex items-center justify-between gap-3">
+              <section key={stage.name} className="overflow-hidden rounded-2xl border border-border bg-card shadow-soft">
+                <div className="flex items-center justify-between gap-3 border-b border-border p-4 sm:p-5">
                   <div className="min-w-0">
-                    <span
-                      className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground"
-                      style={{ fontFamily: "'JetBrains Mono', monospace" }}
-                    >
+                    <span className="text-[13px] font-medium text-muted-foreground">
                       Stage 0{idx + 1}
                     </span>
-                    <h3
-                      className="text-lg font-bold text-foreground mt-0.5 truncate"
-                      style={{ fontFamily: "'Hanken Grotesk', system-ui, sans-serif" }}
-                    >
+                    <h3 className="mt-0.5 truncate font-display text-lg font-bold text-foreground">
                       {stage.title || stage.name}
                     </h3>
                   </div>
-                  <span
-                    className="text-xl font-bold text-foreground tabular-nums shrink-0"
-                    style={{ fontFamily: "'Hanken Grotesk', system-ui, sans-serif" }}
-                  >
+                  <span className="shrink-0 font-display text-xl font-bold tabular-nums text-primary">
                     {stagePct}%
                   </span>
                 </div>
-                <div className="p-3 sm:p-5 space-y-2">
+                <div className="space-y-2 p-3 sm:p-5">
                   {topics.map((t) => (
                     <div
                       key={t.id}
@@ -302,17 +273,17 @@ export default function RoadmapViewer({
                           setSelectedTopic(t);
                         }
                       }}
-                      className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 border border-border bg-background hover:border-foreground cursor-pointer transition-colors"
+                      className="flex cursor-pointer flex-col justify-between gap-3 rounded-xl border border-border bg-background p-4 transition-all hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-lift sm:flex-row sm:items-center"
                     >
-                      <div className="flex items-start sm:items-center gap-3 min-w-0">
+                      <div className="flex items-start gap-3 min-w-0 sm:items-center">
                         {t.completed ? (
-                          <CheckCircle2 className="w-5 h-5 text-foreground shrink-0 mt-0.5 sm:mt-0" />
+                          <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-primary sm:mt-0" />
                         ) : (
-                          <div className="w-5 h-5 rounded-full border border-border shrink-0 mt-0.5 sm:mt-0" />
+                          <div className="mt-0.5 h-5 w-5 shrink-0 rounded-full border border-border sm:mt-0" />
                         )}
                         <div className="min-w-0">
                           <div className="text-sm font-semibold text-foreground">{t.title}</div>
-                          <div className="text-xs text-muted-foreground line-clamp-2 mt-0.5">{t.description}</div>
+                          <div className="mt-0.5 line-clamp-2 text-xs text-muted-foreground">{t.description}</div>
                         </div>
                       </div>
                       <button
@@ -321,8 +292,7 @@ export default function RoadmapViewer({
                           e.stopPropagation();
                           handleToggleTopic(t.id, !t.completed);
                         }}
-                        className="min-h-10 px-3 py-1.5 text-xs border border-border bg-card text-foreground hover:border-foreground transition-colors shrink-0 self-end sm:self-auto"
-                        style={{ fontFamily: "'JetBrains Mono', monospace", letterSpacing: "0.04em" }}
+                        className="inline-flex h-9 shrink-0 self-end items-center rounded-lg border border-border bg-card px-3 text-[13px] font-semibold text-foreground transition-colors hover:bg-muted sm:self-auto"
                       >
                         {t.completed ? "Undo" : "Mark done"}
                       </button>

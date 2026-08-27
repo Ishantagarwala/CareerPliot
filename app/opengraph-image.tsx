@@ -5,6 +5,9 @@ export const alt = `${SITE_NAME} — AI career planning for students`;
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
+// Warm Focus OG: dark-green canvas, off-white ink, green carries the
+// wordmark, amber carries the AI eyebrow. No block borders, no periwinkle —
+// the image now belongs to the same family as the product.
 export default function OpenGraphImage() {
   return new ImageResponse(
     (
@@ -18,19 +21,28 @@ export default function OpenGraphImage() {
           backgroundColor: "#191d10",
           color: "#f4f6e8",
           padding: "64px",
-          border: "12px solid #000",
         }}
       >
         <div
           style={{
-            fontSize: 28,
+            display: "flex",
+            alignItems: "center",
+            gap: "12px",
+            fontSize: 26,
             fontWeight: 700,
-            letterSpacing: "0.2em",
-            textTransform: "uppercase",
-            color: "#88aaee",
+            letterSpacing: "0.04em",
+            color: "#e9a23b",
           }}
         >
-          Free for students
+          <div
+            style={{
+              width: "14px",
+              height: "14px",
+              borderRadius: "4px",
+              backgroundColor: "#e9a23b",
+            }}
+          />
+          AI career guidance · free for students
         </div>
         <div
           style={{
@@ -40,11 +52,11 @@ export default function OpenGraphImage() {
         >
           <div
             style={{
-              fontSize: 88,
+              fontSize: 96,
               fontWeight: 800,
               lineHeight: 0.95,
-              textTransform: "uppercase",
-              color: "#88aaee",
+              letterSpacing: "-0.02em",
+              color: "#5fb86b",
               marginBottom: 24,
             }}
           >

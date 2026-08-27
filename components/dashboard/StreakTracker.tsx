@@ -39,83 +39,71 @@ export default function StreakTracker({ streakDays, lastActive }: StreakTrackerP
 
   const getMotivationalQuote = (streak: number) => {
     if (streak === 0) return "Start a learning session today to kickstart your streak!";
-    if (streak === 1) return "First step complete! Maintain your streak by studying again tomorrow.";
-    if (streak < 3) return "You're building momentum! Consistency is the key to mastering skills.";
-    if (streak < 7) return "Incredible dedication! You are developing a powerful learning habit.";
-    return "Legendary consistency! You've unlocked the ultimate study routine. Keep going!";
+    if (streak === 1) return "First step complete! Come back tomorrow to keep it alive.";
+    if (streak < 3) return "Momentum is building — consistency beats intensity.";
+    if (streak < 7) return "Strong habit forming. This is how skills compound.";
+    return "Legendary consistency. Keep the chain going!";
   };
 
   return (
-    <div className="bg-[#1A1A1A] border border-[#262626] p-6 h-full">
+    <div className="h-full rounded-2xl border border-border bg-card p-6 shadow-soft">
       <div className="mb-6">
-        <h3
-          className="text-base font-bold text-white flex items-center gap-2"
-          style={{ fontFamily: "'Hanken Grotesk', system-ui, sans-serif" }}
-        >
-          <span className="material-symbols-outlined text-[20px] text-white">local_fire_department</span>
-          Active Habit Tracker
+        <h3 className="flex items-center gap-2 text-base font-semibold tracking-tight text-foreground">
+          <span className="material-symbols-outlined text-[20px] text-amber">
+            local_fire_department
+          </span>
+          Study streak
         </h3>
-        <p className="text-xs text-[#8e9192] mt-1">Daily activity streak tracking</p>
+        <p className="mt-1 text-[13px] text-muted-foreground">Daily activity, tracked</p>
       </div>
 
-      {/* Streak Display */}
-      <div className="flex items-center gap-4 p-4 border border-[#262626] bg-[#131313] mb-6 animate-fade-in-up">
-        <div className="h-14 w-14 border border-[#262626] flex items-center justify-center text-white shrink-0">
-          <span className="material-symbols-outlined text-[28px]">local_fire_department</span>
+      {/* Streak display */}
+      <div className="mb-6 flex items-center gap-4 rounded-xl border border-border bg-background p-4">
+        <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-accent text-accent-foreground">
+          <span className="material-symbols-outlined text-[26px]">local_fire_department</span>
         </div>
-        <div>
+        <div className="min-w-0">
           <div className="flex items-baseline gap-1.5">
-            <span
-              className="text-2xl font-bold text-white tracking-tight"
-              style={{ fontFamily: "'Hanken Grotesk', system-ui, sans-serif" }}
-            >
+            <span className="text-2xl font-bold tracking-tight text-foreground">
               {streakDays}
             </span>
-            <span
-              className="text-[11px] text-[#8e9192] uppercase tracking-[0.1em]"
-              style={{ fontFamily: "'JetBrains Mono', monospace" }}
-            >
+            <span className="text-[13px] font-medium text-muted-foreground">
               day{streakDays !== 1 ? "s" : ""} streak
             </span>
           </div>
-          <p className="text-[10px] text-[#636565] mt-1 leading-relaxed font-medium">
+          <p className="mt-0.5 text-xs leading-relaxed text-muted-foreground">
             {getMotivationalQuote(streakDays)}
           </p>
         </div>
       </div>
 
-      {/* 7-Day Grid */}
+      {/* 7-day grid */}
       <div className="space-y-3">
-        <span
-          className="text-[11px] text-[#8e9192] uppercase tracking-[0.1em] flex items-center gap-1.5"
-          style={{ fontFamily: "'JetBrains Mono', monospace" }}
-        >
-          <span className="material-symbols-outlined text-[16px] text-white">calendar_month</span>
-          7-Day Progress
+        <span className="text-[13px] font-medium text-muted-foreground">
+          Last 7 days
         </span>
         <div className="grid grid-cols-7 gap-2">
           {weeklyDays.map((day, idx) => (
             <div
               key={idx}
-              className={`flex flex-col items-center p-2 border text-center transition-all animate-fade-in-up ${
+              className={`flex animate-fade-in-up flex-col items-center rounded-xl border p-2 text-center transition-colors ${
                 day.isActive
-                  ? "bg-white/5 border-white/30 text-white"
+                  ? "border-primary/40 bg-primary/10 text-foreground"
                   : day.isToday
-                  ? "border-[#404040] bg-[#131313] text-white"
-                  : "border-[#262626] bg-transparent text-[#636565]"
+                    ? "border-border bg-muted text-foreground"
+                    : "border-border text-muted-foreground"
               }`}
               style={{ animationDelay: `${idx * 60}ms` }}
             >
-              <span
-                className="text-[9px] font-medium uppercase tracking-wider block"
-                style={{ fontFamily: "'JetBrains Mono', monospace" }}
-              >
+              <span className="block text-[10px] font-semibold uppercase tracking-wide">
                 {day.name}
               </span>
-              <span className="text-sm font-bold block mt-1">{day.date}</span>
-              {day.isActive && (
-                <span className="h-1 w-1 rounded-full bg-white mt-1" />
-              )}
+              <span className="mt-1 block text-sm font-bold tabular-nums">{day.date}</span>
+              <span
+                className={`mt-1.5 h-1.5 w-1.5 rounded-full ${
+                  day.isActive ? "bg-primary" : "bg-border"
+                }`}
+              />
             </div>
           ))}
         </div>

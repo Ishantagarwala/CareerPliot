@@ -25,28 +25,21 @@ export default function SummaryViewer({ summary, filename }: SummaryViewerProps)
   };
 
   return (
-    <div className="border border-[#262626] bg-[#1A1A1A]">
-      <div className="flex items-center justify-between border-b border-[#262626] p-4">
+    <div className="overflow-hidden rounded-2xl border border-border bg-card shadow-soft">
+      <div className="flex items-center justify-between border-b border-border p-4">
         <div>
-          <h3
-            className="flex items-center gap-2 text-base font-bold text-white"
-            style={{ fontFamily: "'Hanken Grotesk', system-ui, sans-serif" }}
-          >
+          <h3 className="flex items-center gap-2 text-base font-bold text-foreground">
             <span className="material-symbols-outlined text-[18px]">description</span>
             Study Summary
           </h3>
-          <p
-            className="mt-1 max-w-[280px] truncate text-[10px] text-[#636565] sm:max-w-md"
-            style={{ fontFamily: "'JetBrains Mono', monospace", letterSpacing: "0.05em" }}
-          >
+          <p className="mt-1 max-w-[280px] truncate text-[11px] text-muted-foreground sm:max-w-md">
             Generated from {filename}
           </p>
         </div>
         <button
           type="button"
           onClick={handleCopy}
-          className="flex h-9 items-center gap-1.5 border border-[#262626] px-3 text-xs text-[#c4c7c8] transition-colors hover:border-white hover:text-white"
-          style={{ fontFamily: "'JetBrains Mono', monospace", letterSpacing: "0.04em" }}
+          className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-border px-4 text-sm font-semibold text-foreground transition-colors hover:bg-muted"
         >
           {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
           {copied ? "Copied" : "Copy"}

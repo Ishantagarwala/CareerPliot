@@ -5,7 +5,6 @@ import PageLoader from "@/components/layout/PageLoader";
 import { toast } from "sonner";
 import {
   Search,
-  ArrowRight,
   Newspaper,
   Calendar,
   Clock,
@@ -36,13 +35,13 @@ interface NewsArticle {
 function getTagIcon(tag: string) {
   const t = tag.toLowerCase();
   if (t.includes("hiring") || t.includes("jobs") || t.includes("internship"))
-    return <Briefcase className="h-2.5 w-2.5" />;
+    return <Briefcase className="h-3 w-3" />;
   if (t.includes("india") || t.includes("global") || t.includes("asia"))
-    return <Globe className="h-2.5 w-2.5" />;
+    return <Globe className="h-3 w-3" />;
   if (t.includes("ai") || t.includes("tech") || t.includes("cloud"))
-    return <Zap className="h-2.5 w-2.5" />;
+    return <Zap className="h-3 w-3" />;
   if (t.includes("funding") || t.includes("startup"))
-    return <TrendingUp className="h-2.5 w-2.5" />;
+    return <TrendingUp className="h-3 w-3" />;
   return null;
 }
 
@@ -204,118 +203,91 @@ export default function NewsPage() {
   }
 
   return (
-    <div className="space-y-8 animate-fade-in-up">
+    <div className="space-y-8">
       {/* Page Header */}
-      <div className="border-b border-border pb-6 flex flex-col lg:flex-row lg:items-end justify-between gap-6">
+      <div className="flex flex-col justify-between gap-6 border-b border-border pb-6 lg:flex-row lg:items-end">
         <div>
-          <h1
-            className="text-3xl font-bold text-foreground tracking-tight flex items-center gap-3"
-            style={{ fontFamily: "'Hanken Grotesk', system-ui, sans-serif" }}
-          >
-            <span className="material-symbols-outlined text-[28px]">
-              newspaper
+          <h1 className="font-display flex items-center gap-3 text-2xl font-bold tracking-tight text-foreground">
+            <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
+              <span className="material-symbols-outlined text-[22px]">
+                newspaper
+              </span>
             </span>
             Daily Dispatch
           </h1>
-          <p className="text-sm text-muted-foreground mt-2 max-w-2xl">
-            News tailored to <span className="text-foreground font-semibold">{domainLabel}</span> —
+          <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
+            News tailored to <span className="font-semibold text-foreground">{domainLabel}</span> —
             hiring, industry shifts, and career signals for your path. Not a generic tech dump.
           </p>
         </div>
 
         {/* Search & Actions */}
-        <div className="flex flex-col sm:flex-row gap-3 w-full lg:w-auto">
+        <div className="flex w-full flex-col gap-3 sm:flex-row lg:w-auto">
           {/* Refresh Button */}
           <button
             onClick={() => loadNews(true)}
             disabled={refreshing}
-            className="flex items-center justify-center gap-2 px-4 py-2 border border-border bg-transparent text-foreground text-[10px] uppercase font-bold tracking-wider hover:border-primary transition-colors shrink-0 disabled:opacity-50"
-            style={{ fontFamily: "'JetBrains Mono', monospace" }}
+            className="inline-flex h-10 shrink-0 items-center justify-center gap-2 rounded-lg border border-border px-4 text-sm font-semibold text-foreground transition-colors hover:bg-muted disabled:opacity-50"
           >
             <RefreshCw
-              className={`h-3 w-3 ${refreshing ? "animate-spin" : ""}`}
+              className={`h-3.5 w-3.5 ${refreshing ? "animate-spin" : ""}`}
             />
             {refreshing ? "Refreshing..." : "Refresh Feed"}
           </button>
 
           {/* Custom Search Input */}
           <div className="relative flex-1 sm:w-64">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground h-4 w-4" />
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <input
               type="text"
               placeholder="Search Intelligence..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-background border border-border py-2 pl-9 pr-4 text-xs font-semibold focus:border-primary focus:bg-background placeholder-muted-foreground transition-colors rounded-none"
-              style={{ fontFamily: "'JetBrains Mono', monospace" }}
+              className="h-10 w-full rounded-lg border border-input bg-card pl-9 pr-4 text-sm text-foreground placeholder:text-muted-foreground focus:border-ring focus:outline-none focus:ring-2 focus:ring-ring/25"
             />
           </div>
         </div>
       </div>
 
       {/* Live Stats Bar */}
-      <div className="grid grid-cols-3 gap-4">
-        <div className="border border-border bg-card p-4 flex items-center gap-3">
-          <div className="w-8 h-8 flex items-center justify-center border border-border">
-            <Newspaper className="h-4 w-4 text-foreground" />
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+        <div className="flex items-center gap-3 rounded-2xl border border-border bg-card p-4 shadow-soft">
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
+            <Newspaper className="h-5 w-5" />
           </div>
           <div>
-            <p
-              className="text-lg font-bold text-foreground"
-              style={{
-                fontFamily: "'Hanken Grotesk', system-ui, sans-serif",
-              }}
-            >
+            <p className="font-display text-xl font-bold tabular-nums tracking-tight text-foreground">
               {totalCount}
             </p>
-            <p
-              className="text-[9px] text-muted-foreground uppercase tracking-wider font-bold"
-              style={{ fontFamily: "'JetBrains Mono', monospace" }}
-            >
+            <p className="text-[13px] font-medium text-muted-foreground">
               Total Briefs
             </p>
           </div>
         </div>
 
-        <div className="border border-border bg-card p-4 flex items-center gap-3">
-          <div className="w-8 h-8 flex items-center justify-center border border-border">
-            <Globe className="h-4 w-4 text-foreground" />
+        <div className="flex items-center gap-3 rounded-2xl border border-border bg-card p-4 shadow-soft">
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
+            <Globe className="h-5 w-5" />
           </div>
           <div>
-            <p
-              className="text-lg font-bold text-foreground"
-              style={{
-                fontFamily: "'Hanken Grotesk', system-ui, sans-serif",
-              }}
-            >
+            <p className="font-display text-xl font-bold tabular-nums tracking-tight text-foreground">
               {indiaCount}
             </p>
-            <p
-              className="text-[9px] text-muted-foreground uppercase tracking-wider font-bold"
-              style={{ fontFamily: "'JetBrains Mono', monospace" }}
-            >
+            <p className="text-[13px] font-medium text-muted-foreground">
               India Focused
             </p>
           </div>
         </div>
 
-        <div className="border border-border bg-card p-4 flex items-center gap-3">
-          <div className="w-8 h-8 flex items-center justify-center border border-border">
-            <Briefcase className="h-4 w-4 text-foreground" />
+        <div className="flex items-center gap-3 rounded-2xl border border-border bg-card p-4 shadow-soft">
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-accent text-accent-foreground">
+            <Briefcase className="h-5 w-5" />
           </div>
           <div>
-            <p
-              className="text-lg font-bold text-foreground"
-              style={{
-                fontFamily: "'Hanken Grotesk', system-ui, sans-serif",
-              }}
-            >
+            <p className="font-display text-xl font-bold tabular-nums tracking-tight text-foreground">
               {hiringCount}
             </p>
-            <p
-              className="text-[9px] text-muted-foreground uppercase tracking-wider font-bold"
-              style={{ fontFamily: "'JetBrains Mono', monospace" }}
-            >
+            <p className="text-[13px] font-medium text-muted-foreground">
               Hiring / Intern
             </p>
           </div>
@@ -323,15 +295,14 @@ export default function NewsPage() {
       </div>
 
       {/* Quick Filters */}
-      <div className="flex items-center gap-1.5 overflow-x-auto shrink-0 pb-1">
+      <div className="flex shrink-0 items-center gap-1.5 overflow-x-auto pb-1">
         <button
           onClick={() => setActiveTag(null)}
-          className={`px-3 py-2 border text-[10px] uppercase font-bold tracking-wider transition-colors shrink-0 rounded-none ${
+          className={`shrink-0 whitespace-nowrap rounded-full border px-3.5 py-1.5 text-[13px] font-medium transition-colors ${
             !activeTag
-              ? "bg-primary text-primary-foreground border-primary"
-              : "bg-transparent border-border text-foreground hover:border-primary"
+              ? "border-primary/40 bg-primary/10 text-primary"
+              : "border-border text-muted-foreground hover:bg-muted hover:text-foreground"
           }`}
-          style={{ fontFamily: "'JetBrains Mono', monospace" }}
         >
           All News
         </button>
@@ -339,12 +310,11 @@ export default function NewsPage() {
           <button
             key={tag}
             onClick={() => setActiveTag(activeTag === tag ? null : tag)}
-            className={`px-3 py-2 border text-[10px] uppercase font-bold tracking-wider transition-colors shrink-0 rounded-none flex items-center gap-1.5 ${
+            className={`flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full border px-3.5 py-1.5 text-[13px] font-medium transition-colors ${
               activeTag === tag
-                ? "bg-primary text-primary-foreground border-primary"
-                : "bg-transparent border-border text-foreground hover:border-primary"
+                ? "border-primary/40 bg-primary/10 text-primary"
+                : "border-border text-muted-foreground hover:bg-muted hover:text-foreground"
             }`}
-            style={{ fontFamily: "'JetBrains Mono', monospace" }}
           >
             {getTagIcon(tag)}
             {tag}
@@ -353,7 +323,7 @@ export default function NewsPage() {
       </div>
 
       {/* Main Asymmetric Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
         {/* Featured Article Showcase (Span 8) */}
         <div className="lg:col-span-8">
           {featuredArticle ? (
@@ -361,123 +331,102 @@ export default function NewsPage() {
               href={featuredArticle.sourceUrl || "#"}
               target="_blank"
               rel="noopener noreferrer"
-              className="block border border-border bg-card flex flex-col group h-full transition-colors duration-300 hover:border-muted-foreground cursor-pointer no-underline"
+              className="group block h-full cursor-pointer overflow-hidden rounded-2xl border border-border bg-card no-underline shadow-soft transition-all duration-300 hover:-translate-y-0.5 hover:border-primary/30 hover:shadow-lift"
             >
-                <div className="h-[300px] sm:h-[380px] w-full bg-accent relative overflow-hidden">
+                <div className="relative h-[300px] w-full overflow-hidden bg-accent sm:h-[380px]">
                 <img
                   src={featuredArticle.imageUrl || getFallbackImage(featuredArticle.tags)}
                   alt={featuredArticle.imageAlt || "Featured image"}
                   referrerPolicy="no-referrer"
-                  className="w-full h-full object-cover opacity-90 group-hover:opacity-100 transition-opacity duration-500 scale-100 group-hover:scale-105"
+                  className="h-full w-full scale-100 object-cover opacity-90 transition-opacity duration-500 group-hover:scale-105 group-hover:opacity-100"
                   onError={(e) => {
                     const img = e.currentTarget;
                     const fallback = getFallbackImage(featuredArticle.tags);
                     if (img.src !== fallback) img.src = fallback;
                   }}
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-transparent pointer-events-none" />
-                <div className="absolute top-4 left-4 flex items-center gap-2">
-                  <span
-                    className="bg-background border border-border px-2.5 py-1 text-[10px] font-bold text-foreground uppercase tracking-widest"
-                    style={{ fontFamily: "'JetBrains Mono', monospace" }}
-                  >
+                <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-background via-transparent to-transparent" />
+                <div className="absolute left-4 top-4 flex items-center gap-2">
+                  <span className="rounded-full border border-border bg-card px-3 py-1 text-xs font-medium text-foreground shadow-soft">
                     Featured Brief
                   </span>
                   {featuredArticle.source && (
-                    <span
-                      className="bg-primary text-primary-foreground px-2.5 py-1 text-[10px] font-bold uppercase tracking-widest"
-                      style={{ fontFamily: "'JetBrains Mono', monospace" }}
-                    >
+                    <span className="rounded-full bg-primary px-3 py-1 text-xs font-semibold text-primary-foreground shadow-soft">
                       {featuredArticle.source}
                     </span>
                   )}
                 </div>
                 {featuredArticle.sourceUrl && (
-                  <div className="absolute top-4 right-4">
-                    <span className="bg-background/80 border border-border p-1.5 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                  <div className="absolute right-4 top-4">
+                    <span className="flex items-center justify-center rounded-lg border border-border bg-card p-1.5 opacity-0 shadow-soft transition-opacity group-hover:opacity-100">
                       <ExternalLink className="h-3.5 w-3.5 text-foreground" />
                     </span>
                   </div>
                 )}
               </div>
 
-              <div className="p-6 sm:p-8 flex flex-col flex-grow bg-card">
-                <div
-                  className="flex items-center gap-4 text-muted-foreground text-[10px] font-bold uppercase tracking-wider mb-4"
-                  style={{ fontFamily: "'JetBrains Mono', monospace" }}
-                >
-                  <span className="flex items-center gap-1">
-                    <Calendar className="h-3 w-3" />
+              <div className="flex flex-grow flex-col bg-card p-6 sm:p-8">
+                <div className="mb-4 flex flex-wrap items-center gap-x-3 gap-y-2 text-[13px] font-medium text-muted-foreground">
+                  <span className="flex items-center gap-1.5">
+                    <Calendar className="h-3.5 w-3.5" />
                     {timeAgo(featuredArticle.publishedAt)}
                   </span>
-                  <span className="w-1.5 h-1.5 bg-border rounded-full" />
-                  <span className="flex items-center gap-1">
-                    <Clock className="h-3 w-3" />
+                  <span className="h-1 w-1 rounded-full bg-border" />
+                  <span className="flex items-center gap-1.5">
+                    <Clock className="h-3.5 w-3.5" />
                     {featuredArticle.readTime}
                   </span>
                 </div>
 
-                <h3
-                  className="text-xl sm:text-2xl font-bold text-foreground mb-4 group-hover:text-muted-foreground transition-colors leading-tight"
-                  style={{
-                    fontFamily: "'Hanken Grotesk', system-ui, sans-serif",
-                  }}
-                >
+                <h3 className="mb-4 text-xl font-bold leading-tight tracking-tight text-foreground transition-colors group-hover:text-primary sm:text-2xl">
                   {featuredArticle.title}
                 </h3>
-                <p className="text-sm text-muted-foreground leading-relaxed mb-6 flex-grow">
+                <p className="mb-6 flex-grow text-sm leading-relaxed text-muted-foreground">
                   {featuredArticle.summary}
                 </p>
 
-                <div className="pt-6 border-t border-border/60 flex items-center justify-between mt-auto">
+                <div className="mt-auto flex flex-wrap items-center justify-between gap-3 border-t border-border pt-6">
                   <div className="flex flex-wrap gap-2">
                     {featuredArticle.tags.slice(0, 4).map((tag) => (
                       <span
                         key={tag}
-                        className="px-2 py-0.5 border border-border text-muted-foreground text-[9px] uppercase font-bold tracking-wider flex items-center gap-1"
-                        style={{ fontFamily: "'JetBrains Mono', monospace" }}
+                        className="flex items-center gap-1 rounded-full border border-border px-2.5 py-0.5 text-[11px] font-medium capitalize text-muted-foreground"
                       >
                         {getTagIcon(tag)}
                         {tag}
                       </span>
                     ))}
                   </div>
-                  <span
-                    className="bg-primary text-primary-foreground font-bold text-[10px] uppercase px-5 py-2.5 hover:opacity-95 transition-opacity flex items-center gap-2 tracking-wider"
-                    style={{ fontFamily: "'JetBrains Mono', monospace" }}
-                  >
+                  <span className="inline-flex h-9 items-center gap-2 rounded-lg bg-primary px-5 text-sm font-semibold text-primary-foreground shadow-soft transition-colors">
                     Read Full Article
-                    <ExternalLink className="h-3 w-3" />
+                    <ExternalLink className="h-3.5 w-3.5" />
                   </span>
                 </div>
               </div>
             </a>
           ) : (
-            <div className="h-full border border-dashed border-border bg-card flex flex-col items-center justify-center p-8 text-center text-muted-foreground text-sm">
-              <Newspaper className="h-8 w-8 mb-2 text-muted-foreground" />
+            <div className="flex h-full flex-col items-center justify-center rounded-2xl border border-dashed border-border bg-card p-8 text-center text-sm text-muted-foreground">
+              <Newspaper className="mb-2 h-8 w-8 text-muted-foreground" />
               No featured tech dispatches match your search.
             </div>
           )}
         </div>
 
         {/* Live Feed Sidebar (Span 4) */}
-        <aside className="lg:col-span-4 flex flex-col bg-card border border-border p-5 h-[550px]">
-          <div className="flex items-center justify-between pb-3 border-b border-border mb-4">
-            <h4
-              className="text-xs font-bold text-foreground uppercase tracking-widest flex items-center gap-2"
-              style={{ fontFamily: "'JetBrains Mono', monospace" }}
-            >
-              <span className="w-2 h-2 rounded-full bg-primary animate-pulse" />
+        <aside className="flex h-[550px] flex-col rounded-2xl border border-border bg-card p-5 shadow-soft lg:col-span-4">
+          <div className="mb-4 flex items-center justify-between border-b border-border pb-3">
+            <h4 className="flex items-center gap-2 text-sm font-semibold tracking-tight text-foreground">
+              <span className="h-2 w-2 animate-pulse rounded-full bg-primary" />
               Live Feed
             </h4>
-            <span className="text-[10px] text-muted-foreground font-semibold uppercase">
+            <span className="text-xs font-medium text-muted-foreground">
               Real-Time Alerts
             </span>
           </div>
 
-          <div className="flex-1 overflow-y-auto divide-y divide-border/50 pr-1">
+          <div className="flex-1 divide-y divide-border/60 overflow-y-auto pr-1">
             {liveFeedArticles.length === 0 ? (
-              <div className="h-full flex items-center justify-center text-center text-muted-foreground text-xs italic">
+              <div className="flex h-full items-center justify-center text-center text-xs italic text-muted-foreground">
                 No active live alerts match filters.
               </div>
             ) : (
@@ -487,41 +436,32 @@ export default function NewsPage() {
                   href={article.sourceUrl || "#"}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="py-4 hover:bg-background/20 cursor-pointer transition-all flex flex-col gap-2 group first:pt-0 no-underline block"
+                  className="-mx-2 block flex cursor-pointer flex-col gap-2 rounded-lg px-2 py-4 no-underline transition-colors first:pt-0 hover:bg-muted/50 group"
                 >
-                  <div className="flex justify-between items-center text-[9px] font-bold uppercase tracking-wider">
+                  <div className="flex items-center justify-between text-[11px] font-medium">
                     <span className="flex items-center gap-2">
-                      <span
-                        className="text-primary border border-border px-1.5 py-0.5"
-                        style={{ fontFamily: "'JetBrains Mono', monospace" }}
-                      >
+                      <span className="rounded-full border border-primary/30 bg-primary/10 px-2 py-0.5 text-primary">
                         {article.tags[0] || "Alert"}
                       </span>
                       {article.source && (
-                        <span
-                          className="text-muted-foreground"
-                          style={{ fontFamily: "'JetBrains Mono', monospace" }}
-                        >
+                        <span className="text-muted-foreground">
                           {article.source}
                         </span>
                       )}
                     </span>
                     <span className="flex items-center gap-1.5">
-                      <span
-                        className="text-muted-foreground"
-                        style={{ fontFamily: "'JetBrains Mono', monospace" }}
-                      >
+                      <span className="text-muted-foreground">
                         {timeAgo(article.publishedAt)}
                       </span>
                       {article.sourceUrl && (
-                        <ExternalLink className="h-2.5 w-2.5 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
+                        <ExternalLink className="h-2.5 w-2.5 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100" />
                       )}
                     </span>
                   </div>
-                  <h5 className="text-sm font-bold text-foreground leading-snug group-hover:text-muted-foreground transition-colors">
+                  <h5 className="text-sm font-bold leading-snug tracking-tight text-foreground transition-colors group-hover:text-primary">
                     {article.title}
                   </h5>
-                  <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed">
+                  <p className="line-clamp-2 text-xs leading-relaxed text-muted-foreground">
                     {article.summary}
                   </p>
                 </a>
@@ -532,40 +472,36 @@ export default function NewsPage() {
       </div>
 
       {/* In-Depth Analysis Bottom Row */}
-      <div className="pt-8 border-t border-border">
+      <div className="border-t border-border pt-8">
         <div className="mb-6 flex items-center gap-2">
-          <span className="material-symbols-outlined text-foreground text-lg">
-            analytics
+          <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10 text-primary">
+            <span className="material-symbols-outlined text-[18px]">analytics</span>
           </span>
-          <h3
-            className="text-lg font-bold text-foreground tracking-tight"
-            style={{ fontFamily: "'Hanken Grotesk', system-ui, sans-serif" }}
-          >
+          <h3 className="font-display text-lg font-bold tracking-tight text-foreground">
             In-Depth Intelligence Analysis
           </h3>
         </div>
 
         {inDepthArticles.length === 0 ? (
-          <div className="border border-dashed border-border bg-card p-6 text-center text-muted-foreground text-sm italic">
+          <div className="rounded-2xl border border-dashed border-border bg-card p-6 text-center text-sm italic text-muted-foreground">
             No analysis briefs match. Adjust your filter settings.
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
             {inDepthArticles.map((article) => (
               <a
                 key={article._id}
                 href={article.sourceUrl || "#"}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="border border-border bg-card flex flex-col group cursor-pointer hover:border-muted-foreground transition-all duration-300 no-underline block"
+                className="group block cursor-pointer overflow-hidden rounded-2xl border border-border bg-card no-underline shadow-soft transition-all duration-300 hover:-translate-y-0.5 hover:border-primary/30 hover:shadow-lift"
               >
-                <div className="h-44 w-full bg-accent overflow-hidden border-b border-border relative">
-                  <div className="absolute inset-0 bg-background/20 group-hover:bg-transparent transition-colors z-10" />
+                <div className="relative h-44 w-full overflow-hidden border-b border-border bg-accent">
                   <img
                     src={article.imageUrl || getFallbackImage(article.tags)}
                     alt={article.imageAlt || "Analysis cover image"}
                     referrerPolicy="no-referrer"
-                    className="w-full h-full object-cover opacity-90 group-hover:opacity-100 scale-100 group-hover:scale-103 transition-transform"
+                    className="h-full w-full scale-100 object-cover opacity-90 transition-transform group-hover:scale-105 group-hover:opacity-100"
                     onError={(e) => {
                       const img = e.currentTarget;
                       const fallback = getFallbackImage(article.tags);
@@ -573,47 +509,40 @@ export default function NewsPage() {
                     }}
                   />
                 </div>
-                <div className="p-5 flex-1 flex flex-col justify-between">
+                <div className="flex flex-1 flex-col justify-between p-5">
                   <div>
-                    <div className="flex items-center justify-between mb-3">
-                      <span
-                        className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest"
-                        style={{ fontFamily: "'JetBrains Mono', monospace" }}
-                      >
+                    <div className="mb-3 flex items-center justify-between gap-2">
+                      <span className="text-[13px] font-medium capitalize text-muted-foreground">
                         {article.tags[0] || "Data Report"} &bull;{" "}
                         {article.readTime}
                       </span>
                       {article.source && (
-                        <span
-                          className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest"
-                          style={{ fontFamily: "'JetBrains Mono', monospace" }}
-                        >
+                        <span className="shrink-0 text-[13px] font-medium text-muted-foreground">
                           {article.source}
                         </span>
                       )}
                     </div>
-                    <h4 className="text-base font-bold text-foreground mb-2 leading-snug group-hover:text-muted-foreground transition-colors">
+                    <h4 className="mb-2 text-base font-bold leading-snug tracking-tight text-foreground transition-colors group-hover:text-primary">
                       {article.title}
                     </h4>
-                    <p className="text-xs text-muted-foreground leading-relaxed line-clamp-3">
+                    <p className="line-clamp-3 text-xs leading-relaxed text-muted-foreground">
                       {article.summary}
                     </p>
                   </div>
 
-                  <div className="flex items-center justify-between pt-4 mt-4 border-t border-border/40">
-                    <div className="flex gap-1.5 flex-wrap">
+                  <div className="mt-4 flex items-center justify-between border-t border-border pt-4">
+                    <div className="flex flex-wrap gap-1.5">
                       {article.tags.slice(0, 3).map((tag) => (
                         <span
                           key={tag}
-                          className="text-[9px] font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-0.5"
-                          style={{ fontFamily: "'JetBrains Mono', monospace" }}
+                          className="text-[11px] font-medium lowercase text-primary"
                         >
                           #{tag.toLowerCase()}
                         </span>
                       ))}
                     </div>
                     {article.sourceUrl && (
-                      <ExternalLink className="h-3 w-3 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
+                      <ExternalLink className="h-3 w-3 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100" />
                     )}
                   </div>
                 </div>
@@ -625,19 +554,13 @@ export default function NewsPage() {
 
       {/* Footer — Last updated */}
       {articles.length > 0 && (
-        <div className="pt-4 border-t border-border/40 flex items-center justify-between">
-          <p
-            className="text-[10px] text-muted-foreground uppercase tracking-wider font-bold"
-            style={{ fontFamily: "'JetBrains Mono', monospace" }}
-          >
+        <div className="flex items-center justify-between border-t border-border pt-4">
+          <p className="text-xs text-muted-foreground">
             {articles.length} articles from{" "}
             {new Set(articles.map((a) => a.source).filter(Boolean)).size}{" "}
             sources
           </p>
-          <p
-            className="text-[10px] text-muted-foreground uppercase tracking-wider font-bold"
-            style={{ fontFamily: "'JetBrains Mono', monospace" }}
-          >
+          <p className="text-xs text-muted-foreground">
             Auto-refreshes every 6 hours
           </p>
         </div>

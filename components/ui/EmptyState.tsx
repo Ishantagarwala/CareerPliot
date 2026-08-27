@@ -32,39 +32,32 @@ export default function EmptyState({
   children,
 }: EmptyStateProps) {
   const primaryClass =
-    "inline-flex items-center justify-center min-h-10 rounded-none bg-primary text-primary-foreground font-semibold px-6 py-2.5 border-2 border-black shadow-[3px_3px_0_0_#000] hover:opacity-90 transition-all text-xs";
+    "inline-flex h-10 items-center justify-center gap-1.5 rounded-lg bg-primary px-5 text-sm font-semibold text-primary-foreground shadow-soft transition-colors hover:bg-[color-mix(in_oklch,var(--primary),black_8%)]";
   const secondaryClass =
-    "inline-flex items-center justify-center min-h-10 rounded-none border border-border bg-background text-foreground font-semibold px-4 py-2 hover:border-foreground transition-all text-xs";
+    "inline-flex h-10 items-center justify-center rounded-lg border border-border px-4 text-sm font-semibold text-foreground transition-colors hover:bg-muted";
 
   return (
     <div
       className={cn(
-        "flex flex-col items-center justify-center text-center border-2 border-dashed border-border bg-card/40 p-8 sm:p-12 space-y-5 max-w-xl mx-auto animate-fade-in-up",
+        "mx-auto flex max-w-xl animate-fade-in-up flex-col items-center justify-center space-y-5 rounded-2xl border border-dashed border-border bg-card/50 p-8 text-center sm:p-12",
         className
       )}
     >
-      <div className="h-14 w-14 border-2 border-black bg-primary text-primary-foreground flex items-center justify-center shadow-[3px_3px_0_0_#000]">
+      <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10 text-primary">
         <span className="material-symbols-outlined text-[28px]">{icon}</span>
       </div>
-      <div className="space-y-2 max-w-md">
-        <h3
-          className="font-bold text-lg text-foreground"
-          style={{ fontFamily: "'Hanken Grotesk', system-ui, sans-serif" }}
-        >
+      <div className="max-w-md space-y-2">
+        <h3 className="font-display text-lg font-semibold tracking-tight text-foreground">
           {title}
         </h3>
-        <p className="text-sm text-muted-foreground leading-relaxed">{description}</p>
+        <p className="text-sm leading-relaxed text-muted-foreground">{description}</p>
       </div>
       {(primaryLabel || secondaryLabel || children) && (
         <div className="flex flex-wrap items-center justify-center gap-3">
           {primaryLabel && primaryHref && (
-            <Link
-              href={primaryHref}
-              className={`${primaryClass} group`}
-              style={{ fontFamily: "'JetBrains Mono', monospace", letterSpacing: "0.04em" }}
-            >
+            <Link href={primaryHref} className={`${primaryClass} group`}>
               {primaryLabel}
-              <span className="material-symbols-outlined text-[16px] ml-1.5 group-hover:translate-x-0.5 transition-transform">
+              <span className="material-symbols-outlined text-[16px] transition-transform group-hover:translate-x-0.5">
                 arrow_forward
               </span>
             </Link>
@@ -74,17 +67,12 @@ export default function EmptyState({
               type="button"
               onClick={onPrimaryClick}
               className={primaryClass}
-              style={{ fontFamily: "'JetBrains Mono', monospace", letterSpacing: "0.04em" }}
             >
               {primaryLabel}
             </button>
           )}
           {secondaryLabel && secondaryHref && (
-            <Link
-              href={secondaryHref}
-              className={secondaryClass}
-              style={{ fontFamily: "'JetBrains Mono', monospace", letterSpacing: "0.04em" }}
-            >
+            <Link href={secondaryHref} className={secondaryClass}>
               {secondaryLabel}
             </Link>
           )}
@@ -93,7 +81,6 @@ export default function EmptyState({
               type="button"
               onClick={onSecondaryClick}
               className={secondaryClass}
-              style={{ fontFamily: "'JetBrains Mono', monospace", letterSpacing: "0.04em" }}
             >
               {secondaryLabel}
             </button>

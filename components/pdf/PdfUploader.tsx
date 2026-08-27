@@ -215,12 +215,12 @@ export default function PdfUploader({ onUploadSuccess }: PdfUploaderProps) {
         role={!file && !uploading ? "button" : undefined}
         tabIndex={!file && !uploading ? 0 : undefined}
         aria-label={!file && !uploading ? "Choose a PDF to upload" : undefined}
-        className={`relative flex flex-col items-center justify-center p-8 border-2 border-dashed rounded-xl transition-all min-h-[220px] ${
+        className={`relative flex flex-col items-center justify-center p-8 border border-dashed rounded-2xl transition-all min-h-[220px] ${
           !file && !uploading ? "cursor-pointer" : ""
         } ${
           dragActive
-            ? "border-primary bg-primary/10"
-            : "border-border bg-background/35 hover:border-primary/60"
+            ? "border-ring bg-primary/10"
+            : "border-border bg-muted/40 hover:border-ring/50 hover:bg-muted/70"
         } ${uploading ? "pointer-events-none opacity-80" : ""}`}
       >
         <input
@@ -234,7 +234,7 @@ export default function PdfUploader({ onUploadSuccess }: PdfUploaderProps) {
 
         {!file && !uploading && (
           <div className="flex flex-col items-center text-center space-y-4">
-            <div className="h-14 w-14 border-2 border-border bg-card rounded-xl flex items-center justify-center text-primary">
+            <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10 text-primary">
               <span className="material-symbols-outlined text-[28px]">cloud_upload</span>
             </div>
             <div className="space-y-1">
@@ -242,10 +242,7 @@ export default function PdfUploader({ onUploadSuccess }: PdfUploaderProps) {
                 Drag and drop your study materials here, or{" "}
                 <span className="text-primary font-bold hover:underline">browse</span>
               </p>
-              <p
-                className="text-[11px] text-muted-foreground"
-                style={{ fontFamily: "'JetBrains Mono', monospace", letterSpacing: "0.05em" }}
-              >
+              <p className="text-[11px] text-muted-foreground">
                 PDF NOTES, SLIDES, OR CHAPTERS UP TO 10 MB
               </p>
             </div>
@@ -253,20 +250,17 @@ export default function PdfUploader({ onUploadSuccess }: PdfUploaderProps) {
         )}
 
         {file && !uploading && (
-          <div className="flex flex-col items-center w-full max-w-md p-4 bg-card border-2 border-border rounded-xl">
+          <div className="flex flex-col items-center w-full max-w-md rounded-2xl border border-border bg-card p-4 shadow-soft">
             <div className="flex items-center justify-between w-full">
               <div className="flex items-center gap-3 min-w-0">
-                <div className="h-10 w-10 border border-border bg-background flex items-center justify-center text-primary rounded-lg shrink-0">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
                   <span className="material-symbols-outlined text-[20px]">description</span>
                 </div>
                 <div className="min-w-0">
                   <p className="text-sm font-medium text-foreground truncate max-w-[200px]">
                     {file.name}
                   </p>
-                  <p
-                    className="text-[10px] text-muted-foreground"
-                    style={{ fontFamily: "'JetBrains Mono', monospace" }}
-                  >
+                  <p className="text-[11px] text-muted-foreground">
                     {(file.size / (1024 * 1024)).toFixed(2)} MB
                   </p>
                 </div>
@@ -284,8 +278,7 @@ export default function PdfUploader({ onUploadSuccess }: PdfUploaderProps) {
             <button
               type="button"
               onClick={handleUpload}
-              className="w-full mt-5 min-h-11 py-2.5 bg-primary text-primary-foreground border-2 border-border rounded-lg font-bold text-xs hover:brightness-95 transition-[filter] flex items-center justify-center gap-2 cursor-pointer"
-              style={{ fontFamily: "'JetBrains Mono', monospace", letterSpacing: "0.04em" }}
+              className="mt-5 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground shadow-soft transition-colors hover:bg-[color-mix(in_oklch,var(--primary),black_8%)] cursor-pointer"
             >
               <span className="material-symbols-outlined text-[16px]">library_add</span>
               Add to Study Materials
@@ -295,9 +288,9 @@ export default function PdfUploader({ onUploadSuccess }: PdfUploaderProps) {
 
         {uploading && (
           <div className="w-full max-w-md flex flex-col items-center space-y-4 py-4">
-            <div className="h-12 w-12 border border-border bg-card rounded-xl flex items-center justify-center text-primary relative">
+            <div className="relative flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/10 text-primary">
               <span className="material-symbols-outlined text-[24px]">document_scanner</span>
-              <div className="absolute inset-0 border-2 border-border border-t-primary rounded-xl animate-spin" />
+              <div className="absolute inset-0 rounded-2xl border-2 border-primary/20 border-t-primary animate-spin" />
             </div>
 
             <div className="w-full space-y-2 text-center">
@@ -306,16 +299,13 @@ export default function PdfUploader({ onUploadSuccess }: PdfUploaderProps) {
                   ? "Uploading and extracting text..."
                   : "Saving to your study materials..."}
               </p>
-              <div className="h-1 w-full bg-border overflow-hidden rounded-full">
+              <div className="h-1.5 w-full overflow-hidden rounded-full bg-muted">
                 <div
-                  className="h-full bg-primary transition-all duration-500 ease-out"
+                  className="h-full rounded-full bg-primary transition-all duration-500 ease-out"
                   style={{ width: `${progress}%` }}
                 />
               </div>
-              <span
-                className="text-[11px] text-muted-foreground"
-                style={{ fontFamily: "'JetBrains Mono', monospace" }}
-              >
+              <span className="text-[11px] text-muted-foreground">
                 {progress}% Complete
               </span>
             </div>
@@ -325,10 +315,10 @@ export default function PdfUploader({ onUploadSuccess }: PdfUploaderProps) {
 
       {error && (
         <div
-          className="flex items-start gap-2.5 mt-3 p-3 bg-red-500/10 border border-red-500/35 text-red-600 dark:text-red-300 rounded-lg text-xs font-medium"
+          className="mt-3 flex items-start gap-2.5 rounded-lg border border-destructive/35 bg-destructive/10 p-3 text-xs font-medium text-destructive"
           role="alert"
         >
-          <span className="material-symbols-outlined text-[16px] shrink-0 mt-0.5">error</span>
+          <span className="material-symbols-outlined mt-0.5 text-[16px] shrink-0">error</span>
           <p>{error}</p>
         </div>
       )}

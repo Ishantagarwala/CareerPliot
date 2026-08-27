@@ -96,3 +96,6 @@ test/data/
 .parcel-cache
 .sass-cache
 .gstack/
+
+# ===== design skill preview server (runtime token/pid) =====
+.impeccable/

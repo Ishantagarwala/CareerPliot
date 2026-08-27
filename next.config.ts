@@ -18,12 +18,22 @@ const nextConfig: NextConfig = {
     //   login/register captcha silently never render.
     // - media-src data:: Sarvam TTS returns base64 WAV played via data: URL.
     // - img-src unsplash/lh3: news thumbnails and Google avatar images.
+    // - img-src i.ytimg/img.youtube: course and roadmap YouTube thumbnails.
+    // - 'unsafe-eval' is added to script-src ONLY in development: React's dev
+    //   overlay needs eval() for callstack reconstruction. Production never
+    //   uses eval (see React docs), so it stays out of the prod header.
+    const scriptSrc = [
+      "'self'",
+      "'unsafe-inline'",
+      ...(process.env.NODE_ENV === "development" ? ["'unsafe-eval'"] : []),
+      "https://hcaptcha.com https://*.hcaptcha.com",
+    ].join(" ");
     const csp = [
       "default-src 'self'",
-      "script-src 'self' 'unsafe-inline' https://hcaptcha.com https://*.hcaptcha.com",
+      `script-src ${scriptSrc}`,
       "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://hcaptcha.com https://*.hcaptcha.com",
       "font-src 'self' https://fonts.gstatic.com",
-      "img-src 'self' data: blob: https://images.unsplash.com https://lh3.googleusercontent.com https://hcaptcha.com https://*.hcaptcha.com",
+      "img-src 'self' data: blob: https://images.unsplash.com https://lh3.googleusercontent.com https://i.ytimg.com https://img.youtube.com https://hcaptcha.com https://*.hcaptcha.com",
       "media-src 'self' data:",
       "connect-src 'self' https://api.hcaptcha.com https://hcaptcha.com https://*.hcaptcha.com",
       "frame-src https://hcaptcha.com https://*.hcaptcha.com",

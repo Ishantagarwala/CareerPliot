@@ -23,7 +23,7 @@ export default function BrandLogo({
   return (
     <span
       className={cn(
-        "inline-flex shrink-0 items-center justify-center overflow-hidden border-2 border-black bg-card",
+        "inline-flex shrink-0 items-center justify-center overflow-hidden rounded-lg ring-1 ring-foreground/10 bg-card",
         sizeMap[size],
         className
       )}

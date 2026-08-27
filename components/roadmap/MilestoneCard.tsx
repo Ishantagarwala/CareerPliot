@@ -38,21 +38,22 @@ export default function MilestoneCard({ milestone, onToggle }: MilestoneCardProp
 
   return (
     <div
-      className={`flex items-start gap-4 border p-4 transition-all ${
+      className={`flex items-start gap-4 rounded-xl border border-border p-4 transition-all ${
         milestone.completed
-          ? "border-border bg-[#131313]"
-          : "border-border hover:border-border"
+          ? "bg-muted/50"
+          : "bg-card hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-lift"
       }`}
     >
-      <div className="flex h-5 items-center mt-0.5">
+      <div className="mt-0.5 flex h-5 items-center">
         {loading ? (
-          <Loader2 className="h-4 w-4 animate-spin text-foreground" />
+          <Loader2 className="h-4 w-4 animate-spin text-primary" />
         ) : (
           <input
             type="checkbox"
             checked={milestone.completed}
             onChange={(e) => handleCheckedChange(e.target.checked)}
-            className="h-4 w-4 border-border bg-transparent text-foreground focus:ring-0 cursor-pointer accent-primary"
+            aria-label={milestone.title}
+            className="h-4 w-4 cursor-pointer rounded border-border bg-transparent accent-primary focus:ring-0 focus:ring-ring/25"
           />
         )}
       </div>
@@ -61,7 +62,7 @@ export default function MilestoneCard({ milestone, onToggle }: MilestoneCardProp
         <p
           className={`text-sm font-medium leading-relaxed ${
             milestone.completed
-              ? "text-muted-foreground line-through decoration-[#404040]"
+              ? "text-muted-foreground line-through decoration-border"
               : "text-foreground"
           }`}
         >
@@ -69,10 +70,7 @@ export default function MilestoneCard({ milestone, onToggle }: MilestoneCardProp
         </p>
 
         {milestone.completed && formattedDate && (
-          <div
-            className="flex items-center gap-1 text-[10px] text-[#636565]"
-            style={{ fontFamily: "'JetBrains Mono', monospace", letterSpacing: "0.05em" }}
-          >
+          <div className="flex items-center gap-1 text-xs text-emerald-600 dark:text-emerald-400">
             <span className="material-symbols-outlined text-[14px]">check_circle</span>
             Completed {formattedDate}
           </div>

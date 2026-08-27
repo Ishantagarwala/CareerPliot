@@ -17,77 +17,59 @@ const modules = [
     description:
       "Answer intuitive questions about your interests, skills, and goals. Our LLM analyzes your profile to suggest the best career matches.",
     icon: "explore",
-    iconBg: "bg-primary",
   },
   {
     title: "Stage-Wise Roadmaps",
     description:
       "Get personalized, structured learning paths broken into Beginner, Intermediate, and Advanced milestones.",
-    icon: "map",
-    iconBg: "bg-cyan",
+    icon: "route",
   },
   {
     title: "Course Recommendations",
     description:
       "Access curated, free and paid courses matched to your exact roadmap goals. Save time searching platforms.",
     icon: "school",
-    iconBg: "bg-white",
   },
   {
-    title: "AI PDF Note Assistant",
+    title: "AI Study Hub",
     description:
-      "Upload academic syllabus, notes, or textbooks. Get structured summaries, instant flashcards, and quizzes.",
+      "Upload academic PDFs, get structured summaries, generate questions, and chat with your documents.",
     icon: "picture_as_pdf",
-    iconBg: "bg-[#dde1ff]",
   },
   {
-    title: "24/7 AI Tutor Chat",
+    title: "24/7 AI Tutor",
     description:
       "Chat with a specialized tutor that understands your roadmap context. Learn complex topics with instant feedback.",
     icon: "psychology",
-    iconBg: "bg-primary",
   },
   {
-    title: "Progress Dashboard",
+    title: "Resume & Job Tools",
     description:
-      "Track milestones completed, courses taken, files analyzed, and keep your daily learning streak alive.",
-    icon: "dashboard",
-    iconBg: "bg-cyan",
+      "Build printable resumes, score them against a hiring rubric, and track applications through every stage.",
+    icon: "work",
   },
 ];
 
 const faqs = [
   {
-    n: "01",
     q: "How does the AI match careers?",
     a: "Our LLM analyzes your interests, skills, and goals against a massive database of career paths to find your best match.",
-    nColor: "text-primary",
-    hover: "hover:bg-primary",
   },
   {
-    n: "02",
     q: "Is the learning roadmap updated?",
     a: "Yes, roadmaps are dynamically generated and updated based on the latest industry standards and course availability.",
-    nColor: "text-cyan",
-    hover: "hover:bg-cyan",
   },
   {
-    n: "03",
     q: "Is Career Pilot free to use?",
     a: "Yes. Create a free account to run career discovery, generate roadmaps, and try AI tutoring. Premium features may be added later.",
-    nColor: "text-[#dde1ff]",
-    hover: "hover:bg-[#dde1ff]",
   },
   {
-    n: "04",
     q: "How do I get started?",
     a: "Simply sign up for a free account, complete your initial assessment, and your roadmap will be ready in seconds.",
-    nColor: "text-primary",
-    hover: "hover:bg-primary",
   },
 ];
 
-const shell = "w-full max-w-[1600px] mx-auto px-5 sm:px-8 lg:px-12 xl:px-16";
+const shell = "w-full max-w-[1200px] mx-auto px-5 sm:px-8";
 
 export default function Home() {
   const siteUrl = getSiteUrl();
@@ -102,236 +84,337 @@ export default function Home() {
       />
       <LandingNav />
 
-      {/* Hero fills viewport above the marquee */}
-      <section className="relative flex flex-col justify-center min-h-[calc(100svh-4.5rem-3.5rem)] overflow-hidden">
+      {/* Hero */}
+      <section className="relative overflow-hidden">
         <div
-          className="pointer-events-none absolute inset-0 opacity-[0.07]"
-          style={{
-            backgroundImage:
-              "linear-gradient(to right, currentColor 1px, transparent 1px), linear-gradient(to bottom, currentColor 1px, transparent 1px)",
-            backgroundSize: "48px 48px",
-          }}
+          className="pointer-events-none absolute inset-0"
           aria-hidden
+          style={{
+            background:
+              "radial-gradient(900px 480px at 78% -10%, var(--glow), transparent 65%), radial-gradient(600px 380px at 8% 110%, oklch(0.72 0.14 70 / 0.1), transparent 60%)",
+          }}
         />
-        <div
-          className={`relative z-10 py-10 md:py-14 ${shell} grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-12 items-center`}
-        >
-          <div className="lg:col-span-7">
-            <p className="font-display text-[clamp(2.75rem,8vw,7.5rem)] font-extrabold uppercase leading-[0.9] tracking-tighter text-primary mb-4 md:mb-6">
-              Career Pilot
-            </p>
-            <h1 className="font-display text-[clamp(1.75rem,4.2vw,3.75rem)] font-extrabold leading-[1.05] tracking-tight text-foreground max-w-[24ch] mb-4 md:mb-5">
-              AI career planning for students —{" "}
-              <span className="text-primary">roadmaps, courses & jobs</span>
-            </h1>
-            <p className="text-base md:text-lg text-[color:var(--on-surface-variant)] max-w-xl mb-7 md:mb-8 leading-relaxed">
-              Career Pilot helps you discover the right path with smart assessments,
-              stage-by-stage learning roadmaps, curated courses, PDF study tools,
-              resume scoring, and a 24/7 AI tutor.
-            </p>
-            <div className="flex flex-wrap gap-3 md:gap-4">
-              <Link
-                href="/register"
-                className="inline-flex items-center justify-center gap-2 bg-[#88aaee] text-black px-6 md:px-8 py-3 md:py-3.5 border-2 border-black shadow-[4px_4px_0_0_#000] rounded-[5px] font-display text-lg md:text-xl font-bold transition-all hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-none"
-              >
-                Get Started Free
-                <span className="material-symbols-outlined">arrow_forward</span>
-              </Link>
-              <Link
-                href="/login?demo=true"
-                className="inline-flex items-center justify-center gap-2 bg-primary text-black px-6 md:px-8 py-3 md:py-3.5 border-2 border-black shadow-[4px_4px_0_0_#000] rounded-[5px] font-display text-lg md:text-xl font-bold transition-all hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-none"
-              >
-                Demo Login
-                <span className="material-symbols-outlined">bolt</span>
-              </Link>
-            </div>
-          </div>
-
-          {/* Typographic feature stack — fills the empty right side without a stock mockup */}
-          <div className="lg:col-span-5 hidden lg:block">
-            <ul className="border-4 border-black bg-card divide-y-4 divide-black shadow-[8px_8px_0_0_#000]">
-              {[
-                { n: "01", label: "Discover your match" },
-                { n: "02", label: "Build a live roadmap" },
-                { n: "03", label: "Learn with AI tools" },
-                { n: "04", label: "Ship resumes & jobs" },
-              ].map((step) => (
-                <li
-                  key={step.n}
-                  className="flex items-center gap-4 px-5 py-4 hover:bg-primary transition-colors group"
+        <div className={`relative z-10 pt-14 pb-16 md:pt-20 md:pb-24 ${shell}`}>
+          <div className="grid grid-cols-1 items-center gap-12 lg:grid-cols-12 lg:gap-10">
+            <div className="lg:col-span-6">
+              <p className="mb-5 inline-flex items-center gap-2 rounded-full border border-border bg-card px-3.5 py-1.5 text-[13px] font-medium text-muted-foreground shadow-soft">
+                <span className="material-symbols-outlined text-[16px] text-primary">
+                  auto_awesome
+                </span>
+                AI career guidance, free for students
+              </p>
+              <h1 className="mb-5 max-w-[22ch] font-display text-[clamp(2.5rem,5.5vw,4.25rem)] font-bold leading-[1.02] tracking-tight text-foreground">
+                Know exactly{" "}
+                <span className="text-primary">where your career</span> is
+                headed.
+              </h1>
+              <p className="mb-8 max-w-[52ch] text-base leading-relaxed text-muted-foreground md:text-lg">
+                Career Pilot turns career anxiety into a plan — smart
+                assessments, stage-by-stage roadmaps, an AI tutor that knows
+                your goals, resume scoring, and live job tracking in one place.
+              </p>
+              <div className="flex flex-wrap items-center gap-3">
+                <Link
+                  href="/register"
+                  className="inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-primary px-7 text-base font-semibold text-primary-foreground shadow-lift transition-all hover:-translate-y-0.5 hover:bg-[color-mix(in_oklch,var(--primary),black_6%)] hover:shadow-pop"
                 >
-                  <span className="font-display text-2xl font-extrabold text-primary group-hover:text-black tabular-nums">
-                    {step.n}
-                  </span>
-                  <span className="font-display text-xl font-bold text-foreground group-hover:text-black">
-                    {step.label}
-                  </span>
-                </li>
-              ))}
-            </ul>
+                  Get started free
+                  <span className="material-symbols-outlined text-[20px]">arrow_forward</span>
+                </Link>
+                <Link
+                  href="/login?demo=true"
+                  className="inline-flex h-12 items-center justify-center gap-2 rounded-xl border border-border bg-card px-6 text-base font-semibold text-foreground transition-colors hover:bg-muted"
+                >
+                  <span className="material-symbols-outlined text-[20px] text-primary">bolt</span>
+                  Try the demo
+                </Link>
+              </div>
+              <p className="mt-5 text-[13px] text-muted-foreground">
+                No credit card. Your roadmap in under a minute.
+              </p>
+            </div>
+
+            {/* Product illustration — built from the system itself */}
+            <div className="lg:col-span-6">
+              <div className="relative mx-auto max-w-[460px]">
+                <div
+                  className="pointer-events-none absolute -inset-8 rounded-[2.5rem] opacity-70"
+                  aria-hidden
+                  style={{
+                    background:
+                      "radial-gradient(420px 260px at 60% 30%, var(--glow), transparent 70%)",
+                  }}
+                />
+                <div className="relative rounded-3xl border border-border bg-card p-5 shadow-pop">
+                  <div className="flex items-center justify-between border-b border-border pb-4">
+                    <div className="flex items-center gap-3">
+                      <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                        <span className="material-symbols-outlined text-[20px]">route</span>
+                      </span>
+                      <div>
+                        <p className="text-sm font-semibold text-foreground">Frontend Engineer</p>
+                        <p className="text-xs text-muted-foreground">Your roadmap · 3 stages</p>
+                      </div>
+                    </div>
+                    <span className="rounded-full bg-accent px-2.5 py-1 text-[11px] font-semibold text-accent-foreground">
+                      On track
+                    </span>
+                  </div>
+
+                  <div className="space-y-2.5 py-4">
+                    {[
+                      { label: "HTML & CSS fundamentals", done: true },
+                      { label: "JavaScript deep dive", done: true },
+                      { label: "React + component architecture", done: false, current: true },
+                      { label: "Testing & deployment", done: false },
+                    ].map((step) => (
+                      <div
+                        key={step.label}
+                        className={`flex items-center gap-3 rounded-xl border px-3.5 py-3 ${
+                          step.current
+                            ? "border-primary/40 bg-primary/[0.06] glow-ai"
+                            : "border-border bg-background"
+                        }`}
+                      >
+                        <span
+                          className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full ${
+                            step.done
+                              ? "bg-primary text-primary-foreground"
+                              : step.current
+                                ? "border-2 border-primary"
+                                : "border-2 border-border"
+                          }`}
+                        >
+                          {step.done && (
+                            <span className="material-symbols-outlined text-[12px]">check</span>
+                          )}
+                        </span>
+                        <span
+                          className={`text-[13px] font-medium ${
+                            step.done ? "text-muted-foreground line-through decoration-border" : "text-foreground"
+                          }`}
+                        >
+                          {step.label}
+                        </span>
+                        {step.current && (
+                          <span className="ml-auto flex items-center gap-1 text-[11px] font-semibold text-primary">
+                            <span className="h-1.5 w-1.5 animate-cp-pulse rounded-full bg-primary" />
+                            Now
+                          </span>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="rounded-2xl bg-secondary p-4 text-secondary-foreground">
+                    <div className="flex items-start gap-2.5">
+                      <span className="material-symbols-outlined mt-0.5 text-[18px] text-amber">
+                        auto_awesome
+                      </span>
+                      <p className="text-[13px] leading-relaxed">
+                        You&apos;re 68% ready for junior frontend roles. Finish
+                        the React milestone this week to hit 75%.
+                      </p>
+                    </div>
+                    <div className="mt-3 flex items-center gap-3">
+                      <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-white/15">
+                        <div className="progress-bar-fill h-full w-full rounded-full bg-amber" style={{ transform: "scaleX(0.68)" }} />
+                      </div>
+                      <span className="text-xs font-semibold tabular-nums text-amber">68%</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Floating streak chip */}
+                <div className="absolute -right-3 -top-4 hidden rounded-2xl border border-border bg-card px-4 py-3 shadow-lift sm:block">
+                  <div className="flex items-center gap-2">
+                    <span className="material-symbols-outlined text-[20px] text-amber">local_fire_department</span>
+                    <div>
+                      <p className="text-sm font-semibold leading-none text-foreground">12-day</p>
+                      <p className="mt-1 text-[11px] text-muted-foreground">study streak</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </section>
 
-      <div className="bg-primary py-3.5 md:py-4 border-y-4 border-black overflow-hidden flex items-center shrink-0">
-        <div className="flex whitespace-nowrap animate-marquee font-display text-base md:text-2xl font-bold text-black uppercase tracking-widest">
-          <span className="mx-8">
-            AI Career Discovery * Stage-Wise Roadmaps * Course Recommendations *
-            AI PDF Note Assistant * 24/7 AI Tutor Chat * Progress Dashboard *
+      {/* Marquee */}
+      <div className="shrink-0 overflow-hidden border-y border-border bg-secondary py-3.5">
+        <div className="flex whitespace-nowrap animate-marquee text-sm font-semibold uppercase tracking-[0.14em] text-secondary-foreground md:text-base">
+          <span className="mx-6">
+            AI Career Discovery · Stage-Wise Roadmaps · Course Recommendations ·
+            AI Study Hub · 24/7 AI Tutor · Progress Dashboard ·
           </span>
-          <span className="mx-8">
-            AI Career Discovery * Stage-Wise Roadmaps * Course Recommendations *
-            AI PDF Note Assistant * 24/7 AI Tutor Chat * Progress Dashboard *
+          <span className="mx-6" aria-hidden>
+            AI Career Discovery · Stage-Wise Roadmaps · Course Recommendations ·
+            AI Study Hub · 24/7 AI Tutor · Progress Dashboard ·
           </span>
         </div>
       </div>
 
-      <section id="discovery" className="bg-[#191d10] border-b-4 border-black">
-        <div className={`py-12 md:py-16 ${shell}`}>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-5">
-            <div className="bg-[#dde1ff] text-[#001356] p-6 md:p-7 border-4 border-black neo-shadow transition-all hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-none">
-              <div className="flex justify-between items-start mb-4">
-                <span className="font-display text-3xl md:text-4xl font-extrabold opacity-30">
-                  01
-                </span>
-                <span className="material-symbols-outlined text-3xl">explore</span>
-              </div>
-              <h3 className="font-display text-xl md:text-2xl font-bold mb-2">
-                Career Discovery
-              </h3>
-              <p className="opacity-80 leading-relaxed text-sm md:text-base">
-                Submit interests & skills to extract prime AI career matches.
+      {/* Discovery — three steps */}
+      <section id="discovery" className="scroll-mt-20">
+        <div className={`py-16 md:py-24 ${shell}`}>
+          <div className="mb-10 max-w-2xl md:mb-14">
+            <h2 className="mb-3 font-display text-[clamp(1.6rem,3vw,2.5rem)] font-bold leading-tight tracking-tight">
+              From confused to{" "}
+              <span className="text-primary">committed</span> in three moves.
+            </h2>
+            <p className="text-base leading-relaxed text-muted-foreground md:text-lg">
+              Most students don&apos;t lack ambition — they lack a sequence.
+              Career Pilot builds it for you.
+            </p>
+          </div>
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-3 md:gap-5">
+            <div className="rounded-2xl border border-border bg-card p-6 shadow-soft transition-all duration-300 hover:-translate-y-1 hover:shadow-lift md:p-7">
+              <span className="mb-5 flex h-11 w-11 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                <span className="material-symbols-outlined text-[22px]">explore</span>
+              </span>
+              <h3 className="mb-2 text-lg font-semibold tracking-tight">Career Discovery</h3>
+              <p className="text-sm leading-relaxed text-muted-foreground">
+                Submit interests and skills to surface the career matches you
+                actually fit — with reasons, not vibes.
               </p>
             </div>
-            <div className="bg-primary text-black p-6 md:p-7 border-4 border-black neo-shadow md:translate-y-3 transition-all hover:translate-x-0.5 hover:translate-y-[14px] hover:shadow-none">
-              <div className="flex justify-between items-start mb-4">
-                <span className="font-display text-3xl md:text-4xl font-extrabold opacity-30">
-                  02
-                </span>
-                <span className="material-symbols-outlined text-3xl">map</span>
-              </div>
-              <h3 className="font-display text-xl md:text-2xl font-bold mb-2">
-                Learning Roadmap
-              </h3>
-              <p className="opacity-80 leading-relaxed text-sm md:text-base">
-                Follow structural milestones across Beginner, Intermediate & Advanced
-                levels.
+            <div className="relative rounded-2xl border border-primary/25 bg-primary p-6 text-primary-foreground shadow-lift transition-all duration-300 hover:-translate-y-1 hover:shadow-pop md:p-7">
+              <span className="mb-5 flex h-11 w-11 items-center justify-center rounded-xl bg-white/15">
+                <span className="material-symbols-outlined text-[22px]">route</span>
+              </span>
+              <h3 className="mb-2 text-lg font-semibold tracking-tight">Learning Roadmap</h3>
+              <p className="mb-5 text-sm leading-relaxed text-primary-foreground/85">
+                Follow structural milestones across Beginner, Intermediate and
+                Advanced levels — always knowing what&apos;s next.
               </p>
-              <div className="mt-4 bg-black/10 p-2 border-2 border-black">
-                <div className="flex justify-between text-[10px] font-bold mb-1 font-label">
-                  <span>PROGRESS</span>
-                  <span>66%</span>
+              <div className="rounded-xl bg-white/10 p-3">
+                <div className="mb-1.5 flex justify-between text-[11px] font-semibold uppercase tracking-wide">
+                  <span>Progress</span>
+                  <span className="tabular-nums">66%</span>
                 </div>
-                <div className="w-full bg-black/20 h-3 border border-black">
-                  <div className="bg-black h-full" style={{ width: "66%" }} />
+                <div className="h-2 w-full overflow-hidden rounded-full bg-black/20">
+                  <div className="progress-bar-fill h-full w-full rounded-full bg-white" style={{ transform: "scaleX(0.66)" }} />
                 </div>
               </div>
             </div>
-            <div className="bg-[#e2e2e2] text-[#1a1c1c] p-6 md:p-7 border-4 border-black neo-shadow transition-all hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-none">
-              <div className="flex justify-between items-start mb-4">
-                <span className="font-display text-3xl md:text-4xl font-extrabold opacity-30">
-                  03
-                </span>
-                <span className="material-symbols-outlined text-3xl">psychology</span>
-              </div>
-              <h3 className="font-display text-xl md:text-2xl font-bold mb-2">
-                Knowledge Boost
-              </h3>
-              <p className="opacity-80 leading-relaxed text-sm md:text-base">
-                Upload syllabus, ask questions to our AI Tutor, and track courses.
+            <div className="rounded-2xl border border-border bg-card p-6 shadow-soft transition-all duration-300 hover:-translate-y-1 hover:shadow-lift md:p-7">
+              <span className="mb-5 flex h-11 w-11 items-center justify-center rounded-xl bg-accent text-accent-foreground">
+                <span className="material-symbols-outlined text-[22px]">psychology</span>
+              </span>
+              <h3 className="mb-2 text-lg font-semibold tracking-tight">Knowledge Boost</h3>
+              <p className="text-sm leading-relaxed text-muted-foreground">
+                Upload syllabus, interrogate documents, ask the AI tutor
+                anything, and keep your streak alive.
               </p>
             </div>
           </div>
         </div>
       </section>
 
-      <section id="modules" className="py-14 md:py-20">
-        <div className={shell}>
-          <div className="mb-10 md:mb-12 max-w-4xl">
-            <h2 className="font-display text-[clamp(1.75rem,3.5vw,3.25rem)] font-extrabold mb-3 leading-tight">
-              One unified platform,{" "}
-              <span className="bg-cyan text-black px-2 border-2 border-black inline-block">
+      {/* Modules */}
+      <section id="modules" className="scroll-mt-20 border-t border-border bg-sidebar/50">
+        <div className={`py-16 md:py-24 ${shell}`}>
+          <div className="mb-10 max-w-2xl md:mb-14">
+            <h2 className="mb-3 font-display text-[clamp(1.6rem,3vw,2.5rem)] font-bold leading-tight tracking-tight">
+              One platform,{" "}
+              <span className="rounded-lg bg-primary px-2.5 py-0.5 text-primary-foreground">
                 six modules
               </span>
             </h2>
-            <p className="text-base md:text-lg text-[color:var(--on-surface-variant)] max-w-2xl">
-              Everything you need to discover your path and build your skills.
+            <p className="text-base leading-relaxed text-muted-foreground md:text-lg">
+              Everything you need to discover your path and build your skills —
+              without six subscriptions.
             </p>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 md:gap-5">
-            {modules.map((m) => (
-              <div
-                key={m.title}
-                className="bg-card p-6 md:p-7 border-4 border-black neo-shadow flex flex-col items-start hover:bg-[#272c1d] transition-colors group"
-              >
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 md:gap-5">
+            {modules.map((m, idx) => {
+              const featured = idx === 0;
+              return (
                 <div
-                  className={`w-12 h-12 md:w-14 md:h-14 ${m.iconBg} border-4 border-black flex items-center justify-center mb-5 group-hover:-translate-y-1 transition-transform`}
+                  key={m.title}
+                  className={
+                    featured
+                      ? "group flex flex-col justify-between rounded-2xl border border-border bg-card p-7 shadow-soft transition-all duration-300 hover:-translate-y-1 hover:shadow-lift lg:col-span-2 lg:row-span-2 md:p-8"
+                      : "group rounded-2xl border border-border bg-card p-6 shadow-soft transition-all duration-300 hover:-translate-y-1 hover:shadow-lift md:p-7"
+                  }
                 >
-                  <span className="material-symbols-outlined text-black text-2xl">
-                    {m.icon}
-                  </span>
+                  <div>
+                    <span className={`mb-5 flex items-center justify-center rounded-xl bg-primary/10 text-primary transition-colors duration-300 group-hover:bg-primary group-hover:text-primary-foreground ${featured ? "h-14 w-14" : "h-11 w-11"}`}>
+                      <span className={`material-symbols-outlined ${featured ? "text-[28px]" : "text-[22px]"}`}>{m.icon}</span>
+                    </span>
+                    <h3 className={`mb-2 font-semibold tracking-tight text-foreground ${featured ? "font-display text-2xl md:text-3xl" : "text-lg"}`}>
+                      {m.title}
+                    </h3>
+                    <p className={`leading-relaxed text-muted-foreground ${featured ? "text-base max-w-[42ch]" : "text-sm"}`}>
+                      {m.description}
+                    </p>
+                  </div>
+                  {featured && (
+                    <p className="mt-6 inline-flex items-center gap-1.5 text-sm font-semibold text-primary">
+                      <span className="material-symbols-outlined text-[18px]">arrow_forward</span>
+                      Start with discovery
+                    </p>
+                  )}
                 </div>
-                <h3 className="font-display text-xl md:text-2xl font-bold mb-2 text-foreground group-hover:text-[#f4f6e8]">
-                  {m.title}
-                </h3>
-                <p className="text-sm md:text-base text-[color:var(--on-surface-variant)] group-hover:text-[#c3caac] flex-grow leading-relaxed">
-                  {m.description}
-                </p>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       </section>
 
-      <section id="faq" className="py-14 md:py-20 border-t-4 border-black">
-        <div className={shell}>
-          <div className="mb-10 md:mb-12 max-w-3xl">
-            <h2 className="font-display text-[clamp(1.75rem,3.5vw,3.25rem)] font-extrabold mb-3 uppercase tracking-tighter">
-              FAQs
+      {/* FAQ */}
+      <section id="faq" className="scroll-mt-20">
+        <div className={`py-16 md:py-24 ${shell}`}>
+          <div className="mb-10 max-w-2xl md:mb-14">
+            <h2 className="mb-3 font-display text-[clamp(1.6rem,3vw,2.5rem)] font-bold leading-tight tracking-tight">
+              Questions, answered.
             </h2>
-            <p className="text-base md:text-lg text-[color:var(--on-surface-variant)]">
+            <p className="text-base leading-relaxed text-muted-foreground md:text-lg">
               Everything you need to know about navigating your career with AI
               precision.
             </p>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-5">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 md:gap-5">
             {faqs.map((item) => (
               <div
-                key={item.n}
-                className={`bg-[#191d10] p-6 md:p-7 border-4 border-black neo-shadow group transition-colors ${item.hover}`}
+                key={item.q}
+                className="rounded-2xl border border-border bg-card p-6 shadow-soft transition-colors hover:border-primary/40 md:p-7"
               >
-                <div className="flex items-start gap-3 mb-3">
-                  <span
-                    className={`font-display text-3xl font-extrabold ${item.nColor} group-hover:text-black`}
-                  >
-                    {item.n}
-                  </span>
-                  <h3 className="font-display text-lg md:text-xl font-bold text-[#f4f6e8] group-hover:text-black pt-1">
-                    {item.q}
-                  </h3>
-                </div>
-                <p className="text-sm md:text-base text-[#c3caac] group-hover:text-black/80 leading-relaxed">
-                  {item.a}
-                </p>
+                <h3 className="mb-3 flex items-start gap-2.5 text-base font-semibold tracking-tight text-foreground">
+                  <span className="material-symbols-outlined mt-0.5 text-[18px] text-primary">help</span>
+                  {item.q}
+                </h3>
+                <p className="text-sm leading-relaxed text-muted-foreground">{item.a}</p>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      <section id="cta" className="py-14 md:py-20 bg-cyan border-y-4 border-black">
-        <div className={`${shell} max-w-[1600px] text-center`}>
-          <h2 className="font-display text-[clamp(1.75rem,3.5vw,3rem)] font-extrabold text-black mb-4">
+      {/* CTA */}
+      <section id="cta" className="relative scroll-mt-20 overflow-hidden border-t border-border bg-secondary">
+        <div
+          className="pointer-events-none absolute inset-0"
+          aria-hidden
+          style={{
+            background:
+              "radial-gradient(720px 340px at 50% 120%, var(--glow), transparent 70%)",
+          }}
+        />
+        <div className={`relative py-16 text-center md:py-24 ${shell}`}>
+          <h2 className="mx-auto mb-4 max-w-[24ch] font-display text-[clamp(1.7rem,3.2vw,2.75rem)] font-bold leading-tight tracking-tight text-secondary-foreground">
             Ready to take control of your future?
           </h2>
-          <p className="text-base md:text-lg text-black mb-8 opacity-80 max-w-xl mx-auto">
+          <p className="mx-auto mb-8 max-w-md text-base leading-relaxed text-secondary-foreground/75">
             Create an account today and experience AI-guided career mapping.
           </p>
           <Link
             href="/register"
-            className="inline-flex items-center justify-center bg-black text-[#ffffff] px-10 py-4 border-2 border-black shadow-[4px_4px_0_0_#000] rounded-[5px] font-display text-xl font-bold transition-all hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-none"
+            className="inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-primary px-8 text-base font-semibold text-primary-foreground shadow-lift transition-all hover:-translate-y-0.5 hover:shadow-pop"
           >
-            Sign Up Now
+            Sign up now
+            <span className="material-symbols-outlined text-[20px]">arrow_forward</span>
           </Link>
         </div>
       </section>

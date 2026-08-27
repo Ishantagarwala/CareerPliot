@@ -288,24 +288,21 @@ export default function ChatInterface() {
       >
         {loadingHistory ? (
           <div className="flex flex-col items-center justify-center h-full space-y-4">
-            <div className="h-8 w-8 border-2 border-[#262626] border-t-white animate-spin" />
-            <p className="text-xs text-[#8e9192]">Loading conversation...</p>
+            <div className="h-8 w-8 animate-spin rounded-full border-2 border-border border-t-primary" />
+            <p className="text-xs text-muted-foreground">Loading conversation...</p>
           </div>
         ) : messages.length === 0 ? (
           <>
             <div className="w-full max-w-3xl flex flex-col items-center text-center space-y-6 mb-12 animate-fade-in-up">
-              <div className="w-16 h-16 border border-[#262626] bg-[#1A1A1A] flex items-center justify-center animate-border-pulse">
-                <span className="material-symbols-outlined text-[32px] text-white" style={{ fontVariationSettings: "'FILL' 1" }}>
+              <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-primary/10 text-primary glow-ai">
+                <span className="material-symbols-outlined text-[32px]" style={{ fontVariationSettings: "'FILL' 1" }}>
                   psychology
                 </span>
               </div>
-              <h2
-                className="text-3xl md:text-5xl font-bold text-white tracking-tight"
-                style={{ fontFamily: "'Hanken Grotesk', system-ui, sans-serif" }}
-              >
+              <h2 className="text-3xl md:text-5xl font-bold text-foreground tracking-tight">
                 How can I assist your learning today?
               </h2>
-              <p className="text-lg text-[#c4c7c8] max-w-xl">
+              <p className="max-w-xl text-lg text-muted-foreground">
                 I am your dedicated AI Tutor. Provide a topic, paste a problem, or select a quick action below to begin our session.
               </p>
             </div>
@@ -318,22 +315,16 @@ export default function ChatInterface() {
                     setInput(action.prompt);
                     textareaRef.current?.focus();
                   }}
-                  className="group flex flex-col items-start p-6 bg-[#131313] border border-[#262626] hover:border-[#404040] hover:bg-[#1A1A1A] transition-colors text-left relative overflow-hidden h-32 animate-fade-in-up"
+                  className="group animate-fade-in-up flex h-32 flex-col items-start overflow-hidden relative rounded-2xl border border-border bg-card p-6 text-left shadow-soft transition-all hover:-translate-y-0.5 hover:border-ring/40 hover:shadow-lift"
                   style={{ animationDelay: `${idx * 100}ms` }}
                 >
-                  <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+                  <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
                     <span className="material-symbols-outlined text-[48px]">{action.icon}</span>
                   </div>
-                  <span
-                    className="text-[11px] text-[#8e9192] mb-2 uppercase tracking-[0.15em]"
-                    style={{ fontFamily: "'JetBrains Mono', monospace" }}
-                  >
+                  <span className="mb-2 text-[13px] font-medium text-muted-foreground">
                     {action.category}
                   </span>
-                  <h3
-                    className="text-lg font-bold text-white"
-                    style={{ fontFamily: "'Hanken Grotesk', system-ui, sans-serif" }}
-                  >
+                  <h3 className="text-lg font-bold text-foreground">
                     {action.title}
                   </h3>
                 </button>
@@ -349,20 +340,20 @@ export default function ChatInterface() {
             {loading && (
               <div className="flex w-full justify-start mb-3 animate-fade-in-up">
                 <div className="flex items-start gap-3.5 w-full max-w-lg">
-                  <div className="h-8 w-8 bg-[#1A1A1A] border border-cyan-500/50 flex items-center justify-center shrink-0 shadow-[0_0_8px_rgba(6,182,212,0.3)] animate-pulse">
-                    <span className="material-symbols-outlined text-[18px] text-cyan-400">psychology</span>
+                  <div className="glow-ai flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary animate-pulse">
+                    <span className="material-symbols-outlined text-[18px]">psychology</span>
                   </div>
-                  <div className="bg-[#101012] border border-[#262626] p-4 flex items-center gap-3.5 rounded-[6px] shadow-lg">
+                  <div className="glow-ai flex items-center gap-3.5 rounded-2xl border border-border bg-card p-4 shadow-soft">
                     <div className="relative h-6 w-6 animate-spin-slow">
-                      <svg viewBox="0 0 40 40" className="w-full h-full text-cyan-500 fill-none stroke-current" strokeWidth="1.5">
+                      <svg viewBox="0 0 40 40" className="w-full h-full text-primary fill-none stroke-current" strokeWidth="1.5">
                         <circle cx="20" cy="20" r="16" strokeDasharray="6,4" className="opacity-80" />
                         <circle cx="20" cy="20" r="10" strokeDasharray="4,3" className="opacity-60" />
                         <circle cx="20" cy="20" r="4" className="opacity-40" />
                         <path d="M20,0 L20,40 M0,20 L40,20 M6,6 L34,34 M6,34 L34,6" className="opacity-30" strokeWidth="0.5" />
                       </svg>
-                      <div className="absolute inset-0 rounded-full border border-red-500/30 animate-ping opacity-60" />
+                      <div className="absolute inset-0 rounded-full border border-primary/30 animate-ping opacity-60" />
                     </div>
-                    <span className="text-xs text-[#8e9192] font-mono tracking-wide">
+                    <span className="text-xs text-muted-foreground tracking-wide">
                       CareerPilot AI is analysing your career path...
                     </span>
                   </div>
@@ -373,7 +364,7 @@ export default function ChatInterface() {
         )}
       </div>
 
-      <div className="absolute bottom-0 left-0 right-0 bg-[#0A0A0A]/90 backdrop-blur-md border-t border-[#262626] p-4 md:p-6 z-40">
+      <div className="absolute bottom-0 left-0 right-0 z-40 border-t border-border bg-background/85 p-4 backdrop-blur-md md:p-6">
         <div className="max-w-3xl mx-auto relative flex items-end gap-2">
           <form onSubmit={handleSend} className="flex-1 relative">
             <label className="sr-only" htmlFor="ai-input">Message AI Tutor</label>
@@ -391,7 +382,7 @@ export default function ChatInterface() {
               placeholder="Message AI Tutor..."
               disabled={loading || loadingHistory || isVoiceChatActive}
               rows={1}
-              className="w-full bg-[#1A1A1A] border border-[#262626] text-white text-sm p-4 pr-24 focus:border-white focus:ring-0 focus:outline-none resize-none overflow-hidden transition-colors placeholder:text-[#636565]"
+              className="w-full resize-none overflow-hidden rounded-2xl border border-input bg-card px-4 py-3.5 pr-24 text-sm text-foreground placeholder:text-muted-foreground focus:border-ring focus:outline-none focus:ring-2 focus:ring-ring/25 transition-colors"
               style={{ minHeight: "56px" }}
             />
             <div className="absolute right-2 bottom-2 flex items-center gap-2">
@@ -405,10 +396,10 @@ export default function ChatInterface() {
                   }
                 }}
                 disabled={loadingHistory || (loading && !isVoiceChatActive)}
-                className={`p-2 border transition-colors flex items-center justify-center h-10 w-10 disabled:opacity-30 disabled:cursor-not-allowed rounded-full cursor-pointer ${
+                className={`flex h-10 w-10 cursor-pointer items-center justify-center rounded-full border p-2 transition-colors disabled:cursor-not-allowed disabled:opacity-30 ${
                   isVoiceChatActive
-                    ? "bg-red-500/20 border-red-500 text-red-400"
-                    : "bg-[#1C1C22] border-cyan-500/50 hover:border-cyan-400 text-cyan-400"
+                    ? "border-destructive/40 bg-destructive/10 text-destructive hover:bg-destructive/20"
+                    : "border-transparent bg-accent text-accent-foreground hover:bg-accent/80"
                 }`}
                 title={isVoiceChatActive ? "End voice session" : "Start voice assistant"}
               >
@@ -419,7 +410,7 @@ export default function ChatInterface() {
               <button
                 type="submit"
                 disabled={!input.trim() || loading || isVoiceChatActive}
-                className="p-2 bg-white text-[#0A0A0A] hover:bg-[#e2e2e2] transition-colors flex items-center justify-center h-10 w-10 disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
+                className="flex h-10 w-10 cursor-pointer items-center justify-center rounded-full bg-primary p-2 text-primary-foreground shadow-soft transition-colors hover:bg-[color-mix(in_oklch,var(--primary),black_8%)] disabled:cursor-not-allowed disabled:opacity-30"
               >
                 <span className="material-symbols-outlined text-[20px]" style={{ fontVariationSettings: "'FILL' 1" }}>
                   arrow_upward
@@ -428,11 +419,8 @@ export default function ChatInterface() {
             </div>
           </form>
         </div>
-        <div className="max-w-3xl mx-auto mt-2 flex items-center justify-between">
-          <span
-            className="text-[10px] text-[#636565]"
-            style={{ fontFamily: "'JetBrains Mono', monospace", letterSpacing: "0.05em" }}
-          >
+        <div className="mx-auto mt-2 flex max-w-3xl items-center justify-between">
+          <span className="text-[11px] text-muted-foreground">
             {isVoiceChatActive
               ? "Voice session active — speak, pause to send, tap bars to interrupt."
               : "AI can make mistakes. Verify important information."}
@@ -440,8 +428,7 @@ export default function ChatInterface() {
           {messages.length > 0 && (
             <button
               onClick={handleClearHistory}
-              className="text-[10px] text-[#636565] hover:text-[#ffb4ab] transition-colors flex items-center gap-1 cursor-pointer"
-              style={{ fontFamily: "'JetBrains Mono', monospace", letterSpacing: "0.05em" }}
+              className="flex cursor-pointer items-center gap-1 text-[11px] text-muted-foreground transition-colors hover:text-destructive"
             >
               <span className="material-symbols-outlined text-[12px]">delete</span>
               Clear History

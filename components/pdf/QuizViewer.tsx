@@ -108,26 +108,24 @@ export default function QuizViewer({ questions }: QuizViewerProps) {
       `}</style>
 
       {/* Sub tabs */}
-      <div className="flex bg-[#131313] p-1 border border-[#262626] self-start w-fit">
+      <div className="flex w-fit self-start rounded-xl border border-border bg-muted p-1">
         <button
           onClick={() => setActiveSubTab("quiz")}
-          className={`px-3 py-1.5 text-xs font-medium transition-all ${
+          className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition-all ${
             activeSubTab === "quiz"
-              ? "bg-white text-[#0A0A0A]"
-              : "text-[#8e9192] hover:text-white"
+              ? "bg-card text-foreground shadow-soft"
+              : "text-muted-foreground hover:text-foreground"
           }`}
-          style={{ fontFamily: "'JetBrains Mono', monospace", letterSpacing: "0.04em" }}
         >
           Practice Quiz ({mcqs.length})
         </button>
         <button
           onClick={() => setActiveSubTab("flashcards")}
-          className={`px-3 py-1.5 text-xs font-medium transition-all ${
+          className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition-all ${
             activeSubTab === "flashcards"
-              ? "bg-white text-[#0A0A0A]"
-              : "text-[#8e9192] hover:text-white"
+              ? "bg-card text-foreground shadow-soft"
+              : "text-muted-foreground hover:text-foreground"
           }`}
-          style={{ fontFamily: "'JetBrains Mono', monospace", letterSpacing: "0.04em" }}
         >
           Flashcards ({flashcards.length})
         </button>
@@ -136,60 +134,48 @@ export default function QuizViewer({ questions }: QuizViewerProps) {
       {activeSubTab === "quiz" && (
         <div>
           {mcqs.length === 0 ? (
-            <div className="bg-[#1A1A1A] border border-[#262626] p-6 text-center">
-              <p className="text-sm text-[#8e9192]">No quiz questions generated for this document.</p>
+            <div className="rounded-2xl border border-border bg-card p-6 text-center shadow-soft">
+              <p className="text-sm text-muted-foreground">No quiz questions generated for this document.</p>
             </div>
           ) : showQuizResults ? (
-            <div className="bg-[#1A1A1A] border border-[#262626] text-center">
-              <div className="p-6 border-b border-[#262626] space-y-2">
-                <div className="mx-auto h-12 w-12 border border-[#262626] bg-[#131313] flex items-center justify-center text-white mb-3">
+            <div className="overflow-hidden rounded-2xl border border-border bg-card text-center shadow-soft">
+              <div className="border-b border-border p-6 space-y-2">
+                <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10 text-primary">
                   <span className="material-symbols-outlined text-[24px]">auto_awesome</span>
                 </div>
-                <h3
-                  className="text-2xl font-bold text-white"
-                  style={{ fontFamily: "'Hanken Grotesk', system-ui, sans-serif" }}
-                >
+                <h3 className="text-2xl font-bold text-foreground">
                   Quiz Completed!
                 </h3>
-                <p className="text-sm text-[#8e9192]">Here is how you performed on the conceptual checks.</p>
+                <p className="text-sm text-muted-foreground">Here is how you performed on the conceptual checks.</p>
               </div>
-              <div className="p-6 space-y-6 max-w-md mx-auto">
-                <div className="p-6 bg-[#131313] border border-[#262626]">
-                  <div
-                    className="text-4xl font-bold text-white"
-                    style={{ fontFamily: "'Hanken Grotesk', system-ui, sans-serif" }}
-                  >
+              <div className="max-w-md mx-auto space-y-6 p-6">
+                <div className="rounded-xl border border-border bg-muted p-6">
+                  <div className="text-4xl font-bold text-foreground">
                     {score} / {mcqs.length}
                   </div>
-                  <div
-                    className="text-[11px] text-[#8e9192] mt-1 uppercase tracking-[0.1em]"
-                    style={{ fontFamily: "'JetBrains Mono', monospace" }}
-                  >
+                  <div className="mt-1 text-[13px] font-medium text-muted-foreground">
                     Total Score
                   </div>
-                  <div className="h-1 w-full bg-[#262626] overflow-hidden mt-4">
-                    <div className="h-full bg-white progress-bar-fill" style={{ width: `${(score / mcqs.length) * 100}%` }} />
+                  <div className="mt-4 h-1.5 w-full overflow-hidden rounded-full bg-border">
+                    <div className="progress-bar-fill h-full w-full rounded-full bg-primary" style={{ transform: `scaleX(${score / mcqs.length})` }} />
                   </div>
-                  <div
-                    className="text-sm font-bold text-white mt-2"
-                    style={{ fontFamily: "'JetBrains Mono', monospace" }}
-                  >
+                  <div className="mt-2 text-sm font-bold text-foreground">
                     {Math.round((score / mcqs.length) * 100)}% Accuracy
                   </div>
                 </div>
 
                 <div className="space-y-3 text-left">
-                  <h4 className="font-bold text-sm text-white">Review Answers:</h4>
+                  <h4 className="text-sm font-bold text-foreground">Review Answers:</h4>
                   {mcqs.map((q, idx) => {
                     const history = quizHistory.find((h) => h.questionIndex === idx);
                     return (
-                      <div key={idx} className="p-3 border border-[#262626] bg-[#131313] text-xs space-y-1">
-                        <p className="font-bold text-white">{idx + 1}. {q.question}</p>
-                        <p className="text-[#8e9192]">
-                          Your selection: <span className={history?.correct ? "text-white font-bold" : "text-[#ffb4ab] font-bold"}>{history?.selected}</span>
+                      <div key={idx} className="space-y-1 rounded-lg border border-border bg-muted p-3 text-xs">
+                        <p className="font-bold text-foreground">{idx + 1}. {q.question}</p>
+                        <p className="text-muted-foreground">
+                          Your selection: <span className={history?.correct ? "font-bold text-primary" : "font-bold text-destructive"}>{history?.selected}</span>
                         </p>
                         {!history?.correct && (
-                          <p className="text-white font-bold">
+                          <p className="font-bold text-primary">
                             Correct answer: {q.answer}
                           </p>
                         )}
@@ -198,40 +184,30 @@ export default function QuizViewer({ questions }: QuizViewerProps) {
                   })}
                 </div>
               </div>
-              <div className="p-4 border-t border-[#262626] flex justify-center">
+              <div className="flex justify-center border-t border-border p-4">
                 <button
                   onClick={restartQuiz}
-                  className="inline-flex items-center px-5 py-2 bg-white text-[#0A0A0A] font-bold text-xs hover:bg-[#e2e2e2] transition-colors gap-1.5"
-                  style={{ fontFamily: "'JetBrains Mono', monospace", letterSpacing: "0.04em" }}
+                  className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground shadow-soft transition-colors hover:bg-[color-mix(in_oklch,var(--primary),black_8%)]"
                 >
                   <RotateCcw className="h-4 w-4" /> Restart Quiz
                 </button>
               </div>
             </div>
           ) : (
-            <div className="bg-[#1A1A1A] border border-[#262626]">
-              <div className="p-4 border-b border-[#262626] flex items-center justify-between">
+            <div className="overflow-hidden rounded-2xl border border-border bg-card shadow-soft">
+              <div className="flex items-center justify-between border-b border-border p-4">
                 <div className="flex items-center gap-2">
-                  <span className="material-symbols-outlined text-[18px] text-white">quiz</span>
-                  <h3
-                    className="font-bold text-base text-white"
-                    style={{ fontFamily: "'Hanken Grotesk', system-ui, sans-serif" }}
-                  >
+                  <span className="material-symbols-outlined text-[18px] text-primary">quiz</span>
+                  <h3 className="text-base font-bold text-foreground">
                     Concept Check
                   </h3>
                 </div>
-                <span
-                  className="text-[11px] text-[#8e9192] uppercase tracking-[0.1em] px-2 py-0.5 border border-[#262626]"
-                  style={{ fontFamily: "'JetBrains Mono', monospace" }}
-                >
+                <span className="rounded-full border border-border px-2.5 py-0.5 text-xs font-medium text-muted-foreground">
                   {currentMcqIndex + 1} / {mcqs.length}
                 </span>
               </div>
-              <div className="p-6 space-y-6">
-                <p
-                  className="font-bold text-base text-white leading-relaxed"
-                  style={{ fontFamily: "'Hanken Grotesk', system-ui, sans-serif" }}
-                >
+              <div className="space-y-6 p-6">
+                <p className="text-base font-bold leading-relaxed text-foreground">
                   {mcqs[currentMcqIndex].question}
                 </p>
 
@@ -240,19 +216,19 @@ export default function QuizViewer({ questions }: QuizViewerProps) {
                     const isSelected = selectedOption === option;
                     const isCorrectAnswer = option === mcqs[currentMcqIndex].answer;
 
-                    let classes = "text-left w-full p-3.5 text-sm font-medium border transition-all flex items-center justify-between";
+                    let classes = "flex w-full items-center justify-between rounded-xl border p-3.5 text-left text-sm font-medium transition-all";
 
                     if (!quizSubmitted) {
                       classes += isSelected
-                        ? " border-white bg-white/5 text-white"
-                        : " border-[#262626] text-[#c4c7c8] hover:border-[#404040] hover:text-white";
+                        ? " border-ring bg-primary/10 text-foreground"
+                        : " border-border bg-card text-foreground hover:border-ring/50 hover:bg-muted";
                     } else {
                       if (isCorrectAnswer) {
-                        classes += " border-white bg-white/10 text-white font-bold";
+                        classes += " border-primary bg-primary/10 font-bold text-primary";
                       } else if (isSelected) {
-                        classes += " border-[#ffb4ab] bg-[#ffb4ab]/5 text-[#ffb4ab] font-bold";
+                        classes += " border-destructive/50 bg-destructive/10 font-bold text-destructive";
                       } else {
-                        classes += " opacity-40 border-[#262626] text-[#8e9192]";
+                        classes += " border-border bg-card text-muted-foreground opacity-40";
                       }
                     }
 
@@ -264,18 +240,15 @@ export default function QuizViewer({ questions }: QuizViewerProps) {
                         className={classes}
                       >
                         <span className="flex-1 text-left">{option}</span>
-                        {quizSubmitted && isCorrectAnswer && <Check className="h-4 w-4 text-white shrink-0 ml-2" />}
-                        {quizSubmitted && isSelected && !isCorrectAnswer && <X className="h-4 w-4 text-[#ffb4ab] shrink-0 ml-2" />}
+                        {quizSubmitted && isCorrectAnswer && <Check className="ml-2 h-4 w-4 shrink-0 text-primary" />}
+                        {quizSubmitted && isSelected && !isCorrectAnswer && <X className="ml-2 h-4 w-4 shrink-0 text-destructive" />}
                       </button>
                     );
                   })}
                 </div>
               </div>
-              <div className="p-4 border-t border-[#262626] flex justify-between items-center">
-                <span
-                  className="text-[10px] text-[#636565]"
-                  style={{ fontFamily: "'JetBrains Mono', monospace", letterSpacing: "0.05em" }}
-                >
+              <div className="flex items-center justify-between border-t border-border p-4">
+                <span className="text-[11px] text-muted-foreground">
                   {quizSubmitted ? "Press Next to proceed" : "Select an option to submit"}
                 </span>
                 <div className="flex gap-2">
@@ -283,16 +256,14 @@ export default function QuizViewer({ questions }: QuizViewerProps) {
                     <button
                       disabled={!selectedOption}
                       onClick={submitAnswer}
-                      className="px-5 py-2 bg-white text-[#0A0A0A] font-bold text-xs hover:bg-[#e2e2e2] transition-colors disabled:opacity-30"
-                      style={{ fontFamily: "'JetBrains Mono', monospace", letterSpacing: "0.04em" }}
+                      className="inline-flex h-9 items-center rounded-lg bg-primary px-4 text-sm font-semibold text-primary-foreground shadow-soft transition-colors hover:bg-[color-mix(in_oklch,var(--primary),black_8%)] disabled:opacity-30"
                     >
                       Submit
                     </button>
                   ) : (
                     <button
                       onClick={handleNextMcq}
-                      className="px-5 py-2 bg-white text-[#0A0A0A] font-bold text-xs hover:bg-[#e2e2e2] transition-colors flex items-center gap-1"
-                      style={{ fontFamily: "'JetBrains Mono', monospace", letterSpacing: "0.04em" }}
+                      className="inline-flex h-9 items-center gap-1 rounded-lg bg-primary px-4 text-sm font-semibold text-primary-foreground shadow-soft transition-colors hover:bg-[color-mix(in_oklch,var(--primary),black_8%)]"
                     >
                       {currentMcqIndex === mcqs.length - 1 ? "Finish" : "Next"}
                       <span className="material-symbols-outlined text-[16px]">chevron_right</span>
@@ -308,74 +279,53 @@ export default function QuizViewer({ questions }: QuizViewerProps) {
       {activeSubTab === "flashcards" && (
         <div>
           {flashcards.length === 0 ? (
-            <div className="bg-[#1A1A1A] border border-[#262626] p-6 text-center">
-              <p className="text-sm text-[#8e9192]">No flashcards generated for this document.</p>
+            <div className="rounded-2xl border border-border bg-card p-6 text-center shadow-soft">
+              <p className="text-sm text-muted-foreground">No flashcards generated for this document.</p>
             </div>
           ) : (
             <div className="flex flex-col items-center space-y-6">
               <div
                 onClick={() => setIsFlipped(!isFlipped)}
-                className="w-full max-w-md h-64 flashcard-perspective cursor-pointer"
+                className="flashcard-perspective w-full max-w-md h-64 cursor-pointer"
               >
                 <div className={`flashcard-inner ${isFlipped ? "flashcard-flipped" : ""}`}>
                   {/* Front */}
-                  <div className="flashcard-face bg-[#1A1A1A] border border-[#262626] text-white flex flex-col justify-between">
-                    <div className="flex items-center justify-between w-full border-b border-[#262626] pb-2">
-                      <span
-                        className="text-[11px] text-[#8e9192] uppercase tracking-[0.1em] flex items-center gap-1"
-                        style={{ fontFamily: "'JetBrains Mono', monospace" }}
-                      >
+                  <div className="flashcard-face rounded-2xl border border-border bg-card text-card-foreground shadow-soft flex flex-col justify-between">
+                    <div className="flex w-full items-center justify-between border-b border-border pb-2">
+                      <span className="flex items-center gap-1 text-[13px] font-medium text-muted-foreground">
                         <span className="material-symbols-outlined text-[14px]">auto_stories</span>
                         Question
                       </span>
-                      <span
-                        className="text-[10px] text-[#636565]"
-                        style={{ fontFamily: "'JetBrains Mono', monospace" }}
-                      >
+                      <span className="text-[11px] text-muted-foreground">
                         Click to flip
                       </span>
                     </div>
-                    <div className="flex-1 flex items-center justify-center">
-                      <p
-                        className="font-bold text-base text-white max-w-xs text-center leading-relaxed"
-                        style={{ fontFamily: "'Hanken Grotesk', system-ui, sans-serif" }}
-                      >
+                    <div className="flex flex-1 items-center justify-center">
+                      <p className="max-w-xs text-center text-base font-bold leading-relaxed text-foreground">
                         {flashcards[currentFlashcardIndex].question}
                       </p>
                     </div>
-                    <div
-                      className="text-[10px] text-[#636565] pt-2 border-t border-[#262626] w-full text-center"
-                      style={{ fontFamily: "'JetBrains Mono', monospace" }}
-                    >
+                    <div className="w-full border-t border-border pt-2 text-center text-[11px] text-muted-foreground">
                       Flashcard {currentFlashcardIndex + 1} of {flashcards.length}
                     </div>
                   </div>
 
                   {/* Back */}
-                  <div className="flashcard-face flashcard-back bg-white text-[#0A0A0A] flex flex-col justify-between">
-                    <div className="flex items-center justify-between w-full border-b border-[#e2e2e2] pb-2">
-                      <span
-                        className="text-[11px] text-[#636565] uppercase tracking-[0.1em] flex items-center gap-1"
-                        style={{ fontFamily: "'JetBrains Mono', monospace" }}
-                      >
+                  <div className="flashcard-face flashcard-back rounded-2xl border border-accent bg-accent text-accent-foreground shadow-soft flex flex-col justify-between">
+                    <div className="flex w-full items-center justify-between border-b border-accent-foreground/20 pb-2">
+                      <span className="flex items-center gap-1 text-[13px] font-medium text-accent-foreground/80">
                         <Check className="h-3 w-3" /> Answer
                       </span>
-                      <span
-                        className="text-[10px] text-[#8e9192]"
-                        style={{ fontFamily: "'JetBrains Mono', monospace" }}
-                      >
+                      <span className="text-[11px] text-accent-foreground/70">
                         Click to flip
                       </span>
                     </div>
-                    <div className="flex-1 flex items-center justify-center overflow-y-auto">
-                      <p className="text-sm font-medium leading-relaxed max-w-xs text-center">
+                    <div className="flex flex-1 items-center justify-center overflow-y-auto">
+                      <p className="max-w-xs text-center text-sm font-medium leading-relaxed">
                         {flashcards[currentFlashcardIndex].answer}
                       </p>
                     </div>
-                    <div
-                      className="text-[10px] text-[#8e9192] pt-2 border-t border-[#e2e2e2] w-full text-center"
-                      style={{ fontFamily: "'JetBrains Mono', monospace" }}
-                    >
+                    <div className="w-full border-t border-accent-foreground/20 pt-2 text-center text-[11px] text-accent-foreground/70">
                       Flashcard {currentFlashcardIndex + 1} of {flashcards.length}
                     </div>
                   </div>
@@ -386,21 +336,18 @@ export default function QuizViewer({ questions }: QuizViewerProps) {
               <div className="flex items-center gap-4">
                 <button
                   onClick={handlePrevFlashcard}
-                  className="h-10 w-10 border border-[#262626] bg-[#1A1A1A] flex items-center justify-center text-white hover:border-[#404040] transition-colors"
+                  className="flex h-10 w-10 items-center justify-center rounded-full border border-border bg-card text-foreground transition-colors hover:bg-muted"
                 >
                   <span className="material-symbols-outlined text-[20px]">chevron_left</span>
                 </button>
 
-                <span
-                  className="text-xs text-[#8e9192]"
-                  style={{ fontFamily: "'JetBrains Mono', monospace" }}
-                >
+                <span className="text-xs text-muted-foreground">
                   {currentFlashcardIndex + 1} / {flashcards.length}
                 </span>
 
                 <button
                   onClick={handleNextFlashcard}
-                  className="h-10 w-10 border border-[#262626] bg-[#1A1A1A] flex items-center justify-center text-white hover:border-[#404040] transition-colors"
+                  className="flex h-10 w-10 items-center justify-center rounded-full border border-border bg-card text-foreground transition-colors hover:bg-muted"
                 >
                   <span className="material-symbols-outlined text-[20px]">chevron_right</span>
                 </button>

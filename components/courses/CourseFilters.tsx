@@ -22,26 +22,20 @@ export default function CourseFilters({ level, setLevel, budget, setBudget }: Co
   ];
 
   return (
-    <div className="bg-card border border-border p-5 space-y-6">
-      <h3
-        className="font-bold text-sm text-foreground border-b border-border pb-3"
-        style={{ fontFamily: "'Hanken Grotesk', system-ui, sans-serif" }}
-      >
+    <div className="space-y-6 rounded-2xl border border-border bg-card p-5 shadow-soft">
+      <h3 className="border-b border-border pb-3 text-sm font-semibold tracking-tight text-foreground">
         Filters
       </h3>
 
       <div className="space-y-3">
-        <span
-          className="text-[11px] text-muted-foreground uppercase tracking-[0.1em] font-medium block"
-          style={{ fontFamily: "'JetBrains Mono', monospace" }}
-        >
+        <span className="block text-[13px] font-medium text-muted-foreground">
           Difficulty Level
         </span>
         <div className="space-y-2">
           {levelOptions.map((opt) => (
             <label
               key={opt.value}
-              className="flex items-center gap-2.5 text-sm font-medium text-muted-foreground cursor-pointer hover:text-foreground transition-colors"
+              className="flex cursor-pointer items-center gap-2.5 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
             >
               <input
                 type="radio"
@@ -58,17 +52,14 @@ export default function CourseFilters({ level, setLevel, budget, setBudget }: Co
       </div>
 
       <div className="space-y-3">
-        <span
-          className="text-[11px] text-muted-foreground uppercase tracking-[0.1em] font-medium block"
-          style={{ fontFamily: "'JetBrains Mono', monospace" }}
-        >
+        <span className="block text-[13px] font-medium text-muted-foreground">
           Price / Budget
         </span>
         <div className="space-y-2">
           {budgetOptions.map((opt) => (
             <label
               key={opt.value}
-              className="flex items-center gap-2.5 text-sm font-medium text-muted-foreground cursor-pointer hover:text-foreground transition-colors"
+              className="flex cursor-pointer items-center gap-2.5 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
             >
               <input
                 type="radio"

@@ -92,12 +92,9 @@ export default function RoadmapPage() {
 
   return (
     <div className="space-y-8">
-      <div className="border-b border-border pb-6 animate-fade-in-up">
-        <h1
-          className="text-3xl font-bold text-foreground tracking-tight flex items-center gap-3"
-          style={{ fontFamily: "'Hanken Grotesk', system-ui, sans-serif" }}
-        >
-          <span className="material-symbols-outlined text-[28px]">map</span>
+      <div className="border-b border-border pb-6">
+        <h1 className="flex items-center gap-3 font-display text-2xl font-bold tracking-tight text-foreground md:text-[1.75rem]">
+          <span className="material-symbols-outlined text-[26px] text-primary">map</span>
           Learning Roadmap
         </h1>
         <p className="text-sm text-muted-foreground mt-2">

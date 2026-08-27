@@ -140,7 +140,7 @@ function ModelPicker({
       <button
         type="button"
         onClick={() => setShowModelDropdown(!showModelDropdown)}
-        className="bg-background hover:bg-card border border-border px-3 py-1.5 rounded-full flex items-center gap-1.5 text-[11px] font-bold text-foreground transition-all cursor-pointer"
+        className="flex cursor-pointer items-center gap-1.5 rounded-full border border-border bg-background px-3 py-1.5 text-[11px] font-semibold text-foreground transition-colors hover:bg-card"
       >
         <span className="material-symbols-outlined text-[13px] text-primary">psychology</span>
         {getDisplayName(selectedModel)}
@@ -150,7 +150,7 @@ function ModelPicker({
         <>
           <div className="fixed inset-0 z-40" onClick={() => setShowModelDropdown(false)} />
           <div
-            className={`absolute z-50 min-w-[220px] bg-card border-2 border-border p-1 shadow-lg rounded-xl flex flex-col gap-0.5 max-h-[280px] overflow-y-auto ${
+            className={`absolute z-50 flex max-h-[280px] min-w-[220px] flex-col gap-0.5 overflow-y-auto rounded-xl border border-border bg-card p-1 shadow-pop ${
               placement === "up" ? "bottom-full mb-2" : "top-full mt-2"
             }`}
           >
@@ -164,8 +164,8 @@ function ModelPicker({
                 }}
                 className={`w-full text-left px-3 py-2 rounded-lg text-xs transition-colors cursor-pointer ${
                   selectedModel === id
-                    ? "bg-primary text-primary-foreground font-bold"
-                    : "text-foreground hover:bg-sidebar"
+                    ? "bg-primary font-semibold text-primary-foreground"
+                    : "text-foreground hover:bg-muted"
                 }`}
               >
                 {getDisplayName(id)}
@@ -879,7 +879,7 @@ export default function UnifiedChat({
               <span className="material-symbols-outlined text-[18px]">menu</span>
             </button>
           )}
-          <span className="text-xs font-bold text-foreground font-label uppercase tracking-wider">
+          <span className="text-xs font-semibold text-foreground">
             {activeThreadId ? "Active Thread" : "New Thread"}
           </span>
           <span className="hidden sm:inline text-[11px] text-muted-foreground font-normal normal-case tracking-normal">
@@ -893,7 +893,7 @@ export default function UnifiedChat({
               type="button"
               onClick={onToggleRightSidebar}
               className={`p-1.5 rounded-lg transition-colors text-muted-foreground hover:text-foreground hover:bg-card cursor-pointer ${
-                isRightSidebarOpen ? "bg-card text-primary font-bold" : ""
+                isRightSidebarOpen ? "bg-card font-semibold text-primary" : ""
               }`}
               title="Toggle Library"
             >
@@ -903,7 +903,7 @@ export default function UnifiedChat({
           <button
             type="button"
             onClick={() => setShowUpload((value) => !value)}
-            className="inline-flex items-center gap-1.5 bg-primary text-primary-foreground px-3 py-1.5 text-xs font-bold rounded-lg border-2 border-border hover:bg-primary/95 transition-colors cursor-pointer"
+            className="inline-flex h-9 cursor-pointer items-center gap-1.5 rounded-lg bg-primary px-4 text-sm font-semibold text-primary-foreground shadow-soft transition-colors hover:bg-[color-mix(in_oklch,var(--primary),black_8%)]"
           >
             <span className="material-symbols-outlined text-[14px]">upload_file</span>
             Upload PDF
@@ -923,11 +923,11 @@ export default function UnifiedChat({
           </div>
         ) : messages.length === 0 ? (
           <div className="min-h-full flex flex-col items-center justify-center px-4 sm:px-8 py-12 max-w-5xl mx-auto w-full">
-            <h1 className="text-4xl md:text-5xl font-heading font-extrabold text-foreground text-center mb-8 tracking-tight uppercase">
+            <h1 className="mb-8 text-center font-heading text-4xl font-extrabold tracking-tight text-foreground md:text-5xl">
               What do you want to know?
             </h1>
 
-            <div className="w-full bg-card border-2 border-border rounded-2xl flex flex-col p-3 shadow-[4px_4px_0_0_rgba(0,0,0,0.15)] focus-within:border-primary transition-colors">
+            <div className="flex w-full flex-col rounded-2xl border border-border bg-card p-3 shadow-soft transition-colors focus-within:border-ring focus-within:ring-2 focus-within:ring-ring/25">
               <textarea
                 ref={textareaRef}
                 value={input}
@@ -942,14 +942,7 @@ export default function UnifiedChat({
                 aria-label="Message AI Study Hub"
                 maxLength={MAX_MESSAGE_CHARS}
                 rows={1}
-                className="w-full bg-transparent border-0 outline-none text-foreground text-sm placeholder:text-muted-foreground resize-none focus:ring-0 px-2 pt-1 pb-1 min-h-[56px] focus:outline-none"
-                style={{
-                  backgroundColor: "transparent",
-                  color: "inherit",
-                  border: "none",
-                  outline: "none",
-                  boxShadow: "none",
-                }}
+                className="min-h-[56px] w-full resize-none border-0 bg-transparent px-2 pb-1 pt-1 text-sm text-foreground placeholder:text-muted-foreground outline-none focus:outline-none"
               />
 
               <div className="flex items-center justify-between mt-2 pt-2 border-t border-border/40 px-1 gap-2 flex-wrap">
@@ -969,7 +962,7 @@ export default function UnifiedChat({
                       uploadingAttachment ||
                       attachments.length >= MAX_ATTACHMENTS
                     }
-                    className="bg-background hover:bg-card border border-border px-3 py-1.5 rounded-full flex items-center gap-1.5 text-[11px] font-bold text-foreground transition-all cursor-pointer disabled:cursor-not-allowed disabled:opacity-40"
+                    className="flex cursor-pointer items-center gap-1.5 rounded-full border border-border bg-background px-3 py-1.5 text-[11px] font-semibold text-foreground transition-colors hover:bg-card disabled:cursor-not-allowed disabled:opacity-40"
                     aria-label="Attach a PDF or image"
                   >
                     <span className="material-symbols-outlined text-[13px] text-primary">attach_file</span>
@@ -982,7 +975,7 @@ export default function UnifiedChat({
                     type="button"
                     onClick={startVoiceInput}
                     disabled={loading || uploadingAttachment}
-                    className="h-8 w-8 bg-[#1C1C22] border border-cyan-500/50 hover:border-cyan-400 text-cyan-400 flex items-center justify-center rounded-full disabled:opacity-30 transition-colors shrink-0 cursor-pointer"
+                    className="flex h-8 w-8 shrink-0 cursor-pointer items-center justify-center rounded-full bg-accent text-accent-foreground transition-colors hover:bg-accent/80 disabled:opacity-30"
                     title="Speak instead"
                     aria-label="Start voice input"
                   >
@@ -1002,7 +995,7 @@ export default function UnifiedChat({
                     <button
                       type="button"
                       onClick={handleStopGeneration}
-                      className="h-8 w-8 bg-foreground text-background flex items-center justify-center rounded-full border border-border transition-colors shrink-0 cursor-pointer"
+                      className="flex h-8 w-8 shrink-0 cursor-pointer items-center justify-center rounded-full bg-foreground text-background transition-colors"
                       aria-label="Stop generating"
                       title="Stop generating"
                     >
@@ -1018,7 +1011,7 @@ export default function UnifiedChat({
                         (!input.trim() && attachments.length === 0) ||
                         uploadingAttachment
                       }
-                      className="h-8 w-8 bg-primary hover:bg-primary/95 text-primary-foreground flex items-center justify-center rounded-full disabled:opacity-30 border border-border transition-colors shrink-0 cursor-pointer"
+                      className="flex h-8 w-8 shrink-0 cursor-pointer items-center justify-center rounded-full bg-primary text-primary-foreground shadow-soft transition-colors hover:bg-[color-mix(in_oklch,var(--primary),black_8%)] disabled:opacity-30"
                       aria-label="Send message"
                     >
                       <span className="material-symbols-outlined text-[16px]">
@@ -1037,13 +1030,13 @@ export default function UnifiedChat({
                   setInput("Summarize my study materials");
                   textareaRef.current?.focus();
                 }}
-                className="flex items-start gap-3 p-4 bg-card/45 border-2 border-border hover:border-primary hover:bg-card rounded-xl text-left transition-all cursor-pointer shadow-[3px_3px_0_0_rgba(0,0,0,0.05)] active:translate-x-0.5 active:translate-y-0.5 active:shadow-none"
+                className="flex cursor-pointer items-start gap-3 rounded-xl border border-border bg-card p-4 text-left shadow-soft transition-all hover:-translate-y-0.5 hover:border-ring/40 hover:shadow-lift"
               >
-                <div className="h-9 w-9 rounded-lg bg-primary/10 text-primary border border-primary/20 flex items-center justify-center shrink-0">
+                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
                   <span className="material-symbols-outlined text-[20px]">search</span>
                 </div>
                 <div>
-                  <h4 className="text-sm font-extrabold text-foreground font-label">Search anything</h4>
+                  <h4 className="text-sm font-extrabold text-foreground">Search anything</h4>
                   <p className="text-xs text-muted-foreground mt-1 leading-normal">
                     Get fast answers grounded in your uploaded study materials.
                   </p>
@@ -1056,15 +1049,15 @@ export default function UnifiedChat({
                   setInput("Create a customized project template");
                   textareaRef.current?.focus();
                 }}
-                className="flex items-start gap-3 p-4 bg-card/45 border-2 border-border hover:border-primary hover:bg-card rounded-xl text-left transition-all cursor-pointer shadow-[3px_3px_0_0_rgba(0,0,0,0.05)] active:translate-x-0.5 active:translate-y-0.5 active:shadow-none"
+                className="flex cursor-pointer items-start gap-3 rounded-xl border border-border bg-card p-4 text-left shadow-soft transition-all hover:-translate-y-0.5 hover:border-ring/40 hover:shadow-lift"
               >
-                <div className="h-9 w-9 rounded-lg bg-primary/10 text-primary border border-primary/20 flex items-center justify-center shrink-0">
+                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
                   <span className="material-symbols-outlined text-[20px]">laptop_mac</span>
                 </div>
                 <div>
-                  <h4 className="text-sm font-extrabold text-foreground flex items-center gap-1.5 font-label">
+                  <h4 className="text-sm font-extrabold text-foreground flex items-center gap-1.5">
                     Get work done
-                    <span className="text-[9px] bg-primary/25 text-primary px-1 rounded-sm uppercase tracking-wider font-extrabold">
+                    <span className="rounded bg-primary/10 px-1 text-[9px] font-bold text-primary">
                       NEW
                     </span>
                   </h4>
@@ -1128,7 +1121,7 @@ export default function UnifiedChat({
                     className="h-6 w-6 object-cover rounded border border-border"
                   />
                 ) : (
-                  <span className="material-symbols-outlined text-red-500 text-[16px]">description</span>
+                  <span className="text-destructive material-symbols-outlined text-[16px]">description</span>
                 )}
                 <span className="truncate max-w-[120px] font-mono text-[10px]">{att.filename}</span>
                 <button
@@ -1158,7 +1151,7 @@ export default function UnifiedChat({
               e.preventDefault();
               void handleSend();
             }}
-            className="w-full bg-card border-2 border-border rounded-2xl flex flex-col p-2 focus-within:border-primary transition-colors shadow-[3px_3px_0_0_rgba(0,0,0,0.1)]"
+            className="w-full flex flex-col rounded-2xl border border-border bg-card p-2 shadow-soft transition-colors focus-within:border-ring focus-within:ring-2 focus-within:ring-ring/25"
           >
             <textarea
               ref={textareaRef}
@@ -1178,14 +1171,7 @@ export default function UnifiedChat({
               aria-label="Message AI Study Hub"
               maxLength={MAX_MESSAGE_CHARS}
               rows={1}
-              className="w-full bg-transparent border-0 outline-none text-foreground text-sm placeholder:text-muted-foreground resize-none focus:ring-0 px-2 pt-1 pb-1 min-h-[38px] focus:outline-none"
-              style={{
-                backgroundColor: "transparent",
-                color: "inherit",
-                border: "none",
-                outline: "none",
-                boxShadow: "none",
-              }}
+              className="min-h-[38px] w-full resize-none border-0 bg-transparent px-2 pb-1 pt-1 text-sm text-foreground placeholder:text-muted-foreground outline-none focus:outline-none"
             />
             <div className="flex items-center justify-between mt-1 px-1">
               <div className="flex items-center gap-1.5">
@@ -1225,7 +1211,7 @@ export default function UnifiedChat({
                   type="button"
                   onClick={startVoiceInput}
                   disabled={loading || uploadingAttachment}
-                  className="h-10 w-10 bg-[#1C1C22] border border-cyan-500/50 hover:border-cyan-400 text-cyan-400 flex items-center justify-center rounded-full disabled:opacity-30 transition-colors shrink-0 cursor-pointer"
+                  className="flex h-10 w-10 shrink-0 cursor-pointer items-center justify-center rounded-full bg-accent text-accent-foreground transition-colors hover:bg-accent/80 disabled:opacity-30"
                   title="Speak instead"
                   aria-label="Start voice input"
                 >
@@ -1235,7 +1221,7 @@ export default function UnifiedChat({
                   <button
                     type="button"
                     onClick={handleStopGeneration}
-                    className="h-10 w-10 bg-foreground text-background flex items-center justify-center rounded-full border border-border transition-colors shrink-0 cursor-pointer"
+                    className="flex h-10 w-10 shrink-0 cursor-pointer items-center justify-center rounded-full bg-foreground text-background transition-colors"
                     aria-label="Stop generating"
                     title="Stop generating"
                   >
@@ -1250,7 +1236,7 @@ export default function UnifiedChat({
                       (!input.trim() && attachments.length === 0) ||
                       uploadingAttachment
                     }
-                    className="h-10 w-10 bg-primary hover:bg-primary/95 text-primary-foreground flex items-center justify-center rounded-full border border-border disabled:opacity-30 transition-colors shrink-0 cursor-pointer"
+                    className="flex h-10 w-10 shrink-0 cursor-pointer items-center justify-center rounded-full bg-primary text-primary-foreground shadow-soft transition-colors hover:bg-[color-mix(in_oklch,var(--primary),black_8%)] disabled:opacity-30"
                     aria-label="Send message"
                   >
                     <span className="material-symbols-outlined text-[14px]">
@@ -1268,7 +1254,7 @@ export default function UnifiedChat({
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
           <div className="fixed inset-0 bg-black/60 backdrop-blur-xs" onClick={() => setShowUpload(false)} />
           <div
-            className="relative w-full max-w-xl bg-card border-2 border-border p-6 rounded-2xl animate-fade-in-up z-[101]"
+            className="animate-fade-in-up relative z-[101] w-full max-w-xl rounded-2xl border border-border bg-card p-6 shadow-pop"
             role="dialog"
             aria-modal="true"
             aria-labelledby="upload-pdf-title"
@@ -1276,7 +1262,7 @@ export default function UnifiedChat({
             <div className="flex items-center justify-between pb-4 border-b border-border/40 mb-5">
               <h3
                 id="upload-pdf-title"
-                className="text-sm font-bold text-foreground uppercase tracking-widest font-label"
+                className="text-sm font-semibold text-foreground"
               >
                 Upload PDF Document
               </h3>

@@ -136,23 +136,23 @@ export default function CoursesPage() {
     <div className="space-y-8">
       {[1, 2].map((section) => (
         <div key={section} className="space-y-4">
-          <div className="h-5 w-64 bg-card" />
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+          <div className="h-5 w-64 rounded-lg bg-muted" />
+          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
             {[1, 2].map((i) => (
               <div
                 key={i}
-                className="bg-card border border-border p-5 space-y-4 animate-fade-in-up"
+                className="animate-fade-in-up space-y-4 rounded-2xl border border-border bg-card p-5 shadow-soft"
                 style={{ animationDelay: `${(section * 2 + i) * 60}ms` }}
               >
-                <div className="flex justify-between items-center">
-                  <div className="h-5 w-20 bg-[#262626]" />
+                <div className="flex items-center justify-between">
+                  <div className="h-5 w-20 rounded-lg bg-muted" />
                   <div className="flex gap-2">
-                    <div className="h-5 w-16 bg-[#262626]" />
-                    <div className="h-5 w-12 bg-[#262626]" />
+                    <div className="h-5 w-16 rounded-full bg-muted" />
+                    <div className="h-5 w-12 rounded-full bg-muted" />
                   </div>
                 </div>
-                <div className="h-12 w-full bg-[#262626]" />
-                <div className="h-4 w-32 bg-[#262626]" />
+                <div className="h-12 w-full rounded-lg bg-muted" />
+                <div className="h-4 w-32 rounded-lg bg-muted" />
               </div>
             ))}
           </div>
@@ -163,18 +163,18 @@ export default function CoursesPage() {
 
   if (loading && courses.length === 0) {
     return (
-      <div className="space-y-8 animate-fade-in-up">
+      <div className="animate-fade-in-up space-y-8">
         <div className="border-b border-border pb-6">
-          <div className="h-8 w-64 bg-card mb-2" />
-          <div className="h-4 w-96 bg-card" />
+          <div className="mb-2 h-8 w-64 rounded-lg bg-muted" />
+          <div className="h-4 w-96 max-w-full rounded-lg bg-muted" />
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+        <div className="grid grid-cols-1 gap-8 md:grid-cols-4">
           <div className="md:col-span-1">
-            <div className="bg-card border border-border p-5 space-y-4">
-              <div className="h-6 w-24 bg-[#262626] mb-4" />
+            <div className="space-y-4 rounded-2xl border border-border bg-card p-5 shadow-soft">
+              <div className="mb-4 h-6 w-24 rounded-lg bg-muted" />
               <div className="space-y-3">
-                <div className="h-4 w-12 bg-[#262626]" />
-                <div className="h-9 w-full bg-[#262626]" />
+                <div className="h-4 w-12 rounded-lg bg-muted" />
+                <div className="h-9 w-full rounded-lg bg-muted" />
               </div>
             </div>
           </div>
@@ -186,20 +186,19 @@ export default function CoursesPage() {
 
   return (
     <div className="space-y-8">
-      <div className="border-b border-border pb-6 animate-fade-in-up flex flex-col md:flex-row md:items-end md:justify-between gap-4">
+      <div className="flex flex-col justify-between gap-4 border-b border-border pb-6 md:flex-row md:items-end">
         <div>
-          <h1
-            className="text-3xl font-bold text-foreground tracking-tight flex items-center gap-3"
-            style={{ fontFamily: "'Hanken Grotesk', system-ui, sans-serif" }}
-          >
-            <span className="material-symbols-outlined text-[28px]">school</span>
+          <h1 className="font-display flex items-center gap-3 text-2xl font-bold tracking-tight text-foreground">
+            <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
+              <span className="material-symbols-outlined text-[22px]">school</span>
+            </span>
             Course Recommendations
           </h1>
-          <p className="text-sm text-muted-foreground mt-2 max-w-2xl">
+          <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
             Free-first picks for your next roadmap milestones
             {meta?.youtubeEnabled ? " — YouTube full courses + Coursera" : " via Coursera"}.
             {meta?.careerPath ? (
-              <> Path: <span className="text-muted-foreground">{meta.careerPath}</span>.</>
+              <> Path: <span className="font-medium text-foreground">{meta.careerPath}</span>.</>
             ) : null}
           </p>
         </div>
@@ -208,8 +207,7 @@ export default function CoursesPage() {
             type="button"
             onClick={() => fetchCourses({ refresh: true })}
             disabled={refreshing || loading}
-            className="inline-flex items-center gap-2 bg-primary text-primary-foreground border-2 border-black px-4 py-2 text-xs font-bold disabled:opacity-40 shadow-[3px_3px_0_0_#000]"
-            style={{ fontFamily: "'JetBrains Mono', monospace", letterSpacing: "0.04em" }}
+            className="inline-flex h-9 items-center gap-2 self-start rounded-lg bg-primary px-4 text-sm font-semibold text-primary-foreground shadow-soft transition-colors hover:bg-[color-mix(in_oklch,var(--primary),black_8%)] disabled:opacity-40"
           >
             <span className={`material-symbols-outlined text-[16px] ${refreshing ? "animate-spin" : ""}`}>
               sync
@@ -221,20 +219,17 @@ export default function CoursesPage() {
 
       <div className="relative">
         {errorStatus === 404 ? (
-          <div className="flex flex-col items-center justify-center text-center border-2 border-dashed border-border max-w-lg mx-auto py-16 px-8 space-y-6 bg-card/40 animate-fade-in-up">
-            <div className="h-16 w-16 border border-border flex items-center justify-center text-foreground">
+          <div className="mx-auto flex max-w-lg animate-fade-in-up flex-col items-center justify-center space-y-6 rounded-2xl border border-dashed border-border bg-card/50 px-8 py-16 text-center">
+            <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-primary/10 text-primary">
               <span className="material-symbols-outlined text-[32px]">
                 {errorCode === "NO_ROADMAP" ? "map" : "explore"}
               </span>
             </div>
-            <div className="space-y-2">
-              <h3
-                className="font-bold text-xl text-foreground"
-                style={{ fontFamily: "'Hanken Grotesk', system-ui, sans-serif" }}
-              >
+            <div className="max-w-sm space-y-2">
+              <h3 className="font-display text-xl font-semibold tracking-tight text-foreground">
                 {errorCode === "NO_ROADMAP" ? "Roadmap Required" : "No Career Path Selected"}
               </h3>
-              <p className="text-sm text-muted-foreground max-w-sm">
+              <p className="text-sm text-muted-foreground">
                 {errorCode === "NO_ROADMAP"
                   ? "Generate your learning roadmap first — we pull live courses from those milestones."
                   : "Complete Career Discovery and select a path before we can recommend courses."}
@@ -242,18 +237,17 @@ export default function CoursesPage() {
             </div>
             <Link
               href={errorCode === "NO_ROADMAP" ? "/roadmap" : "/career"}
-              className="inline-flex items-center px-6 py-2.5 bg-primary text-primary-foreground border-2 border-black font-bold hover:opacity-90 transition-colors text-xs group"
-              style={{ fontFamily: "'JetBrains Mono', monospace", letterSpacing: "0.04em" }}
+              className="group inline-flex h-10 items-center gap-1.5 rounded-lg bg-primary px-5 text-sm font-semibold text-primary-foreground shadow-soft transition-colors hover:bg-[color-mix(in_oklch,var(--primary),black_8%)]"
             >
               {errorCode === "NO_ROADMAP" ? "Open Roadmap" : "Start Career Assessment"}
-              <span className="material-symbols-outlined text-[16px] ml-1.5 group-hover:translate-x-0.5 transition-transform">
+              <span className="material-symbols-outlined text-[16px] transition-transform group-hover:translate-x-0.5">
                 arrow_forward
               </span>
             </Link>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-            <div className="md:col-span-1 space-y-4">
+          <div className="grid grid-cols-1 gap-8 md:grid-cols-4">
+            <div className="space-y-4 md:col-span-1">
               <CourseFilters
                 level={level}
                 setLevel={setLevel}
@@ -261,12 +255,12 @@ export default function CoursesPage() {
                 setBudget={setBudget}
               />
 {budget === "free" && (
-                <p className="text-[11px] text-muted-foreground leading-relaxed px-1">
+                <p className="px-1 text-[13px] leading-relaxed text-muted-foreground">
                   Showing free options first. Switch to{" "}
                   <button
                     type="button"
                     onClick={() => setBudget("all")}
-                    className="text-muted-foreground underline underline-offset-2 hover:text-foreground"
+                    className="underline underline-offset-2 transition-colors hover:text-foreground"
                   >
                     All Prices
                   </button>{" "}
@@ -279,13 +273,13 @@ export default function CoursesPage() {
               {loading || refreshing ? (
                 renderSkeletons()
               ) : courses.length === 0 ? (
-                <div className="flex flex-col items-center justify-center text-center border-2 border-dashed border-border py-16 space-y-4 bg-card/40 animate-fade-in-up">
-                  <div className="h-12 w-12 border border-border flex items-center justify-center text-muted-foreground">
+                <div className="flex animate-fade-in-up flex-col items-center justify-center space-y-4 rounded-2xl border border-dashed border-border bg-card/50 py-16 text-center">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10 text-primary">
                     <span className="material-symbols-outlined text-[24px]">library_books</span>
                   </div>
                   <div>
-                    <h4 className="font-bold text-base text-foreground">No matching courses</h4>
-                    <p className="text-sm text-muted-foreground max-w-sm mt-1 mx-auto">
+                    <h4 className="text-base font-semibold tracking-tight text-foreground">No matching courses</h4>
+                    <p className="mx-auto mt-1 max-w-sm text-sm text-muted-foreground">
                       {budget === "free"
                         ? "No free courses for these filters. Try All Prices, or refresh live results."
                         : "No courses match your filters. Broaden criteria or refresh live results."}
@@ -295,8 +289,7 @@ export default function CoursesPage() {
                     <button
                       type="button"
                       onClick={() => setBudget("all")}
-                      className="inline-flex items-center px-4 py-2 border border-border text-xs text-foreground hover:border-foreground transition-colors"
-                      style={{ fontFamily: "'JetBrains Mono', monospace", letterSpacing: "0.04em" }}
+                      className="inline-flex h-9 items-center rounded-lg border border-border px-4 text-sm font-semibold text-foreground transition-colors hover:bg-muted"
                     >
                       Show all prices
                     </button>
@@ -305,23 +298,17 @@ export default function CoursesPage() {
               ) : (
                 <div className="space-y-10">
                   {grouped.map((group, gIdx) => (
-                    <section key={group.topic} className="space-y-4 animate-fade-in-up" style={{ animationDelay: `${gIdx * 60}ms` }}>
+                    <section key={group.topic} className="animate-fade-in-up space-y-4" style={{ animationDelay: `${gIdx * 60}ms` }}>
                       <div className="border-b border-border pb-3">
-                        <p
-                          className="text-[10px] text-muted-foreground uppercase tracking-[0.12em] mb-1"
-                          style={{ fontFamily: "'JetBrains Mono', monospace" }}
-                        >
+                        <p className="mb-1 text-[13px] font-medium text-muted-foreground">
                           Step {gIdx + 1} of {grouped.length}
                           {group.level ? ` · ${group.level}` : ""}
                         </p>
-                        <h2
-                          className="text-lg font-bold text-foreground leading-snug"
-                          style={{ fontFamily: "'Hanken Grotesk', system-ui, sans-serif" }}
-                        >
+                        <h2 className="text-lg font-bold leading-snug tracking-tight text-foreground">
                           {group.headline}
                         </h2>
                       </div>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
                         {group.courses.map((course, idx) => (
                           <div
                             key={course._id}

@@ -98,10 +98,10 @@ export default function CourseCard({ course, hideMilestone = false }: CourseCard
 
   return (
     <div
-      className={`flex flex-col transition-all overflow-hidden h-full ${
+      className={`flex h-full flex-col overflow-hidden rounded-2xl border bg-card shadow-soft transition-all ${
         completed
-          ? "bg-card border-2 border-border"
-          : "bg-card border border-border hover:border-border"
+          ? "border-primary/40"
+          : "border-border hover:-translate-y-0.5 hover:shadow-lift"
       }`}
     >
       <a href={course.url} target="_blank" rel="noopener noreferrer" className="block border-b border-border">
@@ -109,68 +109,54 @@ export default function CourseCard({ course, hideMilestone = false }: CourseCard
           src={course.thumbnailUrl}
           alt={course.title}
           fallbackName={course.platform || course.title}
-          className="w-full h-36 object-cover bg-background"
+          className="h-36 w-full bg-background object-cover"
         />
       </a>
 
-      <div className="p-5 pb-0 flex-1">
-        <div className="flex justify-between items-start gap-2 mb-4">
-          <div className="flex flex-wrap gap-2">
-            <span
-              className="monolith-chip"
-              style={{ fontFamily: "'JetBrains Mono', monospace" }}
-            >
+      <div className="flex-1 p-5 pb-0">
+        <div className="mb-4 flex items-start justify-between gap-2">
+          <div className="flex flex-wrap gap-1.5">
+            <span className="rounded-full border border-primary/25 bg-primary/10 px-2.5 py-0.5 text-[11px] font-semibold text-primary">
               {platformLabel}
             </span>
             {liveYouTube && (
-              <span
-                className="monolith-chip border-white/20 text-foreground"
-                style={{ fontFamily: "'JetBrains Mono', monospace" }}
-              >
+              <span className="rounded-full border border-border bg-muted px-2.5 py-0.5 text-[11px] font-medium text-foreground">
                 Full course
               </span>
             )}
             {searchLink && (
-              <span
-                className="monolith-chip text-muted-foreground"
-                style={{ fontFamily: "'JetBrains Mono', monospace" }}
-              >
+              <span className="rounded-full border border-border bg-muted px-2.5 py-0.5 text-[11px] font-medium text-muted-foreground">
                 Browse results
               </span>
             )}
           </div>
-          <div className="flex gap-2 shrink-0">
-            <span
-              className="monolith-chip capitalize"
-              style={{ fontFamily: "'JetBrains Mono', monospace" }}
-            >
+          <div className="flex shrink-0 gap-1.5">
+            <span className="rounded-full border border-border bg-muted px-2.5 py-0.5 text-[11px] font-medium capitalize text-muted-foreground">
               {course.skillLevel}
             </span>
             <span
-              className={`monolith-chip ${
-                course.isFree ? "border-white/20 text-foreground" : ""
+              className={`rounded-full border px-2.5 py-0.5 text-[11px] font-medium ${
+                course.isFree
+                  ? "border-emerald-500/25 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
+                  : "border-border bg-muted text-muted-foreground"
               }`}
-              style={{ fontFamily: "'JetBrains Mono', monospace" }}
             >
               {course.isFree ? "Free" : "Paid"}
             </span>
           </div>
         </div>
 
-        <h3
-          className="font-bold text-base text-foreground leading-snug line-clamp-2 mb-2"
-          style={{ fontFamily: "'Hanken Grotesk', system-ui, sans-serif" }}
-        >
+        <h3 className="mb-2 line-clamp-2 text-base font-bold leading-snug tracking-tight text-foreground">
           {course.title}
         </h3>
 
         {!hideMilestone && course.sourceTopic && (
-          <p className="text-[11px] text-muted-foreground mb-3 line-clamp-2">
-            For: <span className="text-muted-foreground">{course.sourceTopic.split(/[:—–]/)[0]?.trim()}</span>
+          <p className="mb-3 line-clamp-2 text-[13px] text-muted-foreground">
+            For: <span>{course.sourceTopic.split(/[:—–]/)[0]?.trim()}</span>
           </p>
         )}
         {searchLink && (
-          <p className="text-[11px] text-muted-foreground mb-3 leading-relaxed">
+          <p className="mb-3 text-[13px] leading-relaxed text-muted-foreground">
             {isYouTube
               ? "Opens YouTube search — pick a full course that fits your pace."
               : `Opens ${course.platform} search — pick a course that fits your pace.`}
@@ -179,43 +165,36 @@ export default function CourseCard({ course, hideMilestone = false }: CourseCard
       </div>
 
       <div className="px-5 pb-4">
-        <div className="flex justify-between items-center">
+        <div className="flex items-center justify-between">
           {course.rating != null && !searchLink && (
-            <div className="flex items-center gap-2">
-              <span className="material-symbols-outlined text-[16px] text-foreground" style={{ fontVariationSettings: "'FILL' 1" }}>star</span>
-              <span
-                className="text-xs font-bold text-foreground"
-                style={{ fontFamily: "'JetBrains Mono', monospace" }}
-              >
+            <div className="flex items-center gap-1.5">
+              <span className="material-symbols-outlined text-[16px] text-amber" style={{ fontVariationSettings: "'FILL' 1" }}>star</span>
+              <span className="text-xs font-bold tabular-nums text-foreground">
                 {Number(course.rating).toFixed(1)}
               </span>
             </div>
           )}
           {completed && (
-            <span
-              className="flex items-center gap-1 text-[10px] text-muted-foreground ml-auto"
-              style={{ fontFamily: "'JetBrains Mono', monospace", letterSpacing: "0.05em" }}
-            >
-              <span className="material-symbols-outlined text-[14px]">check_circle</span>
+            <span className="ml-auto flex items-center gap-1 text-[11px] font-medium text-emerald-600 dark:text-emerald-400">
+              <span className="material-symbols-outlined text-[14px]" style={{ fontVariationSettings: "'FILL' 1" }}>check_circle</span>
               COMPLETED
             </span>
           )}
         </div>
       </div>
 
-      <div className="border-t border-border px-5 py-3 flex gap-2 mt-auto">
+      <div className="mt-auto flex gap-2 border-t border-border px-5 py-3">
         <a
           href={course.url}
           target="_blank"
           rel="noopener noreferrer"
-          className="flex-1 inline-flex items-center justify-between px-4 py-2 border border-border text-foreground text-xs font-medium hover:border-foreground transition-colors group"
-          style={{ fontFamily: "'JetBrains Mono', monospace", letterSpacing: "0.04em" }}
+          className="group inline-flex h-9 flex-1 items-center justify-between rounded-lg border border-border px-4 text-sm font-semibold text-foreground transition-colors hover:bg-muted"
         >
           <span className="flex items-center gap-1.5">
             <span className="material-symbols-outlined text-[16px]">{ctaIcon}</span>
             {ctaLabel}
           </span>
-          <span className="material-symbols-outlined text-[14px] group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform">
+          <span className="material-symbols-outlined text-[14px] transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5">
             open_in_new
           </span>
         </a>
@@ -224,15 +203,15 @@ export default function CourseCard({ course, hideMilestone = false }: CourseCard
           <button
             disabled={loading}
             onClick={toggleCompleted}
-            className={`h-9 w-9 border flex items-center justify-center shrink-0 transition-colors ${
+            className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border transition-colors ${
               completed
-                ? "bg-white/5 border-white/30 text-foreground hover:bg-white/10"
-                : "border-border text-muted-foreground hover:text-foreground hover:border-border"
+                ? "border-primary/40 bg-primary/10 text-primary hover:bg-primary/20"
+                : "border-border text-muted-foreground hover:bg-muted hover:text-foreground"
             }`}
             title={completed ? "Mark incomplete" : "Mark as completed"}
           >
             {loading ? (
-              <span className="h-4 w-4 border-2 border-border border-t-white animate-spin" />
+              <span className="h-4 w-4 animate-spin rounded-full border-2 border-ring/30 border-t-primary" />
             ) : (
               <span className="material-symbols-outlined text-[18px]" style={completed ? { fontVariationSettings: "'FILL' 1" } : undefined}>
                 check_circle

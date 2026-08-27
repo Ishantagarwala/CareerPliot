@@ -163,7 +163,7 @@ export default function HCaptchaWidget({
       <div ref={containerRef} className="min-h-[78px] overflow-visible" />
       {error && (
         <div className="mt-2 flex flex-col gap-2">
-          <p className="text-xs text-[#ffb4ab]">{error}</p>
+          <p className="text-xs font-medium text-destructive">{error}</p>
           <button
             type="button"
             onClick={handleRetry}

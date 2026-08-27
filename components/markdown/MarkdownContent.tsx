@@ -21,11 +21,9 @@ interface MarkdownContentProps {
 function CodeBlock({
   code,
   language,
-  variant,
 }: {
   code: string;
   language: string;
-  variant: MarkdownVariant;
 }) {
   const [copied, setCopied] = useState(false);
 
@@ -40,36 +38,23 @@ function CodeBlock({
     }
   };
 
-  const isSummary = variant === "summary";
-
   return (
-    <div
-      className={`my-4 overflow-hidden border ${
-        isSummary ? "border-[#262626] bg-[#0A0A0A]" : "border-[#262626] bg-[#0A0A0A]"
-      }`}
-    >
-      <div className="flex items-center justify-between border-b border-[#262626] bg-[#131313] px-4 py-2">
-        <span
-          className="flex items-center gap-1.5 capitalize text-[#8e9192]"
-          style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "11px", letterSpacing: "0.05em" }}
-        >
-          <Terminal className="h-3.5 w-3.5 text-white" />
+    <div className="my-4 overflow-hidden rounded-xl border border-border bg-secondary text-secondary-foreground">
+      <div className="flex items-center justify-between border-b border-white/10 bg-white/5 px-4 py-2">
+        <span className="flex items-center gap-1.5 text-[11px] font-medium capitalize text-secondary-foreground/70">
+          <Terminal className="h-3.5 w-3.5 text-secondary-foreground" />
           {language || "code"}
         </span>
         <button
           type="button"
           onClick={handleCopyCode}
-          className="flex items-center gap-1 text-[#8e9192] transition-colors hover:text-white"
-          style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "11px", letterSpacing: "0.05em" }}
+          className="flex items-center gap-1 text-[11px] font-medium text-secondary-foreground/70 transition-colors hover:text-secondary-foreground"
         >
-          {copied ? <Check className="h-3 w-3 text-white" /> : <Copy className="h-3 w-3" />}
+          {copied ? <Check className="h-3 w-3 text-secondary-foreground" /> : <Copy className="h-3 w-3" />}
           {copied ? "Copied" : "Copy"}
         </button>
       </div>
-      <pre
-        className="overflow-x-auto bg-[#0A0A0A] p-4 text-xs leading-relaxed text-[#c4c7c8]"
-        style={{ fontFamily: "'JetBrains Mono', monospace" }}
-      >
+      <pre className="overflow-x-auto p-4 text-[13px] leading-relaxed">
         <code>{code}</code>
       </pre>
     </div>
@@ -78,75 +63,49 @@ function CodeBlock({
 
 function variantStyles(variant: MarkdownVariant) {
   const isUser = variant === "chat-user";
-  const isSummary = variant === "summary";
 
   return {
-    body: isUser ? "text-inherit" : isSummary ? "text-[#c4c7c8]" : "text-foreground",
-    strong: isUser ? "font-bold text-inherit" : isSummary ? "font-bold text-white" : "font-bold text-foreground",
-    muted: isUser ? "text-inherit opacity-80" : isSummary ? "text-[#8e9192]" : "text-muted-foreground",
+    body: isUser ? "text-inherit" : "text-foreground",
+    strong: isUser ? "font-bold text-inherit" : "font-bold text-foreground",
+    muted: isUser ? "text-inherit opacity-80" : "text-muted-foreground",
     inlineCode: isUser
-      ? "mx-0.5 border border-black bg-black/10 px-1.5 py-0.5 text-[12px] text-inherit"
-      : isSummary
-        ? "mx-0.5 border border-[#262626] bg-[#0A0A0A] px-1.5 py-0.5 text-[12px] text-white"
-        : "mx-0.5 border border-black bg-background px-1.5 py-0.5 text-[12px] text-foreground",
+      ? "mx-0.5 rounded border border-border bg-black/10 px-1.5 py-0.5 text-[12px] text-inherit"
+      : "mx-0.5 rounded border border-border bg-muted px-1.5 py-0.5 text-[12px] text-foreground",
     link: isUser
       ? "underline underline-offset-2 text-inherit"
-      : isSummary
-        ? "text-white underline underline-offset-2"
-        : "text-primary underline underline-offset-2",
-    hr: isUser ? "my-4 border-t border-black/30" : isSummary ? "my-4 border-t border-[#262626]" : "my-4 border-t border-border",
+      : "text-primary underline underline-offset-2",
+    hr: isUser ? "my-4 border-t border-accent-foreground/20" : "my-4 border-t border-border",
     blockquote: isUser
-      ? "my-2 border-l-2 border-black/40 pl-4 italic text-inherit opacity-80"
-      : isSummary
-        ? "my-2 border-l-2 border-[#404040] pl-4 italic text-[#8e9192]"
-        : "my-2 border-l-2 border-border pl-4 italic text-muted-foreground",
+      ? "my-2 border-l-2 border-accent-foreground/30 pl-4 italic text-inherit opacity-80"
+      : "my-2 border-l-2 border-border pl-4 italic text-muted-foreground",
     tableWrap: "my-4 overflow-x-auto",
-    table: isSummary
-      ? "w-full border-collapse text-sm text-[#c4c7c8]"
-      : "w-full border-collapse text-sm",
-    th: isSummary
-      ? "border border-[#262626] bg-[#131313] px-3 py-2 text-left font-bold text-white"
-      : "border border-border bg-muted px-3 py-2 text-left font-bold",
-    td: isSummary
-      ? "border border-[#262626] px-3 py-2 align-top"
-      : "border border-border px-3 py-2 align-top",
+    table: "w-full border-collapse text-sm",
+    th: "border border-border bg-muted px-3 py-2 text-left font-bold text-foreground",
+    td: "border border-border px-3 py-2 align-top",
   };
 }
 
 function buildComponents(variant: MarkdownVariant): Components {
   const styles = variantStyles(variant);
-  const isSummary = variant === "summary";
 
   return {
     h1: ({ children }) => (
-      <h1
-        className={`mb-4 mt-6 text-xl font-bold ${styles.body}`}
-        style={{ fontFamily: "'Hanken Grotesk', system-ui, sans-serif" }}
-      >
+      <h1 className={`mb-4 mt-6 text-xl font-bold ${styles.body}`}>
         {children}
       </h1>
     ),
     h2: ({ children }) => (
-      <h2
-        className={`mb-3.5 mt-5 text-lg font-bold ${styles.body}`}
-        style={{ fontFamily: "'Hanken Grotesk', system-ui, sans-serif" }}
-      >
+      <h2 className={`mb-3.5 mt-5 text-lg font-bold ${styles.body}`}>
         {children}
       </h2>
     ),
     h3: ({ children }) => (
-      <h3
-        className={`mb-2 mt-4 text-base font-bold ${styles.body}`}
-        style={{ fontFamily: "'Hanken Grotesk', system-ui, sans-serif" }}
-      >
+      <h3 className={`mb-2 mt-4 text-base font-bold ${styles.body}`}>
         {children}
       </h3>
     ),
     h4: ({ children }) => (
-      <h4
-        className={`mb-2 mt-5 border-b pb-1 text-base font-bold ${isSummary ? "border-[#262626] text-white" : styles.body}`}
-        style={{ fontFamily: "'Hanken Grotesk', system-ui, sans-serif" }}
-      >
+      <h4 className={`mb-2 mt-5 border-b border-border pb-1 text-base font-bold ${styles.body}`}>
         {children}
       </h4>
     ),
@@ -175,10 +134,10 @@ function buildComponents(variant: MarkdownVariant): Components {
       const match = /language-(\w+)/.exec(className || "");
       const code = String(children).replace(/\n$/, "");
       if (match || code.includes("\n")) {
-        return <CodeBlock code={code.trim()} language={match?.[1] || ""} variant={variant} />;
+        return <CodeBlock code={code.trim()} language={match?.[1] || ""} />;
       }
       return (
-        <code className={styles.inlineCode} style={{ fontFamily: "'JetBrains Mono', monospace" }}>
+        <code className={styles.inlineCode}>
           {children}
         </code>
       );

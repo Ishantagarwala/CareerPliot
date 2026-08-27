@@ -174,18 +174,17 @@ export default function ProfilePage() {
   }
 
   return (
-    <div className="space-y-8 animate-fade-in-up">
+    <div className="space-y-8">
       {/* Page Header */}
-      <div className="border-b border-border pb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div className="flex flex-col justify-between gap-4 border-b border-border pb-6 sm:flex-row sm:items-center">
         <div>
-          <h1
-            className="text-3xl font-bold text-foreground tracking-tight flex items-center gap-3"
-            style={{ fontFamily: "'Hanken Grotesk', system-ui, sans-serif" }}
-          >
-            <span className="material-symbols-outlined text-[28px]">person</span>
+          <h1 className="font-display flex items-center gap-3 text-2xl font-bold tracking-tight text-foreground">
+            <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
+              <span className="material-symbols-outlined text-[22px]">person</span>
+            </span>
             Executive Profile
           </h1>
-          <p className="text-sm text-muted-foreground mt-2">
+          <p className="mt-2 text-sm text-muted-foreground">
             Manage your personal data, track active learning, and define your trajectory.
           </p>
         </div>
@@ -193,8 +192,7 @@ export default function ProfilePage() {
           <button
             onClick={handleSaveProfile}
             disabled={saving}
-            className="w-full sm:w-auto px-6 py-2.5 bg-primary text-primary-foreground font-bold hover:opacity-90 disabled:opacity-50 transition-colors uppercase text-xs tracking-wider"
-            style={{ fontFamily: "'JetBrains Mono', monospace" }}
+            className="inline-flex h-9 w-full items-center justify-center rounded-lg bg-primary px-5 text-sm font-semibold text-primary-foreground shadow-soft transition-colors hover:bg-[color-mix(in_oklch,var(--primary),black_8%)] disabled:opacity-50 sm:w-auto"
           >
             {saving ? "Saving Changes..." : "Commit Changes"}
           </button>
@@ -202,57 +200,51 @@ export default function ProfilePage() {
       </div>
 
       {/* Bento Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         
         {/* Identity Metrics Card */}
-        <div className="lg:col-span-1 space-y-6">
-          <div className="bg-card border border-border p-6 shadow-sm">
-            <h3
-              className="text-xs font-bold text-muted-foreground uppercase tracking-widest mb-6"
-              style={{ fontFamily: "'JetBrains Mono', monospace" }}
-            >
+        <div className="space-y-6 lg:col-span-1">
+          <div className="rounded-2xl border border-border bg-card p-6 shadow-soft">
+            <h3 className="mb-6 text-[13px] font-medium text-muted-foreground">
               Identity Metrics
             </h3>
             
-            <div className="flex flex-col items-center mb-6">
-              <div className="h-24 w-24 rounded-full border-2 border-primary flex items-center justify-center bg-accent text-foreground text-3xl font-bold font-heading mb-3">
+            <div className="mb-6 flex flex-col items-center">
+              <div className="mb-3 flex h-24 w-24 items-center justify-center rounded-full bg-accent text-3xl font-bold text-accent-foreground ring-2 ring-primary/30">
                 {name.charAt(0).toUpperCase() || "U"}
               </div>
-              <p
-                className="text-[11px] text-muted-foreground uppercase tracking-widest font-semibold"
-                style={{ fontFamily: "'JetBrains Mono', monospace" }}
-              >
+              <p className="text-[11px] font-medium tracking-wide text-muted-foreground">
                 STUDENT TRAJECTORY
               </p>
             </div>
 
             <div className="space-y-4">
               <div>
-                <label className="block text-xs font-semibold text-muted-foreground mb-1">Full Name</label>
+                <label className="mb-1 block text-[13px] font-medium text-muted-foreground">Full Name</label>
                 <input
                   type="text"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  className="w-full bg-background border border-border p-2.5 text-foreground text-sm font-medium focus:border-primary transition-colors focus:ring-0 rounded-none"
+                  className="h-10 w-full rounded-lg border border-input bg-card px-3 text-sm font-medium text-foreground focus:border-ring focus:outline-none focus:ring-2 focus:ring-ring/25"
                 />
               </div>
               <div>
-                <label className="block text-xs font-semibold text-muted-foreground mb-1">Professional Email</label>
+                <label className="mb-1 block text-[13px] font-medium text-muted-foreground">Professional Email</label>
                 <input
                   type="email"
                   value={email}
                   disabled
-                  className="w-full bg-background border border-border p-2.5 text-muted-foreground text-sm font-medium cursor-not-allowed rounded-none"
+                  className="h-10 w-full cursor-not-allowed rounded-lg border border-input bg-muted px-3 text-sm font-medium text-muted-foreground"
                 />
               </div>
               <div>
-                <label className="block text-xs font-semibold text-muted-foreground mb-1">Current Course / Role</label>
+                <label className="mb-1 block text-[13px] font-medium text-muted-foreground">Current Course / Role</label>
                 <input
                   type="text"
                   value={currentCourse}
                   onChange={(e) => setCurrentCourse(e.target.value)}
                   placeholder="e.g. B.Tech Computer Science"
-                  className="w-full bg-background border border-border p-2.5 text-foreground text-sm font-medium focus:border-primary transition-colors focus:ring-0 rounded-none"
+                  className="h-10 w-full rounded-lg border border-input bg-card px-3 text-sm font-medium text-foreground placeholder:text-muted-foreground focus:border-ring focus:outline-none focus:ring-2 focus:ring-ring/25"
                 />
               </div>
             </div>
@@ -260,27 +252,22 @@ export default function ProfilePage() {
         </div>
 
         {/* Courses & Goals Column */}
-        <div className="lg:col-span-2 space-y-6">
+        <div className="space-y-6 lg:col-span-2">
           
           {/* Active Curriculum Section */}
-          <div className="bg-card border border-border p-6 shadow-sm">
-            <div className="flex justify-between items-center mb-6 pb-2 border-b border-border">
-              <h3
-                className="text-xs font-bold text-muted-foreground uppercase tracking-widest"
-                style={{ fontFamily: "'JetBrains Mono', monospace" }}
-              >
+          <div className="rounded-2xl border border-border bg-card p-6 shadow-soft">
+            <div className="mb-6 flex items-center justify-between border-b border-border pb-4">
+              <h3 className="text-[13px] font-medium text-muted-foreground">
                 Active Curriculum
               </h3>
               <div className="flex items-center gap-3">
-                <span
-                  className="text-xs font-bold text-primary"
-                  style={{ fontFamily: "'JetBrains Mono', monospace" }}
-                >
+                <span className="text-xs font-semibold text-primary">
                   {activeCurriculum.length} In Progress
                 </span>
                 <button
                   onClick={() => setShowAddCourse(!showAddCourse)}
-                  className="p-1 hover:text-primary transition-colors flex items-center justify-center text-muted-foreground"
+                  aria-label={showAddCourse ? "Hide add course form" : "Add active course"}
+                  className="flex h-8 w-8 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-primary/10 hover:text-primary"
                 >
                   <Plus className="h-4 w-4" />
                 </button>
@@ -289,63 +276,61 @@ export default function ProfilePage() {
 
             {/* Inline Add Course form */}
             {showAddCourse && (
-              <div className="mb-6 p-4 border border-border bg-background/50 space-y-4 animate-scale-in">
-                <h4 className="text-xs font-bold text-foreground uppercase tracking-wider" style={{ fontFamily: "'JetBrains Mono', monospace" }}>Add Active Course</h4>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="animate-scale-in mb-6 space-y-4 rounded-xl border border-border bg-muted/40 p-4">
+                <h4 className="text-[13px] font-medium text-muted-foreground">Add Active Course</h4>
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                   <div>
-                    <label className="block text-[10px] font-bold text-muted-foreground uppercase mb-1">Course Title</label>
+                    <label className="mb-1 block text-[13px] font-medium text-muted-foreground">Course Title</label>
                     <input
                       type="text"
                       value={newCourseTitle}
                       onChange={(e) => setNewCourseTitle(e.target.value)}
                       placeholder="e.g. Distributed Systems"
-                      className="w-full bg-background border border-border p-2 text-foreground text-xs rounded-none"
+                      className="h-10 w-full rounded-lg border border-input bg-card px-3 text-sm text-foreground placeholder:text-muted-foreground focus:border-ring focus:outline-none focus:ring-2 focus:ring-ring/25"
                     />
                   </div>
                   <div>
-                    <label className="block text-[10px] font-bold text-muted-foreground uppercase mb-1">Platform / Institution</label>
+                    <label className="mb-1 block text-[13px] font-medium text-muted-foreground">Platform / Institution</label>
                     <input
                       type="text"
                       value={newCoursePlatform}
                       onChange={(e) => setNewCoursePlatform(e.target.value)}
                       placeholder="e.g. Stanford Online"
-                      className="w-full bg-background border border-border p-2 text-foreground text-xs rounded-none"
+                      className="h-10 w-full rounded-lg border border-input bg-card px-3 text-sm text-foreground placeholder:text-muted-foreground focus:border-ring focus:outline-none focus:ring-2 focus:ring-ring/25"
                     />
                   </div>
                   <div>
-                    <label className="block text-[10px] font-bold text-muted-foreground uppercase mb-1">Est. Completion</label>
+                    <label className="mb-1 block text-[13px] font-medium text-muted-foreground">Est. Completion</label>
                     <input
                       type="text"
                       value={newCourseEstCompletion}
                       onChange={(e) => setNewCourseEstCompletion(e.target.value)}
                       placeholder="e.g. Q3 2026"
-                      className="w-full bg-background border border-border p-2 text-foreground text-xs rounded-none"
+                      className="h-10 w-full rounded-lg border border-input bg-card px-3 text-sm text-foreground placeholder:text-muted-foreground focus:border-ring focus:outline-none focus:ring-2 focus:ring-ring/25"
                     />
                   </div>
                   <div>
-                    <label className="block text-[10px] font-bold text-muted-foreground uppercase mb-1">Starting Progress ({newCourseProgress}%)</label>
+                    <label className="mb-1 block text-[13px] font-medium text-muted-foreground">Starting Progress ({newCourseProgress}%)</label>
                     <input
                       type="range"
                       min="0"
                       max="100"
                       value={newCourseProgress}
                       onChange={(e) => setNewCourseProgress(parseInt(e.target.value))}
-                      className="w-full mt-2 accent-foreground"
+                      className="mt-2 w-full accent-primary"
                     />
                   </div>
                 </div>
-                <div className="flex gap-2 justify-end pt-2">
+                <div className="flex justify-end gap-2 pt-2">
                   <button
                     onClick={() => setShowAddCourse(false)}
-                    className="px-4 py-1.5 border border-border text-xs uppercase"
-                    style={{ fontFamily: "'JetBrains Mono', monospace" }}
+                    className="inline-flex h-9 items-center rounded-lg border border-border px-4 text-sm font-semibold text-foreground transition-colors hover:bg-muted"
                   >
                     Cancel
                   </button>
                   <button
                     onClick={handleAddCourse}
-                    className="px-4 py-1.5 bg-primary text-primary-foreground text-xs font-bold uppercase"
-                    style={{ fontFamily: "'JetBrains Mono', monospace" }}
+                    className="inline-flex h-9 items-center rounded-lg bg-primary px-4 text-sm font-semibold text-primary-foreground shadow-soft transition-colors hover:bg-[color-mix(in_oklch,var(--primary),black_8%)]"
                   >
                     Add Course
                   </button>
@@ -355,38 +340,35 @@ export default function ProfilePage() {
 
             {/* Courses List */}
             {activeCurriculum.length === 0 ? (
-              <div className="text-center py-8 text-muted-foreground border border-dashed border-border text-sm">
+              <div className="rounded-xl border border-dashed border-border py-8 text-center text-sm text-muted-foreground">
                 No active courses added yet. Click the + icon to add one.
               </div>
             ) : (
-              <div className="space-y-6">
+              <div className="space-y-4">
                 {activeCurriculum.map((course, index) => (
-                  <div key={index} className="group border border-border/50 p-4 bg-background/20 hover:border-border transition-colors">
-                    <div className="flex justify-between items-start mb-2">
+                  <div key={index} className="group rounded-xl border border-border bg-muted/30 p-4 transition-colors hover:border-primary/30">
+                    <div className="mb-2 flex items-start justify-between gap-3">
                       <div>
-                        <h4 className="text-base font-bold text-foreground">{course.title}</h4>
-                        <p className="text-xs text-muted-foreground mt-0.5">
+                        <h4 className="text-base font-bold tracking-tight text-foreground">{course.title}</h4>
+                        <p className="mt-0.5 text-xs text-muted-foreground">
                           {course.platform} &bull; Est. Completion: {course.estCompletion}
                         </p>
                       </div>
-                      <div className="flex items-center gap-3">
-                        <span
-                          className="text-xs font-bold border border-primary px-2.5 py-1 text-foreground"
-                          style={{ fontFamily: "'JetBrains Mono', monospace" }}
-                        >
+                      <div className="flex shrink-0 items-center gap-3">
+                        <span className="rounded-full bg-primary/10 px-2.5 py-1 text-xs font-semibold tabular-nums text-primary">
                           {course.progress}%
                         </span>
                         <button
                           onClick={() => handleDeleteCourse(index)}
-                          className="text-muted-foreground hover:text-destructive transition-colors p-1"
+                          className="rounded-lg p-1.5 text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive"
                           aria-label="Delete course"
                         >
                           <Trash2 className="h-4 w-4" />
                         </button>
                       </div>
                     </div>
-                    <div className="space-y-2 mt-4">
-                      <div className="flex items-center justify-between text-[10px] text-muted-foreground">
+                    <div className="mt-4 space-y-2">
+                      <div className="flex items-center justify-between text-xs text-muted-foreground">
                         <span>Progress Tracker</span>
                         <span>Drag slider to update</span>
                       </div>
@@ -397,7 +379,7 @@ export default function ProfilePage() {
                           max="100"
                           value={course.progress}
                           onChange={(e) => handleProgressChange(index, parseInt(e.target.value))}
-                          className="flex-1 accent-foreground cursor-pointer h-1 bg-muted rounded-lg appearance-none"
+                          className="h-1.5 flex-1 cursor-pointer accent-primary"
                         />
                       </div>
                     </div>
@@ -408,20 +390,16 @@ export default function ProfilePage() {
           </div>
 
           {/* Strategic Milestones Section */}
-          <div className="bg-card border border-border p-6 shadow-sm">
-            <div className="flex justify-between items-center mb-6 pb-2 border-b border-border">
-              <h3
-                className="text-xs font-bold text-muted-foreground uppercase tracking-widest"
-                style={{ fontFamily: "'JetBrains Mono', monospace" }}
-              >
+          <div className="rounded-2xl border border-border bg-card p-6 shadow-soft">
+            <div className="mb-6 flex items-center justify-between border-b border-border pb-4">
+              <h3 className="text-[13px] font-medium text-muted-foreground">
                 Strategic Milestones
               </h3>
               <div className="flex items-center gap-3">
                 <select
                   value={newGoalType}
                   onChange={(e: any) => setNewGoalType(e.target.value)}
-                  className="bg-background border border-border text-xs px-2 py-1 focus:ring-0 text-foreground"
-                  style={{ fontFamily: "'JetBrains Mono', monospace" }}
+                  className="h-9 rounded-lg border border-input bg-card px-2 text-sm font-medium text-foreground focus:border-ring focus:outline-none focus:ring-2 focus:ring-ring/25"
                 >
                   <option value="shortTerm">Short-Term (1-2 Yrs)</option>
                   <option value="longTerm">Long-Term (5+ Yrs)</option>
@@ -439,40 +417,41 @@ export default function ProfilePage() {
                   if (e.key === "Enter") handleAddGoal();
                 }}
                 placeholder={`Add a future ${newGoalType === "shortTerm" ? "short-term" : "long-term"} goal directive...`}
-                className="flex-1 bg-background border border-border p-2 text-foreground text-xs focus:border-primary transition-colors focus:ring-0 rounded-none"
+                className="h-10 flex-1 rounded-lg border border-input bg-card px-3 text-sm text-foreground placeholder:text-muted-foreground focus:border-ring focus:outline-none focus:ring-2 focus:ring-ring/25"
               />
               <button
                 onClick={handleAddGoal}
-                className="bg-primary text-primary-foreground px-4 py-2 text-xs font-bold flex items-center justify-center"
+                aria-label="Add goal"
+                className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary text-primary-foreground shadow-soft transition-colors hover:bg-[color-mix(in_oklch,var(--primary),black_8%)]"
               >
                 <Plus className="h-4 w-4" />
               </button>
             </div>
 
             {/* Goals Columns */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
               
               {/* Short Term Goal Box */}
-              <div className="border border-border p-4 bg-background/10">
-                <div className="flex items-center gap-2 mb-3">
-                  <span className="material-symbols-outlined text-muted-foreground text-sm">flag</span>
-                  <h4 className="text-xs font-bold text-foreground uppercase tracking-wider" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
+              <div className="rounded-xl border border-border bg-muted/30 p-4">
+                <div className="mb-3 flex items-center gap-2">
+                  <span className="material-symbols-outlined text-sm text-muted-foreground">flag</span>
+                  <h4 className="text-[13px] font-medium text-muted-foreground">
                     Short-Term (1-2 Yrs)
                   </h4>
                 </div>
                 {futureGoals.shortTerm.length === 0 ? (
-                  <p className="text-xs text-muted-foreground italic py-2">No short-term milestones defined.</p>
+                  <p className="py-2 text-xs italic text-muted-foreground">No short-term milestones defined.</p>
                 ) : (
                   <ul className="space-y-2">
                     {futureGoals.shortTerm.map((goal, idx) => (
-                      <li key={idx} className="flex items-start justify-between gap-2 text-xs text-foreground group/item">
+                      <li key={idx} className="group/item flex items-start justify-between gap-2 text-[13px] text-foreground">
                         <div className="flex items-start gap-2 pt-0.5">
                           <span className="text-muted-foreground">&bull;</span>
                           <span>{goal}</span>
                         </div>
                         <button
                           onClick={() => handleDeleteGoal("shortTerm", idx)}
-                          className="opacity-0 group-hover/item:opacity-100 text-muted-foreground hover:text-destructive transition-all p-0.5 shrink-0"
+                          className="shrink-0 rounded-md p-0.5 text-muted-foreground opacity-0 transition-all hover:bg-destructive/10 hover:text-destructive group-hover/item:opacity-100"
                           aria-label="Delete goal"
                         >
                           <Trash2 className="h-3 w-3" />
@@ -484,26 +463,26 @@ export default function ProfilePage() {
               </div>
 
               {/* Long Term Goal Box */}
-              <div className="border border-border p-4 bg-background/10">
-                <div className="flex items-center gap-2 mb-3">
-                  <span className="material-symbols-outlined text-muted-foreground text-sm">rocket_launch</span>
-                  <h4 className="text-xs font-bold text-foreground uppercase tracking-wider" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
+              <div className="rounded-xl border border-border bg-muted/30 p-4">
+                <div className="mb-3 flex items-center gap-2">
+                  <span className="material-symbols-outlined text-sm text-muted-foreground">rocket_launch</span>
+                  <h4 className="text-[13px] font-medium text-muted-foreground">
                     Long-Term (5+ Yrs)
                   </h4>
                 </div>
                 {futureGoals.longTerm.length === 0 ? (
-                  <p className="text-xs text-muted-foreground italic py-2">No long-term milestones defined.</p>
+                  <p className="py-2 text-xs italic text-muted-foreground">No long-term milestones defined.</p>
                 ) : (
                   <ul className="space-y-2">
                     {futureGoals.longTerm.map((goal, idx) => (
-                      <li key={idx} className="flex items-start justify-between gap-2 text-xs text-foreground group/item">
+                      <li key={idx} className="group/item flex items-start justify-between gap-2 text-[13px] text-foreground">
                         <div className="flex items-start gap-2 pt-0.5">
                           <span className="text-muted-foreground">&bull;</span>
                           <span>{goal}</span>
                         </div>
                         <button
                           onClick={() => handleDeleteGoal("longTerm", idx)}
-                          className="opacity-0 group-hover/item:opacity-100 text-muted-foreground hover:text-destructive transition-all p-0.5 shrink-0"
+                          className="shrink-0 rounded-md p-0.5 text-muted-foreground opacity-0 transition-all hover:bg-destructive/10 hover:text-destructive group-hover/item:opacity-100"
                           aria-label="Delete goal"
                         >
                           <Trash2 className="h-3 w-3" />

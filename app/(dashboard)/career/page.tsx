@@ -96,16 +96,15 @@ export default function CareerPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border pb-6 animate-fade-in-up">
+      <div className="flex flex-col justify-between gap-4 border-b border-border pb-6 sm:flex-row sm:items-center">
         <div>
-          <h1
-            className="text-3xl font-bold text-foreground tracking-tight flex items-center gap-3"
-            style={{ fontFamily: "'Hanken Grotesk', system-ui, sans-serif" }}
-          >
-            <span className="material-symbols-outlined text-[28px]">explore</span>
+          <h1 className="font-display flex items-center gap-3 text-2xl font-bold tracking-tight text-foreground">
+            <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
+              <span className="material-symbols-outlined text-[22px]">explore</span>
+            </span>
             {hasRecommendations ? "Your career matches" : "Career Discovery"}
           </h1>
-          <p className="text-sm text-muted-foreground mt-2 max-w-3xl">
+          <p className="mt-2 max-w-3xl text-sm text-muted-foreground">
             {hasRecommendations
               ? "Pick the path that fits best — then we’ll build your learning roadmap and course list."
               : "Answer a short assessment and get career paths matched to your goals and skills."}
@@ -114,40 +113,35 @@ export default function CareerPage() {
         {hasRecommendations && (
           <button
             onClick={handleRetake}
-            className="self-start inline-flex items-center px-4 py-2 border-2 border-border text-foreground hover:border-primary transition-colors text-xs"
-            style={{ fontFamily: "'JetBrains Mono', monospace", letterSpacing: "0.04em" }}
+            className="inline-flex h-9 shrink-0 self-start items-center gap-1.5 rounded-lg border border-border px-4 text-sm font-semibold text-foreground transition-colors hover:bg-muted"
           >
-            <span className="material-symbols-outlined text-[16px] mr-1.5">refresh</span>
+            <span className="material-symbols-outlined text-[16px]">refresh</span>
             Retake Assessment
           </button>
         )}
       </div>
 
       {hasRecommendations && selected && (
-        <div className="flex flex-wrap items-center gap-3 p-4 border border-border bg-card animate-fade-in-up">
-          <span
-            className="text-[10px] uppercase tracking-[0.12em] text-muted-foreground font-bold"
-            style={{ fontFamily: "'JetBrains Mono', monospace" }}
-          >
+        <div className="flex flex-wrap items-center gap-3 rounded-2xl border border-border bg-card p-4 shadow-soft">
+          <span className="text-[13px] font-medium text-muted-foreground">
             Next step
           </span>
-          <p className="text-sm text-foreground flex-1 min-w-[12rem]">
+          <p className="min-w-[12rem] flex-1 text-sm text-foreground">
             Path selected: <span className="font-bold">{selected.careerPath}</span>
           </p>
           <Link
             href="/roadmap"
-            className="inline-flex items-center px-4 py-2 bg-primary text-primary-foreground border-2 border-black text-xs font-bold shadow-[3px_3px_0_0_#000]"
-            style={{ fontFamily: "'JetBrains Mono', monospace", letterSpacing: "0.04em" }}
+            className="inline-flex h-9 items-center gap-1.5 rounded-lg bg-primary px-4 text-sm font-semibold text-primary-foreground shadow-soft transition-colors hover:bg-[color-mix(in_oklch,var(--primary),black_8%)]"
           >
             Open Roadmap
-            <span className="material-symbols-outlined text-[16px] ml-1.5">arrow_forward</span>
+            <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
           </Link>
         </div>
       )}
 
       <div className="relative w-full">
         {hasRecommendations ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
             {recommendations.map((rec, idx) => (
               <div key={rec._id} className="animate-fade-in-up" style={{ animationDelay: `${idx * 100}ms` }}>
                 <RecommendationCard
@@ -159,27 +153,21 @@ export default function CareerPage() {
             ))}
           </div>
         ) : (
-          <div className="space-y-6 animate-fade-in-up">
-            <ol className="grid grid-cols-1 md:grid-cols-3 gap-3">
+          <div className="space-y-6">
+            <ol className="grid grid-cols-1 gap-3 md:grid-cols-3">
               {DISCOVER_STEPS.map((item) => (
                 <li
                   key={item.step}
-                  className="flex gap-3 p-4 border border-border bg-card"
+                  className="flex gap-3 rounded-xl border border-border bg-card p-4 shadow-soft"
                 >
-                  <span
-                    className="h-8 w-8 shrink-0 flex items-center justify-center border-2 border-black bg-primary text-primary-foreground text-xs font-bold"
-                    style={{ fontFamily: "'JetBrains Mono', monospace" }}
-                  >
+                  <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-xs font-bold text-primary">
                     {item.step}
                   </span>
                   <div>
-                    <p
-                      className="font-bold text-sm text-foreground"
-                      style={{ fontFamily: "'Hanken Grotesk', system-ui, sans-serif" }}
-                    >
+                    <p className="text-sm font-semibold tracking-tight text-foreground">
                       {item.title}
                     </p>
-                    <p className="text-xs text-muted-foreground mt-1 leading-relaxed">
+                    <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
                       {item.description}
                     </p>
                   </div>

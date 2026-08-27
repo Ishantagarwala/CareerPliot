@@ -13,23 +13,17 @@ export default function YouTubeShelf({ videos, skillTitle }: YouTubeShelfProps) 
 
   return (
     <div className="space-y-3">
-      <div className="flex items-center justify-between gap-3 min-w-0">
-        <h3
-          className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5 min-w-0"
-          style={{ fontFamily: "'JetBrains Mono', monospace" }}
-        >
-          <Video className="w-3.5 h-3.5 shrink-0 text-foreground" />
+      <div className="flex min-w-0 items-center justify-between gap-3">
+        <h3 className="flex min-w-0 items-center gap-1.5 text-[13px] font-medium text-muted-foreground">
+          <Video className="h-3.5 w-3.5 shrink-0 text-primary" />
           <span className="truncate">YouTube for {skillTitle}</span>
         </h3>
-        <span
-          className="text-[10px] text-muted-foreground shrink-0"
-          style={{ fontFamily: "'JetBrains Mono', monospace" }}
-        >
+        <span className="shrink-0 text-xs text-muted-foreground">
           {videos.length} {videos.length === 1 ? "video" : "videos"}
         </span>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+      <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
         {videos.slice(0, 4).map((vid, idx) => (
           <a
             key={idx}
@@ -37,23 +31,20 @@ export default function YouTubeShelf({ videos, skillTitle }: YouTubeShelfProps) 
             target="_blank"
             rel="noreferrer"
             onClick={(e) => e.stopPropagation()}
-            className="group flex items-start gap-2.5 min-w-0 p-3 border border-border bg-card hover:border-foreground transition-colors"
+            className="group flex min-w-0 items-start gap-2.5 rounded-xl border border-border bg-card p-3 transition-all hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-lift"
           >
-            <div className="h-9 w-9 shrink-0 border border-border bg-background flex items-center justify-center group-hover:bg-primary group-hover:border-black">
-              <Play className="w-3.5 h-3.5 text-foreground fill-foreground ml-0.5" />
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary transition-colors group-hover:bg-primary group-hover:text-primary-foreground">
+              <Play className="ml-0.5 h-3.5 w-3.5 fill-current" />
             </div>
 
-            <div className="flex-1 min-w-0">
+            <div className="min-w-0 flex-1">
               <div className="flex items-start justify-between gap-2">
-                <span
-                  className="text-[10px] uppercase tracking-wider text-muted-foreground truncate"
-                  style={{ fontFamily: "'JetBrains Mono', monospace" }}
-                >
+                <span className="truncate text-xs font-medium text-muted-foreground">
                   {vid.channel}
                 </span>
-                <ExternalLink className="w-3.5 h-3.5 text-muted-foreground shrink-0 mt-0.5 group-hover:text-foreground" />
+                <ExternalLink className="mt-0.5 h-3.5 w-3.5 shrink-0 text-muted-foreground group-hover:text-primary" />
               </div>
-              <p className="text-xs font-medium text-foreground leading-snug line-clamp-2 mt-0.5">
+              <p className="mt-0.5 line-clamp-2 text-xs font-medium leading-snug text-foreground">
                 {vid.title}
               </p>
             </div>

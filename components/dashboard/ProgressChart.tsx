@@ -25,40 +25,37 @@ export default function ProgressChart({ stageProgress, careerPath }: ProgressCha
   const stages = [
     {
       key: "beginner",
-      name: "Beginner Stage",
+      name: "Beginner",
       completed: stageProgress?.beginner?.completed || 0,
       total: stageProgress?.beginner?.total || 0,
-      description: "Foundational concepts, core tools, and early practice",
+      description: "Foundations, core tools, early practice",
     },
     {
       key: "intermediate",
-      name: "Intermediate Stage",
+      name: "Intermediate",
       completed: stageProgress?.intermediate?.completed || 0,
       total: stageProgress?.intermediate?.total || 0,
-      description: "Applied projects, deeper skills, and domain fluency",
+      description: "Applied projects and domain fluency",
     },
     {
       key: "advanced",
-      name: "Advanced Stage",
+      name: "Advanced",
       completed: stageProgress?.advanced?.completed || 0,
       total: stageProgress?.advanced?.total || 0,
-      description: "Portfolio work, advanced practice, and job prep",
+      description: "Portfolio work and job prep",
     },
   ];
 
   return (
-    <div className="bg-[#1A1A1A] border border-[#262626] p-6 h-full">
+    <div className="h-full rounded-2xl border border-border bg-card p-6 shadow-soft">
       <div className="mb-6">
-        <h3
-          className="text-base font-bold text-white flex items-center gap-2"
-          style={{ fontFamily: "'Hanken Grotesk', system-ui, sans-serif" }}
-        >
-          <span className="material-symbols-outlined text-[20px] text-white">emoji_events</span>
-          Roadmap Stage Metrics
+        <h3 className="flex items-center gap-2 text-base font-semibold tracking-tight text-foreground">
+          <span className="material-symbols-outlined text-[20px] text-primary">emoji_events</span>
+          Roadmap stage metrics
         </h3>
-        <p className="text-xs text-[#8e9192] mt-1">
+        <p className="mt-1 text-[13px] text-muted-foreground">
           {careerPath
-            ? `Milestone completion for: ${careerPath}`
+            ? `Milestone completion for ${careerPath}.`
             : "No active career path selected."}
         </p>
       </div>
@@ -70,31 +67,32 @@ export default function ProgressChart({ stageProgress, careerPath }: ProgressCha
             return (
               <div
                 key={stage.key}
-                className="space-y-2 animate-fade-in-up"
+                className="animate-fade-in-up space-y-2"
                 style={{ animationDelay: `${idx * 120}ms` }}
               >
-                <div className="flex justify-between items-start">
+                <div className="flex items-start justify-between gap-3">
                   <div>
-                    <span className="text-xs font-bold text-white block">{stage.name}</span>
-                    <span className="text-[10px] text-[#636565] font-medium block">{stage.description}</span>
+                    <span className="block text-sm font-semibold text-foreground">
+                      {stage.name}
+                    </span>
+                    <span className="block text-xs text-muted-foreground">
+                      {stage.description}
+                    </span>
                   </div>
-                  <div className="text-right">
-                    <span
-                      className="text-xs text-white font-bold block"
-                      style={{ fontFamily: "'JetBrains Mono', monospace", letterSpacing: "0.05em" }}
-                    >
+                  <div className="shrink-0 text-right">
+                    <span className="block text-sm font-bold tabular-nums text-foreground">
                       {stage.completed} / {stage.total}
                     </span>
-                    <span className="text-[10px] text-[#8e9192] font-medium block mt-0.5">
-                      {percent}% Done
+                    <span className="block text-[11px] font-medium text-muted-foreground">
+                      {percent}% done
                     </span>
                   </div>
                 </div>
 
-                <div className="h-1.5 w-full bg-[#262626] overflow-hidden">
+                <div className="h-2 w-full overflow-hidden rounded-full bg-muted">
                   <div
-                    className="h-full bg-white progress-bar-fill"
-                    style={{ width: `${percent}%` }}
+                    className="progress-bar-fill h-full w-full rounded-full bg-primary"
+                    style={{ transform: `scaleX(${percent / 100})` }}
                   />
                 </div>
               </div>
@@ -102,10 +100,13 @@ export default function ProgressChart({ stageProgress, careerPath }: ProgressCha
           })}
         </div>
       ) : (
-        <div className="text-center py-8 space-y-3">
-          <span className="material-symbols-outlined text-[40px] text-[#636565]">explore</span>
-          <p className="text-sm text-[#8e9192] max-w-xs mx-auto">
-            Please select a career path and initialize your roadmap to view milestones progress.
+        <div className="space-y-3 py-8 text-center">
+          <span className="material-symbols-outlined text-[40px] text-muted-foreground">
+            explore
+          </span>
+          <p className="mx-auto max-w-xs text-sm text-muted-foreground">
+            Select a career path and generate your roadmap to see milestone
+            progress here.
           </p>
         </div>
       )}

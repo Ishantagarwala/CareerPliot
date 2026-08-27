@@ -114,34 +114,29 @@ export default function RegisterForm() {
   };
 
   const fields = [
-    { id: "name", label: "Full Name", type: "text", placeholder: "John Doe", error: errors.name },
-    { id: "email", label: "Email", type: "email", placeholder: "you@gmail.com", error: errors.email },
-    { id: "password", label: "Password", type: "password", placeholder: "••••••••", error: errors.password },
-    { id: "confirmPassword", label: "Confirm Password", type: "password", placeholder: "••••••••", error: errors.confirmPassword },
+    { id: "name", label: "Full name", type: "text", placeholder: "Aarav Sharma", autoComplete: "name", error: errors.name },
+    { id: "email", label: "Email", type: "email", placeholder: "you@gmail.com", autoComplete: "email", error: errors.email },
+    { id: "password", label: "Password", type: "password", placeholder: "8+ characters", autoComplete: "new-password", error: errors.password },
+    { id: "confirmPassword", label: "Confirm password", type: "password", placeholder: "Repeat it", autoComplete: "new-password", error: errors.confirmPassword },
   ] as const;
 
   return (
-    <div className="w-full max-w-md bg-card border border-border overflow-hidden">
-      <div className="p-6 border-b border-border text-center space-y-2">
-        <h1
-          className="text-2xl font-bold text-foreground tracking-tight"
-          style={{ fontFamily: "'Hanken Grotesk', system-ui, sans-serif" }}
-        >
-          Create an Account
+    <div className="w-full max-w-md overflow-hidden rounded-2xl border border-border bg-card shadow-lift ">
+      <div className="space-y-2 border-b border-border p-7 text-center">
+        <h1 className="font-display text-2xl font-bold tracking-tight text-foreground">
+          Create your account
         </h1>
         <p className="text-sm text-muted-foreground">
-          Use a Gmail, iCloud, Yahoo, or Outlook email — VPNs and datacenter IPs are blocked.
+          Free forever. Your roadmap is under a minute away.
         </p>
-
       </div>
       <form onSubmit={handleSubmit(onSubmit)} className="relative">
-        <div className="p-6 space-y-4">
+        <div className="space-y-4 p-7">
           {fields.map((field) => (
-            <div key={field.id} className="space-y-2">
+            <div key={field.id} className="space-y-1.5">
               <label
                 htmlFor={field.id}
-                className="text-[11px] text-muted-foreground uppercase tracking-[0.1em] font-medium block"
-                style={{ fontFamily: "'JetBrains Mono', monospace" }}
+                className="block text-[13px] font-medium text-foreground"
               >
                 {field.label}
               </label>
@@ -149,13 +144,14 @@ export default function RegisterForm() {
                 id={field.id}
                 type={field.type}
                 placeholder={field.placeholder}
+                autoComplete={field.autoComplete}
                 {...register(field.id)}
-                className={`w-full border bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:border-foreground focus:ring-0 focus:outline-none transition-colors ${
-                  field.error ? "border-[#ffb4ab]" : "border-border"
+                className={`h-10 w-full rounded-lg border bg-background px-3 text-sm text-foreground transition-colors placeholder:text-muted-foreground focus:border-ring focus:outline-none focus:ring-2 focus:ring-ring/25 ${
+                  field.error ? "border-destructive" : "border-input"
                 }`}
               />
               {field.error && (
-                <p className="text-xs text-[#ffb4ab] mt-1">{field.error.message}</p>
+                <p className="mt-1 text-xs text-destructive">{field.error.message}</p>
               )}
             </div>
           ))}
@@ -172,34 +168,37 @@ export default function RegisterForm() {
             />
           </div>
         </div>
-        <div className="p-6 pt-0 space-y-4">
+        <div className="space-y-4 p-7 pt-0">
           {captchaRequired && (
             <CaptchaWidget onToken={setCaptchaToken} className="flex justify-center" />
           )}
           <button
             type="submit"
             disabled={loading || (captchaRequired && !captchaToken)}
-            className="w-full py-2.5 bg-primary text-primary-foreground border-2 border-black font-bold text-xs hover:opacity-90 transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
-            style={{ fontFamily: "'JetBrains Mono', monospace", letterSpacing: "0.04em" }}
+            className="flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-primary text-sm font-semibold text-primary-foreground shadow-soft transition-all hover:bg-[color-mix(in_oklch,var(--primary),black_8%)] disabled:opacity-50"
           >
             {loading ? (
               <>
                 <Loader2 className="h-4 w-4 animate-spin" />
-                Registering...
+                Creating account...
               </>
             ) : captchaRequired && !captchaToken ? (
-              <>Complete captcha to continue</>
+              <>Complete verification to continue</>
             ) : (
               <>
-                Create Account
-                <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
+                Create account
+                <span className="material-symbols-outlined text-[18px]">arrow_forward</span>
               </>
             )}
           </button>
-          <div className="text-sm text-center text-muted-foreground">
+          <p className="text-center text-xs leading-relaxed text-muted-foreground">
+            Use a Gmail, iCloud, Yahoo, or Outlook email. VPNs and datacenter
+            IPs are blocked to keep accounts safe.
+          </p>
+          <div className="text-center text-sm text-muted-foreground">
             Already have an account?{" "}
-            <Link href="/login" className="text-foreground font-medium hover:underline">
-              Log In
+            <Link href="/login" className="font-semibold text-primary hover:underline">
+              Log in
             </Link>
           </div>
         </div>

@@ -1,10 +1,9 @@
 import type { Metadata } from "next";
-import { Anybody, Hanken_Grotesk, Space_Grotesk } from "next/font/google";
+import { Anybody, Hanken_Grotesk } from "next/font/google";
 import "./globals.css";
 import { SessionProvider } from "next-auth/react";
 import { Toaster } from "@/components/ui/sonner";
 import { ThemeProvider } from "@/components/layout/ThemeProvider";
-import { AccentColorProvider } from "@/components/layout/AccentColor";
 import { DEFAULT_DESCRIPTION, SITE_NAME } from "@/lib/seo";
 import { getSiteUrl } from "@/lib/siteUrl";
 import dns from "dns";
@@ -22,13 +21,7 @@ const anybody = Anybody({
 const hanken = Hanken_Grotesk({
   variable: "--font-hanken",
   subsets: ["latin"],
-  weight: ["400", "600", "700"],
-});
-
-const spaceGrotesk = Space_Grotesk({
-  variable: "--font-space",
-  subsets: ["latin"],
-  weight: ["500", "700"],
+  weight: ["400", "500", "600", "700", "800"],
 });
 
 const siteUrl = getSiteUrl();
@@ -97,7 +90,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${anybody.variable} ${hanken.variable} ${spaceGrotesk.variable} h-full antialiased`}
+      className={`${anybody.variable} ${hanken.variable} h-full antialiased`}
       suppressHydrationWarning
     >
       <head>
@@ -114,11 +107,8 @@ export default function RootLayout({
             enableSystem={false}
             storageKey="cp-theme"
           >
-            <AccentColorProvider>
-              {children}
-              <Toaster position="top-right" richColors />
-            </AccentColorProvider>
-          </ThemeProvider>
+            {children}
+            <Toaster position="top-right" richColors />          </ThemeProvider>
         </SessionProvider>
       </body>
     </html>

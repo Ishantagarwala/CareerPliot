@@ -76,25 +76,26 @@ export default function ResumePage() {
 
   return (
     <div className="space-y-8">
-      <div className="border-b border-border pb-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4 animate-fade-in-up">
-        <div>
-          <h1
-            className="text-3xl font-bold text-foreground tracking-tight flex items-center gap-3"
-            style={{ fontFamily: "'Hanken Grotesk', system-ui, sans-serif" }}
-          >
-            <span className="material-symbols-outlined text-[28px]">description</span>
-            Resume
-          </h1>
-          <p className="text-sm text-muted-foreground mt-2">
-            Build a clear resume, check it with AI, and match it to job descriptions.
-          </p>
+      <div className="flex flex-col gap-4 border-b border-border pb-6 md:flex-row md:items-center md:justify-between">
+        <div className="flex items-start gap-3">
+          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
+            <span className="material-symbols-outlined">description</span>
+          </span>
+          <div>
+            <h1 className="font-display text-2xl font-bold tracking-tight text-foreground">
+              Resume
+            </h1>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Build a clear resume, check it with AI, and match it to job descriptions.
+            </p>
+          </div>
         </div>
         <button
           onClick={createResume}
           disabled={creating}
-          className="bg-primary text-primary-foreground border-2 border-black px-5 py-3 text-xs font-bold hover:opacity-90 disabled:opacity-40 shadow-[3px_3px_0_0_#000]"
-          style={{ fontFamily: "'JetBrains Mono', monospace", letterSpacing: "0.04em" }}
+          className="inline-flex h-9 items-center gap-1.5 self-start rounded-lg bg-primary px-4 text-sm font-semibold text-primary-foreground shadow-soft transition-colors hover:bg-[color-mix(in_oklch,var(--primary),black_8%)] disabled:pointer-events-none disabled:opacity-50 md:self-auto"
         >
+          <span className="material-symbols-outlined text-[18px]">add</span>
           {creating ? "Creating..." : "Create Resume"}
         </button>
       </div>
@@ -110,27 +111,27 @@ export default function ResumePage() {
           primaryLabel={creating ? "Creating…" : "Create Resume"}
         />
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
           {resumes.map((resume) => (
             <div
               key={resume._id}
-              className="bg-card border border-border p-5 hover:border-foreground/40 transition-colors flex flex-col"
+              className="flex flex-col rounded-2xl border border-border bg-card p-5 shadow-soft transition-all hover:-translate-y-0.5 hover:shadow-lift"
             >
               <div className="flex items-start justify-between gap-3">
-                <Link href={`/resume/builder/${resume._id}`} className="min-w-0 flex-1 group">
-                  <h2 className="font-bold text-foreground group-hover:text-primary transition-colors truncate">
+                <Link href={`/resume/builder/${resume._id}`} className="group min-w-0 flex-1">
+                  <h2 className="truncate font-bold text-foreground transition-colors group-hover:text-primary">
                     {resume.title}
                   </h2>
-                  <p className="text-xs text-muted-foreground mt-1">
+                  <p className="mt-1 text-xs text-muted-foreground">
                     Updated {new Date(resume.updatedAt).toLocaleDateString()}
                   </p>
                 </Link>
-                <div className="flex items-center gap-1 shrink-0">
+                <div className="flex shrink-0 items-center gap-1">
                   <button
                     type="button"
                     onClick={() => setResumeToDelete({ _id: resume._id, title: resume.title })}
                     disabled={deletingId === resume._id}
-                    className="p-1.5 text-muted-foreground hover:text-rose-400 border border-transparent hover:border-rose-500/40 transition-colors disabled:opacity-40"
+                    className="rounded-lg p-1.5 text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive disabled:pointer-events-none disabled:opacity-40"
                     title="Delete resume"
                     aria-label={`Delete ${resume.title}`}
                   >
@@ -138,8 +139,9 @@ export default function ResumePage() {
                   </button>
                   <Link
                     href={`/resume/builder/${resume._id}`}
-                    className="p-1.5 text-muted-foreground hover:text-foreground"
+                    className="rounded-lg p-1.5 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
                     title="Open resume"
+                    aria-label={`Open ${resume.title}`}
                   >
                     <span className="material-symbols-outlined text-[18px]">arrow_forward</span>
                   </Link>
@@ -147,12 +149,12 @@ export default function ResumePage() {
               </div>
               <Link
                 href={`/resume/builder/${resume._id}`}
-                className="mt-5 border border-border p-3 block hover:border-foreground/40"
+                className="mt-5 block rounded-xl border border-border bg-background p-3 transition-colors hover:border-primary/40"
               >
-                <p className="text-[11px] text-muted-foreground uppercase tracking-[0.12em]">Score</p>
-                <p className="text-2xl font-bold text-foreground mt-1">
+                <p className="text-[13px] font-medium text-muted-foreground">Score</p>
+                <p className="mt-1 text-2xl font-bold tabular-nums tracking-tight text-foreground">
                   {resume.atsAnalysis?.score ?? "--"}
-                  <span className="text-sm text-muted-foreground">/120</span>
+                  <span className="text-sm font-medium text-muted-foreground">/120</span>
                 </p>
               </Link>
             </div>
@@ -163,32 +165,30 @@ export default function ResumePage() {
       {resumeToDelete && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
           <div
-            className="fixed inset-0 bg-black/80 backdrop-blur-sm"
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm"
             onClick={() => !deletingId && setResumeToDelete(null)}
           />
-          <div className="relative w-full max-w-sm bg-card border border-border p-6 z-[101]">
-            <h3 className="text-base font-bold text-foreground uppercase tracking-wider font-mono mb-3">
+          <div className="relative z-[101] w-full max-w-sm rounded-2xl border border-border bg-card p-6 shadow-lift">
+            <h3 className="mb-1 text-base font-bold tracking-tight text-foreground">
               Delete Resume?
             </h3>
-            <p className="text-xs text-muted-foreground leading-relaxed mb-6">
+            <p className="mb-6 text-sm leading-relaxed text-muted-foreground">
               This will permanently delete{" "}
-              <span className="text-foreground font-semibold">{resumeToDelete.title}</span>. This cannot be
+              <span className="font-semibold text-foreground">{resumeToDelete.title}</span>. This cannot be
               undone.
             </p>
             <div className="flex items-center justify-end gap-3">
               <button
                 onClick={() => setResumeToDelete(null)}
                 disabled={!!deletingId}
-                className="px-4 py-2 text-xs font-bold text-muted-foreground border border-border hover:text-foreground disabled:opacity-40"
-                style={{ fontFamily: "'JetBrains Mono', monospace" }}
+                className="inline-flex h-9 items-center rounded-lg border border-border px-4 text-sm font-semibold text-foreground transition-colors hover:bg-muted disabled:pointer-events-none disabled:opacity-40"
               >
                 Cancel
               </button>
               <button
                 onClick={confirmDeleteResume}
                 disabled={!!deletingId}
-                className="px-4 py-2 text-xs font-bold bg-rose-600 text-white hover:bg-rose-700 disabled:opacity-40"
-                style={{ fontFamily: "'JetBrains Mono', monospace" }}
+                className="inline-flex h-9 items-center rounded-lg bg-destructive px-4 text-sm font-semibold text-white shadow-soft transition-colors hover:bg-[color-mix(in_oklch,var(--destructive),black_8%)] disabled:pointer-events-none disabled:opacity-40"
               >
                 {deletingId ? "Deleting..." : "Delete"}
               </button>

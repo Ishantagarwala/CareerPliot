@@ -40,42 +40,36 @@ export default function JDMatcher({ resumeId }: JDMatcherProps) {
   };
 
   return (
-    <div className="bg-[#1A1A1A] border border-[#262626] p-5 space-y-4">
+    <div className="space-y-4 rounded-2xl border border-border bg-card p-5 shadow-soft">
       <div>
-        <p
-          className="text-[11px] text-[#8e9192] uppercase tracking-[0.15em]"
-          style={{ fontFamily: "'JetBrains Mono', monospace" }}
-        >
-          Job Match
-        </p>
-        <h3 className="font-bold text-white">Match Against JD</h3>
+        <p className="text-[13px] font-medium text-muted-foreground">Job Match</p>
+        <h3 className="font-bold tracking-tight text-foreground">Match Against JD</h3>
       </div>
       <textarea
         value={jobDescription}
         onChange={(e) => setJobDescription(e.target.value)}
         placeholder="Paste job description here..."
-        className="w-full min-h-32 bg-[#131313] border border-[#262626] p-3 text-sm text-white focus:outline-none focus:border-white"
+        className="min-h-32 w-full resize-none rounded-lg border border-input bg-card p-3 text-sm text-foreground placeholder:text-muted-foreground focus:border-ring focus:outline-none focus:ring-2 focus:ring-ring/25"
       />
       <button
         onClick={handleMatch}
         disabled={loading}
-        className="bg-white text-[#0A0A0A] px-3 py-2 text-xs font-bold disabled:opacity-40"
-        style={{ fontFamily: "'JetBrains Mono', monospace", letterSpacing: "0.04em" }}
+        className="inline-flex h-8 items-center rounded-lg bg-primary px-3.5 text-xs font-semibold text-primary-foreground shadow-soft transition-colors hover:bg-[color-mix(in_oklch,var(--primary),black_8%)] disabled:pointer-events-none disabled:opacity-50"
       >
         {loading ? "Matching..." : "Match JD"}
       </button>
 
       {result && (
         <div className="space-y-3 text-sm">
-          <p className="text-white font-bold">Match Score: {result.matchScore}/100</p>
-          <p className="text-[#c4c7c8]">{result.summary}</p>
+          <p className="font-bold text-foreground">Match Score: {result.matchScore}/100</p>
+          <p className="text-muted-foreground">{result.summary}</p>
           <div>
-            <p className="text-white font-medium">Missing Keywords</p>
-            <p className="text-[#8e9192]">{(result.missingKeywords || []).join(", ") || "None listed"}</p>
+            <p className="font-medium text-foreground">Missing Keywords</p>
+            <p className="text-muted-foreground">{(result.missingKeywords || []).join(", ") || "None listed"}</p>
           </div>
           <div>
-            <p className="text-white font-medium">Recommended Edits</p>
-            <ul className="list-disc ml-5 text-[#c4c7c8]">
+            <p className="font-medium text-foreground">Recommended Edits</p>
+            <ul className="ml-5 list-disc text-muted-foreground">
               {(result.recommendedEdits || []).map((item: string, index: number) => (
                 <li key={index}>{item}</li>
               ))}

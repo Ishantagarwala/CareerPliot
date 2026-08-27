@@ -1,105 +1,60 @@
 import Link from "next/link";
 import BrandLogo from "@/components/layout/BrandLogo";
 
+const columns = [
+  {
+    heading: "Platform",
+    links: [
+      { label: "Features", href: "/#modules" },
+      { label: "Career Discovery", href: "/#discovery" },
+      { label: "FAQs", href: "/#faq" },
+    ],
+  },
+  {
+    heading: "Account",
+    links: [
+      { label: "Log in", href: "/login" },
+      { label: "Register", href: "/register" },
+      { label: "Demo login", href: "/login?demo=true" },
+    ],
+  },
+];
+
 export default function Footer() {
   return (
-    <footer className="bg-background border-t-4 border-black">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-10 py-12 md:py-14 px-5 sm:px-8 lg:px-12 xl:px-16 max-w-[1600px] mx-auto w-full">
-        <div className="space-y-6">
-          <div className="flex items-center gap-3 font-display text-2xl md:text-[32px] font-extrabold text-primary uppercase">
-            <BrandLogo size="md" />
-            CAREER PILOT
+    <footer className="border-t border-border bg-sidebar/60">
+      <div className="grid grid-cols-1 gap-10 px-5 py-12 sm:px-8 md:grid-cols-[1.4fr_1fr_1fr] md:py-14 max-w-[1200px] mx-auto w-full">
+        <div className="space-y-5">
+          <div className="flex items-center gap-2.5 font-display text-xl font-bold uppercase tracking-tight text-foreground">
+            <BrandLogo size="sm" className="rounded-lg" />
+            Career Pilot
           </div>
-          <p className="text-foreground/70 max-w-sm leading-relaxed">
-            Empowering students with personalized AI learning roadmaps and career
-            guidance. Unapologetically bold future planning.
+          <p className="max-w-sm leading-relaxed text-muted-foreground">
+            Personalized AI roadmaps, tutoring, and job tools that take students
+            from confusion to a plan.
           </p>
-          <div className="flex gap-4">
-            {[
-              { icon: "language", href: "#" },
-              { icon: "share", href: "#" },
-              { icon: "forum", href: "#" },
-            ].map((s) => (
-              <a
-                key={s.icon}
-                href={s.href}
-                className="w-10 h-10 bg-white border-2 border-black neo-shadow flex items-center justify-center hover:bg-cyan transition-colors"
-                aria-label={s.icon}
-              >
-                <span className="material-symbols-outlined text-black text-[20px]">
-                  {s.icon}
-                </span>
-              </a>
-            ))}
-          </div>
         </div>
-        <div className="grid grid-cols-2 gap-8">
-          <div className="space-y-4">
-            <h5 className="font-label text-sm font-bold text-primary">Platform</h5>
-            <ul className="space-y-2">
-              <li>
-                <Link
-                  href="/#modules"
-                  className="text-foreground/70 hover:text-cyan transition-colors"
-                >
-                  Features
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="/#faq"
-                  className="text-foreground/70 hover:text-cyan transition-colors"
-                >
-                  FAQs
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="/register"
-                  className="text-foreground/70 hover:text-cyan transition-colors"
-                >
-                  Sign Up Free
-                </Link>
-              </li>
+        {columns.map((col) => (
+          <div key={col.heading} className="space-y-4">
+            <h5 className="text-sm font-semibold text-foreground">{col.heading}</h5>
+            <ul className="space-y-2.5">
+              {col.links.map((link) => (
+                <li key={link.label}>
+                  <Link
+                    href={link.href}
+                    className="text-sm text-muted-foreground transition-colors hover:text-primary"
+                  >
+                    {link.label}
+                  </Link>
+                </li>
+              ))}
             </ul>
           </div>
-          <div className="space-y-4">
-            <h5 className="font-label text-sm font-bold text-primary">Account</h5>
-            <ul className="space-y-2">
-              <li>
-                <Link
-                  href="/login"
-                  className="text-foreground/70 hover:text-cyan transition-colors"
-                >
-                  Log In
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="/register"
-                  className="text-foreground/70 hover:text-cyan transition-colors"
-                >
-                  Register
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="/#cta"
-                  className="text-foreground/70 hover:text-cyan transition-colors"
-                >
-                  Get Started
-                </Link>
-              </li>
-            </ul>
-          </div>
-        </div>
+        ))}
       </div>
-      <div className="border-t-4 border-black py-5 md:py-6 px-5 sm:px-8 lg:px-12 xl:px-16 max-w-[1600px] mx-auto flex flex-col md:flex-row justify-between items-center gap-4 text-xs font-label font-bold opacity-60">
-        <div>
-          © {new Date().getFullYear()} CAREER WALLAH. UNAPOLOGETICALLY BOLD FUTURE
-          PLANNING.
-        </div>
-        <div>BUILT FOR BRAINWARE AI HACKATHON 2026</div>
+      <div className="border-t border-border px-5 py-5 sm:px-8 max-w-[1200px] mx-auto flex flex-col items-center justify-between gap-3 text-xs text-muted-foreground md:flex-row">
+        <div>© {new Date().getFullYear()} Career Wallah · careerpilot.cc</div>
+        <div>Built for Brainware AI Hackathon 2026</div>
       </div>
     </footer>
   );
