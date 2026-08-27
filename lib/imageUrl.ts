@@ -38,9 +38,9 @@ export function companyAvatarDataUrl(name: string, size = 128): string {
     .join("") || "?";
 
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 ${size} ${size}">
-  <rect width="100%" height="100%" fill="#1a1a1a"/>
-  <rect x="1" y="1" width="${size - 2}" height="${size - 2}" fill="none" stroke="#404040" stroke-width="2"/>
-  <text x="50%" y="54%" dominant-baseline="middle" text-anchor="middle" fill="#baf600" font-family="Space Grotesk, system-ui, sans-serif" font-size="${Math.round(size * 0.36)}" font-weight="700">${initials}</text>
+  <rect width="100%" height="100%" fill="#0b1117"/>
+  <rect x="1" y="1" width="${size - 2}" height="${size - 2}" fill="none" stroke="#1f2a30" stroke-width="2"/>
+  <text x="50%" y="54%" dominant-baseline="middle" text-anchor="middle" fill="#23a0a7" font-family="Space Grotesk, system-ui, sans-serif" font-size="${Math.round(size * 0.36)}" font-weight="700">${initials}</text>
 </svg>`;
 
   return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
