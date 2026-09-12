@@ -22,7 +22,7 @@ export interface IMessage {
 export interface IChatHistory extends MongooseDocument {
   userId: mongoose.Types.ObjectId;
   threadTitle?: string;
-  threadType?: 'general' | 'document';
+  threadType?: 'general' | 'document' | 'tutor';
   documentIds: mongoose.Types.ObjectId[];
   messages: IMessage[];
   createdAt: Date;
@@ -32,7 +32,7 @@ export interface IChatHistory extends MongooseDocument {
 const ChatHistorySchema = new Schema<IChatHistory>({
   userId: { type: Schema.Types.ObjectId, ref: 'User', required: true, index: true },
   threadTitle: { type: String, default: 'AI Study Hub', maxlength: 80 },
-  threadType: { type: String, enum: ['general', 'document'], default: 'general' },
+  threadType: { type: String, enum: ['general', 'document', 'tutor'], default: 'general' },
   documentIds: [{ type: Schema.Types.ObjectId, ref: 'Document' }],
   messages: [{
     role: { type: String, enum: ['user', 'assistant', 'system'], required: true },

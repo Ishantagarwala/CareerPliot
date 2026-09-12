@@ -2,6 +2,9 @@ import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import dbConnect from "@/lib/db";
 import mongoose from "mongoose";
+import { mkdir, writeFile } from "fs/promises";
+import path from "path";
+import { UPLOADS_DIR, buildOwnedUploadFilename } from "@/lib/security";
 import UserProfile from "@/models/UserProfile";
 import CareerRecommendation from "@/models/CareerRecommendation";
 import Roadmap from "@/models/Roadmap";
@@ -222,11 +225,32 @@ async function handleSeed(req: Request) {
     ];
     await Course.insertMany(mockCourses);
 
-    // 6. Create Analyzed PDF Document
+    // 6. Create Analyzed PDF Document. The upload route only serves files that
+    // (a) exist on disk and (b) are named "<userId>-...", so write a real
+    // minimal PDF with an owned filename instead of pointing at a missing file.
+    const demoPdf = Buffer.from(
+      "%PDF-1.4\n" +
+        "1 0 obj<</Type/Catalog/Pages 2 0 R>>endobj\n" +
+        "2 0 obj<</Type/Pages/Kids[3 0 R]/Count 1>>endobj\n" +
+        "3 0 obj<</Type/Page/Parent 2 0 R/MediaBox[0 0 612 792]/Contents 4 0 R/Resources<</Font<</F1 5 0 R>>>>>>endobj\n" +
+        "4 0 obj<</Length 120>>stream\n" +
+        "BT /F1 18 Tf 72 720 Td (Web Dev Syllabus - Career Pilot demo) Tj ET\n" +
+        "BT /F1 12 Tf 72 690 Td (React, Next.js, Node.js and MongoDB foundations.) Tj ET\n" +
+        "endstream\n" +
+        "endobj\n" +
+        "5 0 obj<</Type/Font/Subtype/Type1/BaseFont/Helvetica>>endobj\n" +
+        "trailer<</Root 1 0 R>>\n" +
+        "%%EOF",
+      "latin1"
+    );
+    await mkdir(UPLOADS_DIR, { recursive: true });
+    const demoOwnedName = buildOwnedUploadFilename(userId, "Web_Dev_Syllabus.pdf", "pdf");
+    await writeFile(path.join(UPLOADS_DIR, demoOwnedName), demoPdf);
+
     const document = new Document({
       userId,
       filename: "Web_Dev_Syllabus.pdf",
-      fileUrl: "/api/uploads/demo-Web_Dev_Syllabus.pdf",
+      fileUrl: `/api/uploads/${demoOwnedName}`,
       summary: "### Course Overview\nThis syllabus outlines the foundational components of modern Full-Stack Web Development, focusing on React, Next.js, Node.js, and MongoDB database integration.\n\n### Key Learning Outcomes\n- Understand Client-Server architecture and RESTful APIs.\n- Learn state management and React hook lifecycles.\n- Integrate server-side rendering (SSR) and routing configurations.\n\n### Grading Policies\n- 40% Practical assignments and mini-projects.\n- 60% Final term project and evaluation.",
       questions: [
         {

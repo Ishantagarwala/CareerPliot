@@ -14,7 +14,11 @@ export async function GET() {
     }
 
     await dbConnect();
-    const threads = await ChatHistory.find({ userId: session.user.id })
+    // Exclude tutor threads — they belong to the tutor's own history route.
+    const threads = await ChatHistory.find({
+      userId: session.user.id,
+      threadType: { $ne: "tutor" },
+    })
       .select("threadTitle threadType createdAt updatedAt")
       .sort({ updatedAt: -1 })
       .lean();

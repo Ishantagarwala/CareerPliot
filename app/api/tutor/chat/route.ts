@@ -37,10 +37,16 @@ export async function POST(req: Request) {
       ? `The student's selected career path is "${selectedRecommendation.careerPath}". Adapt your explanations, examples, and recommendations to align with this path where relevant.`
       : "The student has not selected an active career path yet. Help them explore their options or answer their general learning questions across any field.";
 
-    // 2. Fetch or create chat history
-    let chat = await ChatHistory.findOne({ userId });
+    // 2. Fetch or create chat history — scoped to the tutor thread type so
+    // tutor messages never leak into (or delete) AI Hub conversations.
+    let chat = await ChatHistory.findOne({ userId, threadType: "tutor" });
     if (!chat) {
-      chat = new ChatHistory({ userId, messages: [] });
+      chat = new ChatHistory({
+        userId,
+        threadType: "tutor",
+        threadTitle: "AI Tutor",
+        messages: [],
+      });
     }
 
     // 3. Append user message to history

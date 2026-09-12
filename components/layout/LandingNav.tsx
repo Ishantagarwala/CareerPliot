@@ -12,7 +12,12 @@ const links = [
 
 const shell = "w-full max-w-[1600px] mx-auto px-5 sm:px-8 lg:px-12 xl:px-16";
 
-export default function LandingNav() {
+export default function LandingNav({
+  showDemoLogin = false,
+}: {
+  /** Server-gated via DEMO_MODE — hidden when demo login is disabled. */
+  showDemoLogin?: boolean;
+}) {
   const [open, setOpen] = useState(false);
 
   useEffect(() => {
@@ -110,13 +115,15 @@ export default function LandingNav() {
           >
             Sign Up
           </Link>
-          <Link
-            href="/login?demo=true"
-            onClick={() => setOpen(false)}
-            className="font-label text-sm font-bold text-center px-4 py-3 border-2 border-black bg-primary shadow-[4px_4px_0_0_#000] hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-none transition-all"
-          >
-            Demo Login
-          </Link>
+          {showDemoLogin && (
+            <Link
+              href="/login?demo=true"
+              onClick={() => setOpen(false)}
+              className="font-label text-sm font-bold text-center px-4 py-3 border-2 border-black bg-primary shadow-[4px_4px_0_0_#000] hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-none transition-all"
+            >
+              Demo Login
+            </Link>
+          )}
         </div>
       </aside>
     </>

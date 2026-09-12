@@ -68,6 +68,7 @@ const statusColumns = [
   { id: "interview", name: "Interviewing", color: "border-black text-foreground bg-electric/15 dark:border-purple-500/40 dark:text-purple-300 dark:bg-purple-500/10" },
   { id: "offer", name: "Offers", color: "border-black text-foreground bg-primary/20 dark:border-green-500/40 dark:text-green-300 dark:bg-green-500/10" },
   { id: "rejected", name: "Archived", color: "border-black text-foreground bg-destructive/10 dark:border-red-500/40 dark:text-red-300 dark:bg-red-500/10" },
+  { id: "withdrawn", name: "Withdrawn", color: "border-black text-foreground bg-muted/40 dark:border-zinc-500/40 dark:text-zinc-300 dark:bg-zinc-500/10" },
 ];
 
 export default function JobsPage() {
@@ -522,7 +523,6 @@ export default function JobsPage() {
                                       {s.name}
                                     </option>
                                   ))}
-                                  <option value="withdrawn">Withdrawn</option>
                                 </select>
 
                                 {link && (

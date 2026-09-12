@@ -19,11 +19,9 @@ export default function StreakTracker({ streakDays, lastActive }: StreakTrackerP
 
       const lastActiveDate = new Date(lastActive);
       const isToday = d.toDateString() === today.toDateString();
-      const isActive = streakDays > 0 && (
-        d.toDateString() === lastActiveDate.toDateString() ||
-        (isToday && new Date().toDateString() === lastActiveDate.toDateString()) ||
-        (i === 0)
-      );
+      // Active only on days with recorded activity — don't fake-mark today.
+      const isActive =
+        streakDays > 0 && d.toDateString() === lastActiveDate.toDateString();
 
       days.push({
         name: dayNames[d.getDay()],

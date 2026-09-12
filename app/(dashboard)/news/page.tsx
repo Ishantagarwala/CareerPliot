@@ -138,9 +138,11 @@ export default function NewsPage() {
   useEffect(() => {
     loadNews();
 
-    // Auto-refresh tech news every 3 minutes silently
+    // Silent auto-refresh every 3 minutes. Plain fetch (no forced refresh) so
+    // the server's staleness gate decides when to hit the upstream provider —
+    // forced refreshes from every open tab would bypass it entirely.
     const interval = setInterval(() => {
-      loadNews(true, true);
+      loadNews(false, true);
     }, 180000);
 
     return () => clearInterval(interval);
@@ -641,7 +643,7 @@ export default function NewsPage() {
             className="text-[10px] text-muted-foreground uppercase tracking-wider font-bold"
             style={{ fontFamily: "'JetBrains Mono', monospace" }}
           >
-            Auto-refreshes every 6 hours
+            Auto-refreshes every few minutes
           </p>
         </div>
       )}

@@ -16,15 +16,17 @@ export default function Footer() {
           </p>
           <div className="flex gap-4">
             {[
-              { icon: "language", href: "#" },
-              { icon: "share", href: "#" },
-              { icon: "forum", href: "#" },
+              { icon: "language", href: "https://careerpilot.cc", label: "Website" },
+              { icon: "share", href: "https://www.linkedin.com", label: "Share" },
+              { icon: "forum", href: "https://github.com/Ishantagarwala/CareerPliot", label: "Repository" },
             ].map((s) => (
               <a
                 key={s.icon}
                 href={s.href}
+                target="_blank"
+                rel="noopener noreferrer"
                 className="w-10 h-10 bg-white border-2 border-black neo-shadow flex items-center justify-center hover:bg-cyan transition-colors"
-                aria-label={s.icon}
+                aria-label={s.label}
               >
                 <span className="material-symbols-outlined text-black text-[20px]">
                   {s.icon}
@@ -96,7 +98,7 @@ export default function Footer() {
       </div>
       <div className="border-t-4 border-black py-5 md:py-6 px-5 sm:px-8 lg:px-12 xl:px-16 max-w-[1600px] mx-auto flex flex-col md:flex-row justify-between items-center gap-4 text-xs font-label font-bold opacity-60">
         <div>
-          © {new Date().getFullYear()} CAREER WALLAH. UNAPOLOGETICALLY BOLD FUTURE
+          © {new Date().getFullYear()} CAREER PILOT. UNAPOLOGETICALLY BOLD FUTURE
           PLANNING.
         </div>
         <div>BUILT FOR BRAINWARE AI HACKATHON 2026</div>

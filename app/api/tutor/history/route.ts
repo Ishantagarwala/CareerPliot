@@ -11,7 +11,10 @@ export async function GET() {
     }
 
     await dbConnect();
-    const chat = await ChatHistory.findOne({ userId: session.user.id });
+    const chat = await ChatHistory.findOne({
+      userId: session.user.id,
+      threadType: "tutor",
+    });
 
     return NextResponse.json(chat ? chat.messages : []);
   } catch (error: any) {
@@ -31,7 +34,11 @@ export async function DELETE() {
     }
 
     await dbConnect();
-    await ChatHistory.deleteOne({ userId: session.user.id });
+    // Scope to the tutor thread — never delete AI Hub conversations.
+    await ChatHistory.deleteOne({
+      userId: session.user.id,
+      threadType: "tutor",
+    });
 
     return NextResponse.json({ message: "Chat history cleared successfully" });
   } catch (error: any) {

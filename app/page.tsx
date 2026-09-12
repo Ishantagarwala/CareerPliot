@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import Footer from "@/components/layout/Footer";
 import LandingNav from "@/components/layout/LandingNav";
+import { isDemoLoginEnabled } from "@/lib/captcha";
 import { buildHomeJsonLd } from "@/lib/seo";
 import { getSiteUrl } from "@/lib/siteUrl";
 
@@ -10,6 +11,10 @@ export const metadata: Metadata = {
     canonical: "/",
   },
 };
+
+// DEMO_MODE is runtime-only (docker-compose), so the Demo Login button can't be
+// baked into a statically generated page — same reason /login is force-dynamic.
+export const dynamic = "force-dynamic";
 
 const modules = [
   {
@@ -93,6 +98,8 @@ export default function Home() {
   const siteUrl = getSiteUrl();
   const faqItems = faqs.map(({ q, a }) => ({ q, a }));
   const jsonLd = buildHomeJsonLd(siteUrl, faqItems);
+  // Demo login is server-gated (DEMO_MODE); don't advertise a button that 403s.
+  const demoLoginEnabled = isDemoLoginEnabled();
 
   return (
     <div className="flex min-h-screen flex-col bg-background text-foreground">
@@ -100,7 +107,7 @@ export default function Home() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
-      <LandingNav />
+      <LandingNav showDemoLogin={demoLoginEnabled} />
 
       {/* Hero fills viewport above the marquee */}
       <section className="relative flex flex-col justify-center min-h-[calc(100svh-4.5rem-3.5rem)] overflow-hidden">
@@ -137,13 +144,15 @@ export default function Home() {
                 Get Started Free
                 <span className="material-symbols-outlined">arrow_forward</span>
               </Link>
-              <Link
-                href="/login?demo=true"
-                className="inline-flex items-center justify-center gap-2 bg-primary text-black px-6 md:px-8 py-3 md:py-3.5 border-2 border-black shadow-[4px_4px_0_0_#000] rounded-[5px] font-display text-lg md:text-xl font-bold transition-all hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-none"
-              >
-                Demo Login
-                <span className="material-symbols-outlined">bolt</span>
-              </Link>
+              {demoLoginEnabled && (
+                <Link
+                  href="/login?demo=true"
+                  className="inline-flex items-center justify-center gap-2 bg-primary text-black px-6 md:px-8 py-3 md:py-3.5 border-2 border-black shadow-[4px_4px_0_0_#000] rounded-[5px] font-display text-lg md:text-xl font-bold transition-all hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-none"
+                >
+                  Demo Login
+                  <span className="material-symbols-outlined">bolt</span>
+                </Link>
+              )}
             </div>
           </div>
 

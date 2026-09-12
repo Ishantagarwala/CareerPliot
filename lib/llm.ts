@@ -38,34 +38,7 @@ function getFallbackModel(): string {
   return process.env.LLM_ROUTER_FALLBACK_MODEL?.trim() || FALLBACK_MODEL;
 }
 
-/**
- * Optional secondary OpenAI-compatible router (e.g. Groq free tier).
- * Reads OLAMA_ROUTER_* first; the corrected OLLAMA_ROUTER_* spelling is
- * also accepted.
- */
-function getSecondaryRouterConfig(): { apiKey: string; baseURL: string } | null {
-  const apiKey =
-    process.env.OLAMA_ROUTER_API_KEY?.trim() ||
-    process.env.OLLAMA_ROUTER_API_KEY?.trim();
-  const baseURL =
-    process.env.OLAMA_ROUTER_BASE_URL?.trim() ||
-    process.env.OLLAMA_ROUTER_BASE_URL?.trim();
-
-  if (!apiKey || isPlaceholder(apiKey) || !baseURL) return null;
-  return { apiKey, baseURL };
-}
-
-function getSecondaryRouterModels(): string[] {
-  const models = [
-    process.env.OLAMA_ROUTER_MODEL?.trim() ||
-      process.env.OLLAMA_ROUTER_MODEL?.trim(),
-    process.env.OLAMA_ROUTER_FALLBACK_MODEL?.trim() ||
-      process.env.OLLAMA_ROUTER_FALLBACK_MODEL?.trim(),
-  ].filter((model): model is string => Boolean(model));
-  return Array.from(new Set(models));
-}
-
-/** Short label derived from the base URL host: api.groq.com → "groq". */
+/** Short label derived from the base URL host: api.example.com → "example". */
 function routerLabel(baseURL: string): string {
   try {
     const host = new URL(baseURL).hostname;
@@ -86,8 +59,8 @@ interface LlmProvider {
 }
 
 /**
- * Ordered providers: documented LLM router (flagship → fallback), then the
- * secondary OLAMA_ROUTER_* router (e.g. Groq), then Ollama if enabled.
+ * Ordered providers: documented LLM router (flagship → fallback), then Ollama
+ * if enabled.
  */
 function buildProviderChain(): LlmProvider[] {
   const chain: LlmProvider[] = [];
@@ -106,24 +79,6 @@ function buildProviderChain(): LlmProvider[] {
         model: fallback,
         baseURL: router.baseURL,
       });
-    }
-  }
-
-  const secondary = getSecondaryRouterConfig();
-  if (secondary && !chain.some((p) => p.baseURL === secondary.baseURL)) {
-    const models = getSecondaryRouterModels();
-    if (models.length === 0) {
-      console.warn(
-        "[LLM] Secondary router configured but OLAMA_ROUTER_MODEL is not set; skipping it."
-      );
-    } else {
-      const client = new OpenAI(secondary);
-      const label = routerLabel(secondary.baseURL);
-      for (const model of models) {
-        if (!chain.some((p) => p.model === model && p.baseURL === secondary.baseURL)) {
-          chain.push({ name: `${label}/${model}`, client, model, baseURL: secondary.baseURL });
-        }
-      }
     }
   }
 
@@ -177,7 +132,7 @@ export interface ConfiguredRouter {
 
 /**
  * Every configured router client in chain order, with the display prefix its
- * models get in the AI Hub picker (e.g. "groq/" for the secondary router).
+ * models get in the AI Hub picker (e.g. "ollama/" for a local Ollama router).
  * The primary router keeps unprefixed ids for backward compatibility.
  */
 export function listConfiguredRouters(): ConfiguredRouter[] {
@@ -200,7 +155,7 @@ export function listConfiguredRouters(): ConfiguredRouter[] {
 /**
  * Resolves a model selection to a concrete client + native model id.
  * - Native ids present in any router's chain entry match directly
- * - "<label>/<id>" (e.g. "groq/llama-3.1-8b-instant") selects that router
+ * - "<label>/<id>" (e.g. "ollama/llama3") selects that router
  * - Anything else falls back to the legacy alias handling on the primary router
  */
 export function resolveLlmEndpoint(modelSelection?: string): {
@@ -340,7 +295,7 @@ function skipJsonResponseFormat(): boolean {
 // generous ceiling; the model only pays for what it actually emits.
 const MAX_COMPLETION_TOKENS = Number(process.env.LLM_MAX_TOKENS?.trim()) || 12000;
 
-/** Retry ceiling for providers that reject MAX_COMPLETION_TOKENS (e.g. Groq). */
+/** Retry ceiling for providers that reject MAX_COMPLETION_TOKENS. */
 const RETRY_COMPLETION_TOKENS = Math.min(MAX_COMPLETION_TOKENS, 4096);
 
 function isMaxTokensError(error: unknown): boolean {
@@ -378,8 +333,7 @@ async function createStructuredCompletion(
 
 /**
  * Calls the LLM provider chain and returns a parsed JSON response.
- * Cascades through: router flagship → router fallback → secondary OLAMA_ROUTER_*
- * (e.g. Groq) → Ollama (if enabled).
+ * Cascades through: router flagship → router fallback → Ollama (if enabled).
  */
 export async function generateStructuredJson<T>(
   systemPrompt: string,

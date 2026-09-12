@@ -43,9 +43,9 @@ function preferenceScore(id: string, preferred?: string): number {
 }
 
 /**
- * Fetch models from every configured router (primary + secondary e.g. Groq)
+ * Fetch models from every configured router (primary + local Ollama, if any)
  * and return unique entries. Secondary-router ids are prefixed with their
- * host label ("groq/llama-3.1-8b-instant") so the chat route can send the
+ * host label ("ollama/llama3") so the chat route can send the
  * request to the right provider; models that only differ by provider prefix
  * on the same router are collapsed to a single option.
  */
