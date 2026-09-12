@@ -27,8 +27,9 @@ function isChatCapable(model: Record<string, unknown>): boolean {
   const outputs = Array.isArray(model.output_modalities)
     ? (model.output_modalities as unknown[])
     : null;
-  // Absent metadata (plain OpenAI-compatible routers) means "assume chat".
-  return !outputs || outputs.includes("text");
+  // Absent OR empty metadata (some routers leave it unpopulated, e.g. GLM-5.3-Flash)
+  // means "assume chat" — only an explicit non-empty list without "text" filters out.
+  return !outputs || outputs.length === 0 || outputs.includes("text");
 }
 
 /** Prefer env default, then a stable provider order, then first seen. */
