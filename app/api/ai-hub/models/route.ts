@@ -37,7 +37,7 @@ function preferenceScore(id: string, preferred?: string): number {
   if (preferred && baseModelName(id) === baseModelName(preferred)) {
     if (providerPrefix(id) === providerPrefix(preferred)) return 900;
   }
-  const order = ["zeus", "posiden", "ares", "latina", "openai", "anthropic", "google"];
+  const order = ["deepseek", "zai", "qwen", "moonshot", "openai", "anthropic", "google"];
   const idx = order.indexOf(providerPrefix(id));
   return idx === -1 ? 0 : 100 - idx;
 }
@@ -114,7 +114,7 @@ export async function GET() {
       (preferred && models.includes(preferred) && preferred) ||
       models.find((m) => m === preferred) ||
       models.find((m) => baseModelName(m) === (preferred ? baseModelName(preferred) : "")) ||
-      models.find((m) => m.startsWith("posiden/")) ||
+      models.find((m) => m.startsWith("deepseek-ai/")) ||
       models[0] ||
       null;
 

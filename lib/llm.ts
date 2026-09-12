@@ -3,8 +3,8 @@ import type { ChatCompletionCreateParamsNonStreaming } from "openai/resources/ch
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
-const FLAGSHIP_MODEL = "zeus/claude-opus-5";
-const FALLBACK_MODEL = "posiden/deepseek-v4-flash";
+const FLAGSHIP_MODEL = "deepseek-ai/DeepSeek-V4-Flash";
+const FALLBACK_MODEL = "zai-org/GLM-5.3-Flash";
 
 const isPlaceholder = (val?: string) =>
   !val ||
@@ -232,16 +232,6 @@ function repairTruncatedJson(raw: string): string {
 
   s = s.replace(/[,:\s]+$/, "");
 
-  const lastQuoteIdx = s.lastIndexOf('"');
-  if (lastQuoteIdx !== -1) {
-    const afterLastQuote = s.slice(lastQuoteIdx + 1);
-    if (!afterLastQuote.includes('"') && !afterLastQuote.match(/^\s*[,}\]]/)) {
-      s = s.slice(0, lastQuoteIdx).trimEnd().replace(/[,:\s]+$/, "");
-    }
-  }
-
-  s = s.replace(/,\s*$/, "");
-
   const stack: string[] = [];
   let inString = false;
   let escape = false;
@@ -260,7 +250,13 @@ function repairTruncatedJson(raw: string): string {
     }
   }
 
-  const repaired = s + stack.reverse().join("");
+  // Close a string the output was truncated in the middle of — the most common
+  // truncation shape. A trailing lone backslash would escape the added quote.
+  let closers = "";
+  if (escape) closers += "\\";
+  if (inString) closers += '"';
+
+  const repaired = s + closers + stack.reverse().join("");
 
   try {
     JSON.parse(repaired);
@@ -276,8 +272,14 @@ function extractJsonContent(content: string): string {
   const fencedMatch = trimmed.match(/```(?:json)?\s*([\s\S]*?)```/);
   if (fencedMatch) return repairTruncatedJson(fencedMatch[1].trim());
 
-  const firstBrace = trimmed.indexOf("{");
-  if (firstBrace !== -1) return repairTruncatedJson(trimmed.slice(firstBrace));
+  // Prompts may request JSON arrays (e.g. project ideas) — slice from whichever
+  // of "[" or "{" appears first, or array responses get mangled into "{...},...]".
+  const firstObject = trimmed.indexOf("{");
+  const firstArray = trimmed.indexOf("[");
+  if (firstArray !== -1 && (firstObject === -1 || firstArray < firstObject)) {
+    return repairTruncatedJson(trimmed.slice(firstArray));
+  }
+  if (firstObject !== -1) return repairTruncatedJson(trimmed.slice(firstObject));
 
   return repairTruncatedJson(trimmed);
 }

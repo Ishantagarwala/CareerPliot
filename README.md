@@ -167,8 +167,8 @@ Make sure you have the following installed:
 
    LLM_ROUTER_API_KEY=your_router_api_key
    LLM_ROUTER_BASE_URL=https://your-router.example.com/v1
-   LLM_ROUTER_MODEL=zeus/claude-opus-5
-   LLM_ROUTER_FALLBACK_MODEL=posiden/deepseek-v4-flash
+   LLM_ROUTER_MODEL=deepseek-ai/DeepSeek-V4-Flash
+   LLM_ROUTER_FALLBACK_MODEL=zai-org/GLM-5.3-Flash
 
    NEXT_PUBLIC_SITE_URL=http://localhost:3000
    ```

@@ -94,7 +94,7 @@ is wrapped by a shared completion path, non-chat models filtered from the AI
 Hub model picker:
 
 1. **Primary router** — `LLM_ROUTER_*` (OpenAI-compatible), flagship
-   `LLM_ROUTER_MODEL` (default `zeus/claude-opus-5`), fallback `posiden/deepseek-v4-flash`.
+   `LLM_ROUTER_MODEL` (default `deepseek-ai/DeepSeek-V4-Flash`), fallback `zai-org/GLM-5.3-Flash`.
 2. **Local Ollama** — only when `USE_LOCAL_OLLAMA=true`, after the primary router.
 
 Config is skipped when keys are missing or placeholders (`your_*`, `_here`,
