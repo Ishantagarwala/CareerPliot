@@ -309,7 +309,7 @@ const YT_EXTRA_STOP = TOPIC_EXTRA_STOP;
  * Milestone titles are long sentences — YouTube relevance collapses on them.
  * Prefer the skill headline (before : or —), then keep a few strong tokens.
  */
-export function buildYouTubeSearchQuery(query: string, level: SkillLevel): string {
+export function buildYouTubeSearchQuery(query: string): string {
   const headline = query.split(/[:—–]/)[0]?.trim() || query;
   const tokens = tokenize(headline).filter((t) => !YT_EXTRA_STOP.has(t));
   // Fall back to full-query tokens if the headline was too thin.
@@ -368,7 +368,7 @@ export async function searchYouTube(
   if (!key) return [];
 
   const tokens = tokenize(query);
-  const searchQ = buildYouTubeSearchQuery(query, level);
+  const searchQ = buildYouTubeSearchQuery(query);
   const maxResults = Math.min(Math.max(limit * 4, 6), 10);
 
   try {
@@ -441,12 +441,12 @@ export async function searchYouTube(
   }
 }
 
-function shortTopicLabel(query: string, level: SkillLevel): string {
-  return buildYouTubeSearchQuery(query, level).replace(/ full course tutorial \w+$/, "").trim();
+function shortTopicLabel(query: string): string {
+  return buildYouTubeSearchQuery(query).replace(/ full course tutorial \w+$/, "").trim();
 }
 
 function courseraSearchFallback(query: string, level: SkillLevel): ProviderCourse {
-  const short = shortTopicLabel(query, level) || query.slice(0, 80);
+  const short = shortTopicLabel(query) || query.slice(0, 80);
   const q = encodeURIComponent(short);
   return {
     title: `Coursera: ${short}`,
@@ -461,8 +461,8 @@ function courseraSearchFallback(query: string, level: SkillLevel): ProviderCours
 }
 
 function youtubeSearchFallback(query: string, level: SkillLevel): ProviderCourse {
-  const searchQ = buildYouTubeSearchQuery(query, level);
-  const short = shortTopicLabel(query, level) || query.slice(0, 80);
+  const searchQ = buildYouTubeSearchQuery(query);
+  const short = shortTopicLabel(query) || query.slice(0, 80);
   const q = encodeURIComponent(searchQ);
   return {
     title: `YouTube: ${short} full course`,

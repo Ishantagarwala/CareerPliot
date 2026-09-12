@@ -351,7 +351,7 @@ export default function AssessmentForm({ onSuccess }: AssessmentFormProps) {
           }),
         });
 
-        const [_, res] = await Promise.all([runHudAnimation(), apiPromise]);
+        const [, res] = await Promise.all([runHudAnimation(), apiPromise]);
         const data = await res.json();
         
         if (!res.ok) {
@@ -431,7 +431,7 @@ export default function AssessmentForm({ onSuccess }: AssessmentFormProps) {
       });
 
       // Wait for both the cinematic HUD steps and the actual API request to finish
-      const [_, res] = await Promise.all([runHudAnimation(), apiPromise]);
+      const [, res] = await Promise.all([runHudAnimation(), apiPromise]);
 
       const data = await res.json();
       if (!res.ok) {

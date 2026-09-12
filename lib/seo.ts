@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import { getSiteUrl } from "@/lib/siteUrl";
 
 export const SITE_NAME = "Career Pilot";
 export const DEFAULT_DESCRIPTION =

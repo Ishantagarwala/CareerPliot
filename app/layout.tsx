@@ -101,6 +101,10 @@ export default function RootLayout({
       suppressHydrationWarning
     >
       <head>
+        {/* Root layout — applies to every page, so the single-page-font warning
+            is a false positive here. Material Symbols is referenced by ligature
+            class across many pages (see next.config.ts CSP notes). */}
+        {/* eslint-disable-next-line @next/next/no-page-custom-font */}
         <link
           href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
           rel="stylesheet"

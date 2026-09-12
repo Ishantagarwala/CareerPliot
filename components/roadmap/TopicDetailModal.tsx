@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import YouTubeShelf from "./YouTubeShelf";
 import { YouTubeVideoRec } from "@/lib/youtubeHelper";
 import {
@@ -66,22 +66,20 @@ export default function TopicDetailModal({
   onToggleSubtopic,
 }: TopicDetailModalProps) {
   const [updating, setUpdating] = useState(false);
-  const onCloseRef = useRef(onClose);
-  onCloseRef.current = onClose;
 
   useEffect(() => {
     if (!topic) return;
     const prevOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onCloseRef.current();
+      if (e.key === "Escape") onClose();
     };
     window.addEventListener("keydown", onKey);
     return () => {
       document.body.style.overflow = prevOverflow;
       window.removeEventListener("keydown", onKey);
     };
-  }, [topic]);
+  }, [topic, onClose]);
 
   if (!topic) return null;
 

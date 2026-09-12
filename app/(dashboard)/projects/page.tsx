@@ -11,9 +11,7 @@ import {
   ExternalLink,
   MapPin,
   Clock,
-  Sparkles,
-  Layers,
-  Link as LinkIcon
+  Sparkles
 } from "lucide-react";
 import { formatHackathonPrize } from "@/lib/formatHackathonPrize";
 

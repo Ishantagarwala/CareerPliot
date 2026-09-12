@@ -147,7 +147,7 @@ export async function GET(req: Request) {
   }
 }
 
-export async function POST(req: Request) {
+export async function POST() {
   try {
     const session = await auth();
     if (!session || !session.user || !session.user.id) {

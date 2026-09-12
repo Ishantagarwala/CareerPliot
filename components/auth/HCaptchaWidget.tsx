@@ -95,7 +95,10 @@ export default function HCaptchaWidget({
   const [error, setError] = useState<string | null>(null);
   const [renderKey, setRenderKey] = useState(0);
   const instanceId = useId();
-  onTokenRef.current = onToken;
+
+  useEffect(() => {
+    onTokenRef.current = onToken;
+  }, [onToken]);
 
   const destroyWidget = useCallback(() => {
     if (widgetIdRef.current && window.hcaptcha) {

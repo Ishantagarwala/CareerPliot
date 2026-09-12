@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import PageLoader from "@/components/layout/PageLoader";
 import { toast } from "sonner";
-import { Plus, Trash2, Edit2, CheckCircle2 } from "lucide-react";
+import { Plus, Trash2 } from "lucide-react";
 
 interface ActiveCourse {
   title: string;
@@ -80,7 +80,6 @@ export default function ProfilePage() {
       });
 
       if (!res.ok) throw new Error("Failed to update profile");
-      const data = await res.json();
 
       // Trigger session update for username change
       if (session?.user) {

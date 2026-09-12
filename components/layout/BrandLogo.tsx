@@ -28,6 +28,9 @@ export default function BrandLogo({
         className
       )}
     >
+      {/* Static local asset in a fixed-size box — no loader configured on the
+          Cloudflare deploy, so optimization isn't available; plain <img> is fine. */}
+      {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
         src="/logo.png"
         alt={alt}

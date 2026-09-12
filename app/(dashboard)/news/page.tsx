@@ -5,7 +5,6 @@ import PageLoader from "@/components/layout/PageLoader";
 import { toast } from "sonner";
 import {
   Search,
-  ArrowRight,
   Newspaper,
   Calendar,
   Clock,
@@ -364,6 +363,9 @@ export default function NewsPage() {
               className="block border border-border bg-card flex flex-col group h-full transition-colors duration-300 hover:border-muted-foreground cursor-pointer no-underline"
             >
                 <div className="h-[300px] sm:h-[380px] w-full bg-accent relative overflow-hidden">
+                {/* External news thumbnails — arbitrary hosts with onError fallback; no
+                    server-side image loader on the Cloudflare deploy, so plain <img>. */}
+                {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={featuredArticle.imageUrl || getFallbackImage(featuredArticle.tags)}
                   alt={featuredArticle.imageAlt || "Featured image"}
@@ -561,6 +563,7 @@ export default function NewsPage() {
               >
                 <div className="h-44 w-full bg-accent overflow-hidden border-b border-border relative">
                   <div className="absolute inset-0 bg-background/20 group-hover:bg-transparent transition-colors z-10" />
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     src={article.imageUrl || getFallbackImage(article.tags)}
                     alt={article.imageAlt || "Analysis cover image"}
