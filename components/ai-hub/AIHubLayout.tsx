@@ -1010,7 +1010,14 @@ export default function AIHubLayout() {
         </div>
       </aside>
 
-      {isLeftOpen && isMobile && (
+      {/*
+        Scrim for the off-canvas drawer. Gated on the panel being open and on
+        `lg:hidden` only — deliberately NOT on the `isMobile` state. That state
+        can disagree with the CSS breakpoint (it is sampled in an effect), and
+        when it lagged true at desktop width the scrim rendered over the chat
+        and made the whole page unclickable.
+      */}
+      {isLeftOpen && (
         <div
           className="fixed inset-0 z-40 bg-black/30 backdrop-blur-[2px] lg:hidden"
           onClick={() => setIsLeftOpen(false)}
@@ -1138,7 +1145,8 @@ export default function AIHubLayout() {
         />
       </main>
 
-      {isRightOpen && isMobile && (
+      {/* Same reasoning as the rail scrim above: CSS decides, not `isMobile`. */}
+      {isRightOpen && (
         <div
           className="fixed inset-0 z-40 bg-black/30 backdrop-blur-[2px] lg:hidden"
           onClick={() => setIsRightOpen(false)}
