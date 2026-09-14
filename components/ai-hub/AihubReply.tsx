@@ -1,7 +1,15 @@
 "use client";
 
 import React, { useState } from "react";
-import { ChevronRight, FileText, Image as ImageIcon } from "lucide-react";
+import {
+  Check,
+  ChevronRight,
+  Copy,
+  Download,
+  FileText,
+  Image as ImageIcon,
+} from "lucide-react";
+import { toast } from "sonner";
 import MarkdownContent from "@/components/markdown/MarkdownContent";
 import type { ChatAttachment } from "./types";
 
@@ -80,6 +88,11 @@ export default function AihubReply({ message }: AihubReplyProps) {
           <MarkdownContent content={message.content} />
           {message.streaming && <span className="ai-reply-caret" aria-hidden />}
         </div>
+
+        {/* Actions only once the reply has settled — nothing to copy mid-stream. */}
+        {!message.streaming && message.content.trim() && (
+          <ReplyActions content={message.content} />
+        )}
 
         {message.error && (
           <div
@@ -190,6 +203,62 @@ function AttachmentRow({ attachments }: { attachments: ChatAttachment[] }) {
           )}
         </div>
       ))}
+    </div>
+  );
+}
+
+/**
+ * Copy / download controls for a finished answer. "Download" saves the raw
+ * Markdown, which stays useful outside the app (notes app, Obsidian, a repo).
+ */
+function ReplyActions({ content }: { content: string }) {
+  const [copied, setCopied] = useState(false);
+
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(content);
+      setCopied(true);
+      toast.success("Reply copied");
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      toast.error("Could not copy the reply");
+    }
+  };
+
+  const handleDownload = () => {
+    const stamp = new Date().toISOString().slice(0, 10);
+    const blob = new Blob([content], { type: "text/markdown;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `career-pilot-answer-${stamp}.md`;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    URL.revokeObjectURL(url);
+    toast.success("Saved as Markdown");
+  };
+
+  return (
+    <div className="flex items-center gap-0.5 pt-0.5">
+      <button
+        type="button"
+        onClick={handleCopy}
+        className="flex cursor-pointer items-center gap-1 rounded-md px-1.5 py-1 text-[11.5px] text-hub-muted transition-colors hover:bg-hub-soft hover:text-hub-text"
+        aria-label="Copy this reply"
+      >
+        {copied ? <Check size={12} aria-hidden /> : <Copy size={12} aria-hidden />}
+        {copied ? "Copied" : "Copy"}
+      </button>
+      <button
+        type="button"
+        onClick={handleDownload}
+        className="flex cursor-pointer items-center gap-1 rounded-md px-1.5 py-1 text-[11.5px] text-hub-muted transition-colors hover:bg-hub-soft hover:text-hub-text"
+        aria-label="Download this reply as Markdown"
+      >
+        <Download size={12} aria-hidden />
+        .md
+      </button>
     </div>
   );
 }

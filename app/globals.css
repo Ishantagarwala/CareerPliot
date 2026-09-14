@@ -1378,6 +1378,113 @@ body:has(.aihub) [data-app-shell] > div.fixed.top-0.left-0.right-0 {
   background: var(--hub-soft-hover);
 }
 
+/* ===== AI Hub syntax highlighting =====
+   Token colours for highlight.js output. Scoped to `.aihub` so the tutor and
+   PDF summary views keep their monochrome terminal look, and so the theme
+   follows the hub's own light/dark tokens rather than the app's. */
+
+.aihub .hljs {
+  color: #24292f;
+  background: transparent;
+}
+.aihub .hljs-comment,
+.aihub .hljs-quote {
+  color: #6a737d;
+  font-style: italic;
+}
+.aihub .hljs-keyword,
+.aihub .hljs-selector-tag,
+.aihub .hljs-doctag,
+.aihub .hljs-formula {
+  color: #cf222e;
+}
+.aihub .hljs-string,
+.aihub .hljs-regexp,
+.aihub .hljs-addition,
+.aihub .hljs-attribute,
+.aihub .hljs-meta .hljs-string {
+  color: #0a3069;
+}
+.aihub .hljs-number,
+.aihub .hljs-literal,
+.aihub .hljs-variable,
+.aihub .hljs-template-variable,
+.aihub .hljs-type,
+.aihub .hljs-selector-attr,
+.aihub .hljs-selector-pseudo {
+  color: #0550ae;
+}
+.aihub .hljs-title,
+.aihub .hljs-title.class_,
+.aihub .hljs-title.function_,
+.aihub .hljs-section,
+.aihub .hljs-name {
+  color: #8250df;
+}
+.aihub .hljs-attr,
+.aihub .hljs-symbol,
+.aihub .hljs-bullet,
+.aihub .hljs-built_in,
+.aihub .hljs-class .hljs-title {
+  color: #953800;
+}
+.aihub .hljs-deletion {
+  color: #82071e;
+}
+.aihub .hljs-emphasis {
+  font-style: italic;
+}
+.aihub .hljs-strong {
+  font-weight: 700;
+}
+
+.dark .aihub .hljs {
+  color: #c9d1d9;
+}
+.dark .aihub .hljs-comment,
+.dark .aihub .hljs-quote {
+  color: #8b949e;
+}
+.dark .aihub .hljs-keyword,
+.dark .aihub .hljs-selector-tag,
+.dark .aihub .hljs-doctag,
+.dark .aihub .hljs-formula {
+  color: #ff7b72;
+}
+.dark .aihub .hljs-string,
+.dark .aihub .hljs-regexp,
+.dark .aihub .hljs-addition,
+.dark .aihub .hljs-attribute,
+.dark .aihub .hljs-meta .hljs-string {
+  color: #a5d6ff;
+}
+.dark .aihub .hljs-number,
+.dark .aihub .hljs-literal,
+.dark .aihub .hljs-variable,
+.dark .aihub .hljs-template-variable,
+.dark .aihub .hljs-type,
+.dark .aihub .hljs-selector-attr,
+.dark .aihub .hljs-selector-pseudo {
+  color: #79c0ff;
+}
+.dark .aihub .hljs-title,
+.dark .aihub .hljs-title.class_,
+.dark .aihub .hljs-title.function_,
+.dark .aihub .hljs-section,
+.dark .aihub .hljs-name {
+  color: #d2a8ff;
+}
+.dark .aihub .hljs-attr,
+.dark .aihub .hljs-symbol,
+.dark .aihub .hljs-bullet,
+.dark .aihub .hljs-built_in,
+.dark .aihub .hljs-class .hljs-title {
+  color: #ffa657;
+}
+.dark .aihub .hljs-deletion {
+  color: #ffa198;
+}
+
 /* ===== Motion preferences =====
    Every hub reveal/loop animation collapses to a static state. */
 

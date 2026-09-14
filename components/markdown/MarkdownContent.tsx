@@ -9,6 +9,16 @@ import type { Components } from "react-markdown";
 import { Copy, Check, Terminal } from "lucide-react";
 import { toast } from "sonner";
 import "katex/dist/katex.min.css";
+import { parseChartSpec } from "./ChartBlock";
+
+/*
+ * Mermaid is only pulled in when a reply actually contains a diagram, and its
+ * wrapper is loaded on demand so the bundle stays out of the initial page —
+ * and out of surfaces that never render one, like the tutor.
+ */
+const MermaidDiagram = React.lazy(() => import("./MermaidDiagram"));
+const HighlightedCode = React.lazy(() => import("./HighlightedCode"));
+const ChartBlock = React.lazy(() => import("./ChartBlock"));
 
 export type MarkdownVariant = "chat-assistant" | "chat-user" | "summary";
 
@@ -70,7 +80,13 @@ function CodeBlock({
         className="overflow-x-auto bg-[#0A0A0A] p-4 text-xs leading-relaxed text-[#c4c7c8]"
         style={{ fontFamily: "'JetBrains Mono', monospace" }}
       >
-        <code>{code}</code>
+        {isSummary ? (
+          <code>{code}</code>
+        ) : (
+          <React.Suspense fallback={<code>{code}</code>}>
+            <HighlightedCode code={code} language={language} />
+          </React.Suspense>
+        )}
       </pre>
     </div>
   );
@@ -174,6 +190,33 @@ function buildComponents(variant: MarkdownVariant): Components {
     code: ({ className, children }) => {
       const match = /language-(\w+)/.exec(className || "");
       const code = String(children).replace(/\n$/, "");
+      // A ```chart block is data to plot; fall through to code if unparseable.
+      if (match?.[1]?.toLowerCase() === "chart") {
+        const spec = parseChartSpec(code);
+        if (spec) {
+          return (
+            <React.Suspense
+              fallback={<div className="my-4 rounded-lg border border-hub-line bg-hub-raised px-3 py-6 text-center text-[12px] text-hub-muted">Rendering chart…</div>}
+            >
+              <ChartBlock spec={spec} />
+            </React.Suspense>
+          );
+        }
+      }
+      // A ```mermaid block is a diagram, not code to read.
+      if (match?.[1]?.toLowerCase() === "mermaid") {
+        return (
+          <React.Suspense
+            fallback={
+              <div className="my-4 rounded-lg border border-hub-line bg-hub-raised px-3 py-6 text-center text-[12px] text-hub-muted">
+                Rendering diagram…
+              </div>
+            }
+          >
+            <MermaidDiagram code={code} />
+          </React.Suspense>
+        );
+      }
       if (match || code.includes("\n")) {
         return <CodeBlock code={code.trim()} language={match?.[1] || ""} variant={variant} />;
       }
