@@ -28,6 +28,128 @@ const MAX_ATTACHMENTS = 3;
 const MAX_MODEL_SELECTION_CHARS = 200;
 const MODEL_SELECTION_PATTERN = /^[a-zA-Z0-9][a-zA-Z0-9._:/-]*$/;
 
+/** Thread titles are shown in a narrow rail, so keep them short. */
+const MAX_TITLE_CHARS = 60;
+
+/**
+ * Cheap, deterministic fallback used when the title model fails or returns
+ * something unusable — first few words of the question, which still reads far
+ * better in the rail than a raw character slice.
+ */
+function fallbackThreadTitle(message: string): string {
+  const cleaned = message.replace(/\s+/g, " ").trim();
+  if (!cleaned) return "New Chat";
+  const words = cleaned.split(" ").slice(0, 8).join(" ");
+  return words.length > MAX_TITLE_CHARS
+    ? `${words.slice(0, MAX_TITLE_CHARS - 1).trimEnd()}…`
+    : words;
+}
+
+/** Strips the wrapping and punctuation models like to add around a title. */
+function normalizeThreadTitle(raw: string): string {
+  let title = (raw || "").trim();
+  title = title.replace(/^(?:title|chat title)\s*[:\-–]\s*/i, "");
+  title = title.replace(/^["'“”‘’`]+|["'“”‘’`]+$/g, "");
+  title = title.replace(/[.;,]+$/g, "");
+  title = title.replace(/\s+/g, " ").trim();
+  if (title.length > MAX_TITLE_CHARS) {
+    title = `${title.slice(0, MAX_TITLE_CHARS - 1).trimEnd()}…`;
+  }
+  return title;
+}
+
+/**
+ * Asks the model for a short, human title for the thread — the way the
+ * reference product names conversations ("Hello Explain me what is bfs").
+ * Never throws: any failure falls back to the opening question so a title is
+ * always produced.
+ */
+async function generateThreadTitle(
+  modelSelection: string | undefined,
+  userMessage: string,
+  assistantReply: string
+): Promise<string> {
+  /*
+   * Kept as a single system message with the transcript clearly delimited.
+   * An earlier "User: ... / Assistant: ..." layout made the model echo the
+   * user's own sentence back as the title.
+   */
+  const prompt = [
+    "You name chat threads for a study assistant's sidebar.",
+    "Reply with ONLY the title: 3-6 words, under 50 characters.",
+    "Name the specific topic. No quotes, no ending punctuation, no emoji.",
+    "",
+    "Example 1",
+    "Question: how do i prepare for a javascript interview as a fresher",
+    "Title: Preparing for a JavaScript interview",
+    "",
+    "Example 2",
+    "Question: explain me what is bfs and dfs",
+    "Title: Understanding BFS and DFS",
+    "",
+    "Now name this conversation.",
+    "Question: " + userMessage.slice(0, 1500),
+    "Answer: " + assistantReply.slice(0, 1500),
+    "Title:",
+  ].join("\n");
+
+  try {
+    const { client, model } = resolveLlmEndpoint(modelSelection);
+    const completion = await client.chat.completions.create({
+      model,
+      messages: [{ role: "user", content: prompt }],
+      temperature: 0.2,
+      /*
+       * Generous on purpose: the inline model is a *reasoning* model, and it
+       * spends tokens thinking before emitting any content. A tight budget
+       * (32) was exhausted by the reasoning alone, returning `content: null`
+       * with finish_reason "length" — which silently fell back every time.
+       */
+      max_tokens: 512,
+    });
+
+    const choice = completion.choices[0];
+    const rawContent = choice?.message?.content || "";
+    /*
+     * Belt and braces for reasoning models: if it still produced no content
+     * (or hit the cap mid-thought), salvage a title from the reasoning trace
+     * or the last non-empty line, which is usually the title itself.
+     */
+    const rawReasoning =
+      (choice?.message as { reasoning?: string } | undefined)?.reasoning || "";
+    const salvage = (text: string) => {
+      const afterLabel = text.match(/title\s*[:\-–]\s*(.+)$/im);
+      if (afterLabel) return afterLabel[1];
+      const lines = text.split("\n").map((l) => l.trim()).filter(Boolean);
+      return lines.length ? lines[lines.length - 1] : "";
+    };
+
+    let title = normalizeThreadTitle(rawContent);
+    if (!title && rawReasoning) title = normalizeThreadTitle(salvage(rawReasoning));
+
+    /*
+     * Reject a title that is just the question echoed back — reasoning models
+     * do this when they run out of room, and it reads no better than the
+     * fallback while looking like a real title.
+     */
+    const normalizedQuestion = userMessage.replace(/\s+/g, " ").trim().toLowerCase();
+    if (title && title.toLowerCase() === normalizedQuestion) title = "";
+    if (title.length < 3) title = "";
+
+    if (!title) {
+      console.warn(
+        "Thread title fell back to the opening words (model returned no usable title).",
+        { finishReason: choice?.finish_reason, hadContent: Boolean(rawContent) }
+      );
+      return fallbackThreadTitle(userMessage);
+    }
+    return title;
+  } catch (error) {
+    console.error("Thread title generation failed (non-fatal):", error);
+    return fallbackThreadTitle(userMessage);
+  }
+}
+
 interface SafeAttachment {
   type: "pdf" | "image";
   filename: string;
@@ -278,10 +400,11 @@ export async function POST(req: Request) {
     }
 
     if (!chat) {
-      const title = message.length > 30 ? message.substring(0, 30) + "..." : message;
       chat = new ChatHistory({
         userId,
-        threadTitle: title,
+        // Cheap provisional title so the rail has something immediately; it is
+        // replaced by a model-written one once the first reply completes.
+        threadTitle: fallbackThreadTitle(message),
         threadType: safeDocumentIds.length > 0 ? "document" : "general",
         messages: [],
       });
@@ -304,8 +427,7 @@ export async function POST(req: Request) {
     });
 
     if (chat.messages.length === 1 && chat.threadTitle === "AI Study Hub") {
-      chat.threadTitle =
-        message.length > 30 ? message.substring(0, 30) + "..." : message;
+      chat.threadTitle = fallbackThreadTitle(message);
     }
 
     const apiMessages: ChatCompletionMessageParam[] = [
@@ -403,6 +525,13 @@ export async function POST(req: Request) {
     const readable = new ReadableStream({
       async start(controller) {
         let fullReply = "";
+        /**
+         * Reasoning models on the router stream their chain of thought on
+         * `delta.reasoning` alongside (or before) `delta.content`. We surface
+         * it as its own SSE event so the hub can show a "Thought for a moment"
+         * disclosure, and persist it with the turn.
+         */
+        let fullReasoning = "";
         try {
           controller.enqueue(
             sseEncode({
@@ -413,7 +542,21 @@ export async function POST(req: Request) {
           );
 
           for await (const chunk of stream) {
-            const delta = chunk.choices[0]?.delta?.content || "";
+            const deltaObj = chunk.choices[0]?.delta as
+              | { content?: string | null; reasoning?: string | null }
+              | undefined;
+            const reasoningDelta = deltaObj?.reasoning || "";
+            if (reasoningDelta) {
+              fullReasoning += reasoningDelta;
+              controller.enqueue(
+                sseEncode({
+                  type: "reasoning",
+                  content: reasoningDelta,
+                })
+              );
+            }
+
+            const delta = deltaObj?.content || "";
             if (!delta) continue;
             fullReply += delta;
             controller.enqueue(
@@ -432,10 +575,36 @@ export async function POST(req: Request) {
           chat.messages.push({
             role: "assistant",
             content: fullReply,
+            reasoning: fullReasoning || undefined,
             documentIds: documentObjectIds,
             sentAt: new Date(),
           });
           await chat.save();
+
+          /*
+           * Name the thread from the completed FIRST exchange only: messages
+           * is [user, assistant] on that turn. Re-running it every turn would
+           * cost an extra model call each time and rename the thread under the
+           * user. `titleSource` guards against clobbering a manual rename.
+           */
+          if (chat.titleSource !== "manual" && chat.messages.length === 2) {
+            const generatedTitle = await generateThreadTitle(
+              modelSelection,
+              message,
+              fullReply
+            );
+            chat.threadTitle = generatedTitle;
+            chat.titleSource = "auto";
+            await chat.save().catch((titleError: unknown) => {
+              console.error(
+                "Failed to persist thread title (non-fatal):",
+                titleError
+              );
+            });
+            controller.enqueue(
+              sseEncode({ type: "title", title: generatedTitle })
+            );
+          }
 
           await UserProgress.findOneAndUpdate(
             { userId },
@@ -456,6 +625,7 @@ export async function POST(req: Request) {
               type: "done",
               threadId: threadIdStr,
               reply: fullReply,
+              reasoning: fullReasoning,
             })
           );
           controller.close();

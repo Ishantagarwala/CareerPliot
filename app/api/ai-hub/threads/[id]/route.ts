@@ -68,6 +68,8 @@ export async function PUT(req: Request, props: { params: Promise<{ id: string }>
     }
 
     thread.threadTitle = title;
+    // Mark as user-authored so auto-titling never overwrites this rename.
+    thread.titleSource = "manual";
     await thread.save();
 
     return NextResponse.json(thread);
