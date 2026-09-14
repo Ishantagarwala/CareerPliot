@@ -18,10 +18,14 @@ const nextConfig: NextConfig = {
     //   login/register captcha silently never render.
     // - media-src data:: Sarvam TTS returns base64 WAV played via data: URL.
     // - img-src unsplash/lh3: news thumbnails and Google avatar images.
+    // - script-src 'unsafe-eval' IN DEVELOPMENT ONLY: React's dev bundle uses
+    //   eval() to reconstruct callstacks and power Fast Refresh. Without it the
+    //   page still server-renders, but React never hydrates — every button,
+    //   link and animation is dead. Never add this in production.
     const isDev = process.env.NODE_ENV !== "production";
     const csp = [
       "default-src 'self'",
-      "script-src 'self' 'unsafe-inline' https://hcaptcha.com https://*.hcaptcha.com",
+      `script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ""} https://hcaptcha.com https://*.hcaptcha.com`,
       "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://hcaptcha.com https://*.hcaptcha.com",
       "font-src 'self' https://fonts.gstatic.com",
       "img-src 'self' data: blob: https://images.unsplash.com https://lh3.googleusercontent.com https://hcaptcha.com https://*.hcaptcha.com",
@@ -70,6 +74,22 @@ const nextConfig: NextConfig = {
       { source: "/study", destination: "/ai-hub", permanent: false },
     ];
   },
+  /**
+   * Next's dev server rejects any module/chunk request whose `Origin` is not
+   * allowed (it answers a bare 403 "Unauthorized"). Only `localhost` is
+   * allowed by default, so opening the dev site as 127.0.0.1 or over the LAN
+   * makes every hydration chunk 403 — the page renders but React never boots,
+   * leaving every button and link inert. List the origins we actually use.
+   */
+  allowedDevOrigins: [
+    // Bare hostnames only — Next compares these against the Origin's hostname
+    // with the port stripped, so "127.0.0.1:3000" would never match.
+    "localhost",
+    "127.0.0.1",
+    "192.168.1.7",
+    "careerpilot.cc",
+    "www.careerpilot.cc",
+  ],
   experimental: {
     serverActions: {
       allowedOrigins: ["careerpilot.cc", "www.careerpilot.cc", "localhost:3000", "127.0.0.1:3000"],

@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Anybody, Hanken_Grotesk, Space_Grotesk } from "next/font/google";
+import { Anybody, Hanken_Grotesk, Inter, Space_Grotesk } from "next/font/google";
 import "./globals.css";
 import { SessionProvider } from "next-auth/react";
 import { Toaster } from "@/components/ui/sonner";
@@ -29,6 +29,16 @@ const spaceGrotesk = Space_Grotesk({
   variable: "--font-space",
   subsets: ["latin"],
   weight: ["500", "700"],
+});
+
+/**
+ * The AI Hub is set in Inter — its own typeface, scoped to that route via
+ * `--font-inter`. The rest of the app keeps the display faces above.
+ */
+const inter = Inter({
+  variable: "--font-inter",
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
 });
 
 const siteUrl = getSiteUrl();
@@ -97,7 +107,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${anybody.variable} ${hanken.variable} ${spaceGrotesk.variable} h-full antialiased`}
+      className={`${anybody.variable} ${hanken.variable} ${spaceGrotesk.variable} ${inter.variable} h-full antialiased`}
       suppressHydrationWarning
     >
       <head>
