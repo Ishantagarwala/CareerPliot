@@ -963,6 +963,7 @@ export default function UnifiedChat({
 
       {voiceHUDOpen && (
         <VoiceHUD
+          variant="hub"
           status={voice.status}
           thinking={(loading || voiceTurnBusy) && voice.status !== "speaking"}
           transcript={voice.transcript}
