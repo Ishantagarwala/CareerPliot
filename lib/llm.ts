@@ -30,6 +30,23 @@ function getRouterConfig(): { apiKey: string; baseURL: string } | null {
   return { apiKey, baseURL };
 }
 
+/**
+ * Optional SECOND router, configured exactly like the first but with a `_2`
+ * suffix. It sits alongside the primary provider rather than replacing it, so
+ * its models appear in the AI Hub picker under their own host label (e.g.
+ * "deepseek/…") and can be selected per conversation.
+ *
+ * Only a key and a base URL are needed: the model catalogue is read from the
+ * provider itself, so there is nothing to declare here.
+ */
+function getSecondRouterConfig(): { apiKey: string; baseURL: string } | null {
+  const apiKey = process.env.LLM_ROUTER_2_API_KEY?.trim();
+  const baseURL = process.env.LLM_ROUTER_2_BASE_URL?.trim();
+
+  if (!apiKey || isPlaceholder(apiKey) || !baseURL) return null;
+  return { apiKey, baseURL };
+}
+
 function getFlagshipModel(): string {
   return process.env.LLM_ROUTER_MODEL?.trim() || FLAGSHIP_MODEL;
 }
@@ -78,6 +95,27 @@ function buildProviderChain(): LlmProvider[] {
         client,
         model: fallback,
         baseURL: router.baseURL,
+      });
+    }
+  }
+
+  /*
+   * The second router deliberately does NOT join the automatic fallback chain:
+   * with no model id declared we cannot pick one on its behalf, and guessing
+   * would turn every automatic call into a 404. It is reached by selecting one
+   * of its models in the picker, which is resolved by label in
+   * resolveLlmEndpoint below.
+   */
+  const secondRouter = getSecondRouterConfig();
+  if (secondRouter) {
+    const client = new OpenAI(secondRouter);
+    const explicit = process.env.LLM_ROUTER_2_MODEL?.trim();
+    if (explicit) {
+      chain.push({
+        name: `Router2/${explicit}`,
+        client,
+        model: explicit,
+        baseURL: secondRouter.baseURL,
       });
     }
   }
@@ -131,31 +169,42 @@ export interface ConfiguredRouter {
 }
 
 /**
- * Every configured router client in chain order, with the display prefix its
- * models get in the AI Hub picker (e.g. "ollama/" for a local Ollama router).
+ * Every configured router client, in preference order, with the display prefix
+ * its models get in the AI Hub picker (e.g. "together/" for a second router).
  * The primary router keeps unprefixed ids for backward compatibility.
+ *
+ * Built from the router configs rather than the fallback chain: the chain only
+ * holds models named explicitly in env, whereas a router can serve an
+ * arbitrary catalogue that must still be selectable.
  */
 export function listConfiguredRouters(): ConfiguredRouter[] {
-  const chain = buildProviderChain();
-  const primaryBaseURL = chain[0].baseURL;
+  const primaryBaseURL = getRouterConfig()?.baseURL;
+  const routers: ConfiguredRouter[] = [];
+  const seen = new Set<string>();
 
-  const routers = new Map<string, ConfiguredRouter>();
-  for (const provider of chain) {
-    if (!routers.has(provider.baseURL)) {
-      routers.set(provider.baseURL, {
-        client: provider.client,
-        baseURL: provider.baseURL,
-        prefix: provider.baseURL === primaryBaseURL ? "" : `${routerLabel(provider.baseURL)}/`,
-      });
-    }
-  }
-  return Array.from(routers.values());
+  const add = (config: { apiKey: string; baseURL: string } | null) => {
+    if (!config || seen.has(config.baseURL)) return;
+    seen.add(config.baseURL);
+    routers.push({
+      client: new OpenAI(config),
+      baseURL: config.baseURL,
+      prefix:
+        config.baseURL === primaryBaseURL ? "" : `${routerLabel(config.baseURL)}/`,
+    });
+  };
+
+  add(getRouterConfig());
+  add(getSecondRouterConfig());
+  if (isOllamaEnabled()) add(getOllamaConfig());
+
+  return routers;
 }
 
 /**
  * Resolves a model selection to a concrete client + native model id.
- * - Native ids present in any router's chain entry match directly
- * - "<label>/<id>" (e.g. "ollama/llama3") selects that router
+ * - "<label>/<id>" (e.g. "together/llama-3") selects that router, whether or
+ *   not the id appears in the fallback chain
+ * - Native ids present in the chain match directly
  * - Anything else falls back to the legacy alias handling on the primary router
  */
 export function resolveLlmEndpoint(modelSelection?: string): {
@@ -163,6 +212,7 @@ export function resolveLlmEndpoint(modelSelection?: string): {
   model: string;
 } {
   const chain = buildProviderChain();
+  const primaryBaseURL = chain[0].baseURL;
 
   const direct = chain.find((provider) => provider.model === modelSelection);
   if (direct) return { client: direct.client, model: direct.model };
@@ -171,13 +221,21 @@ export function resolveLlmEndpoint(modelSelection?: string): {
   if (modelSelection && slashIdx > 0) {
     const label = modelSelection.slice(0, slashIdx).toLowerCase();
     const nativeId = modelSelection.slice(slashIdx + 1);
+
+    // Chain entries first (keeps the existing Ollama / router behaviour)…
     const prefixed = chain.find(
       (provider) =>
-        provider.baseURL !== chain[0].baseURL &&
+        provider.baseURL !== primaryBaseURL &&
         routerLabel(provider.baseURL) === label &&
         provider.model === nativeId
     );
     if (prefixed) return { client: prefixed.client, model: prefixed.model };
+
+    // …then any other configured router, so unlisted catalogue models work.
+    const router = listConfiguredRouters().find(
+      (r) => r.prefix.toLowerCase() === `${label}/`
+    );
+    if (router) return { client: router.client, model: nativeId };
   }
 
   return { client: chain[0].client, model: getLlmModel(false, modelSelection) };
