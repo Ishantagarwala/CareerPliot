@@ -116,7 +116,12 @@ async function generateThreadTitle(
      * or the last non-empty line, which is usually the title itself.
      */
     const rawReasoning =
-      (choice?.message as { reasoning?: string } | undefined)?.reasoning || "";
+      (choice?.message as
+        | { reasoning?: string; reasoning_content?: string }
+        | undefined)?.reasoning ||
+      (choice?.message as { reasoning_content?: string } | undefined)
+        ?.reasoning_content ||
+      "";
     const salvage = (text: string) => {
       const afterLabel = text.match(/title\s*[:\-–]\s*(.+)$/im);
       if (afterLabel) return afterLabel[1];
@@ -542,10 +547,21 @@ export async function POST(req: Request) {
           );
 
           for await (const chunk of stream) {
+            /*
+             * Providers disagree on the field name for streamed chain of
+             * thought: the router uses `reasoning`, DeepSeek uses
+             * `reasoning_content`. Reading only one silently discarded the
+             * other provider's entire thinking trace.
+             */
             const deltaObj = chunk.choices[0]?.delta as
-              | { content?: string | null; reasoning?: string | null }
+              | {
+                  content?: string | null;
+                  reasoning?: string | null;
+                  reasoning_content?: string | null;
+                }
               | undefined;
-            const reasoningDelta = deltaObj?.reasoning || "";
+            const reasoningDelta =
+              deltaObj?.reasoning || deltaObj?.reasoning_content || "";
             if (reasoningDelta) {
               fullReasoning += reasoningDelta;
               controller.enqueue(
