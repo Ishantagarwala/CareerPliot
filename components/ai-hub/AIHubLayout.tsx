@@ -279,16 +279,36 @@ export default function AIHubLayout() {
   const [historyOpen, setHistoryOpen] = useState(true);
 
   /**
-   * Open by default on desktop (where the rail is a static column) and closed
-   * on mobile (where it is an off-canvas drawer that would cover the chat).
-   * The lazy initializer only runs on the client, and the server-rendered rail
-   * markup is identical either way, so this cannot desync hydration.
+   * Single source of truth for the rail, on every viewport.
+   *
+   * Earlier this was split: JS state for mobile plus `lg:visible`/`lg:static`
+   * overrides for desktop. The two disagreed — the CSS kept the rail on screen
+   * at >=1024px, and the state-driven classes (`visible translate-x-0`) also
+   * won below it, so the drawer started OPEN on a 390px phone and covered the
+   * chat. Now the state alone decides:
+   *   closed -> off-canvas (mobile) / zero width (desktop, `lg:` variants)
+   *   open   -> visible static column (desktop) / drawer (mobile)
+   * Seeded closed so a phone never opens onto a drawer.
    */
-  const [isLeftOpen, setIsLeftOpen] = useState(
-    () =>
-      typeof window === "undefined" ||
-      !window.matchMedia("(max-width: 1023px)").matches
-  );
+  const [isLeftOpen, setIsLeftOpen] = useState(false);
+
+  /**
+   * Rail visibility defaults, tracked across breakpoint changes.
+   *
+   * Seeding the state from matchMedia during the first render was unsafe — the
+   * rail still came up open on a 390px phone — so the state starts closed
+   * (never covering a phone) and this opens it once the viewport is known to
+   * have room for a static column. Subscribing to the query means a window
+   * resize across the breakpoint also lands in the right state, which a
+   * one-shot mount effect misses.
+   */
+  useEffect(() => {
+    const desktop = window.matchMedia("(min-width: 1024px)");
+    setIsLeftOpen(desktop.matches);
+    const onChange = (event: MediaQueryListEvent) => setIsLeftOpen(event.matches);
+    desktop.addEventListener("change", onChange);
+    return () => desktop.removeEventListener("change", onChange);
+  }, []);
   const [isRightOpen, setIsRightOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
 
@@ -689,10 +709,10 @@ export default function AIHubLayout() {
     <div className="aihub fixed inset-0 z-50 flex h-dvh w-full overflow-hidden bg-hub-bg font-sans text-hub-text">
       {/* ===================== LEFT RAIL ===================== */}
       <aside
-        className={`fixed inset-y-0 left-0 z-50 flex h-full w-[252px] shrink-0 flex-col border-r border-hub-line bg-hub-bg transition-all duration-200 ease-out lg:static lg:z-auto lg:translate-x-0 ${
+        className={`fixed inset-y-0 left-0 z-50 flex h-full w-[252px] shrink-0 flex-col border-r border-hub-line bg-hub-bg transition-all duration-200 ease-out lg:static lg:z-auto ${
           isLeftOpen
             ? "visible translate-x-0"
-            : "invisible -translate-x-full lg:w-0 lg:overflow-hidden lg:border-r-0"
+            : "max-lg:invisible max-lg:-translate-x-full lg:w-0 lg:overflow-hidden lg:border-r-0"
         }`}
         id="hub-rail"
         aria-label="Chat rail"
