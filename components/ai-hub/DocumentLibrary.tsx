@@ -1,5 +1,6 @@
 "use client";
 
+import { FileText, Trash2, Upload } from "lucide-react";
 import { getDocumentId, type HubDocument } from "./types";
 
 interface DocumentLibraryProps {
@@ -12,6 +13,17 @@ interface DocumentLibraryProps {
   onQuickPrompt: (prompt: string) => void;
 }
 
+const QUICK_PROMPTS = [
+  "Summarize the selected document in exam-ready notes.",
+  "Generate a short quiz from the selected document.",
+  "Explain the hardest concepts from the selected document.",
+];
+
+/**
+ * The study-material panel. Rows are selectable (the selection is what the
+ * chat grounds its answers in), and the footer exposes canned prompts that
+ * only make sense once something is selected.
+ */
 export default function DocumentLibrary({
   documents,
   selectedDocumentIds,
@@ -24,17 +36,25 @@ export default function DocumentLibrary({
   const hasSelection = selectedDocumentIds.length > 0;
 
   return (
-    <div className="h-full flex flex-col overflow-hidden bg-sidebar">
-      <div className="flex-1 overflow-y-auto p-4 space-y-3 custom-scrollbar">
+    <div className="flex h-full flex-col overflow-hidden bg-hub-surface">
+      <div className="rail-scroll min-h-0 flex-1 space-y-1 overflow-y-auto p-3">
         {loading ? (
           [1, 2, 3].map((item) => (
-            <div key={item} className="h-16 border border-border bg-card/30 rounded-lg animate-pulse" />
+            <div
+              key={item}
+              className="h-14 animate-pulse rounded-lg bg-hub-soft"
+            />
           ))
         ) : documents.length === 0 ? (
-          <div className="border-2 border-dashed border-border p-6 rounded-xl text-center bg-card/10">
-            <p className="text-xs font-bold text-foreground">No PDFs uploaded yet</p>
-            <p className="text-[10px] text-muted-foreground mt-1.5 leading-relaxed">
-              Upload study materials using the button in the header or drag-and-drop to parse documents.
+          <div className="rounded-lg border border-dashed border-hub-line p-5 text-center">
+            <div className="mx-auto flex size-9 items-center justify-center rounded-md bg-hub-soft text-hub-muted">
+              <Upload size={16} strokeWidth={1.75} aria-hidden />
+            </div>
+            <p className="mt-2.5 text-[13px] font-medium text-hub-text">
+              No study materials yet
+            </p>
+            <p className="mt-1 text-[12px] leading-relaxed text-hub-muted">
+              Attach a PDF in the composer and it will show up here.
             </p>
           </div>
         ) : (
@@ -48,80 +68,74 @@ export default function DocumentLibrary({
             return (
               <div
                 key={id}
-                className={`w-full border-2 rounded-xl p-3 transition-colors ${
+                className={`group flex items-start gap-2 rounded-lg border p-2.5 transition-colors ${
                   selected
-                    ? "border-primary bg-primary/10"
-                    : "border-border bg-card/30 hover:border-primary/50 hover:bg-card/50"
+                    ? "border-[var(--primary)]/45 bg-[var(--primary)]/5"
+                    : "border-transparent hover:bg-hub-raised"
                 }`}
               >
-                <div className="flex items-start gap-2.5">
-                  <button
-                    type="button"
-                    onClick={() => onToggleDocument(id)}
-                    className="flex items-start gap-2.5 min-w-0 flex-1 text-left cursor-pointer"
-                    disabled={isDeleting}
-                    aria-pressed={selected}
-                    aria-label={`${selected ? "Deselect" : "Select"} ${doc.filename}`}
+                <button
+                  type="button"
+                  onClick={() => onToggleDocument(id)}
+                  disabled={isDeleting}
+                  aria-pressed={selected}
+                  aria-label={`${selected ? "Deselect" : "Select"} ${doc.filename}`}
+                  className="flex min-w-0 flex-1 cursor-pointer items-start gap-2.5 text-left disabled:opacity-50"
+                >
+                  <span
+                    className={`mt-px grid size-6 shrink-0 place-items-center rounded-sm ${
+                      selected
+                        ? "bg-[var(--primary)]/12 text-[var(--primary)]"
+                        : "bg-hub-soft text-hub-muted"
+                    }`}
                   >
-                    <span
-                      className={`material-symbols-outlined text-[16px] shrink-0 mt-0.5 ${
-                        selected ? "text-primary" : "text-muted-foreground"
-                      }`}
-                    >
-                      description
+                    <FileText size={12} strokeWidth={1.75} aria-hidden />
+                  </span>
+                  <span className="min-w-0">
+                    <span className="block truncate text-[13px] font-medium text-hub-text">
+                      {doc.filename}
                     </span>
-                    <div className="min-w-0">
-                      <p className="text-xs font-bold text-foreground truncate">{doc.filename}</p>
-                      <p className="text-[10px] text-muted-foreground mt-1 line-clamp-2 leading-relaxed">
-                        {doc.summary || "Summary available after analysis."}
-                      </p>
-                    </div>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onDeleteDocument(id, doc.filename);
-                    }}
-                    disabled={isDeleting}
-                    className="shrink-0 p-1 text-muted-foreground hover:text-red-500 transition-colors disabled:opacity-40 cursor-pointer"
-                    title="Delete PDF"
-                    aria-label={`Delete ${doc.filename}`}
-                  >
-                    <span className="material-symbols-outlined text-[14px]">
-                      {isDeleting ? "progress_activity" : "delete"}
+                    <span className="mt-0.5 line-clamp-2 block text-[11.5px] leading-relaxed text-hub-muted">
+                      {doc.summary || "Summary available after analysis."}
                     </span>
-                  </button>
-                </div>
+                  </span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => onDeleteDocument(id, doc.filename)}
+                  disabled={isDeleting}
+                  className="shrink-0 cursor-pointer rounded p-1 text-hub-muted opacity-100 transition-all hover:bg-hub-soft hover:text-hub-danger disabled:opacity-40 sm:opacity-0 sm:group-hover:opacity-100 sm:focus-visible:opacity-100"
+                  title="Delete PDF"
+                  aria-label={`Delete ${doc.filename}`}
+                >
+                  <Trash2 size={12} aria-hidden />
+                </button>
               </div>
             );
           })
         )}
       </div>
 
-      <div className="border-t border-border p-4 space-y-2.5 bg-background">
-        <div className="flex items-center gap-1.5 text-[9px] font-bold text-muted-foreground uppercase tracking-widest font-label">
-          <span className="material-symbols-outlined text-[12px] text-primary">bolt</span>
-          Quick Prompts
-        </div>
+      <div className="space-y-1.5 border-t border-hub-line p-3">
+        <p className="px-1 text-[11px] font-medium tracking-wide text-hub-muted uppercase">
+          Quick prompts
+        </p>
         {!hasSelection && (
-          <p className="text-[10px] text-primary font-bold">
-            Select a document above to unlock actions.
+          <p className="px-1 text-[11.5px] leading-relaxed text-hub-muted">
+            Select a document above to unlock these.
           </p>
         )}
-        {[
-          "Summarize the selected document in exam-ready notes.",
-          "Generate a short quiz from the selected document.",
-          "Explain the hardest concepts from the selected document.",
-        ].map((prompt) => (
+        {QUICK_PROMPTS.map((prompt) => (
           <button
             key={prompt}
+            type="button"
             onClick={() => onQuickPrompt(prompt)}
             disabled={!hasSelection}
-            className={`w-full text-left text-[11px] border-2 rounded-lg px-3 py-2 transition-all leading-normal cursor-pointer ${
+            className={`w-full rounded-md border px-2.5 py-2 text-left text-[12px] leading-relaxed transition-colors ${
               hasSelection
-                ? "text-foreground border-border bg-card hover:bg-primary hover:text-primary-foreground hover:border-primary font-bold shadow-[2px_2px_0_0_rgba(0,0,0,0.15)] active:translate-x-0.5 active:translate-y-0.5 active:shadow-none"
-                : "text-muted-foreground/50 border-border/40 bg-transparent cursor-not-allowed"
+                ? "cursor-pointer border-hub-line bg-hub-raised text-hub-text hover:border-hub-composer-hover"
+                : "cursor-not-allowed border-hub-line/50 bg-transparent text-hub-muted/90"
             }`}
           >
             {prompt}

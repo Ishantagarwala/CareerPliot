@@ -1,3 +1,7 @@
+/** Shared limits — composer, chat surface and API must agree on these. */
+export const MAX_ATTACHMENTS = 3;
+export const MAX_MESSAGE_CHARS = 12_000;
+
 export interface HubDocument {
   _id?: string;
   id?: string;
@@ -11,6 +15,8 @@ export interface HubDocument {
 export interface HubThread {
   _id: string;
   threadTitle?: string;
+  /** 'manual' once renamed by the user — auto-titling then leaves it alone. */
+  titleSource?: "auto" | "manual";
   threadType?: "general" | "document";
   createdAt?: string;
   updatedAt?: string;

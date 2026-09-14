@@ -49,7 +49,7 @@ export default function MessageBubble({ message }: MessageBubbleProps) {
         }`}
       >
         <div
-          className={`flex h-8 w-8 shrink-0 items-center justify-center border-2 border-black ${
+          className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-border ${
             isUser ? "bg-accent text-accent-foreground" : "bg-card text-foreground"
           }`}
         >
@@ -67,7 +67,7 @@ export default function MessageBubble({ message }: MessageBubbleProps) {
 
         <div className="flex min-w-0 flex-1 flex-col space-y-1">
           <div
-            className={`relative w-full border-2 border-black p-4 pb-10 transition-all ${
+            className={`relative w-full rounded-2xl border border-border p-4 pb-10 shadow-sm transition-all ${
               isUser ? "bg-accent text-accent-foreground" : "bg-card text-foreground"
             }`}
           >
@@ -76,7 +76,7 @@ export default function MessageBubble({ message }: MessageBubbleProps) {
                 {message.attachments.map((att, idx) => (
                   <div
                     key={idx}
-                    className="flex items-center gap-2 border border-[#262626] bg-[#0A0A0A] p-1.5 text-xs text-white"
+                    className="flex items-center gap-2 rounded-lg border border-border bg-muted p-1.5 text-xs"
                   >
                     {att.type === "image" ? (
                       <a
@@ -91,7 +91,7 @@ export default function MessageBubble({ message }: MessageBubbleProps) {
                           src={att.fileUrl}
                           alt={att.filename}
                           loading="lazy"
-                          className="h-16 max-w-[120px] border border-[#262626] object-contain"
+                          className="h-16 max-w-[120px] rounded border border-border object-contain"
                         />
                       </a>
                     ) : (
@@ -99,7 +99,7 @@ export default function MessageBubble({ message }: MessageBubbleProps) {
                         href={att.fileUrl}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="flex items-center gap-1.5 text-white hover:underline"
+                        className="flex items-center gap-1.5 text-foreground hover:underline"
                       >
                         <span className="material-symbols-outlined text-[18px] text-red-500">
                           description
@@ -143,7 +143,7 @@ export default function MessageBubble({ message }: MessageBubbleProps) {
               <button
                 type="button"
                 onClick={handleCopyMessage}
-                className="flex h-6 w-6 items-center justify-center border border-[#262626] bg-[#0A0A0A]/80 text-[#8e9192] transition-colors hover:text-white"
+                className="flex h-7 w-7 items-center justify-center rounded-lg border border-border bg-background text-muted-foreground transition-colors hover:text-foreground"
                 aria-label={copiedText ? "Message copied" : "Copy message"}
                 title={copiedText ? "Copied" : "Copy message"}
               >

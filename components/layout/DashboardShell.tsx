@@ -13,7 +13,14 @@ export default function DashboardShell({
   const [isCollapsed, setIsCollapsed] = useState(false);
 
   return (
-    <div className="flex min-h-screen bg-background">
+    /*
+     * `data-app-shell` scopes the "inert behind the AI Hub" rule in
+     * globals.css to THIS shell's chrome. Matching on Tailwind classes
+     * instead also caught the hub's own rail (identical `fixed inset-y-0
+     * left-0` utilities), which made every control in the hub's sidebar
+     * unclickable.
+     */
+    <div className="flex min-h-screen bg-background" data-app-shell>
       <Sidebar
         className={cn(
           "hidden md:flex transition-transform duration-300 ease-in-out",
