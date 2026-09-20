@@ -95,6 +95,7 @@ export default function AssessmentForm({ onSuccess }: AssessmentFormProps) {
     register,
     handleSubmit,
     setValue,
+    getValues,
     formState: { errors },
   } = useForm<AssessmentFormValues>({
     resolver: zodResolver(assessmentSchema),
@@ -271,6 +272,21 @@ export default function AssessmentForm({ onSuccess }: AssessmentFormProps) {
       toast.error("Please select at least one interest to continue.");
       return;
     }
+    /*
+     * Step 3 was the only step with no guard, so its requirement surfaced at the
+     * very end: pressing "Get AI Recommendations" on the last step bounced the
+     * student back instead of the button doing anything visible from there.
+     */
+    if (step === 3 && getValues("goals").trim().length < 10) {
+      toast.error("Please describe your career goals in a sentence or two to continue.");
+      return;
+    }
+    // Subjects are required by the assessment, so they are required to advance
+    // too — otherwise the requirement only surfaced after filling in skills.
+    if (step === 4 && selectedSubjects.length === 0) {
+      toast.error("Please select at least one subject to continue.");
+      return;
+    }
     setStep(step + 1);
   };
 
@@ -303,13 +319,28 @@ export default function AssessmentForm({ onSuccess }: AssessmentFormProps) {
     if (currentVoiceIndex < questions.length - 1) {
       const nextIdx = currentVoiceIndex + 1;
       setCurrentVoiceIndex(nextIdx);
-    } else {
-      // Completed interview!
-      setVoiceHUDOpen(false);
-      setLoading(true);
+      return;
+    }
 
+    // Interview finished: analyse the answers.
+    setVoiceHUDOpen(false);
+    await runVoiceAnalysis(updatedAnswers);
+  };
 
-      try {
+  /**
+   * Turns a finished interview into recommendations.
+   *
+   * Separate from the answer handler so a failed request can be retried from
+   * the answers already given. It previously reset the flow in a `finally`,
+   * which discarded the whole interview and left the student on a voice screen
+   * whose HUD had already closed — nothing to press and nothing to retry.
+   */
+  const runVoiceAnalysis = async (
+    answers: Array<{ question: string; answer: string }>
+  ) => {
+    setLoading(true);
+
+    try {
         await voice.speakText(
           "Thanks! I have enough information to understand your profile. Let me analyse your strengths and career interests."
         );
@@ -318,7 +349,7 @@ export default function AssessmentForm({ onSuccess }: AssessmentFormProps) {
         const extractRes = await fetch("/api/career/voice-extract", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ conversation: updatedAnswers }),
+          body: JSON.stringify({ conversation: answers }),
         });
 
         if (!extractRes.ok) {
@@ -350,12 +381,13 @@ export default function AssessmentForm({ onSuccess }: AssessmentFormProps) {
 
         const [, res] = await Promise.all([runHud(), apiPromise]);
         const data = await res.json();
-        
+
         if (!res.ok) {
           throw new Error(data.message || "Failed to submit assessment profile");
         }
 
         toast.success("Mission roadmap loaded successfully!");
+        setMode("choice");
         onSuccess(data.recommendations);
       } catch (err: any) {
         console.error(err);
@@ -364,12 +396,12 @@ export default function AssessmentForm({ onSuccess }: AssessmentFormProps) {
             ? "The career assistant took too long to respond. Please try again."
             : err?.message || "Failed during AI analysis.";
         toast.error(message);
+        // The answers survive, and the choice screen offers to re-run them.
+        setMode("choice");
       } finally {
         setLoading(false);
         finishHud();
-        setMode("choice");
       }
-    }
   };
 
   const onSubmit = async (values: AssessmentFormValues) => {
@@ -444,6 +476,9 @@ export default function AssessmentForm({ onSuccess }: AssessmentFormProps) {
       }
 
       toast.success("Mission roadmap loaded successfully!");
+      // Leaving the flow is a success-only outcome, in both paths: a failed
+      // request keeps every answer on screen so it can simply be retried.
+      setMode("choice");
       onSuccess(data.recommendations);
     } catch (err: any) {
       console.error(err);
@@ -499,6 +534,35 @@ export default function AssessmentForm({ onSuccess }: AssessmentFormProps) {
             </div>
           </button>
         </div>
+
+        {/*
+          A failed voice analysis lands back here rather than on a dead screen,
+          and the interview does not have to be repeated to try again.
+        */}
+        {voiceAnswers.length > 0 && (
+          <div className="border-2 border-border p-4 flex flex-wrap items-center justify-between gap-3">
+            <p className="text-xs text-muted-foreground">
+              Your voice interview answers are still here — you can re-run the
+              analysis without repeating the interview.
+            </p>
+            <button
+              type="button"
+              disabled={loading}
+              onClick={() => void runVoiceAnalysis(voiceAnswers)}
+              className="inline-flex items-center px-4 py-2 border-2 border-black bg-primary text-primary-foreground text-xs font-bold disabled:opacity-50"
+              style={{ fontFamily: "'JetBrains Mono', monospace", letterSpacing: "0.04em" }}
+            >
+              {loading ? (
+                <>
+                  <Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" />
+                  Trying again...
+                </>
+              ) : (
+                "Retry voice analysis"
+              )}
+            </button>
+          </div>
+        )}
       </div>
     );
   }
@@ -862,6 +926,8 @@ export default function AssessmentForm({ onSuccess }: AssessmentFormProps) {
               Back
             </button>
           ) : (
+            // Step 1 is the start of the flow; the only way back is to change
+            // the domain, which the step itself offers.
             <div />
           )}
 
