@@ -173,6 +173,17 @@ export function rateLimitRetryAfterMs(key: string): number {
 }
 
 /**
+ * Units already spent against `key` in its current window, or 0 when the window
+ * has expired. Lets a caller refuse an expensive operation *before* starting it,
+ * rather than discovering partway through that there was not enough left.
+ */
+export function rateLimitPeek(key: string): number {
+  const bucket = rateBuckets.get(key);
+  if (!bucket || Date.now() > bucket.resetAt) return 0;
+  return bucket.count;
+}
+
+/**
  * Best-effort client IP from proxy headers.
  *
  * Behind Cloudflare, prefer CF-Connecting-IP: X-Forwarded-For's leftmost entry

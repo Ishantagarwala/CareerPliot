@@ -20,14 +20,15 @@ The production VPS exposes an opt-in shared demo through **Demo Login**. Do not 
 ## 📌 Table of Contents
 1. [Core Features](#-core-features)
 2. [Generated Documents](#-generated-documents)
-3. [System Architecture](#-system-architecture)
-4. [Tech Stack](#-tech-stack)
-5. [Project Structure](#-project-structure)
-6. [Getting Started & Setup](#-getting-started--setup)
-7. [Environment Variables](#-environment-variables)
-8. [Deployment](#-deployment)
-9. [Available Scripts](#-available-scripts)
-10. [Team](#-team)
+3. [Rate Limits & AI Budget](#-rate-limits--ai-budget)
+4. [System Architecture](#-system-architecture)
+5. [Tech Stack](#-tech-stack)
+6. [Project Structure](#-project-structure)
+7. [Getting Started & Setup](#-getting-started--setup)
+8. [Environment Variables](#-environment-variables)
+9. [Deployment](#-deployment)
+10. [Available Scripts](#-available-scripts)
+11. [Team](#-team)
 
 ---
 
@@ -78,6 +79,38 @@ truncated real documents during development.
 
 Both writers consume `ExportBlock`, produced by `lib/export/markdownBlocks.ts` from the
 *rendered* Markdown — the same extractor the reply exports use, so the two never drift.
+
+## 🚦 Rate Limits & AI Budget
+
+Every AI feature is capped per user so one account cannot burn the provider's
+credits. There are three layers, and they apply together:
+
+| Layer | Scope | Default |
+| :--- | :--- | :--- |
+| Per IP | one action, e.g. career assessment | 10 / hour |
+| Per action | one user, per feature | roadmap 5, assessment 5, niche 8, resume 10, projects 5, tutor 30 |
+| Hourly ceiling | one user, **all** AI features | 25 **model calls** |
+
+The hourly ceiling counts model calls, not button presses, because the cost per
+action differs: a roadmap spends 3 (one response for the whole roadmap, or one
+per stage when a response is cut short) and an assessment spends up to 2. An
+action that needs more units than remain is refused before it starts, so it can
+never half-finish past the ceiling. Responses carry `Retry-After`, and the
+message says how long the wait is.
+
+```bash
+# .env.local — scale every AI limit at once (handy while testing)
+AI_LIMIT_MULTIPLIER=10
+
+# or raise just the hourly ceiling
+LLM_USER_HOURLY_LIMIT=100
+```
+
+Limits are held in memory, so they reset when the server restarts and each
+server instance counts separately. For a strict shared limit, back
+`lib/security.ts` with a shared store such as Upstash Redis.
+
+---
 
 ## 🏗️ System Architecture
 
@@ -252,7 +285,8 @@ Start from `.env.example`. Keep all real values in an ignored environment file o
 | `PDF_CO_API_KEY` | OCR fallback for scanned PDFs |
 | `LLM_ROUTER_JSON_MODE=true` | Requests router-native JSON response format; off by default for compatibility |
 | `LLM_MAX_TOKENS` | Structured-generation completion ceiling; defaults to `12000` |
-| `LLM_USER_HOURLY_LIMIT` | Per-user hourly AI Hub request limit; defaults to `25` |
+| `LLM_USER_HOURLY_LIMIT` | Per-user hourly ceiling for all AI features, counted in model calls; defaults to `25` |
+| `AI_LIMIT_MULTIPLIER` | Scales every AI limit at once, e.g. `10` while testing locally; defaults to `1` |
 | `USE_LOCAL_OLLAMA=true` | Adds the configured local Ollama model after router fallbacks |
 | `OLLAMA_BASE_URL` / `OLLAMA_MODEL` / `OLLAMA_FALLBACK_MODEL` | Optional Ollama endpoint and model IDs |
 | `GOOGLE_SITE_VERIFICATION` | Google Search Console verification token |

@@ -259,7 +259,12 @@ export async function GET(req: Request) {
       // Legacy milestone-only cache: generate the new topic graph below, then replace.
     }
 
-    const limited = enforceLlmBudget(userId, "roadmap", 5);
+    /*
+     * Charged as three model calls, not one: the hourly ceiling counts model
+     * spend, and this action writes the whole roadmap in one response or falls
+     * back to asking for each stage separately.
+     */
+    const limited = enforceLlmBudget(userId, "roadmap", 5, { cost: 3 });
     if (limited) return limited;
 
     // Fetch UserProfile

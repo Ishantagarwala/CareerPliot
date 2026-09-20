@@ -53,7 +53,12 @@ export async function POST(req: Request) {
       );
     }
 
-    const limited = enforceLlmBudget(userId, "career-assess", 5);
+    /*
+     * Two model calls are declared: the assessment retries once when the first
+     * response cannot be used, and the hourly ceiling counts what is actually
+     * spent rather than how many times the button was pressed.
+     */
+    const limited = enforceLlmBudget(userId, "career-assess", 5, { cost: 2 });
     if (limited) return limited;
 
     const { interests, goals, subjects, skills, careerDomain: requestedDomain, careerNiche } =
