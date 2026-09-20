@@ -398,7 +398,8 @@ async function createStructuredCompletion(
 export async function generateStructuredJson<T>(
   systemPrompt: string,
   userPrompt: string,
-  isPdf = false
+  isPdf = false,
+  maxTokens: number = MAX_COMPLETION_TOKENS
 ): Promise<T> {
   const chain = buildProviderChain();
   let providers = chain;
@@ -419,23 +420,49 @@ export async function generateStructuredJson<T>(
 
       let response;
       try {
-        response = await createStructuredCompletion(client, model, systemPrompt, userPrompt);
+        response = await createStructuredCompletion(
+          client,
+          model,
+          systemPrompt,
+          userPrompt,
+          maxTokens
+        );
       } catch (error) {
         if (!isMaxTokensError(error)) throw error;
+        const retryTokens = Math.min(maxTokens, RETRY_COMPLETION_TOKENS);
         console.warn(
-          `[LLM] ${name} rejected max_tokens=${MAX_COMPLETION_TOKENS}; retrying with ${RETRY_COMPLETION_TOKENS}`
+          `[LLM] ${name} rejected max_tokens=${maxTokens}; retrying with ${retryTokens}`
         );
         response = await createStructuredCompletion(
           client,
           model,
           systemPrompt,
           userPrompt,
-          RETRY_COMPLETION_TOKENS
+          retryTokens
         );
       }
 
-      const content = response.choices[0]?.message?.content;
-      if (!content) throw new Error(`Empty response from ${name}`);
+      const choice = response.choices[0];
+      const content = choice?.message?.content;
+      if (!content) {
+        /*
+         * Reasoning models can end a turn having emitted only chain-of-thought.
+         * Reporting the finish reason and token split is what separates "the
+         * ceiling was too low" from "the provider returned nothing", which the
+         * previous bare message left indistinguishable.
+         */
+        const usage = response.usage;
+        const reasoningChars = String(
+          (choice?.message as { reasoning?: string; reasoning_content?: string } | undefined)
+            ?.reasoning ||
+            (choice?.message as { reasoning_content?: string } | undefined)?.reasoning_content ||
+            ""
+        ).length;
+        throw new Error(
+          `Empty response from ${name} (finish_reason=${choice?.finish_reason ?? "unknown"}, ` +
+            `completion_tokens=${usage?.completion_tokens ?? "?"}, reasoning_chars=${reasoningChars})`
+        );
+      }
 
       const cleanContent = extractJsonContent(content);
       const parsed = JSON.parse(cleanContent) as T;

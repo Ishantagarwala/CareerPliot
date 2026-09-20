@@ -19,23 +19,25 @@ The production VPS exposes an opt-in shared demo through **Demo Login**. Do not 
 
 ## 📌 Table of Contents
 1. [Core Features](#-core-features)
-2. [System Architecture](#-system-architecture)
-3. [Tech Stack](#-tech-stack)
-4. [Project Structure](#-project-structure)
-5. [Getting Started & Setup](#-getting-started--setup)
-6. [Environment Variables](#-environment-variables)
-7. [Deployment](#-deployment)
-8. [Available Scripts](#-available-scripts)
-9. [Team](#-team)
+2. [Generated Documents](#-generated-documents)
+3. [System Architecture](#-system-architecture)
+4. [Tech Stack](#-tech-stack)
+5. [Project Structure](#-project-structure)
+6. [Getting Started & Setup](#-getting-started--setup)
+7. [Environment Variables](#-environment-variables)
+8. [Deployment](#-deployment)
+9. [Available Scripts](#-available-scripts)
+10. [Team](#-team)
 
 ---
 
 ## 🌟 Core Features
 
 * **🧭 AI Career Discovery:** Assesses interests, academic preferences, existing skills, and goals to recommend compatible career paths.
-* **🗺️ Personalized Roadmaps:** Generates Beginner → Intermediate → Advanced milestones and tracks completion and readiness.
+* **🗺️ Personalized Roadmaps:** Generates Beginner → Intermediate → Advanced milestones and tracks completion and readiness. One request writes the whole roadmap; if that response is ever cut short, it falls back to generating each stage on its own and keeps whatever succeeds rather than failing.
 * **📚 Live Course Recommendations:** Uses roadmap milestones to find relevant Coursera catalog courses, optional long-form YouTube results, and provider search links.
 * **📄 AI Study Hub:** Upload PDFs, extract text locally, summarize documents, generate questions, and chat with selected documents. Replies stream token-by-token. Uploaded documents can also be deleted from the library.
+* **📄 Generated Documents:** Ask for a report, study guide, plan or resume and the assistant writes the document itself, then offers it as a real download — `.pdf`, `.docx` or Markdown. The file is built from the reply's own Markdown, so headings, lists, tables, code blocks and diagrams all arrive intact. The PDF is written directly as PDF text (selectable and searchable, no page screenshots), and the Word file is a genuine OOXML `.docx` — neither needs a document library.
 * **🤖 Context-Aware AI Tutor:** Supports general tutoring, document-aware questions, code help, attachments, persistent threads, and renamed conversations.
 * **🧠 Router Model Selection:** Loads the models exposed by the configured OpenAI-compatible router, removes duplicate provider variants, and lets users choose a model in the AI Hub.
 * **📝 Resume Builder:** Builds printable resumes with personal details, education, experience, projects, skills, certifications, custom sections, LaTeX export, and reliable comma-separated skill/technology entry.
@@ -51,6 +53,31 @@ The production VPS exposes an opt-in shared demo through **Demo Login**. Do not 
 * **🎨 Accessible UI:** Light mode by default, optional dark mode, persistent accent-color picker, responsive hamburger drawers, full-width dashboard layouts, and branded loading animations.
 
 ---
+
+## 📄 Generated Documents
+
+The assistant emits a fenced `~~~file` block holding a JSON document spec:
+
+```text
+~~~file
+{"filename":"sql-4-week-plan","format":"docx","title":"SQL Study Plan","markdown":"# SQL Study Plan\n\n…"}
+~~~
+```
+
+The AI Hub parses it and renders a download card instead of showing raw JSON. Tildes
+are required for the outer fence: a generated document contains its own ```` ``` ````
+code fences, and a backtick fence around it would be closed early — which silently
+truncated real documents during development.
+
+| Piece | Where | Notes |
+| --- | --- | --- |
+| Block grammar | `lib/generated/fileSpec.ts` | Validates the spec, sanitises the filename, tolerates trailing characters a model leaves after the JSON |
+| PDF writer | `lib/generated/exportPdf.ts` | Emits PDF objects directly: base-14 fonts, real text, page breaks, tables and code blocks laid out by hand |
+| Word writer | `lib/export/exportDocx.ts` | Assembles the OOXML package and its ZIP; same block model as the PDF |
+| Download card | `components/ai-hub/GeneratedFileCard.tsx` | Renders the spec, previews the document, builds the file on click (lazy-loaded) |
+
+Both writers consume `ExportBlock`, produced by `lib/export/markdownBlocks.ts` from the
+*rendered* Markdown — the same extractor the reply exports use, so the two never drift.
 
 ## 🏗️ System Architecture
 
@@ -317,6 +344,21 @@ Configure secrets and environment values in Cloudflare before deploying. Confirm
 | `npm run deploy` | Build and deploy with OpenNext Cloudflare |
 | `npm run upload` | Build and upload the Cloudflare Worker |
 | `npm run cf-typegen` | Generate Cloudflare environment types |
+| `npm run check:all` | Verify the document writers and the `file` block end to end (needs `npm i -D linkedom`) |
+
+### Document checks
+
+Four harnesses cover the parts that are easy to get quietly wrong — a PDF whose
+cross-reference offsets do not line up opens as a corrupt file, and OOXML that is
+valid XML can still lose its pictures. They build real files and read them back
+with `pdfinfo`, `pdftotext` and `unzip`, so a passing run means the files open.
+
+| Command | Covers |
+| :--- | :--- |
+| `npm run check:export` | Rendered reply → `.docx` + print HTML, including the OOXML structural rules |
+| `npm run check:docs` | The `file` block spec, the hand-written PDF, and the same blocks as `.docx` |
+| `npm run check:files` | A captured reply through the application's parser and ReactMarkdown |
+| `npm run check:markdown-docs` | A generated document: Markdown → DOM → blocks → both files |
 
 ---
 

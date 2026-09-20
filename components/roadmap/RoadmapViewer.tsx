@@ -121,6 +121,34 @@ export default function RoadmapViewer({
 
   return (
     <div className="space-y-6 max-w-6xl">
+      {/*
+        A roadmap missing a stage is still usable, so it is shown rather than
+        hidden behind an error — but the gap is named, and the same regenerate
+        action that fills it is right there instead of being left to guesswork.
+      */}
+      {roadmap.stages.length < 3 && (
+        <div className="flex flex-wrap items-center justify-between gap-3 border border-border bg-card px-4 py-3">
+          <p className="text-xs text-muted-foreground">
+            <span className="font-bold text-foreground">
+              {roadmap.stages.length} of 3 stages
+            </span>{" "}
+            were generated. The model response was cut short before the rest were written.
+          </p>
+          {onRefreshRoadmap && (
+            <button
+              type="button"
+              disabled={refreshing}
+              onClick={onRefreshRoadmap}
+              className="inline-flex items-center gap-2 min-h-9 px-3 py-1.5 border border-border bg-background text-foreground text-[11px] font-bold hover:border-foreground transition-colors disabled:opacity-40"
+              style={{ fontFamily: "'JetBrains Mono', monospace", letterSpacing: "0.04em" }}
+            >
+              <RotateCcw className={`w-3.5 h-3.5 ${refreshing ? "animate-spin" : ""}`} />
+              {refreshing ? "Generating…" : "Generate missing stages"}
+            </button>
+          )}
+        </div>
+      )}
+
       <div className="bg-card border border-border p-5 sm:p-8 space-y-5">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="flex items-center gap-2 flex-wrap min-w-0">
