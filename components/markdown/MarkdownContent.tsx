@@ -6,10 +6,11 @@ import remarkGfm from "remark-gfm";
 import remarkMath from "remark-math";
 import rehypeKatex from "rehype-katex";
 import type { Components } from "react-markdown";
-import { Copy, Check, Terminal } from "lucide-react";
+import { Copy, Check, FileText, Terminal } from "lucide-react";
 import { toast } from "sonner";
 import "katex/dist/katex.min.css";
 import { parseChartSpec } from "./ChartBlock";
+import { parseGeneratedFile } from "@/lib/generated/fileSpec";
 
 /*
  * Mermaid is only pulled in when a reply actually contains a diagram, and its
@@ -19,6 +20,7 @@ import { parseChartSpec } from "./ChartBlock";
 const MermaidDiagram = React.lazy(() => import("./MermaidDiagram"));
 const HighlightedCode = React.lazy(() => import("./HighlightedCode"));
 const ChartBlock = React.lazy(() => import("./ChartBlock"));
+const GeneratedFileCard = React.lazy(() => import("@/components/ai-hub/GeneratedFileCard"));
 
 export type MarkdownVariant = "chat-assistant" | "chat-user" | "summary";
 
@@ -26,6 +28,26 @@ interface MarkdownContentProps {
   content: string;
   variant?: MarkdownVariant;
   className?: string;
+}
+
+/**
+ * Shown while a document is still arriving. The assistant streams the whole
+ * document inside its reply, so this is the state for most of the wait.
+ */
+function WritingDocument() {
+  return (
+    <div className="my-4 flex items-center gap-3 rounded-xl border border-hub-line bg-hub-surface px-3.5 py-3">
+      <span className="grid size-9 shrink-0 place-items-center rounded-lg bg-hub-soft text-hub-muted">
+        <FileText size={15} aria-hidden />
+      </span>
+      <span className="min-w-0">
+        <span className="ai-thinking-label block text-[13px] text-hub-text">Writing the document</span>
+        <span className="block text-[11.5px] text-hub-muted">
+          It will be ready to download as soon as the reply finishes.
+        </span>
+      </span>
+    </div>
+  );
 }
 
 function CodeBlock({
@@ -190,6 +212,31 @@ function buildComponents(variant: MarkdownVariant): Components {
     code: ({ className, children }) => {
       const match = /language-(\w+)/.exec(className || "");
       const code = String(children).replace(/\n$/, "");
+      // A ```file block is a document the reply is delivering; fall through to
+      // code when the payload is not a usable document, rather than losing it.
+      if (match?.[1]?.toLowerCase() === "file") {
+        const spec = parseGeneratedFile(code);
+        if (spec) {
+          return (
+            <React.Suspense
+              fallback={
+                <div className="my-4 rounded-lg border border-hub-line bg-hub-raised px-3 py-6 text-center text-[12px] text-hub-muted">
+                  Preparing document…
+                </div>
+              }
+            >
+              <GeneratedFileCard spec={spec} />
+            </React.Suspense>
+          );
+        }
+        /*
+         * A document streams in over many seconds, so its JSON is incomplete
+         * for most of that time. Showing the half-written payload as a code
+         * block would be the loudest thing on screen; a quiet placeholder says
+         * the same thing honestly.
+         */
+        return <WritingDocument />;
+      }
       // A ```chart block is data to plot; fall through to code if unparseable.
       if (match?.[1]?.toLowerCase() === "chart") {
         const spec = parseChartSpec(code);

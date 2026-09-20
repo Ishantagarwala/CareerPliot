@@ -1,14 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import {
-  Check,
-  ChevronRight,
-  Copy,
-  Download,
-  FileText,
-  Image as ImageIcon,
-} from "lucide-react";
+import { Check, ChevronRight, Copy, FileText, Image as ImageIcon } from "lucide-react";
 import { toast } from "sonner";
 import MarkdownContent from "@/components/markdown/MarkdownContent";
 import type { ChatAttachment } from "./types";
@@ -208,8 +201,12 @@ function AttachmentRow({ attachments }: { attachments: ChatAttachment[] }) {
 }
 
 /**
- * Copy / download controls for a finished answer. "Download" saves the raw
- * Markdown, which stays useful outside the app (notes app, Obsidian, a repo).
+ * Copy control for a finished answer.
+ *
+ * Downloading a *reply* used to live here too. It moved to the assistant: when
+ * a document is what the student wants, the model emits a ```file block and the
+ * interface offers the finished PDF or Word file — a real document rather than
+ * a transcript of one.
  */
 function ReplyActions({ content }: { content: string }) {
   const [copied, setCopied] = useState(false);
@@ -225,20 +222,6 @@ function ReplyActions({ content }: { content: string }) {
     }
   };
 
-  const handleDownload = () => {
-    const stamp = new Date().toISOString().slice(0, 10);
-    const blob = new Blob([content], { type: "text/markdown;charset=utf-8" });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = `career-pilot-answer-${stamp}.md`;
-    document.body.appendChild(link);
-    link.click();
-    link.remove();
-    URL.revokeObjectURL(url);
-    toast.success("Saved as Markdown");
-  };
-
   return (
     <div className="flex items-center gap-0.5 pt-0.5">
       <button
@@ -249,15 +232,6 @@ function ReplyActions({ content }: { content: string }) {
       >
         {copied ? <Check size={12} aria-hidden /> : <Copy size={12} aria-hidden />}
         {copied ? "Copied" : "Copy"}
-      </button>
-      <button
-        type="button"
-        onClick={handleDownload}
-        className="flex cursor-pointer items-center gap-1 rounded-md px-1.5 py-1 text-[11.5px] text-hub-muted transition-colors hover:bg-hub-soft hover:text-hub-text"
-        aria-label="Download this reply as Markdown"
-      >
-        <Download size={12} aria-hidden />
-        .md
       </button>
     </div>
   );
