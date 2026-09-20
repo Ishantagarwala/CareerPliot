@@ -362,9 +362,7 @@ export default function AIHubLayout() {
     }
   }, []);
 
-  const initialThreadSelected = useRef(false);
-
-  const fetchThreads = useCallback(async (opts?: { autoSelect?: boolean }) => {
+  const fetchThreads = useCallback(async () => {
     try {
       const res = await fetch("/api/ai-hub/threads");
       if (!res.ok) {
@@ -372,16 +370,10 @@ export default function AIHubLayout() {
       }
       const data = (await res.json()) as HubThread[];
       if (Array.isArray(data)) {
+        // The rail is populated, but nothing is opened: the hub always lands on
+        // a new chat. Selecting the newest thread here meant every visit
+        // resumed the previous conversation, and the composer typed into it.
         setThreads(data);
-        // Only auto-select once on first load — never yank "New Chat" or an active stream.
-        if (
-          opts?.autoSelect &&
-          !initialThreadSelected.current &&
-          data.length > 0
-        ) {
-          initialThreadSelected.current = true;
-          setActiveThreadId((curr) => curr ?? data[0]._id);
-        }
       }
     } catch (error) {
       console.error("Failed to load threads:", error);
@@ -392,7 +384,7 @@ export default function AIHubLayout() {
 
   useEffect(() => {
     fetchDocuments();
-    void fetchThreads({ autoSelect: true });
+    void fetchThreads();
   }, [fetchDocuments, fetchThreads]);
 
   /**
