@@ -345,6 +345,7 @@ Configure secrets and environment values in Cloudflare before deploying. Confirm
 | `npm run upload` | Build and upload the Cloudflare Worker |
 | `npm run cf-typegen` | Generate Cloudflare environment types |
 | `npm run check:career` | Filter the career-assessment model output (junk paths, score formats, duplicates) |
+| `npm run check:hud` | The assessment's progress overlay: a failed request must not leave it on screen |
 | `npm run check:all` | Run every check below (needs `npm i -D linkedom`) |
 
 ### Document checks
@@ -361,6 +362,7 @@ with `pdfinfo`, `pdftotext` and `unzip`, so a passing run means the files open.
 | `npm run check:files` | A captured reply through the application's parser and ReactMarkdown |
 | `npm run check:markdown-docs` | A generated document: Markdown → DOM → blocks → both files |
 | `npm run check:career` | Career-assessment output: rejection of error text, score normalisation, de-duplication |
+| `npm run check:hud` | Assessment progress sequence: cancellation on failure, retry, and unmount |
 
 ---
 

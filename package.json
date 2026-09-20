@@ -16,9 +16,10 @@
     "check:export": "node scripts/check-reply-export.mjs",
     "check:docs": "node scripts/check-generated-docs.mjs",
     "check:files": "node scripts/check-file-block-render.mjs",
-    "check:all": "npm run check:export && npm run check:docs && npm run check:files && npm run check:markdown-docs && npm run check:career",
+    "check:all": "npm run check:export && npm run check:docs && npm run check:files && npm run check:markdown-docs && npm run check:career && npm run check:hud",
     "check:markdown-docs": "node scripts/check-markdown-to-docs.mjs",
-    "check:career": "node scripts/check-career-recommendations.mjs"
+    "check:career": "node scripts/check-career-recommendations.mjs",
+    "check:hud": "node scripts/check-hud-progress.mjs"
   },
   "dependencies": {
     "@base-ui/react": "^1.5.0",

@@ -13,6 +13,12 @@ export function compileLibModules({
   tmp,
   outDir,
   include = ["../../lib/export/**/*.ts", "../../lib/generated/**/*.ts"],
+  /*
+   * Relative to `tmp`, so `lib/export/x.ts` lands at `<outDir>/export/x.js` —
+   * the path callers import. A check compiling something outside `lib` passes
+   * its own rootDir.
+   */
+  rootDir = "../../lib",
 }) {
   mkdirSync(tmp, { recursive: true });
   mkdirSync(outDir, { recursive: true });
@@ -27,7 +33,7 @@ export function compileLibModules({
         strict: false,
         skipLibCheck: true,
         outDir,
-        rootDir: "../../lib",
+        rootDir,
       },
       include,
     })

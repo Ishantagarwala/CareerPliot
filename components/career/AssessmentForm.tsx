@@ -7,6 +7,10 @@ import * as z from "zod";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
 import { useVoice } from "@/components/voice/useVoice";
+import { useHudProgress } from "./useHudProgress";
+
+/** Ceiling for one assessment request, comfortably above the usual 15-30s. */
+const ASSESS_TIMEOUT_MS = 120_000;
 import VoiceHUD from "@/components/voice/VoiceHUD";
 import {
   DOMAIN_LIST,
@@ -55,7 +59,12 @@ export default function AssessmentForm({ onSuccess }: AssessmentFormProps) {
   const [mode, setMode] = useState<"choice" | "type" | "voice">("choice");
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
-  const [hudStep, setHudStep] = useState(0);
+  /*
+   * The overlay's progress lives in a hook that can be cancelled: a sequence
+   * left running used to re-show the overlay after a failure and leave the
+   * student staring at a finished checklist with no error and a dead button.
+   */
+  const { hudStep, isSlow, run: runHud, finish: finishHud } = useHudProgress();
 
   // Conversational Voice Assessment States
   const [currentVoiceIndex, setCurrentVoiceIndex] = useState(0);
@@ -298,20 +307,7 @@ export default function AssessmentForm({ onSuccess }: AssessmentFormProps) {
       // Completed interview!
       setVoiceHUDOpen(false);
       setLoading(true);
-      setHudStep(1);
 
-      // Start sequential HUD progress transition loading
-      const runHudAnimation = async () => {
-        await new Promise((r) => setTimeout(r, 800));
-        setHudStep(2);
-        await new Promise((r) => setTimeout(r, 800));
-        setHudStep(3);
-        await new Promise((r) => setTimeout(r, 800));
-        setHudStep(4);
-        await new Promise((r) => setTimeout(r, 800));
-        setHudStep(5);
-        await new Promise((r) => setTimeout(r, 1200));
-      };
 
       try {
         await voice.speakText(
@@ -335,6 +331,7 @@ export default function AssessmentForm({ onSuccess }: AssessmentFormProps) {
         const apiPromise = fetch("/api/career/assess", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
+          signal: AbortSignal.timeout(ASSESS_TIMEOUT_MS),
           body: JSON.stringify({
             careerDomain: careerDomain || undefined,
             careerNiche: careerNiche || undefined,
@@ -351,7 +348,7 @@ export default function AssessmentForm({ onSuccess }: AssessmentFormProps) {
           }),
         });
 
-        const [, res] = await Promise.all([runHudAnimation(), apiPromise]);
+        const [, res] = await Promise.all([runHud(), apiPromise]);
         const data = await res.json();
         
         if (!res.ok) {
@@ -362,10 +359,14 @@ export default function AssessmentForm({ onSuccess }: AssessmentFormProps) {
         onSuccess(data.recommendations);
       } catch (err: any) {
         console.error(err);
-        toast.error(err.message || "Failed during AI analysis.");
+        const message =
+          err?.name === "TimeoutError" || err?.name === "AbortError"
+            ? "The career assistant took too long to respond. Please try again."
+            : err?.message || "Failed during AI analysis.";
+        toast.error(message);
       } finally {
         setLoading(false);
-        setHudStep(0);
+        finishHud();
         setMode("choice");
       }
     }
@@ -375,6 +376,18 @@ export default function AssessmentForm({ onSuccess }: AssessmentFormProps) {
     if (!careerDomain) {
       toast.error("Please select a career domain in Step 1.");
       setStep(1);
+      return;
+    }
+
+    /*
+     * The schema requires a real description of the goal, but its message only
+     * renders on Step 3. React Hook Form refuses to submit an invalid form, so
+     * from Step 5 the button appeared to do nothing at all; the same rule is
+     * restated here, where it can be seen.
+     */
+    if (!values.goals || values.goals.trim().length < 10) {
+      toast.error("Please describe your career goals in a sentence or two (Step 3).");
+      setStep(3);
       return;
     }
 
@@ -396,30 +409,22 @@ export default function AssessmentForm({ onSuccess }: AssessmentFormProps) {
     }
 
     if (finalSkills.length === 0) {
-      toast.error("Please list at least one skill in Step 4.");
+      toast.error("Please list at least one skill in Step 5.");
+      setStep(5);
       return;
     }
 
     setLoading(true);
-    setHudStep(1);
-
-    // Timeline of HUD step advances
-    const runHudAnimation = async () => {
-      await new Promise((r) => setTimeout(r, 800));
-      setHudStep(2);
-      await new Promise((r) => setTimeout(r, 800));
-      setHudStep(3);
-      await new Promise((r) => setTimeout(r, 800));
-      setHudStep(4);
-      await new Promise((r) => setTimeout(r, 800));
-      setHudStep(5);
-      await new Promise((r) => setTimeout(r, 1200));
-    };
 
     try {
       const apiPromise = fetch("/api/career/assess", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        /*
+         * A request that never settles leaves the interface waiting with no way
+         * out; this ceiling is well above the slowest observed generation.
+         */
+        signal: AbortSignal.timeout(ASSESS_TIMEOUT_MS),
         body: JSON.stringify({
           careerDomain,
           careerNiche: careerNiche || undefined,
@@ -430,8 +435,8 @@ export default function AssessmentForm({ onSuccess }: AssessmentFormProps) {
         }),
       });
 
-      // Wait for both the cinematic HUD steps and the actual API request to finish
-      const [, res] = await Promise.all([runHudAnimation(), apiPromise]);
+      // The overlay runs alongside the request; `finishHud` stops it either way.
+      const [, res] = await Promise.all([runHud(), apiPromise]);
 
       const data = await res.json();
       if (!res.ok) {
@@ -442,10 +447,14 @@ export default function AssessmentForm({ onSuccess }: AssessmentFormProps) {
       onSuccess(data.recommendations);
     } catch (err: any) {
       console.error(err);
-      toast.error(err.message || "Failed to submit assessment.");
+      const message =
+        err?.name === "TimeoutError" || err?.name === "AbortError"
+          ? "The career assistant took too long to respond. Please try again."
+          : err?.message || "Failed to submit assessment.";
+      toast.error(message);
     } finally {
       setLoading(false);
-      setHudStep(0);
+      finishHud();
     }
   };
 
@@ -946,6 +955,13 @@ export default function AssessmentForm({ onSuccess }: AssessmentFormProps) {
             >
               Generating Roadmap...
             </div>
+
+            {isSlow && (
+              <p className="text-[11px] leading-relaxed text-muted-foreground">
+                This is taking longer than usual — the model is still writing your
+                matches. It normally finishes within a minute.
+              </p>
+            )}
 
             {/* Staged Checklist — neo-brutalist card */}
             <div
