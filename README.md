@@ -344,7 +344,8 @@ Configure secrets and environment values in Cloudflare before deploying. Confirm
 | `npm run deploy` | Build and deploy with OpenNext Cloudflare |
 | `npm run upload` | Build and upload the Cloudflare Worker |
 | `npm run cf-typegen` | Generate Cloudflare environment types |
-| `npm run check:all` | Verify the document writers and the `file` block end to end (needs `npm i -D linkedom`) |
+| `npm run check:career` | Filter the career-assessment model output (junk paths, score formats, duplicates) |
+| `npm run check:all` | Run every check below (needs `npm i -D linkedom`) |
 
 ### Document checks
 
@@ -359,6 +360,7 @@ with `pdfinfo`, `pdftotext` and `unzip`, so a passing run means the files open.
 | `npm run check:docs` | The `file` block spec, the hand-written PDF, and the same blocks as `.docx` |
 | `npm run check:files` | A captured reply through the application's parser and ReactMarkdown |
 | `npm run check:markdown-docs` | A generated document: Markdown → DOM → blocks → both files |
+| `npm run check:career` | Career-assessment output: rejection of error text, score normalisation, de-duplication |
 
 ---
 

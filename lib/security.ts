@@ -161,6 +161,18 @@ export function rateLimit(key: string, limit: number, windowMs: number): boolean
 }
 
 /**
+ * Time until `key`'s window resets, in milliseconds (0 when it is not limited).
+ *
+ * A rate-limit message that does not say when to come back reads as a broken
+ * feature rather than a temporary cap, so callers can now tell the user.
+ */
+export function rateLimitRetryAfterMs(key: string): number {
+  const bucket = rateBuckets.get(key);
+  if (!bucket) return 0;
+  return Math.max(0, bucket.resetAt - Date.now());
+}
+
+/**
  * Best-effort client IP from proxy headers.
  *
  * Behind Cloudflare, prefer CF-Connecting-IP: X-Forwarded-For's leftmost entry
