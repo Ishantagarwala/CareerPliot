@@ -21,7 +21,8 @@
     "check:career": "node scripts/check-career-recommendations.mjs",
     "check:hud": "node scripts/check-hud-progress.mjs",
     "check:flow": "node scripts/check-assessment-flow.mjs",
-    "check:context": "node scripts/check-document-context.mjs"
+    "check:context": "node scripts/check-document-context.mjs",
+    "measure:retrieval": "node scripts/measure-retrieval.mjs"
   },
   "dependencies": {
     "@base-ui/react": "^1.5.0",
