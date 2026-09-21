@@ -1,4 +1,5 @@
 import { PDFParse } from "pdf-parse";
+import { assembleStoredText } from "./pdfText";
 // Statically import pdf.js's worker module and expose it on globalThis as the
 // "main thread worker message handler". pdf.js checks globalThis.pdfjsWorker
 // FIRST and uses it directly, so it never performs the bundler-opaque
@@ -24,7 +25,21 @@ export async function extractTextFromPdf(buffer: Buffer, filename: string): Prom
     const parser = new PDFParse({ data: new Uint8Array(buffer) });
     try {
       const result = await parser.getText();
-      localText = result.text || "";
+
+      /*
+       * Assembled from the parser's per-page results rather than its joined
+       * text: the running header and footer are the same on every page, so they
+       * can be dropped once, and the app's own page markers are written in their
+       * place — which is what lets an answer cite the page it came from.
+       */
+      const pages = (result.pages ?? []).map((page) => ({
+        page: page.num,
+        text: page.text ?? "",
+      }));
+
+      localText = pages.length
+        ? assembleStoredText(pages, result.total)
+        : result.text || "";
     } finally {
       await parser.destroy();
     }
