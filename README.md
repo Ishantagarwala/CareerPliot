@@ -37,7 +37,7 @@ The production VPS exposes an opt-in shared demo through **Demo Login**. Do not 
 * **🧭 AI Career Discovery:** Assesses interests, academic preferences, existing skills, and goals to recommend compatible career paths.
 * **🗺️ Personalized Roadmaps:** Generates Beginner → Intermediate → Advanced milestones and tracks completion and readiness. One request writes the whole roadmap; if that response is ever cut short, it falls back to generating each stage on its own and keeps whatever succeeds rather than failing.
 * **📚 Live Course Recommendations:** Uses roadmap milestones to find relevant Coursera catalog courses, optional long-form YouTube results, and provider search links.
-* **📄 AI Study Hub:** Upload PDFs, extract text locally, summarize documents, generate questions, and chat with selected documents. Replies stream token-by-token. Uploaded documents can also be deleted from the library.
+* **📄 AI Study Hub:** Upload PDFs, extract text locally, summarize documents, generate questions, and chat with selected documents. Replies stream token-by-token. Uploaded documents can also be deleted from the library. Long documents are searched, not truncated: the passages that match the question are selected from anywhere in the file, each labelled with its part and approximate page.
 * **📄 Generated Documents:** Ask for a report, study guide, plan or resume and the assistant writes the document itself, then offers it as a real download — `.pdf`, `.docx` or Markdown. The file is built from the reply's own Markdown, so headings, lists, tables, code blocks and diagrams all arrive intact. The PDF is written directly as PDF text (selectable and searchable, no page screenshots), and the Word file is a genuine OOXML `.docx` — neither needs a document library.
 * **🤖 Context-Aware AI Tutor:** Supports general tutoring, document-aware questions, code help, attachments, persistent threads, and renamed conversations.
 * **🧠 Router Model Selection:** Loads the models exposed by the configured OpenAI-compatible router, removes duplicate provider variants, and lets users choose a model in the AI Hub.
@@ -380,6 +380,7 @@ Configure secrets and environment values in Cloudflare before deploying. Confirm
 | `npm run cf-typegen` | Generate Cloudflare environment types |
 | `npm run check:career` | Filter the career-assessment model output (junk paths, score formats, duplicates) |
 | `npm run check:hud` | The assessment's progress overlay: a failed request must not leave it on screen |
+| `npm run check:context` | PDF → prompt: a question about the last page of a long document is reachable |
 | `npm run check:all` | Run every check below (needs `npm i -D linkedom`) |
 
 ### Document checks
@@ -397,6 +398,7 @@ with `pdfinfo`, `pdftotext` and `unzip`, so a passing run means the files open.
 | `npm run check:markdown-docs` | A generated document: Markdown → DOM → blocks → both files |
 | `npm run check:career` | Career-assessment output: rejection of error text, score normalisation, de-duplication |
 | `npm run check:hud` | Assessment progress sequence: cancellation on failure, retry, and unmount |
+| `npm run check:context` | Document retrieval: page coverage, passage labels, budget, and short documents |
 
 ---
 

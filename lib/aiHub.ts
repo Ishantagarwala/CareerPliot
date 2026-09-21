@@ -1,10 +1,7 @@
-interface ContextDocument {
-  filename: string;
-  summary?: string;
-  contentText?: string;
-}
-
-const MAX_DOCUMENT_CONTEXT_CHARS = 12000;
+/**
+ * Upper bound on the text kept for one uploaded document. Well beyond a normal
+ * PDF — a 300-page book fits — and comfortably inside a Mongo document.
+ */
 export const MAX_STORED_DOCUMENT_CHARS = 1_000_000;
 const DOCUMENT_TRUNCATION_NOTICE =
   "\n\n[Document text truncated during upload.]";
@@ -18,42 +15,6 @@ export function prepareStoredDocumentText(text: string): string {
   const contentLimit =
     MAX_STORED_DOCUMENT_CHARS - DOCUMENT_TRUNCATION_NOTICE.length;
   return `${cleaned.slice(0, contentLimit)}${DOCUMENT_TRUNCATION_NOTICE}`;
-}
-
-export function buildDocumentContext(documents: ContextDocument[]): string {
-  if (documents.length === 0) {
-    return "";
-  }
-
-  const usableDocuments = documents
-    .map((doc) => ({
-      filename: doc.filename.replace(/[\r\n]+/g, " ").trim().slice(0, 200),
-      sourceText: (doc.contentText || doc.summary || "").trim(),
-    }))
-    .filter((doc) => doc.sourceText);
-
-  if (usableDocuments.length === 0) {
-    return "";
-  }
-
-  let remaining = MAX_DOCUMENT_CONTEXT_CHARS;
-  const sections: string[] = [];
-
-  for (let index = 0; index < usableDocuments.length; index++) {
-    if (remaining <= 0) {
-      break;
-    }
-
-    const doc = usableDocuments[index];
-    const documentsLeft = usableDocuments.length - index;
-    const fairShare = Math.max(1, Math.floor(remaining / documentsLeft));
-    const excerpt = doc.sourceText.slice(0, fairShare);
-    remaining -= excerpt.length;
-
-    sections.push(`Document: ${doc.filename}\n${excerpt}`);
-  }
-
-  return `Use the following uploaded study document context when it is relevant. If the answer is not in the documents, say so and answer from general knowledge only when appropriate.\n\n${sections.join("\n\n---\n\n")}`;
 }
 
 /** System prompt only — never inject untrusted PDF/document text here. */

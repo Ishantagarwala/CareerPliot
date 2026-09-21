@@ -5,7 +5,8 @@ import ChatHistory from "@/models/ChatHistory";
 import CareerRecommendation from "@/models/CareerRecommendation";
 import Document from "@/models/Document";
 import UserProgress from "@/models/UserProgress";
-import { buildAiHubSystemPrompt, buildDocumentContext } from "@/lib/aiHub";
+import { buildAiHubSystemPrompt } from "@/lib/aiHub";
+import { buildDocumentContext } from "@/lib/documentContext";
 import { resolveLlmEndpoint } from "@/lib/llm";
 import { enforceLlmBudget } from "@/lib/llmGuard";
 import {
@@ -417,7 +418,12 @@ export async function POST(req: Request) {
 
     const historyLimit = 15;
     const recentHistory = chat.messages.slice(-historyLimit);
-    const documentContext = buildDocumentContext(documents);
+    /*
+     * Passages are selected against the student's message, so a question about
+     * something deep in a long PDF reaches the model instead of being cut off by
+     * a prefix budget.
+     */
+    const documentContext = buildDocumentContext(documents, { question: message });
     const systemPrompt = buildAiHubSystemPrompt(careerContext);
     const userTurnContent = documentContext
       ? `${documentContext}\n\n---\n\nUser question:\n${message}`
