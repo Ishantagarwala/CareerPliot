@@ -22,6 +22,14 @@ compileLibModules({
 const { buildDocumentContext, splitIntoPassages, selectPassages, DEFAULT_CONTEXT_BUDGET } =
   await import("../.tmp/context-check/build/documentContext.js");
 
+/** The `[part …]` label attached to the excerpt containing `marker`. */
+function labelFor(context, marker) {
+  const at = context.indexOf(marker);
+  if (at === -1) return null;
+  const labels = [...context.slice(0, at).matchAll(/\[part \d+ of \d+, [^\]]+\]/g)];
+  return labels.length ? labels[labels.length - 1][0] : null;
+}
+
 let failures = 0;
 const check = (name, condition, detail = "") => {
   if (condition) console.log(`  ok   ${name}`);
@@ -118,13 +126,15 @@ const CHARS_PER_PAGE = 4_000;
 const documents = [
   {
     filename: "long.pdf",
+    // Page markers are what the extractor writes between pages; the context
+    // builder reads them so an excerpt can be cited by its real page.
     contentText: Array.from({ length: PAGES }, (_, index) => {
       const page = index + 1;
       const body = `This paragraph covers topic ${page} in ordinary prose. `.repeat(
         Math.round(CHARS_PER_PAGE / 55)
       );
-      return `Section ${page}\n\n${body}\n\nUnique fact for this page: DELTA-${page}-ZULU`;
-    }).join("\n\n"),
+      return `Section ${page}\n\n${body}\n\nUnique fact for this page: DELTA-${page}-ZULU\n-- ${page} of ${PAGES} --`;
+    }).join("\n"),
   },
 ];
 console.log(`  context fixture: ${documents[0].contentText.length} chars, ~${PAGES} pages`);
@@ -136,7 +146,17 @@ console.log("\nA question about something on the last page");
   check("context stays inside the budget", context.length <= DEFAULT_CONTEXT_BUDGET + 4_000, `${context.length} chars`);
   check(
     "excerpts are labelled with their position",
-    /\[part \d+ of \d+, ≈ page \d+ of \d+\]/.test(context)
+    /\[part \d+ of \d+, (≈ )?page [\d–]+ of \d+\]/.test(context)
+  );
+  check(
+    "the last page is cited as page 40, not an estimate",
+    /page 40 of 40\]/.test(labelFor(context, "DELTA-40-ZULU") ?? ""),
+    String(labelFor(context, "DELTA-40-ZULU"))
+  );
+  check(
+    "the document's opening is always included",
+    context.includes("DELTA-1-ZULU"),
+    "the first page is where a document states its scope"
   );
   const oldPrefix = documents[0].contentText.slice(0, 12_000);
   check(
@@ -146,10 +166,46 @@ console.log("\nA question about something on the last page");
   );
 }
 
-console.log("\nQuestions about pages spread through the document");
-for (const page of [3, 17, 28, 39]) {
-  const context = buildDocumentContext(documents, { question: `Explain topic ${page} in section ${page}` });
-  check(`page ${page}'s passage is reachable`, context.includes(`DELTA-${page}-ZULU`));
+/*
+ * Retrieval is only meaningful when the pages differ. The fixture above repeats
+ * the same sentence on every page, so a question about "topic 17" is genuinely
+ * indistinguishable from one about "topic 28" — that says nothing about the
+ * code. This document gives each page a subject of its own.
+ */
+console.log("\nDistinct subjects, one per page");
+{
+  const subjects = [
+    "indexing strategy", "connection pooling", "query planning", "write amplification",
+    "replication lag", "sharding keys", "vacuum tuning", "deadlock detection",
+    "memory arenas", "page cache eviction",
+  ];
+  const distinct = Array.from({ length: 40 }, (_, index) => {
+    const page = index + 1;
+    const subject = subjects[index % subjects.length];
+    const filler = `This page covers routine material for section ${page}. `.repeat(40);
+    return `Section ${page}\n\n${filler}\n\nThe governing concept here is ${subject} for page ${page}.\n-- ${page} of 40 --`;
+  }).join("\n");
+
+  // Pages are where the subject actually appears: the cycle repeats every 10.
+  for (const [page, subject] of [[3, "query planning"], [17, "vacuum tuning"], [28, "deadlock detection"], [40, "page cache eviction"]]) {
+    const context = buildDocumentContext(
+      [{ filename: "distinct.pdf", contentText: distinct }],
+      { question: `What does the document say about ${subject}?` }
+    );
+    /*
+     * Anchored on the page's own sentence, not on the subject alone: an earlier
+     * page may mention "tuning" in passing, and finding that one first is
+     * correct behaviour rather than a wrong citation.
+     */
+    const sentence = `The governing concept here is ${subject} for page ${page}.`;
+    const label = labelFor(context, sentence);
+    check(`the passage about ${subject} is reachable`, Boolean(label), "not in the prompt");
+    check(
+      `${subject} is cited as page ${page}`,
+      new RegExp(`page ${page} of 40\\]`).test(label ?? ""),
+      String(label)
+    );
+  }
 }
 
 console.log("\nAn overview question");
@@ -178,9 +234,33 @@ console.log("\nShort documents are passed whole");
 
 console.log("\nPassage splitting and ranking");
 {
-  const passages = splitIntoPassages(Array.from({ length: 50 }, (_, i) => `Paragraph ${i + 1}. `.repeat(20)).join("\n\n"));
+  const { passages } = splitIntoPassages(
+    Array.from({ length: 50 }, (_, i) => `Paragraph ${i + 1}. `.repeat(20)).join("\n\n")
+  );
   check("long text splits into many passages", passages.length > 5, `${passages.length} passages`);
   check("every passage carries its index", passages.every((p, i) => p.index === i + 1));
+
+// Page numbers must come from the document, not from a character estimate.
+{
+  // Text without page markers still gets a usable, clearly-estimated label.
+  const plain = buildDocumentContext(
+    [{ filename: "plain.txt", contentText: "Paragraph about topic alpha. ".repeat(3_000) }],
+    { question: "alpha" }
+  );
+  check("marker-less text is labelled as an estimate", /≈ page \d+ of \d+\]/.test(plain), plain.match(/\[part[^\]]*\]/)?.[0]);
+
+  const withPages = splitIntoPassages(
+    Array.from({ length: 6 }, (_, i) => `Body of page ${i + 1}. `.repeat(400) + `\n-- ${i + 1} of 6 --`).join("\n")
+  );
+  check("page markers are consumed, not left in the text", !withPages.passages.some((p) => /-- \d+ of \d+ --/.test(p.text)));
+  check("passages record the page they came from", withPages.passages.every((p) => p.startPage >= 1));
+  check("the page count comes from the document", withPages.pageCount === 6, String(withPages.pageCount));
+  const labelled = buildDocumentContext(
+    [{ filename: "paged.pdf", contentText: Array.from({ length: 6 }, (_, i) => `Body of page ${i + 1}. `.repeat(400) + `\n-- ${i + 1} of 6 --`).join("\n") }],
+    { question: "page 6" }
+  );
+  check("a real page is labelled without the estimate marker", /page \d+ of 6\]/.test(labelled) && !/≈ page \d+ of 6\]/.test(labelled), labelled.match(/\[part[^\]]*\]/)?.[0]);
+}
 
   const { selected, matched } = selectPassages(passages, "Paragraph 42", 3);
   check("a specific question matches", matched);
