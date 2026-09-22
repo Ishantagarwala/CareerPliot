@@ -6,6 +6,7 @@ import CareerRecommendation from "@/models/CareerRecommendation";
 import Document from "@/models/Document";
 import UserProgress from "@/models/UserProgress";
 import { buildAiHubSystemPrompt } from "@/lib/aiHub";
+import { shapeAssistantTurn } from "@/lib/chatTurn";
 import { buildDocumentContext } from "@/lib/documentContext";
 import { resolveLlmEndpoint } from "@/lib/llm";
 import { enforceLlmBudget } from "@/lib/llmGuard";
@@ -594,14 +595,34 @@ export async function POST(req: Request) {
               "I'm sorry, I encountered an issue generating a response. Please try again.";
           }
 
+          /*
+           * The thinking trace is capped before it is stored. A reasoning model
+           * can emit tens of thousands of characters, and the schema rejects a
+           * turn that exceeds its limit — which lost the student's answer along
+           * with the trace and surfaced as a failed save.
+           */
+          const turn = shapeAssistantTurn({ content: fullReply, reasoning: fullReasoning });
           chat.messages.push({
             role: "assistant",
-            content: fullReply,
-            reasoning: fullReasoning || undefined,
+            content: turn.content,
+            reasoning: turn.reasoning,
             documentIds: documentObjectIds,
             sentAt: new Date(),
           });
-          await chat.save();
+
+          try {
+            await chat.save();
+          } catch (saveError) {
+            /*
+             * Whatever else the turn carries, the reply is the point. If it
+             * still fails to store, drop the trace and keep the answer rather
+             * than losing both.
+             */
+            console.error("Failed to save the assistant turn; retrying without the thinking trace:", saveError);
+            const last = chat.messages[chat.messages.length - 1];
+            last.reasoning = undefined;
+            await chat.save();
+          }
 
           /*
            * Name the thread from the completed FIRST exchange only: messages

@@ -400,6 +400,7 @@ with `pdfinfo`, `pdftotext` and `unzip`, so a passing run means the files open.
 | `npm run check:hud` | Assessment progress sequence: cancellation on failure, retry, and unmount |
 | `npm run check:context` | Document retrieval: page coverage, passage labels, budget, and short documents |
 | `npm run check:pdftext` | Extracted-page shaping: running headers stripped, page markers preserved |
+| `npm run check:turn` | A stored chat turn stays inside the schema, whatever the model thinks |
 | `npm run measure:retrieval` | Retrieval accuracy over a labelled question set (the evidence behind the ranking choices) |
 
 ---
