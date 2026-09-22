@@ -44,6 +44,15 @@ import BrandLogo from "@/components/layout/BrandLogo";
 import DocumentLibrary from "./DocumentLibrary";
 import UnifiedChat from "./UnifiedChat";
 import ModelPicker from "./ModelPicker";
+import ReasoningEffortPicker from "./ReasoningEffortPicker";
+import {
+  DEFAULT_REASONING_EFFORT,
+  isReasoningEffort,
+  type ReasoningEffort,
+} from "@/lib/reasoningEffort";
+
+/** Where the chosen thinking effort is remembered between visits. */
+const EFFORT_STORAGE_KEY = "careerpilot:reasoning-effort";
 import {
   getDocumentId,
   type HubDocument,
@@ -265,6 +274,14 @@ export default function AIHubLayout() {
   const [accountOpen, setAccountOpen] = useState(false);
 
   const [selectedModel, setSelectedModel] = useState<string>("primary");
+  /*
+   * Thinking effort is remembered locally so the choice survives a reload; the
+   * server also stores it per thread, which is what keeps a reopened
+   * conversation on the level it was written with.
+   */
+  const [reasoningEffort, setReasoningEffort] = useState<ReasoningEffort>(
+    DEFAULT_REASONING_EFFORT
+  );
   const [availableModels, setAvailableModels] = useState<string[]>([]);
   const [defaultModel, setDefaultModel] = useState<string | null>(null);
 
@@ -632,6 +649,24 @@ export default function AIHubLayout() {
           : thread
       )
     );
+  }, []);
+
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem(EFFORT_STORAGE_KEY);
+      if (isReasoningEffort(saved)) setReasoningEffort(saved);
+    } catch {
+      /* storage unavailable; the default stands */
+    }
+  }, []);
+
+  const chooseEffort = useCallback((effort: ReasoningEffort) => {
+    setReasoningEffort(effort);
+    try {
+      localStorage.setItem(EFFORT_STORAGE_KEY, effort);
+    } catch {
+      /* storage unavailable; the choice still applies this session */
+    }
   }, []);
 
   const startNewThread = useCallback(() => {
@@ -1062,6 +1097,11 @@ export default function AIHubLayout() {
               availableModels={availableModels}
               defaultModel={defaultModel}
             />
+
+            <ReasoningEffortPicker
+              effort={reasoningEffort}
+              setEffort={chooseEffort}
+            />
           </div>
 
           <div className="flex shrink-0 items-center gap-2 sm:gap-2.5">
@@ -1134,6 +1174,7 @@ export default function AIHubLayout() {
           firstName={firstName}
           workflows={workflows}
           selectedModel={selectedModel}
+          reasoningEffort={reasoningEffort}
         />
       </main>
 

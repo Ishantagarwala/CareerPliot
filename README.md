@@ -40,6 +40,7 @@ The production VPS exposes an opt-in shared demo through **Demo Login**. Do not 
 * **📄 AI Study Hub:** Upload PDFs, extract text locally, summarize documents, generate questions, and chat with selected documents. Replies stream token-by-token. Uploaded documents can also be deleted from the library. Long documents are searched, not truncated: the passages that match the question are selected from anywhere in the file, each labelled with its part and approximate page.
 * **📄 Generated Documents:** Ask for a report, study guide, plan or resume and the assistant writes the document itself, then offers it as a real download — `.pdf`, `.docx` or Markdown. The file is built from the reply's own Markdown, so headings, lists, tables, code blocks and diagrams all arrive intact. The PDF is written directly as PDF text (selectable and searchable, no page screenshots), and the Word file is a genuine OOXML `.docx` — neither needs a document library.
 * **🤖 Context-Aware AI Tutor:** Supports general tutoring, document-aware questions, code help, attachments, persistent threads, and renamed conversations.
+* **🧠 Thinking Effort:** A per-conversation level — None, Minimal, Low, Mid, High, Extra high, Max — sent to the provider as `reasoning_effort`. Measured on the configured router, the same question produced no thinking at `None` (~6s) and 1,648 characters of it at `Max` (~23s). The choice is remembered per thread and across visits.
 * **🧠 Router Model Selection:** Loads the models exposed by the configured OpenAI-compatible router, removes duplicate provider variants, and lets users choose a model in the AI Hub.
 * **📝 Resume Builder:** Builds printable resumes with personal details, education, experience, projects, skills, certifications, custom sections, LaTeX export, and reliable comma-separated skill/technology entry.
 * **🎯 Resume Score:** Uses a HackerRank hiring-agent-inspired rubric (open source, self-projects, production impact, technical skills, bonuses, and deductions) with a score out of 120.
@@ -401,6 +402,7 @@ with `pdfinfo`, `pdftotext` and `unzip`, so a passing run means the files open.
 | `npm run check:context` | Document retrieval: page coverage, passage labels, budget, and short documents |
 | `npm run check:pdftext` | Extracted-page shaping: running headers stripped, page markers preserved |
 | `npm run check:turn` | A stored chat turn stays inside the schema, whatever the model thinks |
+| `npm run check:effort` | Thinking-effort levels: validated, labelled, and matching the database enum |
 | `npm run measure:retrieval` | Retrieval accuracy over a labelled question set (the evidence behind the ranking choices) |
 
 ---

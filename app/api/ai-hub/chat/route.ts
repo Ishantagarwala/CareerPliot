@@ -7,6 +7,11 @@ import Document from "@/models/Document";
 import UserProgress from "@/models/UserProgress";
 import { buildAiHubSystemPrompt } from "@/lib/aiHub";
 import { shapeAssistantTurn } from "@/lib/chatTurn";
+import {
+  DEFAULT_REASONING_EFFORT,
+  isReasoningEffort,
+  type ReasoningEffort,
+} from "@/lib/reasoningEffort";
 import { buildDocumentContext } from "@/lib/documentContext";
 import { resolveLlmEndpoint } from "@/lib/llm";
 import { enforceLlmBudget } from "@/lib/llmGuard";
@@ -20,7 +25,11 @@ import {
 import { readFile } from "fs/promises";
 import path from "path";
 import mongoose from "mongoose";
-import type { ChatCompletionMessageParam } from "openai/resources/chat/completions";
+import type {
+  ChatCompletionChunk,
+  ChatCompletionCreateParamsStreaming,
+  ChatCompletionMessageParam,
+} from "openai/resources/chat/completions";
 
 export const maxDuration = 120;
 
@@ -308,6 +317,22 @@ export async function POST(req: Request) {
       );
     }
 
+    /*
+     * How hard the model should think. Validated against the set the provider
+     * accepts rather than passed through: an unknown value is a 400 from the
+     * provider, which would fail the whole turn.
+     */
+    let requestedEffort: ReasoningEffort | undefined;
+    if (body?.reasoningEffort !== undefined) {
+      if (!isReasoningEffort(body.reasoningEffort)) {
+        return NextResponse.json(
+          { message: "Invalid thinking effort" },
+          { status: 400 }
+        );
+      }
+      requestedEffort = body.reasoningEffort;
+    }
+
     const requestedThreadId =
       typeof body?.threadId === "string" && body.threadId.trim()
         ? body.threadId.trim()
@@ -404,6 +429,20 @@ export async function POST(req: Request) {
       if (!chat) {
         return NextResponse.json({ message: "Thread not found" }, { status: 404 });
       }
+    }
+
+    /*
+     * A thread keeps its own setting, so a conversation started on "max" does
+     * not silently drop to the default when it is reopened. An explicit request
+     * value updates the thread.
+     */
+    const reasoningEffort: ReasoningEffort =
+      requestedEffort ??
+      (isReasoningEffort(chat?.reasoningEffort)
+        ? chat!.reasoningEffort
+        : DEFAULT_REASONING_EFFORT);
+    if (chat && requestedEffort && chat.reasoningEffort !== requestedEffort) {
+      chat.reasoningEffort = requestedEffort;
     }
 
     if (!chat) {
@@ -523,12 +562,21 @@ export async function POST(req: Request) {
       filename: doc.filename,
     }));
 
-    const stream = await client.chat.completions.create({
+    /*
+     * `reasoning_effort` is the field the provider validates, and it accepts one
+     * level the SDK's own type does not list ("max"). The request is therefore
+     * built explicitly and only the *result* is typed, which keeps the streaming
+     * overload resolving without narrowing the levels the provider supports.
+     */
+    const stream = (await client.chat.completions.create({
       model,
       messages: apiMessages,
       temperature: 0.6,
       stream: true,
-    });
+      reasoning_effort: reasoningEffort,
+    } as unknown as ChatCompletionCreateParamsStreaming)) as unknown as AsyncIterable<
+      ChatCompletionChunk
+    >;
 
     // Only persist the user turn after the provider accepted the request. This
     // prevents failed provider setup from leaving orphan user-only messages.

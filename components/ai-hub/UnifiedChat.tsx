@@ -6,6 +6,10 @@ import { toast } from "sonner";
 import AihubReply from "./AihubReply";
 import HubComposer from "./HubComposer";
 import { useVoice } from "@/components/voice/useVoice";
+import {
+  DEFAULT_REASONING_EFFORT,
+  type ReasoningEffort,
+} from "@/lib/reasoningEffort";
 import VoiceHUD from "@/components/voice/VoiceHUD";
 import {
   MAX_ATTACHMENTS,
@@ -105,6 +109,8 @@ interface UnifiedChatProps {
   }>;
   /** Sent to the router with each turn; chosen from the header picker. */
   selectedModel?: string;
+  /** How hard the model should think; chosen from the header picker. */
+  reasoningEffort?: ReasoningEffort;
   /** Fired when the server names a new thread, so the rail can update live. */
   onThreadTitled?: (title: string) => void;
 }
@@ -121,6 +127,7 @@ export default function UnifiedChat({
   firstName,
   workflows,
   selectedModel = "primary",
+  reasoningEffort = DEFAULT_REASONING_EFFORT,
   onThreadTitled,
 }: UnifiedChatProps) {
   const [messages, setMessages] = useState<Message[]>([]);
@@ -449,6 +456,7 @@ export default function UnifiedChat({
           threadId: threadAtStart,
           attachments: currentAttachments,
           modelSelection: selectedModel,
+          reasoningEffort,
         }),
       });
 
