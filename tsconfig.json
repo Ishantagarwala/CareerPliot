@@ -30,5 +30,12 @@
     ".next/dev/types/**/*.ts",
     "**/*.mts"
   ],
-  "exclude": ["node_modules"]
+  "exclude": [
+    "node_modules",
+    // node:test suites. They import with explicit .ts specifiers because Node's
+    // native type stripping needs them at runtime, which tsc only allows via
+    // allowImportingTsExtensions — a flag that conflicts with the Next plugin.
+    // They are type-free at the edges and run under `npm run check:mobile`.
+    "lib/__tests__"
+  ]
 }

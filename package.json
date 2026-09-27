@@ -16,7 +16,7 @@
     "check:export": "node scripts/check-reply-export.mjs",
     "check:docs": "node scripts/check-generated-docs.mjs",
     "check:files": "node scripts/check-file-block-render.mjs",
-    "check:all": "npm run check:export && npm run check:docs && npm run check:files && npm run check:markdown-docs && npm run check:career && npm run check:hud && npm run check:flow && npm run check:context && npm run check:pdftext && npm run check:turn && npm run check:effort",
+    "check:all": "npm run check:export && npm run check:docs && npm run check:files && npm run check:markdown-docs && npm run check:career && npm run check:hud && npm run check:flow && npm run check:context && npm run check:pdftext && npm run check:turn && npm run check:effort && npm run check:mobile",
     "check:markdown-docs": "node scripts/check-markdown-to-docs.mjs",
     "check:career": "node scripts/check-career-recommendations.mjs",
     "check:hud": "node scripts/check-hud-progress.mjs",
@@ -25,7 +25,10 @@
     "measure:retrieval": "node scripts/measure-retrieval.mjs",
     "check:pdftext": "node scripts/check-pdf-text.mjs",
     "check:turn": "node scripts/check-chat-turn.mjs",
-    "check:effort": "node scripts/check-reasoning-effort.mjs"
+    "check:effort": "node scripts/check-reasoning-effort.mjs",
+    "check:mobile-tokens": "node --test lib/__tests__/mobileTokens.test.ts",
+    "check:play-integrity": "node --test lib/__tests__/playIntegrity.test.ts",
+    "check:mobile": "npm run check:mobile-tokens && npm run check:play-integrity"
   },
   "dependencies": {
     "@base-ui/react": "^1.5.0",
@@ -36,6 +39,7 @@
     "clsx": "^2.1.1",
     "formidable": "^3.5.4",
     "highlight.js": "^11.12.0",
+    "jose": "^6.2.12",
     "katex": "^0.18.1",
     "lucide-react": "^1.17.0",
     "mermaid": "^12.0.0",
@@ -45,6 +49,7 @@
     "next-themes": "^0.4.6",
     "openai": "^6.41.0",
     "pdf-parse": "^2.4.5",
+    "playwright": "^1.63.0",
     "react": "19.2.4",
     "react-dom": "19.2.4",
     "react-hook-form": "^7.77.0",
