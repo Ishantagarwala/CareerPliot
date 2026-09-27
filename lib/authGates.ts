@@ -171,6 +171,14 @@ export async function requireMobileBotVerification(opts: {
 }): Promise<{ ok: boolean; reason?: string }> {
   const hasIntegrityToken = opts.integrityToken !== undefined && opts.integrityToken !== null;
 
+  // Development bypass, matching requireBotVerification's own behaviour. Without
+  // it the mobile path is stricter than the web path, so the two cannot be
+  // exercised side by side locally. Production is unaffected: this only fires
+  // when NODE_ENV is not production.
+  if (process.env.NODE_ENV !== 'production') {
+    return { ok: true };
+  }
+
   if (!hasIntegrityToken && !isPlayIntegrityConfigured()) {
     // The common misconfiguration: the app cannot attest and the server cannot
     // check. Say so plainly rather than falling through to the captcha path,
