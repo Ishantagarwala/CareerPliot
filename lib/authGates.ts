@@ -54,6 +54,8 @@ export interface GateSuccess {
 export interface GateError {
   ok: false;
   reason: GateFailure;
+  /** TEMPORARY: echoed to the client while diagnosing the mobile refusal. */
+  diagnostics?: Record<string, unknown>;
   /** safe to show the user; never leaks which check failed internally */
   message: string;
   /** seconds until the rate limit resets, when reason is 'rate_limited' */
@@ -108,6 +110,24 @@ export async function runCredentialGates(options: RunGatesOptions): Promise<Gate
     return fail('invalid_credentials');
   }
 
+  /*
+   * TEMPORARY DIAGNOSTIC.
+   *
+   * The mobile client is refused at the bot check while the identical request
+   * succeeds from curl, which the code alone does not explain. This echoes back
+   * the normalised email and the demo flag so the client can show exactly what
+   * the server received. It reveals nothing a caller does not already know —
+   * they sent the address — and it will be removed once the cause is confirmed.
+   */
+  const diagnostics = {
+    receivedEmail: email,
+    expectedDemoEmail: DEMO_ACCOUNT_EMAIL,
+    demoModeEnabled: isDemoLoginEnabled(),
+    isDemo,
+    hasIntegrityToken: Boolean(bot.integrityToken),
+    playIntegrityConfigured: isPlayIntegrityConfigured(),
+  };
+
   if (!isDemo) {
     const ipCheck = await assertResidentialIp({ ip, email });
     if (!ipCheck.ok) return fail('network_blocked');
@@ -118,6 +138,22 @@ export async function runCredentialGates(options: RunGatesOptions): Promise<Gate
     return fail('rate_limited');
   }
 
+  /*
+   * Diagnostic: record WHY a mobile sign-in was refused.
+   *
+   * Added after "demo sign-in works with curl but not from the app" could not be
+   * explained by reading the code — the ordering and the demo shortcut were both
+   * correct. Guessing cost several rounds, so the server now states which branch
+   * it took. The email is logged; the password never is.
+   */
+  if (audience === 'mobile') {
+    console.log(
+      `[mobile-auth] email=${email} demo=${isDemo} ` +
+        `integrityToken=${bot.integrityToken ? 'present' : 'absent'} ` +
+        `playIntegrityConfigured=${isPlayIntegrityConfigured()}`,
+    );
+  }
+
   // 5. Bot verification — the only web/mobile difference.
   if (!isDemo) {
     const botResult =
@@ -125,10 +161,12 @@ export async function runCredentialGates(options: RunGatesOptions): Promise<Gate
         ? await requireMobileBotVerification({ email, ip, ...bot })
         : await requireBotVerification({ email, ip, ...bot });
     if (!botResult.ok) {
+      console.log(`[mobile-auth] refused at bot check for ${email}: ${botResult.reason}`);
       return {
         ok: false,
         reason: 'bot_check',
         message: botResult.reason ?? FAIL_MESSAGES.bot_check,
+        diagnostics,
       };
     }
   }
