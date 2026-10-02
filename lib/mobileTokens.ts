@@ -121,6 +121,20 @@ export async function verifyRefreshToken(token: string): Promise<RefreshTokenCla
 }
 
 /**
+ * Pull the token out of an `Authorization: Bearer …` header value.
+ *
+ * Pure, and shared rather than re-implemented per call site. The parse is two
+ * lines, which is exactly why three hand-rolled copies had already appeared —
+ * and the case-insensitive scheme check is the part a copy tends to get wrong.
+ */
+export function extractBearer(header: string | null | undefined): string {
+  if (!header) return '';
+  const trimmed = header.trim();
+  if (!trimmed.toLowerCase().startsWith('bearer ')) return '';
+  return trimmed.slice(7).trim();
+}
+
+/**
  * Random, opaque device/refresh identifier.
  *
  * `crypto.getRandomValues` rather than Math.random — this value is the lookup

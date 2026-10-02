@@ -27,7 +27,47 @@ const {
   verifyAccessToken,
   verifyRefreshToken,
   newTokenId,
+  extractBearer,
 } = await import('../mobileTokens.ts');
+
+/*
+ * `extractBearer` is what decides whether a request is even considered
+ * authenticated, so a parse that is too eager is a security bug rather than a
+ * cosmetic one: returning a value here hands that string to `jwtVerify`, and
+ * returning '' silently falls through to the cookie path.
+ */
+test('extractBearer reads a well-formed header', () => {
+  assert.equal(extractBearer('Bearer abc.def.ghi'), 'abc.def.ghi');
+});
+
+test('extractBearer is case-insensitive on the scheme', () => {
+  assert.equal(extractBearer('bearer abc'), 'abc');
+  assert.equal(extractBearer('BEARER abc'), 'abc');
+  assert.equal(extractBearer('BeArEr abc'), 'abc');
+});
+
+test('extractBearer tolerates surrounding whitespace', () => {
+  assert.equal(extractBearer('  Bearer   abc  '), 'abc');
+});
+
+test('extractBearer rejects a missing or empty header', () => {
+  assert.equal(extractBearer(null), '');
+  assert.equal(extractBearer(undefined), '');
+  assert.equal(extractBearer(''), '');
+  assert.equal(extractBearer('Bearer'), '');
+  assert.equal(extractBearer('Bearer '), '');
+});
+
+test('extractBearer rejects a different scheme', () => {
+  // A Basic credential must never be treated as one of our tokens.
+  assert.equal(extractBearer('Basic dXNlcjpwYXNz'), '');
+  assert.equal(extractBearer('Token abc'), '');
+});
+
+test('extractBearer rejects a scheme smuggled in as a prefix', () => {
+  // "Bearerx" starts with "bearer" but is not the Bearer scheme.
+  assert.equal(extractBearer('Bearerx abc'), '');
+});
 
 test('an access token round-trips with its claims intact', async () => {
   const token = await signAccessToken({ sub: 'user-1', email: 'a@b.com', name: 'Ada' });
