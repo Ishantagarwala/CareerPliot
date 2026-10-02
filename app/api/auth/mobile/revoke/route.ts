@@ -1,7 +1,7 @@
 import { corsJson, corsPreflight } from '@/lib/cors';
 
 import { revokeAllForUser, revokeOne } from '@/lib/mobileRefreshStore';
-import { verifyAccessToken, verifyRefreshToken } from '@/lib/mobileTokens';
+import { extractBearer, verifyAccessToken, verifyRefreshToken } from '@/lib/mobileTokens';
 
 /**
  * Revoke one device, or every device.
@@ -19,8 +19,7 @@ export async function POST(req: Request) {
     | { refreshToken?: unknown; all?: unknown }
     | null;
 
-  const header = req.headers.get('authorization') ?? '';
-  const bearer = header.toLowerCase().startsWith('bearer ') ? header.slice(7).trim() : '';
+  const bearer = extractBearer(req.headers.get('authorization'));
 
   const access = bearer ? await verifyAccessToken(bearer) : null;
 

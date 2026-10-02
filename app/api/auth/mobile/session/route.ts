@@ -2,7 +2,7 @@ import { corsJson, corsPreflight } from '@/lib/cors';
 
 import dbConnect from '@/lib/db';
 import User from '@/models/User';
-import { verifyAccessToken } from '@/lib/mobileTokens';
+import { extractBearer, verifyAccessToken } from '@/lib/mobileTokens';
 
 /**
  * Verify an access token and describe its owner.
@@ -16,8 +16,7 @@ import { verifyAccessToken } from '@/lib/mobileTokens';
  * correct response in all cases is to refresh or sign in again.
  */
 export async function GET(req: Request) {
-  const header = req.headers.get('authorization') ?? '';
-  const token = header.toLowerCase().startsWith('bearer ') ? header.slice(7).trim() : '';
+  const token = extractBearer(req.headers.get('authorization'));
 
   if (!token) {
     return corsJson(req, { message: 'Not authorised.' }, { status: 401 });
