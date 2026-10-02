@@ -3,7 +3,12 @@ import bcrypt from 'bcryptjs';
 import dbConnect from '@/lib/db';
 import User from '@/models/User';
 import { getClientIp, rateLimit } from '@/lib/security';
-import { DEMO_ACCOUNT_EMAIL, isDemoLoginEnabled, requireBotVerification } from '@/lib/captcha';
+import {
+  DEMO_ACCOUNT_EMAIL,
+  isCaptchaConfigured,
+  isDemoLoginEnabled,
+  requireBotVerification,
+} from '@/lib/captcha';
 import { isAllowedEmailProvider } from '@/lib/allowedEmail';
 import { assertResidentialIp } from '@/lib/ipReputation';
 import { isPlayIntegrityConfigured, verifyPlayIntegrity } from '@/lib/playIntegrity';
@@ -208,6 +213,7 @@ export async function requireMobileBotVerification(opts: {
   integrityToken?: unknown;
 }): Promise<{ ok: boolean; reason?: string }> {
   const hasIntegrityToken = opts.integrityToken !== undefined && opts.integrityToken !== null;
+  const hasCaptchaProof = Boolean(opts.captchaToken) || Boolean(opts.loginTicket);
 
   // Development bypass, matching requireBotVerification's own behaviour. Without
   // it the mobile path is stricter than the web path, so the two cannot be
@@ -217,19 +223,8 @@ export async function requireMobileBotVerification(opts: {
     return { ok: true };
   }
 
-  if (!hasIntegrityToken && !isPlayIntegrityConfigured()) {
-    // The common misconfiguration: the app cannot attest and the server cannot
-    // check. Say so plainly rather than falling through to the captcha path,
-    // whose message ("complete the captcha") is advice a native app can never
-    // act on.
-    return {
-      ok: false,
-      reason:
-        'This app build cannot verify itself with this server, so sign-in is unavailable. ' +
-        'Play Integrity must be configured on both.',
-    };
-  }
-
+  // Play Integrity first, when the client offers it: hardware-backed attestation
+  // is strictly stronger than a captcha.
   if (hasIntegrityToken) {
     if (!isPlayIntegrityConfigured()) {
       return {
@@ -239,12 +234,45 @@ export async function requireMobileBotVerification(opts: {
     }
     const verdict = await verifyPlayIntegrity(opts.integrityToken);
     if (verdict.ok) return { ok: true };
+    // Deliberately NO downgrade to the captcha path here. A build that fails
+    // attestation must not be able to buy its way in with a weaker proof, or
+    // the verdict stops meaning anything.
     return { ok: false, reason: verdict.reason };
   }
 
-  // An integrity token is absent but the server CAN check them, so the client
-  // is out of date rather than the server being misconfigured. Never silently
-  // allow: the captcha path is unreachable from a native app anyway.
+  // Captcha fallback — the same gate the web sign-in passes, for a client that
+  // renders hCaptcha in a webview.
+  //
+  // This is what the contract above always claimed to support, and until now it
+  // did not: `captchaToken` was accepted in the signature and never read, so a
+  // webview client was refused with "Play Integrity must be configured on both"
+  // no matter what it sent. That mattered once Play Integrity turned out to be
+  // unavailable — it requires a Play Console account AND an install from Play,
+  // neither of which a sideloaded build can satisfy.
+  if (hasCaptchaProof) {
+    return requireBotVerification({
+      captchaToken: opts.captchaToken,
+      loginTicket: opts.loginTicket,
+      email: opts.email,
+      ip: opts.ip,
+    });
+  }
+
+  if (!isPlayIntegrityConfigured()) {
+    // The common misconfiguration: the app cannot attest and the server cannot
+    // check. Say so plainly rather than falling through to the captcha path,
+    // whose message ("complete the captcha") is advice this client never asked
+    // for a captcha in the first place.
+    return {
+      ok: false,
+      reason:
+        'This app build cannot verify itself with this server, so sign-in is unavailable. ' +
+        'Play Integrity must be configured on both.',
+    };
+  }
+
+  // Neither proof, but the server CAN check integrity tokens, so the client is
+  // out of date rather than the server being misconfigured.
   return {
     ok: false,
     reason: 'Update CareerPilot to sign in: this app version cannot verify itself.',
@@ -253,5 +281,9 @@ export async function requireMobileBotVerification(opts: {
 
 /** True when the mobile client has any viable way to pass bot verification. */
 export function isMobileSignInPossible(): boolean {
-  return isPlayIntegrityConfigured() || process.env.NODE_ENV !== 'production';
+  return (
+    isPlayIntegrityConfigured() ||
+    isCaptchaConfigured() ||
+    process.env.NODE_ENV !== 'production'
+  );
 }
