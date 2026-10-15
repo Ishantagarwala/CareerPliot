@@ -154,6 +154,8 @@ export default function UnifiedChat({
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const isStreamingRef = useRef(false);
+  /** Notifies at most once per turn when the server substitutes a model. */
+  const substitutionNotedRef = useRef(false);
   const streamingThreadIdRef = useRef<string | null>(null);
   const streamOriginThreadRef = useRef<string | null>(null);
   const streamMsgIdRef = useRef<string | null>(null);
@@ -604,6 +606,9 @@ export default function UnifiedChat({
           reply?: string;
           reasoning?: string;
           title?: string;
+          /** Model that actually answered; differs from requested on fallback. */
+          model?: string;
+          requestedModel?: string;
         };
         try {
           event = JSON.parse(raw);
@@ -613,6 +618,23 @@ export default function UnifiedChat({
 
         if (event.type === "meta" && event.threadId) {
           bindThread(event.threadId);
+          /*
+           * The server falls back to another model when the requested one has
+           * been retired. Surface that once per turn: a silent swap is
+           * confusing to debug later, and the user is owed the name of the
+           * model that actually answered.
+           */
+          if (
+            typeof event.model === "string" &&
+            typeof event.requestedModel === "string" &&
+            event.model !== event.requestedModel &&
+            !substitutionNotedRef.current
+          ) {
+            substitutionNotedRef.current = true;
+            toast.message(
+              `${event.requestedModel} is unavailable — answered with ${event.model}.`
+            );
+          }
         } else if (event.type === "reasoning" && event.content) {
           appendReasoning(event.content);
         } else if (event.type === "token" && event.content) {

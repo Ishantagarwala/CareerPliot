@@ -1,9 +1,16 @@
 import OpenAI from "openai";
 import type { ChatCompletionCreateParamsNonStreaming } from "openai/resources/chat/completions";
+import { getModelCatalogue } from "./modelAvailability";
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
-const FLAGSHIP_MODEL = "deepseek-ai/DeepSeek-V4-Flash";
+/*
+ * Used only when LLM_ROUTER_MODEL is unset. This previously named
+ * "deepseek-ai/DeepSeek-V4-Flash", which the provider does not have — so a
+ * deployment without the env var 404'd on every request. Must be an id from the
+ * router's own catalogue; see lib/modelAvailability.ts.
+ */
+const FLAGSHIP_MODEL = "zai-org/GLM-5.3-Flash";
 const FALLBACK_MODEL = "zai-org/GLM-5.3-Flash";
 
 const isPlaceholder = (val?: string) =>
@@ -408,6 +415,27 @@ export async function generateStructuredJson<T>(
     const idx = chain.findIndex((p) => p.model === fallbackId);
     if (idx > 0) {
       providers = [...chain.slice(idx), ...chain.slice(0, idx)];
+    }
+  }
+
+  /*
+   * Keep only providers the router actually serves, and append any catalogue
+   * model as a last resort.
+   *
+   * The chain is built from env, so it can name a model that has been retired —
+   * and the chain has no way to notice. Previously every entry would be tried
+   * in turn, each failing, and the whole call would throw even though six
+   * healthy models were available. Availability is only asserted from the live
+   * catalogue; if it cannot be read, the chain is used unchanged.
+   */
+  const catalogue = await getModelCatalogue();
+  if (catalogue && catalogue.length > 0) {
+    const available = providers.filter((p) => catalogue.includes(p.model));
+    const unknown = providers.filter((p) => !catalogue.includes(p.model));
+    if (available.length > 0) {
+      // Known-good first; unrecognised entries stay as a last resort, since the
+      // catalogue may be cached and a brand-new model would not be listed yet.
+      providers = [...available, ...unknown];
     }
   }
 

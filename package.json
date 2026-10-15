@@ -16,7 +16,7 @@
     "check:export": "node scripts/check-reply-export.mjs",
     "check:docs": "node scripts/check-generated-docs.mjs",
     "check:files": "node scripts/check-file-block-render.mjs",
-    "check:all": "npm run check:export && npm run check:docs && npm run check:files && npm run check:markdown-docs && npm run check:career && npm run check:hud && npm run check:flow && npm run check:context && npm run check:pdftext && npm run check:turn && npm run check:effort && npm run check:mobile && node scripts/check-voice.mjs",
+    "check:all": "npm run check:export && npm run check:docs && npm run check:files && npm run check:markdown-docs && npm run check:career && npm run check:hud && npm run check:flow && npm run check:context && npm run check:pdftext && npm run check:turn && npm run check:effort && npm run check:mobile && node scripts/check-voice.mjs && npm run check:models",
     "check:markdown-docs": "node scripts/check-markdown-to-docs.mjs",
     "check:career": "node scripts/check-career-recommendations.mjs",
     "check:hud": "node scripts/check-hud-progress.mjs",
@@ -29,7 +29,9 @@
     "check:mobile-tokens": "node --test lib/__tests__/mobileTokens.test.ts",
     "check:play-integrity": "node --test lib/__tests__/playIntegrity.test.ts",
     "check:mobile": "npm run check:mobile-tokens && npm run check:play-integrity",
-    "check:voice": "node scripts/check-voice.mjs && node scripts/check-voice-transcript.mjs"
+    "check:voice": "node scripts/check-voice.mjs && node scripts/check-voice-transcript.mjs",
+    "check:models": "node scripts/check-models.mjs",
+    "check:models:live": "node scripts/check-model-resilience-live.mjs"
   },
   "dependencies": {
     "@base-ui/react": "^1.5.0",

@@ -111,13 +111,23 @@ export async function GET() {
       a.localeCompare(b, undefined, { sensitivity: "base" })
     );
 
-    const defaultModel =
-      (preferred && models.includes(preferred) && preferred) ||
-      models.find((m) => m === preferred) ||
-      models.find((m) => baseModelName(m) === (preferred ? baseModelName(preferred) : "")) ||
-      models.find((m) => m.startsWith("deepseek-ai/")) ||
-      models[0] ||
-      null;
+      /*
+       * The default must be a model the router ACTUALLY serves, because it is
+       * pre-selected for every new conversation — if it is missing or broken,
+       * the first message of every thread fails.
+       *
+       * This used to prefer any `deepseek-ai/` entry, which happened to select
+       * DeepSeek-V4.1-Flash: the one model in the catalogue that rejects the
+       * app's own `reasoning_effort` default with a 400. Preferring the
+       * operator's configured model is both more predictable and more correct —
+       * they chose it deliberately, and `lib/modelAvailability.ts` handles it
+       * going away.
+       */
+      const defaultModel =
+        (preferred && models.includes(preferred) && preferred) ||
+        models.find((m) => baseModelName(m) === (preferred ? baseModelName(preferred) : "")) ||
+        models[0] ||
+        null;
 
     return NextResponse.json({
       models,

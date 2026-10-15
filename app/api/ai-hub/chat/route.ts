@@ -14,6 +14,12 @@ import {
 } from "@/lib/reasoningEffort";
 import { buildDocumentContext } from "@/lib/documentContext";
 import { resolveLlmEndpoint } from "@/lib/llm";
+import {
+  candidateModels,
+  initialEffort,
+  isEffortRejection,
+  isModelUnavailableError,
+} from "@/lib/modelAvailability";
 import { enforceLlmBudget } from "@/lib/llmGuard";
 import {
   isOwnedUploadFilename,
@@ -554,7 +560,7 @@ export async function POST(req: Request) {
     const limited = enforceLlmBudget(userId, "ai-hub-chat", 30);
     if (limited) return limited;
 
-    const { client, model } = resolveLlmEndpoint(modelSelection);
+    const resolved = resolveLlmEndpoint(modelSelection);
     const threadIdStr = String(chat._id);
 
     const docsUsed = documents.map((doc) => ({
@@ -563,20 +569,86 @@ export async function POST(req: Request) {
     }));
 
     /*
-     * `reasoning_effort` is the field the provider validates, and it accepts one
-     * level the SDK's own type does not list ("max"). The request is therefore
-     * built explicitly and only the *result* is typed, which keeps the streaming
-     * overload resolving without narrowing the levels the provider supports.
+     * Open the stream against the models that are actually available.
+     *
+     * This path used to make a single attempt with whatever `getLlmModel()`
+     * returned, so one model the provider had retired — or a typo in
+     * `LLM_ROUTER_MODEL`, which is what actually happened — meant every chat
+     * request failed with `404 Model not available.` and no second chance.
+     *
+     * `candidateModels` puts the user's choice first and follows it with the
+     * rest of the live catalogue, so a removal becomes a non-event. When the
+     * catalogue cannot be read it returns just the requested model, which is the
+     * old behaviour — a router hiccup must not look like "all models are gone".
      */
-    const stream = (await client.chat.completions.create({
-      model,
-      messages: apiMessages,
-      temperature: 0.6,
-      stream: true,
-      reasoning_effort: reasoningEffort,
-    } as unknown as ChatCompletionCreateParamsStreaming)) as unknown as AsyncIterable<
-      ChatCompletionChunk
-    >;
+    const candidates = await candidateModels(modelSelection || resolved.model, [
+      process.env.LLM_ROUTER_FALLBACK_MODEL,
+      process.env.LLM_ROUTER_MODEL,
+    ]);
+
+    if (candidates.length === 0) {
+      return NextResponse.json({ message: "No language model is available." }, { status: 503 });
+    }
+
+    /*
+     * `reasoning_effort` is validated per model, not per router: most models
+     * accept all seven levels, but DeepSeek V4.1 accepts only low/high/xhigh/max
+     * and rejects the app's own "medium" default with a 400. Sending an
+     * unsupported level made a healthy model look broken.
+     */
+    let stream: AsyncIterable<ChatCompletionChunk> | null = null;
+    let model = resolved.model;
+    let servedBy = resolved.model;
+    let lastError: unknown = null;
+
+    for (const candidate of candidates) {
+      const effort = initialEffort(candidate, reasoningEffort);
+      for (const attempt of [effort, undefined] as const) {
+        try {
+          const { client } = resolveLlmEndpoint(candidate);
+          stream = (await client.chat.completions.create({
+            model: candidate,
+            messages: apiMessages,
+            temperature: 0.6,
+            stream: true,
+            ...(attempt ? { reasoning_effort: attempt } : {}),
+          } as unknown as ChatCompletionCreateParamsStreaming)) as unknown as AsyncIterable<
+            ChatCompletionChunk
+          >;
+          model = candidate;
+          servedBy = candidate;
+          break;
+        } catch (error) {
+          lastError = error;
+
+          /*
+           * The model is fine but this level is not — retry the SAME model with
+           * the field omitted so the provider applies its own default. Trying a
+           * different model here would be an unnecessary downgrade.
+           */
+          if (isEffortRejection(error) && attempt) {
+            console.warn(
+              `[ai-hub] ${candidate} rejected reasoning_effort="${attempt}"; retrying without it`
+            );
+            continue;
+          }
+
+          // Only a model-level failure justifies moving to the next candidate.
+          if (!isModelUnavailableError(error)) throw error;
+          console.warn(`[ai-hub] model "${candidate}" is unavailable; trying the next one`);
+          break;
+        }
+      }
+      if (stream) break;
+    }
+
+    if (!stream) {
+      console.error("[ai-hub] no candidate model accepted the request", lastError);
+      return NextResponse.json(
+        { message: "No language model is currently available. Please try again." },
+        { status: 503 }
+      );
+    }
 
     // Only persist the user turn after the provider accepted the request. This
     // prevents failed provider setup from leaving orphan user-only messages.
@@ -598,6 +670,13 @@ export async function POST(req: Request) {
               type: "meta",
               threadId: threadIdStr,
               documentsUsed: docsUsed,
+              /*
+               * Which model actually answered. When the requested one was
+               * unavailable this differs from `modelSelection`, so the client
+               * can say so instead of silently swapping models under the user.
+               */
+              model: servedBy,
+              requestedModel: modelSelection || resolved.model,
             })
           );
 
