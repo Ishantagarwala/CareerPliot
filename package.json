@@ -29,7 +29,7 @@
     "check:mobile-tokens": "node --test lib/__tests__/mobileTokens.test.ts",
     "check:play-integrity": "node --test lib/__tests__/playIntegrity.test.ts",
     "check:mobile": "npm run check:mobile-tokens && npm run check:play-integrity",
-    "check:voice": "node scripts/check-voice.mjs && node scripts/check-voice-transcript.mjs",
+    "check:voice": "node scripts/check-voice.mjs && node scripts/check-voice-transcript.mjs && node scripts/check-voice-mime.mjs",
     "check:models": "node scripts/check-models.mjs",
     "check:models:live": "node scripts/check-model-resilience-live.mjs"
   },

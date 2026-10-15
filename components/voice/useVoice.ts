@@ -51,6 +51,84 @@ export function mediaBlobExtension(mimeType: string): string {
   return "webm";
 }
 
+/**
+ * The MIME types the ASR provider accepts, taken from its own rejection
+ * message. Used to guarantee we never send something it will refuse.
+ */
+export const ASR_ACCEPTED_MIME_TYPES = [
+  "audio/mpeg",
+  "audio/mp3",
+  "audio/wav",
+  "audio/x-wav",
+  "audio/wave",
+  "audio/aac",
+  "audio/aiff",
+  "audio/ogg",
+  "audio/opus",
+  "audio/flac",
+  "audio/mp4",
+  "audio/x-m4a",
+  "audio/amr",
+  "audio/webm",
+] as const;
+
+/**
+ * Converts a `MediaRecorder` MIME type into one the ASR provider accepts.
+ *
+ * WHY THIS EXISTS — a real regression.
+ *
+ * `MediaRecorder.mimeType` comes back as `audio/webm;codecs=opus`, because that
+ * is what the recorder actually negotiated. Forwarding that verbatim made the
+ * provider reject every Chrome recording:
+ *
+ *   400 Invalid file type: audio/webm;codecs=opus.
+ *       Only ['audio/mpeg', ..., 'audio/webm', ...] are allowed.
+ *
+ * The codec PARAMETER is the problem, not the container: `audio/webm` is on the
+ * allowed list but `audio/webm;codecs=opus` is a different string and is not.
+ * The fix is to drop the parameter — the codec is already carried by the byte
+ * stream, so the bare container type loses no information the provider needs.
+ *
+ * `audio/mp4;codecs=...` and `video/webm` are normalised too: the first for the
+ * same reason, the second because a video container type is not on the list and
+ * the payload is audio-only regardless.
+ */
+export function normalizeRecorderMimeType(mimeType: string | undefined): string {
+  const raw = (mimeType || "").trim().toLowerCase();
+  if (!raw) return "audio/webm";
+
+  // Drop any `;codecs=...` / `; rate=...` parameters.
+  const bare = raw.split(";")[0].trim();
+
+  /*
+   * Normalise a video container to its audio equivalent BEFORE the allowlist
+   * check. `video/webm` is technically accepted by the provider, but the
+   * payload is audio-only and calling it video misstates what is being sent.
+   */
+  const asAudio = bare === "video/webm" ? "audio/webm" : bare;
+
+  if ((ASR_ACCEPTED_MIME_TYPES as readonly string[]).includes(asAudio)) return asAudio;
+
+  // Not directly accepted — map the container onto an allowed equivalent.
+  if (asAudio.includes("webm")) return "audio/webm";
+  if (asAudio.includes("ogg")) return asAudio.includes("opus") ? "audio/opus" : "audio/ogg";
+  if (asAudio.includes("mp4") || asAudio.includes("m4a") || asAudio.includes("aac")) {
+    return "audio/mp4";
+  }
+  if (asAudio.includes("wav") || asAudio.includes("wave")) return "audio/wav";
+  if (asAudio.includes("mpeg") || asAudio.includes("mp3")) return "audio/mpeg";
+  if (asAudio.includes("flac")) return "audio/flac";
+  if (asAudio.includes("aiff")) return "audio/aiff";
+  if (asAudio.includes("amr")) return "audio/amr";
+
+  /*
+   * Unknown container. `application/octet-stream` is on the provider's list for
+   * exactly this case, and is honest — better than claiming a type we cannot
+   * confirm and being rejected for it.
+   */
+  return "application/octet-stream";
+}
+
 function speakWithBrowserTts(text: string, lang: string): Promise<void> {
   return new Promise((resolve, reject) => {
     if (typeof window === "undefined" || !window.speechSynthesis) {
@@ -351,10 +429,22 @@ export function useVoice(options: UseVoiceOptions = {}) {
 
     try {
       const formData = new FormData();
-      // Carry the recorder's real container: Safari cannot record webm, so
-      // labelling AAC/MP4 as audio.webm sent Sarvam a mislabelled file.
-      const ext = mediaBlobExtension(audioBlob.type || "audio/webm");
-      formData.append("file", audioBlob, `audio.${ext}`);
+      /*
+       * Carry the recorder's real container: Safari cannot record webm, so
+       * labelling AAC/MP4 as audio.webm sent Sarvam a mislabelled file.
+       *
+       * The MIME type is normalised (codec parameters stripped) because
+       * `MediaRecorder.mimeType` reports e.g. `audio/webm;codecs=opus`, and the
+       * provider rejects that exact string even though `audio/webm` is on its
+       * allowed list — which broke transcription for every Chrome recording.
+       */
+      const uploadType = normalizeRecorderMimeType(audioBlob.type);
+      const uploadBlob =
+        audioBlob.type === uploadType
+          ? audioBlob
+          : new Blob([audioBlob], { type: uploadType });
+      const ext = mediaBlobExtension(uploadType);
+      formData.append("file", uploadBlob, `audio.${ext}`);
       formData.append("language_code", selectedLanguageRef.current.code);
 
       const res = await fetch("/api/voice/transcribe", {
