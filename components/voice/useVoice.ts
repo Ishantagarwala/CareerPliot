@@ -228,6 +228,14 @@ export function useVoice(options: UseVoiceOptions = {}) {
   const voiceSessionActiveRef = useRef(false);
   /** Bounds the `no-speech` auto-retry so it cannot loop forever. */
   const noSpeechRetriesRef = useRef(0);
+  /**
+   * Fires if the native recogniser never confirms it started.
+   *
+   * Without it, an engine that starts and then stays silent leaves the UI on
+   * "Tap mic to speak" indefinitely with no error — the microphone button
+   * appears to do nothing.
+   */
+  const nativeWatchdogRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     onUtteranceEndRef.current = onUtteranceEnd;
@@ -324,9 +332,27 @@ export function useVoice(options: UseVoiceOptions = {}) {
   }, [clearMaxUtteranceTimer]);
 
   useEffect(() => {
+    /*
+     * Reset on MOUNT, not just set on unmount.
+     *
+     * `deadRef` is set true by the cleanup below, and React 18+ StrictMode runs
+     * mount → cleanup → mount in development. Nothing set it back, so after the
+     * simulated unmount the hook believed it was dead for the rest of its life:
+     * `startMediaRecorder` released every stream it acquired and returned early,
+     * and "tap to record" did nothing at all, with no error shown.
+     *
+     * Clearing it here makes the flag mean what it says — "this instance has
+     * been torn down" — instead of "this instance was ever cleaned up".
+     */
+    deadRef.current = false;
+
     return () => {
       deadRef.current = true;
       turnIdRef.current += 1;
+      if (nativeWatchdogRef.current) {
+        clearTimeout(nativeWatchdogRef.current);
+        nativeWatchdogRef.current = null;
+      }
       clearSilenceTimer();
       clearMaxUtteranceTimer();
       clearVad();
@@ -696,7 +722,55 @@ export function useVoice(options: UseVoiceOptions = {}) {
         recognition.interimResults = true;
         recognition.lang = selectedLanguageRef.current.code;
 
-        recognition.onstart = () => setStatus("listening");
+        /*
+         * WATCHDOG — the native engine can start and then do nothing at all.
+         *
+         * Observed in a real browser: `recognition.start()` returns without
+         * throwing, and then NO event fires — not `start`, not `error`, not
+         * `end` — for at least 14 seconds. `getUserMedia` is never reached
+         * either, so the MediaRecorder fallback never triggers, and the UI sits
+         * on "Tap mic to speak" forever. Tapping record simply does nothing.
+         *
+         * This is the failure mode users actually hit, and the old code had no
+         * defence against it because it only reacted to events. If the engine
+         * has not confirmed that it started within this window, stop waiting and
+         * switch to the recorder we know works.
+         */
+        let nativeStarted = false;
+        const nativeWatchdog = setTimeout(() => {
+          if (nativeStarted || deadRef.current) return;
+          console.warn("Speech recognition did not start; switching to the recorder.");
+          skipNativeRecognitionRef.current = true;
+          try {
+            recognition.abort();
+          } catch {
+            /* ignore */
+          }
+          recognitionRef.current = null;
+          /*
+           * NOTE: `captureActiveRef` is deliberately NOT cleared here.
+           * `startMediaRecorder` re-checks it AFTER awaiting getUserMedia, so
+           * clearing it would make the fallback stop the very stream it just
+           * acquired and return silently — the button would do nothing, which
+           * is the bug this watchdog exists to fix.
+           */
+          void startMediaRecorder().catch((e: any) => {
+            captureActiveRef.current = false;
+            setError(describeMicError(e));
+            setStatus("error");
+          });
+        }, 2500);
+        // Cleared once the engine confirms it is live, and on every exit path.
+        nativeWatchdogRef.current = nativeWatchdog;
+
+        recognition.onstart = () => {
+          nativeStarted = true;
+          if (nativeWatchdogRef.current) {
+            clearTimeout(nativeWatchdogRef.current);
+            nativeWatchdogRef.current = null;
+          }
+          setStatus("listening");
+        };
 
         recognition.onresult = (event: any) => {
           if (deadRef.current) return;
@@ -759,10 +833,13 @@ export function useVoice(options: UseVoiceOptions = {}) {
           ) {
             skipNativeRecognitionRef.current = true;
             recognitionRef.current = null;
-            // The recognizer is gone, so capture is no longer live — clearing
-            // this is what lets the MediaRecorder path start.
-            captureActiveRef.current = false;
+            /*
+             * `captureActiveRef` stays set: the recogniser is finished, but the
+             * fallback still needs the guard held across its own async
+             * getUserMedia. See the note in the watchdog above.
+             */
             if (err.error === "not-allowed") {
+              captureActiveRef.current = false;
               toast.error(
                 "Microphone blocked. Allow mic access in your browser's address bar."
               );
@@ -840,6 +917,10 @@ export function useVoice(options: UseVoiceOptions = {}) {
     // Invalidate any continuation that is mid-await, so a transcribe that is
     // already in flight cannot come back and submit after this returns.
     turnIdRef.current += 1;
+    if (nativeWatchdogRef.current) {
+      clearTimeout(nativeWatchdogRef.current);
+      nativeWatchdogRef.current = null;
+    }
     transcribeAbortRef.current?.abort();
     transcribeAbortRef.current = null;
     clearSilenceTimer();
