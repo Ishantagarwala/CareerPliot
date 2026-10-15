@@ -134,6 +134,14 @@ interface VoiceHUDProps {
   thinking?: boolean;
   /** Interrupt TTS and start listening. */
   onBargeIn?: () => void;
+  /**
+   * Why the last attempt failed. Rendered as visible text AND announced.
+   *
+   * The hook has always exposed `error`, but this component had no prop for it,
+   * so a failure showed an unlabelled red circle that replaced the mic button —
+   * the detail survived only in a toast that faded.
+   */
+  error?: string | null;
 }
 
 /** Inline font declaration, or undefined for the hub skin (inherits Inter). */
@@ -157,6 +165,7 @@ export default function VoiceHUD({
   variant = "tutor",
   thinking = false,
   onBargeIn,
+  error,
 }: VoiceHUDProps) {
   const [editingText, setEditingText] = useState("");
   const [mounted, setMounted] = useState(false);
@@ -208,7 +217,7 @@ export default function VoiceHUD({
               : "Tutor speaking — tap to interrupt"
             : "Playing question…"
           : status === "error"
-            ? "Something went wrong — try again"
+            ? error || "Something went wrong — try again"
             : isConversation
               ? "Tap mic to speak"
               : "Tap mic to answer";
@@ -370,7 +379,12 @@ export default function VoiceHUD({
                   )}
                 </button>
               )}
-              <p className={s.statusText} style={fontStyle(s.statusFont)}>
+              <p
+                className={s.statusText}
+                style={fontStyle(s.statusFont)}
+                role="status"
+                aria-live="polite"
+              >
                 {statusLabel}
               </p>
             </div>
@@ -553,7 +567,11 @@ export default function VoiceHUD({
                 <span className="material-symbols-outlined text-[26px]">mic</span>
               </button>
             )}
-            <p className="text-left text-xs font-mono font-bold uppercase tracking-wide text-foreground leading-snug">
+            <p
+              className="text-left text-xs font-mono font-bold uppercase tracking-wide text-foreground leading-snug"
+              role="status"
+              aria-live="polite"
+            >
               {statusLabel}
             </p>
           </div>

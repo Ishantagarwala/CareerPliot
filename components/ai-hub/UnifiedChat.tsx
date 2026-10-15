@@ -975,6 +975,7 @@ export default function UnifiedChat({
           status={voice.status}
           thinking={(loading || voiceTurnBusy) && voice.status !== "speaking"}
           transcript={voice.transcript}
+          error={voice.error}
           onTranscriptChange={(t) => voice.setTranscript(t)}
           onStartRecord={voice.startRecording}
           onStopRecord={voice.stopRecording}
@@ -985,6 +986,9 @@ export default function UnifiedChat({
             void handleVoiceTurnRef.current(text);
           }}
           onCancel={() => {
+            // Close the session first: this stops the automatic no-speech
+            // retry from reopening the microphone after the user has left.
+            voice.setSessionActive(false);
             voice.stopListeningOnly();
             voice.stopSpeech();
             setVoiceHUDOpen(false);

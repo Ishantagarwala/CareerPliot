@@ -969,6 +969,7 @@ export default function AssessmentForm({ onSuccess }: AssessmentFormProps) {
         <VoiceHUD
           status={voice.status}
           transcript={voice.transcript}
+          error={voice.error}
           onTranscriptChange={(t) => voice.setTranscript(t)}
           onStartRecord={voice.startRecording}
           onStopRecord={voice.stopRecording}

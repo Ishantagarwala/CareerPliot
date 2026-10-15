@@ -67,7 +67,9 @@ export default function ChatInterface() {
 
   useEffect(() => {
     voiceHUDOpenRef.current = voiceHUDOpen;
-  }, [voiceHUDOpen]);
+    // Only while a session is open should a silent pause restart listening.
+    voice.setSessionActive(voiceHUDOpen);
+  }, [voiceHUDOpen, voice]);
 
   const scrollToBottom = () => {
     if (scrollRef.current) {
@@ -456,6 +458,7 @@ export default function ChatInterface() {
           thinking={(loading || voiceTurnBusy) && voice.status !== "speaking"}
           status={voice.status}
           transcript={voice.transcript}
+error={voice.error}
           onTranscriptChange={(t) => voice.setTranscript(t)}
           onStartRecord={voice.startRecording}
           onStopRecord={voice.stopRecording}
