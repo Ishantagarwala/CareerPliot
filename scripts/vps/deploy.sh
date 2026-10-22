@@ -61,6 +61,27 @@ run_build() {
     "$install_cmd && ./node_modules/.bin/next build --webpack"
 }
 
+# THE BUILD NEEDS THE APP'S MEMORY
+#
+# The app container holds ~300 MB while it runs, and the build peaks near
+# 1.8 GB on a 2.5 GB host. With the app running, the build worker was killed
+# (SIGKILL); with it stopped, the same build succeeds. Deploys therefore take
+# the API down for the length of the build (~6 minutes) rather than risk a
+# failed deploy. On failure the previous container is started again.
+APP_WAS_RUNNING=0
+if docker ps --format '{{.Names}}' | grep -qx careerpliot; then
+  APP_WAS_RUNNING=1
+  echo "== pausing app to free memory for the build (brief API downtime) =="
+  docker stop careerpliot >/dev/null || true
+fi
+
+restore_app_on_failure() {
+  if [ "$APP_WAS_RUNNING" = "1" ]; then
+    echo "== bringing the previous app back up =="
+    docker start careerpliot >/dev/null || true
+  fi
+}
+
 # Keep the build that is currently serving traffic, in case this one fails.
 rm -rf .next.bak
 if [ -d .next ]; then cp -a .next .next.bak; fi
@@ -71,7 +92,12 @@ if ! run_build "$INSTALL"; then
   rm -rf .next
   if [ -d .next.bak ]; then mv .next.bak .next; fi
   echo "== retrying once (font fetches can be transient) =="
-  run_build "$INSTALL"
+  if ! run_build "$INSTALL"; then
+    rm -rf .next.bak
+    restore_app_on_failure
+    echo "build failed twice — not restarting with a broken build" >&2
+    exit 1
+  fi
 fi
 rm -rf .next.bak
 
