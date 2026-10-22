@@ -25,7 +25,7 @@ docker run --rm \
   node:22-bookworm-slim bash -lc "npm ci --no-audit --no-fund && npx next build --webpack"
 
 echo "== restart =="
-"$HERE/run-app.sh"
+bash "$HERE/run-app.sh"
 
 for _ in $(seq 1 20); do
   if curl -sf -o /dev/null http://127.0.0.1:3000/login; then
