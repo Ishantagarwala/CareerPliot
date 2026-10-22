@@ -1,0 +1,11 @@
+[Unit]
+Description=Check GitHub for new CareerPilot commits
+
+[Timer]
+# Give the host time to settle after boot, then poll.
+OnBootSec=2min
+OnUnitActiveSec=5min
+Unit=careerpliot-deploy.service
+
+[Install]
+WantedBy=timers.target

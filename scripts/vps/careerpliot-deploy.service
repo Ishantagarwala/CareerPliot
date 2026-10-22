@@ -1,0 +1,14 @@
+[Unit]
+Description=CareerPilot pull-based deploy (checks GitHub, rebuilds on change)
+Documentation=https://github.com/Ishantagarwala/CareerPliot/blob/main/scripts/vps/README.md
+After=network-online.target docker.service
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=user
+WorkingDirectory=/opt/careerpliot
+ExecStart=/opt/careerpliot-deploy/pull-deploy.sh
+# The low-memory build takes ~7 minutes on this host; the default is 90s.
+TimeoutStartSec=1800
+Nice=10
