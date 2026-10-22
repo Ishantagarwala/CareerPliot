@@ -28,10 +28,25 @@ HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$APP_DIR"
 
 LOCK_HASH="$(sha256sum package-lock.json | cut -d' ' -f1)"
-if [ -d node_modules ] && [ -f .deploy-lock-hash ] && [ "$(cat .deploy-lock-hash)" = "$LOCK_HASH" ]; then
-  INSTALL="echo 'dependencies unchanged, skipping npm ci'"
+
+# A node_modules DIRECTORY is not proof of a working install: an interrupted
+# `npm ci` (the network dropped mid-download once) leaves a half-populated tree.
+# Trusting it made the build fall through to `npx next`, which silently fetched
+# a standalone Next 16.4.2 into /tmp with no react, no tailwind, no tsconfig
+# paths — and the build failed with errors that pointed at the wrong files.
+deps_ok() {
+  [ -f node_modules/.bin/next ] &&
+    [ -f node_modules/react/package.json ] &&
+    [ -f node_modules/react-dom/package.json ] &&
+    [ -d node_modules/@tailwindcss/postcss ]
+}
+
+INSTALL_BASE="npm ci --no-audit --no-fund --fetch-retries=5 --fetch-retry-mintimeout=20000 --fetch-retry-maxtimeout=120000"
+
+if deps_ok && [ -f .deploy-lock-hash ] && [ "$(cat .deploy-lock-hash)" = "$LOCK_HASH" ]; then
+  INSTALL="echo 'dependencies unchanged and healthy, skipping npm ci'"
 else
-  INSTALL="npm ci --no-audit --no-fund && echo $LOCK_HASH > /app/.deploy-lock-hash"
+  INSTALL="$INSTALL_BASE && echo $LOCK_HASH > /app/.deploy-lock-hash"
 fi
 
 run_build() {
@@ -42,7 +57,8 @@ run_build() {
     -e NODE_OPTIONS=--max-old-space-size=1300 \
     -e NEXT_BUILD_LOW_MEMORY=1 \
     -v "$APP_DIR":/app -w /app \
-    node:22-bookworm-slim bash -lc "$install_cmd && npx next build --webpack"
+    node:22-bookworm-slim bash -lc \
+    "$install_cmd && ./node_modules/.bin/next build --webpack"
 }
 
 # Keep the build that is currently serving traffic, in case this one fails.
