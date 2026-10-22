@@ -38,6 +38,18 @@ if [ "$local_sha" = "$remote_sha" ]; then
 fi
 
 echo "deploying ${local_sha:0:7} -> ${remote_sha:0:7}"
+
+# A rebuild takes the API down for ~6 minutes on this host. Commits that cannot
+# change what runs — docs, CI config, and these deploy scripts themselves — only
+# need the checkout updated, and the next real commit will pick them up.
+changed="$(git diff --name-only "$local_sha" "$remote_sha")"
+if [ -n "$changed" ] && ! printf '%s\n' "$changed" |
+  grep -qvE '^(README\.md|SYSTEM_WORKFLOW\.md|PRODUCT\.md|\.github/|scripts/vps/)'; then
+  echo "only docs, CI or deploy-script files changed — skipping the rebuild"
+  git reset --hard --quiet origin/main
+  exit 0
+fi
+
 git reset --hard --quiet origin/main
 
 # deploy.sh lives in the repo, so it is always the version being deployed.

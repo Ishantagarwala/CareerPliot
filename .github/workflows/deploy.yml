@@ -26,9 +26,12 @@
 name: Deploy
 
 on:
-  push:
-    branches: [main]
-  workflow_dispatch: # manual re-run from the Actions tab
+  # Pushes do NOT deploy from here: GitHub's runners cannot reach this host
+  # (`ssh: connect to host … port 2223: Connection timed out`), so every push
+  # produced a red run that could never succeed. Production is updated by the
+  # pull-based timer on the server itself — see scripts/vps/README.md.
+  # This workflow is kept for a manual run once that reachability is fixed.
+  workflow_dispatch:
 
 concurrency:
   group: deploy-main
