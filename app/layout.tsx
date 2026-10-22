@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Anybody, Hanken_Grotesk, Inter, Space_Grotesk } from "next/font/google";
+import localFont from "next/font/local";
 import "./globals.css";
 import { SessionProvider } from "next-auth/react";
 import { Toaster } from "@/components/ui/sonner";
@@ -13,32 +13,56 @@ try {
   dns.setDefaultResultOrder("ipv4first");
 } catch {}
 
-const anybody = Anybody({
+/**
+ * Typefaces are vendored, not fetched.
+ *
+ * These were `next/font/google`, which downloads each family from
+ * fonts.googleapis.com during `next build`. On the production VPS that fetch is
+ * unreliable — one deploy died on a malformed response, another on a dropped
+ * TLS connection — and a build failure there means the app cannot ship. The
+ * four families are variable fonts, so each ships as one `*-var.woff2` (136 KB
+ * total) declared with its full weight range. Builds are now deterministic and
+ * offline; the CSS variable names are unchanged, so globals.css is untouched.
+ *
+ * Refresh with:
+ *   css2?family=<Family>:wght@<weights>  → take the latin @font-face URL
+ * (Google serves a single variable file per family regardless of the weights
+ * requested — downloading one per weight just duplicates the same bytes).
+ */
+const anybody = localFont({
+  src: "./fonts/anybody-var.woff2",
+  weight: "100 900",
+  style: "normal",
   variable: "--font-anybody",
-  subsets: ["latin"],
-  weight: ["700", "800"],
+  display: "swap",
 });
 
-const hanken = Hanken_Grotesk({
+const hanken = localFont({
+  src: "./fonts/hanken-var.woff2",
+  weight: "100 900",
+  style: "normal",
   variable: "--font-hanken",
-  subsets: ["latin"],
-  weight: ["400", "600", "700"],
+  display: "swap",
 });
 
-const spaceGrotesk = Space_Grotesk({
+const spaceGrotesk = localFont({
+  src: "./fonts/space-var.woff2",
+  weight: "300 700",
+  style: "normal",
   variable: "--font-space",
-  subsets: ["latin"],
-  weight: ["500", "700"],
+  display: "swap",
 });
 
 /**
  * The AI Hub is set in Inter — its own typeface, scoped to that route via
  * `--font-inter`. The rest of the app keeps the display faces above.
  */
-const inter = Inter({
+const inter = localFont({
+  src: "./fonts/inter-var.woff2",
+  weight: "100 900",
+  style: "normal",
   variable: "--font-inter",
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
+  display: "swap",
 });
 
 const siteUrl = getSiteUrl();
