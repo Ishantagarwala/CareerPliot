@@ -79,6 +79,10 @@ Core: `User` (hashed password), `UserProfile`, `UserProgress`, `Roadmap`
 `ProjectIdea` + `TeamPost`, `Document` (AI Hub),
 `Todo`, `Hackathon`.
 
+Practice: `InterviewSession` (ordered `turns` + one `scorecard`),
+`Flashcard` (scheduling fields, unique `user+deck+fingerprint`),
+`ReviewLog` (one row per answer, feeds "reviewed today").
+
 The AI Hub has its own objects — `Document` (uploaded PDFs) and threaded
 `ChatHistory` — decoupled from legacy tutor history. Uploads: form
 multipart → `formidable` → public (`public/uploads`) or private
@@ -136,6 +140,28 @@ via `data:` — must stay in CSP `media-src data:`). `useVoice.ts` + `VoiceHUD`.
 `jobs` (multi-provider: Rapidd/Adzuna/LLM) + `jobs/applications` tracker.
 `projects` + `projects/teams` (collab posts). `news` cached via `newsFetcher`.
 
+### Mock interview
+`POST /api/interview` creates a session and writes the opening question
+locally (`buildOpeningQuestion`) — no model call, so starting never fails.
+`POST /api/interview/[id]/turn` asks the provider for
+`{acknowledgement, question}` and writes BOTH turns only after the call
+succeeds, so a provider failure leaves the session untouched and a retry
+cannot duplicate the answer. The final answer gets a fixed closing line
+instead of a model call. `POST /api/interview/[id]/finish` scores the
+transcript once and is idempotent thereafter — retrying returns the stored
+report rather than paying for a second, different one. Normalisation lives in
+`lib/interview.ts`; the UI is `components/interview/*`.
+
+### Flashcards
+`flashcards/generate` samples passages across the whole document
+(`splitIntoPassages` + an even sample), asks for cards, and inserts only the
+ones whose `cardKey(front)` is not already in the deck. `flashcards/review`
+accepts a rating only — never an interval — and applies `lib/srs.ts`, then
+writes a `ReviewLog`. `flashcards` returns per-deck counts and, with `?due=1`,
+the cross-deck queue. "Again" requeues the card client-side at the end of the
+session, because a 20-card review finishes long before the 10-minute relearn
+interval elapses. The dashboard reads the due count through `progress`.
+
 ---
 
 ## 7. Deployment workflow (GitHub Actions + Docker)
@@ -165,6 +191,22 @@ Secrets required (GitHub Actions): `SSH_PRIVATE_KEY`, `SSH_HOST`, `SSH_USER`,
 
 Manual fallback: `rsync ./ user@host:/opt/careerpliot && docker compose up -d
 --build web && docker compose up -d --force-recreate caddy`.
+
+### Split mode (optional): Vercel frontend + VPS API
+
+Every page is a client shell, so the deployment can be split without touching
+the API code. `rewrites()` in `next.config.ts` forwards `/api/*` to
+`BACKEND_ORIGIN` **before filesystem routes**, so the local handlers are
+bypassed rather than shadowing the proxy. `/api/auth/*` is deliberately not
+forwarded: Auth.js must issue the cookie from the host the browser is on, and
+proxying it would break CSRF and the `__Secure-` cookie scope.
+
+Both deployments share `AUTH_SECRET`; the VPS verifies the forwarded cookie.
+`/api/auth/mobile/*` therefore stays on the frontend, which needs Mongo and the
+Play Integrity keys too. **The VPS must never define `BACKEND_ORIGIN`** — that
+would rewrite its own API to itself. A new API directory must be added to
+`BACKEND_API_PREFIXES` or it will run on Vercel, where uploads cannot be
+written to disk.
 
 Alternative host: Cloudflare Workers via `@opennextjs/cloudflare`
 (`npm run preview/deploy` + `wrangler.jsonc`), storage via bindings.

@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import type { HackerRankAnalysis } from "@/lib/resume";
 import { getDomainConfig } from "@/lib/careerDomains";
+import { exceedsUploadLimit, formatUploadLimit } from "@/lib/uploadLimit";
 
 function rubricForDomain(domainId?: string | null) {
   const rubric = getDomainConfig(domainId).resumeRubric;
@@ -74,6 +75,10 @@ export default function ResumeAtsPage() {
       const file = e.target.files[0];
       if (file.type !== "application/pdf") {
         toast.error("Please upload a PDF file only.");
+        return;
+      }
+      if (exceedsUploadLimit(file)) {
+        toast.error(`File is too large. Maximum size is ${formatUploadLimit()}.`);
         return;
       }
       setResumeFile(file);
@@ -227,7 +232,7 @@ export default function ResumeAtsPage() {
                   <p className="text-xs text-white font-semibold">
                     {resumeFile ? resumeFile.name : "Drag & drop resume PDF or click to browse"}
                   </p>
-                  <p className="text-[10px] text-[#8e9192] mt-1">Accepts PDF files up to 10MB</p>
+                  <p className="text-[10px] text-[#8e9192] mt-1">Accepts PDF files up to {formatUploadLimit()}</p>
                 </div>
               </div>
             )}

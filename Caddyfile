@@ -19,6 +19,33 @@ www.careerpilot.cc {
 	redir https://careerpilot.cc{uri} permanent
 }
 
+# ─── API origin for the split deployment ────────────────────────────────────
+# The Vercel frontend rewrites every /api/* request except /api/auth/* here
+# (see `rewrites()` in next.config.ts). DNS: api → this server's IP.
+#
+# Only /api/* is served: the same container can render pages, but exposing them
+# on a second hostname creates duplicate content and a second login origin.
+api.careerpilot.cc {
+	encode gzip zstd
+
+	handle /api/* {
+		reverse_proxy web:3000 {
+			header_up Host {host}
+			header_up X-Forwarded-Host {host}
+			header_up X-Forwarded-Proto {scheme}
+			header_up X-Forwarded-For {remote_host}
+		}
+	}
+
+	handle {
+		respond "Career Pilot API. The app is at https://careerpilot.cc" 404
+	}
+}
+
+# NOTE: once the apex/www DNS records point at Vercel, Caddy receives no
+# traffic for those hosts and can no longer complete their ACME challenges.
+# Delete the two blocks above at cutover to stop the renewal errors.
+#
 # Raw-IP convenience redirect; the actual IP is injected via the VPS_IP env var
 # (set in the server-side .env, never committed).
 http://{$VPS_IP} {

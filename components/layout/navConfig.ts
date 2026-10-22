@@ -32,6 +32,7 @@ export const navSections: NavSection[] = [
       { name: "Roadmap", href: "/roadmap", icon: "map" },
       { name: "Courses", href: "/courses", icon: "school" },
       { name: "AI Hub", href: "/ai-hub", icon: "auto_awesome" },
+      { name: "Flashcards", href: "/flashcards", icon: "layers" },
     ],
   },
   {
@@ -41,6 +42,7 @@ export const navSections: NavSection[] = [
       { name: "Resume", href: "/resume", icon: "description" },
       { name: "Resume Score", href: "/resume/ats", icon: "military_tech" },
       { name: "Jobs", href: "/jobs", icon: "work" },
+      { name: "Interview", href: "/interview", icon: "record_voice_over" },
       { name: "Projects", href: "/projects", icon: "hub" },
     ],
   },

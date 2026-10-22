@@ -38,6 +38,7 @@ The production VPS exposes an opt-in shared demo through **Demo Login**. Do not 
 * **🗺️ Personalized Roadmaps:** Generates Beginner → Intermediate → Advanced milestones and tracks completion and readiness. One request writes the whole roadmap; if that response is ever cut short, it falls back to generating each stage on its own and keeps whatever succeeds rather than failing.
 * **📚 Live Course Recommendations:** Uses roadmap milestones to find relevant Coursera catalog courses, optional long-form YouTube results, and provider search links.
 * **📄 AI Study Hub:** Upload PDFs, extract text locally, summarize documents, generate questions, and chat with selected documents. Replies stream token-by-token. Uploaded documents can also be deleted from the library. Long documents are searched, not truncated: the passages that match the question are selected from anywhere in the file, each labelled with its part and approximate page.
+* **🃏 Flashcards with Spaced Repetition:** Turns an uploaded document into a deck of cards pulled from the whole file, not just its opening pages. Reviews are scheduled with an SM-2 variant: `again · hard · good · easy`, a 10-minute relearn step, and a real ease factor per card, so hard cards return sooner and known ones move further out. "Again" requeues the card at the end of the current session instead of hiding it until tomorrow. Regenerating a document only adds cards that are missing.
 * **📄 Generated Documents:** Ask for a report, study guide, plan or resume and the assistant writes the document itself, then offers it as a real download — `.pdf`, `.docx` or Markdown. The file is built from the reply's own Markdown, so headings, lists, tables, code blocks and diagrams all arrive intact. The PDF is written directly as PDF text (selectable and searchable, no page screenshots), and the Word file is a genuine OOXML `.docx` — neither needs a document library.
 * **🤖 Context-Aware AI Tutor:** Supports general tutoring, document-aware questions, code help, attachments, persistent threads, and renamed conversations.
 * **🧠 Thinking Effort:** A per-conversation level — None, Minimal, Low, Mid, High, Extra high, Max — sent to the provider as `reasoning_effort`. Measured on the configured router, the same question produced no thinking at `None` (~6s) and 1,648 characters of it at `Max` (~23s). The choice is remembered per thread and across visits.
@@ -47,6 +48,7 @@ The production VPS exposes an opt-in shared demo through **Demo Login**. Do not 
 * **🔎 Job Description Matching:** Keeps job-description keyword matching separate from the general resume score.
 * **💼 Live Job Board:** Aggregates Remotive, Arbeitnow, and RemoteOK without API keys, with optional Adzuna and JSearch/RapidAPI results (including LinkedIn/Indeed/Glassdoor-sourced listings).
 * **📌 Application Tracker:** Saves live jobs, adds custom opportunities, and moves applications through saved, applied, screening, interview, offer, and archived stages.
+* **🎙️ Mock Interview:** The `interview` stage of the tracker now has something behind it. Pick a role (prefilled from your selected career path), a type (mixed, behavioural, technical, system design, HR), a level and a question count. The interviewer reacts to what you actually said, follows up when an answer is thin, and never breaks character. Answers can be typed or spoken — the existing voice pipeline transcribes them. At the end, a rubric scores the transcript out of 100 across structure, specificity, technical depth and communication, with evidence quoted from your own answers, plus what to fix before the real interview. The opening question is built locally, so starting a session is instant and never fails on a provider outage; the report is generated once and reused rather than overwritten on retry.
 * **🏆 Projects & Hackathons:** Surfaces project ideas, hackathon opportunities, and team collaboration posts.
 * **📰 Tech News:** Aggregates India-focused technology, hiring, startup, funding, cloud, and cybersecurity RSS feeds with MongoDB caching.
 * **📊 Progress Dashboard:** Tracks roadmap milestones, completed courses, analyzed documents, tutor sessions, readiness, and study streaks.
@@ -89,7 +91,7 @@ credits. There are three layers, and they apply together:
 | Layer | Scope | Default |
 | :--- | :--- | :--- |
 | Per IP | one action, e.g. career assessment | 10 / hour |
-| Per action | one user, per feature | roadmap 5, assessment 5, niche 8, resume 10, projects 5, tutor 30 |
+| Per action | one user, per feature | roadmap 5, assessment 5, niche 8, resume 10, projects 5, tutor 30, interview 40, interview report 12, flashcards 8 |
 | Hourly ceiling | one user, **all** AI features | 25 **model calls** |
 
 The hourly ceiling counts model calls, not button presses, because the cost per
@@ -124,7 +126,8 @@ Browser
        └─ Route handlers under app/api
             ├─ MongoDB Atlas / Mongoose
             │    users, profiles, roadmaps, progress, resumes,
-            │    documents, chat threads, applications and cached news
+            │    documents, chat threads, applications, cached news,
+            │    interview transcripts, flashcards and review history
             ├─ OpenAI-compatible LLM router
             │    LLM_ROUTER_BASE_URL + API key (streaming AI Hub chat)
             ├─ PDF extraction
@@ -174,6 +177,8 @@ CareerPliot/
 │   ├── career/                   # Assessment and recommendations
 │   ├── courses/                  # Filters and course cards
 │   ├── dashboard/                # Metrics and streak widgets
+│   ├── flashcards/               # Deck list and the review session
+│   ├── interview/                # Setup, interview room and scorecard
 │   ├── layout/                   # App shell, drawers, theme/accent UI
 │   ├── pdf/                      # Upload, summary and quiz UI
 │   ├── resume/                   # Builder, preview, ATS and JD matching
@@ -291,6 +296,9 @@ Start from `.env.example`. Keep all real values in an ignored environment file o
 | `USE_LOCAL_OLLAMA=true` | Adds the configured local Ollama model after router fallbacks |
 | `OLLAMA_BASE_URL` / `OLLAMA_MODEL` / `OLLAMA_FALLBACK_MODEL` | Optional Ollama endpoint and model IDs |
 | `GOOGLE_SITE_VERIFICATION` | Google Search Console verification token |
+| `BACKEND_ORIGIN` | Split deployment only: the API origin the frontend proxies `/api/*` to (e.g. `https://api.careerpilot.cc`). **Never set on the VPS** — see [Split deployment](#split-deployment-vercel-frontend--vps-api) |
+| `SPLIT_DEPLOY=true` | Enables the proxy rewrites on a non-Vercel frontend; Vercel needs only `BACKEND_ORIGIN` |
+| `NEXT_PUBLIC_UPLOAD_LIMIT_BYTES` | Browser upload ceiling for this deployment; set below 4.5 MB on Vercel, leave unset on the VPS |
 
 > `DEMO_MODE` bypasses captcha and IP checks for one shared account. Enable it only when that trade-off is intentional, and never store personal or confidential data in the demo account.
 
@@ -351,6 +359,67 @@ The workflow deliberately excludes `.env*`, `.git`, build artifacts, dependencie
 3. Add both hCaptcha variables and any optional integrations needed by the deployment.
 4. Deploy. The PDF worker is statically bundled for Vercel serverless compatibility.
 
+### Split deployment: Vercel frontend + VPS API
+
+The whole app can stay on the VPS, but it can also be split: pages and sign-in on
+Vercel, everything stateful on the VPS. The codebase is unchanged — `rewrites()`
+in `next.config.ts` forwards the API.
+
+```text
+browser ──▶ https://careerpilot.cc  (Vercel: pages + /api/auth/*)
+                 │  rewrite /api/* (except auth)
+                 ▼
+            https://api.careerpilot.cc  (VPS: uploads, PDFs, AI, data)
+```
+
+| What | Where | Why |
+| :--- | :--- | :--- |
+| Pages, `/api/auth/*`, demo sign-in | **Vercel** | The session cookie must be set by the host the browser is on |
+| Everything else under `/api/*` | **VPS** | Disk writes, 10 MB PDFs, long AI streams, OCR |
+
+**DNS:** `careerpilot.cc` and `www` → Vercel; `api` → the VPS IP. The
+`api.careerpilot.cc` block is already in the `Caddyfile`; it serves `/api/*`
+only and answers everything else with 404.
+
+**Vercel environment variables:** `BACKEND_ORIGIN=https://api.careerpilot.cc`,
+plus `AUTH_SECRET`, `MONGODB_URI`, `NEXT_PUBLIC_SITE_URL`, hCaptcha and any
+provider keys. Set `NEXT_PUBLIC_UPLOAD_LIMIT_BYTES=4500000` and
+`DEMO_MODE=true` if you want the shared demo. Set the project region to the one
+nearest the VPS.
+
+**VPS environment variables:** the existing `.env.production` only. Do **not**
+set `BACKEND_ORIGIN` there — the VPS would rewrite its own API to itself.
+
+**The one hard requirement:** both sides must share the same `AUTH_SECRET`. The
+Vercel app signs the JWT; the VPS verifies it from the forwarded cookie. A
+mismatch shows up as every proxied request returning 401 while the UI still
+looks signed in.
+
+Things worth knowing before cutover:
+
+* **Uploads are limited by the frontend host.** Vercel rejects request bodies
+  over 4.5 MB before any handler runs, so `NEXT_PUBLIC_UPLOAD_LIMIT_BYTES` is
+  what the UI enforces there. Raising the app's server-side 10 MB limit does not
+  change this. Verify with a real PDF before announcing 10 MB uploads.
+* **No CORS is involved.** The browser only ever talks to one origin, so
+  cookies are first-party and Safari's cross-site blocking does not apply.
+* **`/api/auth/mobile/*` stays on Vercel.** Mobile sign-in needs Play Integrity
+  and Mongo configured on the Vercel project too.
+* **Two deploys, one repository.** A Vercel deploy and the GitHub Actions VPS
+  deploy run independently; a new API route must be added to
+  `BACKEND_API_PREFIXES` in `next.config.ts` or it will run on Vercel, where
+  uploads cannot be written to disk.
+
+Cutover order: deploy the VPS with the new Caddyfile → point `api` at the VPS and
+confirm `https://api.careerpilot.cc/api/courses` returns 401 (not 404) → set the
+Vercel env vars → point the apex/www at Vercel → sign in and upload a PDF. After
+the apex moves, delete the `careerpilot.cc`/`www` blocks from the Caddyfile so
+Caddy stops attempting certificate renewals for hosts it no longer serves.
+
+After cutover, also point the deploy workflow's smoke check
+(`.github/workflows/deploy.yml`) at `https://api.careerpilot.cc/api/auth/session`
+— otherwise it verifies Vercel while the VPS it just rebuilt could be broken.
+
 ### OpenNext on Cloudflare
 
 The repository includes `open-next.config.ts` and `wrangler.jsonc`:
@@ -403,6 +472,9 @@ with `pdfinfo`, `pdftotext` and `unzip`, so a passing run means the files open.
 | `npm run check:pdftext` | Extracted-page shaping: running headers stripped, page markers preserved |
 | `npm run check:turn` | A stored chat turn stays inside the schema, whatever the model thinks |
 | `npm run check:effort` | Thinking-effort levels: validated, labelled, and matching the database enum |
+| `npm run check:srs` | The review scheduler: first intervals, ease floor and cap, the 10-minute relearn step, and corrupt stored cards |
+| `npm run check:interview` | Scorecard normalisation: a 0–10 score, a score over 100, an empty model response, wrapped objects and prose |
+| `npm run check:flashcards` | Card generation: duplicates, blank and self-answering cards, aliases, and count as a ceiling |
 | `npm run measure:retrieval` | Retrieval accuracy over a labelled question set (the evidence behind the ranking choices) |
 
 ---

@@ -9,6 +9,8 @@ import {
   FileText,
   MessageSquare,
   ArrowRight,
+  Award,
+  Layers,
 } from "lucide-react";
 import PageLoader from "@/components/layout/PageLoader";
 import StatsCard from "@/components/dashboard/StatsCard";
@@ -42,6 +44,16 @@ interface ProgressData {
       intermediate: { completed: number; total: number };
       advanced: { completed: number; total: number };
     };
+  };
+  flashcards?: {
+    due: number;
+    total: number;
+    reviewedToday: number;
+  };
+  interviews?: {
+    completed: number;
+    total: number;
+    latestScore: number | null;
   };
 }
 
@@ -265,6 +277,73 @@ export default function DashboardHome() {
           </div>
         </div>
       )}
+
+      {progressData &&
+        ((progressData.flashcards?.total ?? 0) > 0 ||
+          (progressData.interviews?.total ?? 0) > 0) && (
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <Link
+              href="/flashcards"
+              className="group border border-border bg-card p-5 flex items-center justify-between gap-4 hover:border-foreground transition-colors"
+            >
+              <div className="min-w-0">
+                <p
+                  className="text-[10px] uppercase tracking-[0.1em] text-muted-foreground"
+                  style={{ fontFamily: "'JetBrains Mono', monospace" }}
+                >
+                  {(progressData.flashcards?.due ?? 0) > 0
+                    ? `${progressData.flashcards?.due} card${progressData.flashcards?.due === 1 ? "" : "s"} due today`
+                    : (progressData.flashcards?.total ?? 0) === 0
+                      ? "Flashcards"
+                      : "Flashcards up to date"}
+                </p>
+                <p
+                  className="font-bold text-lg text-foreground mt-1"
+                  style={{ fontFamily: "'Hanken Grotesk', system-ui, sans-serif" }}
+                >
+                  {(progressData.flashcards?.due ?? 0) > 0
+                    ? "Review before you forget"
+                    : (progressData.flashcards?.total ?? 0) === 0
+                      ? "Turn a PDF into a deck"
+                      : "All caught up"}
+                </p>
+                <p className="text-xs text-muted-foreground mt-1">
+                  {progressData.flashcards?.reviewedToday ?? 0} reviewed today · {progressData.flashcards?.total ?? 0} cards
+                </p>
+              </div>
+              <Layers className="h-5 w-5 text-muted-foreground group-hover:text-foreground shrink-0" />
+            </Link>
+
+            <Link
+              href="/interview"
+              className="group border border-border bg-card p-5 flex items-center justify-between gap-4 hover:border-foreground transition-colors"
+            >
+              <div className="min-w-0">
+                <p
+                  className="text-[10px] uppercase tracking-[0.1em] text-muted-foreground"
+                  style={{ fontFamily: "'JetBrains Mono', monospace" }}
+                >
+                  {progressData.interviews?.latestScore != null
+                    ? `Last interview · ${progressData.interviews.latestScore}/100`
+                    : "Mock interview"}
+                </p>
+                <p
+                  className="font-bold text-lg text-foreground mt-1"
+                  style={{ fontFamily: "'Hanken Grotesk', system-ui, sans-serif" }}
+                >
+                  {progressData.interviews?.latestScore != null ? "Run it again" : "Practise before the real one"}
+                </p>
+                <p className="text-xs text-muted-foreground mt-1">
+                  {progressData.interviews?.completed ?? 0} completed
+                  {progressData.interviews?.total
+                    ? ` · ${(progressData.interviews.total ?? 0) - (progressData.interviews.completed ?? 0)} in progress`
+                    : ""}
+                </p>
+              </div>
+              <Award className="h-5 w-5 text-muted-foreground group-hover:text-foreground shrink-0" />
+            </Link>
+          </div>
+        )}
 
       {selectedPath && progressData && (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">

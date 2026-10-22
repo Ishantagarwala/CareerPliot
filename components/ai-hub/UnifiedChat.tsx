@@ -31,7 +31,7 @@ interface Message {
   error?: string;
 }
 
-const MAX_UPLOAD_BYTES = 10 * 1024 * 1024;
+import { CLIENT_UPLOAD_LIMIT_BYTES, formatUploadLimit } from "@/lib/uploadLimit";
 
 function newMessageId(): string {
   if (typeof crypto !== "undefined" && "randomUUID" in crypto) {
@@ -321,8 +321,8 @@ export default function UnifiedChat({
       e.currentTarget.value = "";
       return;
     }
-    if (file.size > MAX_UPLOAD_BYTES) {
-      toast.error("File is too large. Maximum size is 10 MB.");
+    if (file.size > CLIENT_UPLOAD_LIMIT_BYTES) {
+      toast.error(`File is too large. Maximum size is ${formatUploadLimit()}.`);
       e.currentTarget.value = "";
       return;
     }

@@ -5,6 +5,9 @@ import UserProgress from "@/models/UserProgress";
 import Roadmap from "@/models/Roadmap";
 import Document from "@/models/Document";
 import CareerRecommendation from "@/models/CareerRecommendation";
+import Flashcard from "@/models/Flashcard";
+import ReviewLog from "@/models/ReviewLog";
+import InterviewSession from "@/models/InterviewSession";
 
 // Helper function to update the user active streak
 async function getOrUpdateProgress(userId: string) {
@@ -113,6 +116,33 @@ export async function GET() {
       ? (completedMilestones / totalMilestones) * 100 
       : 0;
 
+    /*
+     * Today's two actionable numbers. Read here rather than on each page so the
+     * dashboard stays a single request: due cards and interview practice are
+     * the things a student can act on right now, unlike the lifetime counters.
+     */
+    const now = new Date();
+    const startOfToday = new Date(now);
+    startOfToday.setHours(0, 0, 0, 0);
+
+    const [cardsDue, cardsTotal, reviewedToday, interviewsTotal, interviewsCompleted, latestInterview] =
+      await Promise.all([
+        Flashcard.countDocuments({ userId, dueAt: { $lte: now } }),
+        Flashcard.countDocuments({ userId }),
+        ReviewLog.countDocuments({ userId, reviewedAt: { $gte: startOfToday } }),
+        InterviewSession.countDocuments({ userId }),
+        InterviewSession.countDocuments({ userId, status: "completed" }),
+        InterviewSession.findOne({ userId, status: "completed" })
+          .sort({ updatedAt: -1 })
+          .select("scorecard.overallScore")
+          .lean(),
+      ]);
+
+    const latestScore =
+      latestInterview?.scorecard?.overallScore !== undefined
+        ? latestInterview.scorecard.overallScore
+        : null;
+
     return NextResponse.json({
       metrics: {
         coursesCompleted: progress.coursesCompleted,
@@ -127,6 +157,16 @@ export async function GET() {
         completedMilestones,
         milestoneCompletionRate,
         stageProgress,
+      },
+      flashcards: {
+        due: cardsDue,
+        total: cardsTotal,
+        reviewedToday,
+      },
+      interviews: {
+        completed: interviewsCompleted,
+        total: interviewsTotal,
+        latestScore,
       },
     });
   } catch (error: any) {

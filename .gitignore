@@ -96,3 +96,6 @@ test/data/
 .parcel-cache
 .sass-cache
 .gstack/
+
+# Android mockup render cache (node_modules + playwright browser)
+.mockups/

@@ -3,6 +3,7 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import type { HubDocument } from "@/components/ai-hub/types";
+import { CLIENT_UPLOAD_LIMIT_BYTES, formatUploadLimit } from "@/lib/uploadLimit";
 
 interface PdfUploaderProps {
   onUploadSuccess: (document: HubDocument) => void;
@@ -84,8 +85,8 @@ export default function PdfUploader({ onUploadSuccess }: PdfUploaderProps) {
       toast.error("Invalid file format");
       return false;
     }
-    if (selectedFile.size > 10 * 1024 * 1024) {
-      setError("File is too large. Maximum size is 10MB.");
+    if (selectedFile.size > CLIENT_UPLOAD_LIMIT_BYTES) {
+      setError(`File is too large. Maximum size is ${formatUploadLimit()}.`);
       toast.error("File too large");
       return false;
     }
@@ -246,7 +247,7 @@ export default function PdfUploader({ onUploadSuccess }: PdfUploaderProps) {
                 className="text-[11px] text-muted-foreground"
                 style={{ fontFamily: "'JetBrains Mono', monospace", letterSpacing: "0.05em" }}
               >
-                PDF NOTES, SLIDES, OR CHAPTERS UP TO 10 MB
+                PDF NOTES, SLIDES, OR CHAPTERS UP TO {formatUploadLimit()}
               </p>
             </div>
           </div>

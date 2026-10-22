@@ -1,13 +1,27 @@
 # Auto-deploy to the production VPS on every push to main.
 #
-# Flow: checkout -> rsync source to /opt/careerpliot (server has no .git;
-# .env*/storage live only there) -> docker compose rebuild -> smoke check.
+# Flow: checkout -> rsync source to /opt/careerpliot -> scripts/vps/deploy.sh
+#       -> smoke check against the API host.
 #
-# Required GitHub secrets (all server-specific values stay out of the repo):
-#   SSH_PRIVATE_KEY  — ed25519 deploy key authorized on the VPS
+# WHY NOT `docker compose build` ANY MORE
+#
+# The VPS is a 2.5 GB rapidseedbox host with no swap (`swapon` is refused by the
+# container stack). A default build is OOM-killed there — verified twice at
+# ~1.79 GB RSS. `scripts/vps/deploy.sh` runs the same build with the webpack
+# low-memory profile and restarts the container, and it is the exact path an
+# operator uses by hand, so CI and a manual deploy cannot drift.
+#
+# Ports 80/443 belong to the provider's Apache. The app publishes on
+# 127.0.0.1:3000 and the zz-api.careerpilot.cc vhost proxies to it. The apex is
+# served by Vercel, so the smoke check must target the API hostname — checking
+# careerpilot.cc would report Vercel's health, not the server we just rebuilt.
+#
+# Required GitHub secrets:
+#   SSH_PRIVATE_KEY  — deploy key authorized on the VPS
 #   SSH_HOST         — server address
 #   SSH_USER         — SSH user on the server
-#   SSH_KNOWN_HOSTS  — pinned known_hosts line for the host (TOFU protection)
+#   SSH_KNOWN_HOSTS  — pinned known_hosts line (TOFU protection)
+#   SSH_PORT         — optional; this host listens on 2223
 
 name: Deploy
 
@@ -23,7 +37,10 @@ concurrency:
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 40
+    env:
+      # This host's SSH is not on 22. Override with an SSH_PORT secret if it moves.
+      SSH_PORT: ${{ secrets.SSH_PORT || '2223' }}
     steps:
       - uses: actions/checkout@v4
 
@@ -39,25 +56,23 @@ jobs:
           rsync -az --delete \
             --exclude node_modules --exclude .next --exclude .git \
             --exclude '.env*' --exclude storage \
-            -e "ssh -i ~/.ssh/deploy_key -o IdentitiesOnly=yes" \
+            --exclude .mockups --exclude .tmp \
+            -e "ssh -p $SSH_PORT -i ~/.ssh/deploy_key -o IdentitiesOnly=yes" \
             ./ ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:/opt/careerpliot/
 
-      - name: Rebuild web and recreate caddy
+      - name: Build and restart (low-memory profile)
         run: |
-          ssh -i ~/.ssh/deploy_key -o IdentitiesOnly=yes \
+          ssh -p "$SSH_PORT" -i ~/.ssh/deploy_key -o IdentitiesOnly=yes \
             ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} \
-            'cd /opt/careerpliot && docker compose up -d --build web && docker compose up -d --force-recreate caddy'
-        # force-recreate caddy every deploy: its Caddyfile is a single-file
-        # bind mount, so rsync replacing the file leaves the old inode
-        # mounted — a plain restart would keep serving stale config.
+            'cd /opt/careerpliot && ./scripts/vps/deploy.sh'
 
-      - name: Smoke check login page
+      - name: Smoke check the API host
         run: |
           code=000
           for i in $(seq 1 30); do
-            code=$(curl -s -o /dev/null -w '%{http_code}' https://careerpilot.cc/login || true)
-            if [ "$code" = "200" ]; then echo "login page OK (200)"; exit 0; fi
+            code=$(curl -s -o /dev/null -w '%{http_code}' https://api.careerpilot.cc/api/auth/csrf || true)
+            if [ "$code" = "200" ]; then echo "API host OK (200)"; exit 0; fi
             sleep 5
           done
-          echo "::error::Smoke check failed — https://careerpilot.cc/login returned $code"
+          echo "::error::Smoke check failed — https://api.careerpilot.cc/api/auth/csrf returned $code"
           exit 1

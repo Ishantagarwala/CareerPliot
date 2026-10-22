@@ -1,9 +1,88 @@
 import type { NextConfig } from "next";
 import dns from "dns";
+import { readdirSync } from "node:fs";
+import path from "node:path";
 
 try {
   dns.setDefaultResultOrder("ipv4first");
 } catch {}
+
+/**
+ * ─── Split deployment: Vercel frontend + VPS API ────────────────────────────
+ *
+ * The app is one Next.js codebase, but it does not have to run in one place.
+ * When `BACKEND_ORIGIN` is set (and we are actually on Vercel, or explicitly
+ * opted in), every stateful API prefix is rewritten to the VPS:
+ *
+ *   browser → https://careerpilot.cc/api/flashcards
+ *           → (Vercel rewrite) → https://api.careerpilot.cc/api/flashcards
+ *
+ * WHY REWRITES AND NOT A DIRECT API URL
+ *
+ * The browser must keep talking to ONE origin. A session cookie set on
+ * careerpilot.cc is not sent to api.careerpilot.cc — it is a different host —
+ * and a cross-site cookie for the API would be blocked by Safari and Chrome
+ * anyway. Proxying keeps every request same-origin, so there is no CORS, no
+ * preflight, and the existing Auth.js cookie keeps working. The VPS verifies
+ * that cookie with the same `AUTH_SECRET`; nothing about auth changes.
+ *
+ * WHY /api/auth IS NOT PROXIED
+ *
+ * Sign-in must run where the browser thinks it is. Auth.js sets `__Secure-`
+ * cookies scoped to the responding host and validates CSRF against it, so
+ * `/api/auth/*` stays on Vercel. Everything else — disk writes, long AI
+ * streams, PDF parsing — lives on the VPS.
+ *
+ * THE VPS MUST NOT SET `BACKEND_ORIGIN`
+ *
+ * If it did, the VPS would rewrite its own API back to itself and loop. The
+ * `VERCEL === "1"` guard prevents that on the VPS, and `SPLIT_DEPLOY=1`
+ * exists for non-Vercel frontends that want the same behaviour.
+ */
+const backendOrigin = process.env.BACKEND_ORIGIN?.trim().replace(/\/+$/, "") ?? "";
+const splitDeployEnabled =
+  backendOrigin.length > 0 &&
+  (process.env.VERCEL === "1" || process.env.SPLIT_DEPLOY === "1");
+
+/**
+ * API surfaces that belong on the VPS. Auth is deliberately absent.
+ *
+ * Discovered from `app/api/` rather than hand-listed: a hand-written list rots
+ * the moment someone adds a route, and the failure is silent — the new route
+ * runs on Vercel, where uploads cannot be written to disk. The fallback keeps
+ * the build working if the config is evaluated outside a project root.
+ */
+function backendApiPrefixes(): string[] {
+  const fallback = [
+    "ai-hub",
+    "career",
+    "courses",
+    "flashcards",
+    "interview",
+    "jobs",
+    "news",
+    "pdf",
+    "profile",
+    "progress",
+    "projects",
+    "resume",
+    "roadmap",
+    "seed",
+    "test-db",
+    "tutor",
+    "uploads",
+    "voice",
+  ];
+
+  try {
+    return readdirSync(path.join(process.cwd(), "app", "api"), { withFileTypes: true })
+      .filter((entry) => entry.isDirectory() && entry.name !== "auth")
+      .map((entry) => entry.name)
+      .sort();
+  } catch {
+    return fallback;
+  }
+}
 
 const nextConfig: NextConfig = {
   async headers() {
@@ -74,6 +153,27 @@ const nextConfig: NextConfig = {
       { source: "/study", destination: "/ai-hub", permanent: false },
     ];
   },
+  async rewrites() {
+    if (!splitDeployEnabled) return [];
+
+    /*
+     * `beforeFiles` runs before filesystem routes, which is what makes this
+     * work: the local route handler for `/api/flashcards` exists in this build
+     * too, and must be bypassed rather than shadow the proxy. `/api/auth/*` has
+     * no rule here, so those handlers keep serving sign-in.
+     *
+     * `:path*` matches zero or more segments, so `/api/courses` and
+     * `/api/courses/anything` both match a single rule.
+     */
+    return {
+      beforeFiles: backendApiPrefixes().map((prefix) => ({
+        source: `/api/${prefix}/:path*`,
+        destination: `${backendOrigin}/api/${prefix}/:path*`,
+      })),
+      afterFiles: [],
+      fallback: [],
+    };
+  },
   /**
    * Next's dev server rejects any module/chunk request whose `Origin` is not
    * allowed (it answers a bare 403 "Unauthorized"). Only `localhost` is
@@ -94,6 +194,18 @@ const nextConfig: NextConfig = {
     serverActions: {
       allowedOrigins: ["careerpilot.cc", "www.careerpilot.cc", "localhost:3000", "127.0.0.1:3000"],
     },
+    /*
+     * Low-memory build profile for small hosts.
+     *
+     * The VPS has 2.5 GB of RAM and no swap (the container host refuses
+     * `swapon`), and a default Turbopack build is OOM-killed there. With
+     * `NEXT_BUILD_LOW_MEMORY=1` and `next build --webpack`, the build runs one
+     * worker with webpack's memory optimisations — slower, but it fits.
+     * Off by default so normal deployments keep the fast path.
+     */
+    ...(process.env.NEXT_BUILD_LOW_MEMORY === "1"
+      ? { cpus: 1, webpackMemoryOptimizations: true }
+      : {}),
   },
   serverExternalPackages: ["pdfjs-dist", "pdf-parse"],
   outputFileTracingIncludes: {
