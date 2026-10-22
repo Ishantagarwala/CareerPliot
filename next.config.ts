@@ -162,14 +162,28 @@ const nextConfig: NextConfig = {
      * too, and must be bypassed rather than shadow the proxy. `/api/auth/*` has
      * no rule here, so those handlers keep serving sign-in.
      *
-     * `:path*` matches zero or more segments, so `/api/courses` and
-     * `/api/courses/anything` both match a single rule.
+     * WHY THERE ARE TWO RULES PER PREFIX
+     *
+     * `source: "/api/courses/:path*"` matches `/api/courses` with an empty
+     * `path`, but the destination keeps the literal slash before `:path*` —
+     * so the VPS receives `/api/courses/` and answers 308 to `/api/courses`.
+     * With an EXTERNAL rewrite that redirect is handed to the browser instead
+     * of being followed, so the client leaves the frontend origin for the API
+     * host and loses its cookie. The exact-path rule below matches first and
+     * preserves the URL verbatim; the `:path*` rule handles everything nested.
      */
+    const prefixes = backendApiPrefixes();
     return {
-      beforeFiles: backendApiPrefixes().map((prefix) => ({
-        source: `/api/${prefix}/:path*`,
-        destination: `${backendOrigin}/api/${prefix}/:path*`,
-      })),
+      beforeFiles: [
+        ...prefixes.map((prefix) => ({
+          source: `/api/${prefix}`,
+          destination: `${backendOrigin}/api/${prefix}`,
+        })),
+        ...prefixes.map((prefix) => ({
+          source: `/api/${prefix}/:path*`,
+          destination: `${backendOrigin}/api/${prefix}/:path*`,
+        })),
+      ],
       afterFiles: [],
       fallback: [],
     };
