@@ -58,11 +58,12 @@ provider's services, so the 900 m cap is not free headroom to grow into.
 
 1. **Publish the image**: push to `main` (or run the *Build and publish image*
    workflow manually). This creates the GHCR package.
-2. **Make the package public** (one-time): GitHub → your profile → **Packages**
-   → `careerpliot` → *Package settings* → *Change visibility* → **Public**.
-   New GHCR packages are private by default; until this is done the VPS pull
-   fails with `denied`. (Prefer private? `docker login ghcr.io` on the host
-   with a read-only fine-grained PAT that has `packages:read` instead.)
+2. **Verify the package is public** (one-time): GitHub → your profile →
+   **Packages** → `careerpliot` → *Package settings*. Packages published from
+   a public repo's workflow are normally created public, but if the VPS pull
+   fails with `denied`, this is why — flip *Change visibility* → **Public**.
+   (Prefer private? `docker login ghcr.io` on the host with a read-only
+   fine-grained PAT that has `packages:read` instead.)
 3. **Install the deploy script and units** (as root):
 
    ```bash
