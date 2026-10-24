@@ -27,6 +27,12 @@ ENV NEXT_TELEMETRY_DISABLED=1
 ENV PORT=3000
 ENV HOSTNAME=0.0.0.0
 
+# Stamp the built commit into the image so `docker inspect` (and the VPS deploy
+# script) can say exactly which revision is running.
+ARG GIT_SHA=""
+LABEL org.opencontainers.image.revision=${GIT_SHA} \
+      org.opencontainers.image.source="https://github.com/Ishantagarwala/CareerPliot"
+
 RUN apt-get update && apt-get install -y --no-install-recommends \
     ca-certificates \
     && rm -rf /var/lib/apt/lists/* \
@@ -42,4 +48,11 @@ COPY --from=builder /app/next.config.ts ./next.config.ts
 
 USER nextjs
 EXPOSE 3000
+
+# Surfaces app health in `docker ps` (no curl/wget in this image; Node 22 has
+# fetch). The VPS deploy script has its own smoke check; this makes degraded
+# containers visible without SSHing in.
+HEALTHCHECK --interval=30s --timeout=5s --start-period=25s --retries=3 \
+  CMD ["node", "-e", "fetch('http://127.0.0.1:3000/login').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+
 CMD ["npm", "run", "start"]

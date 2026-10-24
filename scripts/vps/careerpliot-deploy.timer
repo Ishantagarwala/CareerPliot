@@ -1,10 +1,12 @@
 [Unit]
-Description=Check GitHub for new CareerPilot commits
+Description=Pull the latest CareerPilot image from GHCR
 
 [Timer]
-# Give the host time to settle after boot, then poll.
+# Give the host time to settle after boot, then poll. A no-change tick is one
+# cheap manifest check (docker pull no-op), so a short interval is fine — it
+# only matters after CI publishes a new image.
 OnBootSec=2min
-OnUnitActiveSec=5min
+OnUnitActiveSec=1min
 Unit=careerpliot-deploy.service
 
 [Install]

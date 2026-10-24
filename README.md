@@ -136,9 +136,9 @@ Browser
                  jobs, courses, YouTube and RSS news feeds
 
 Production VPS
-  └─ Caddy (HTTPS + reverse proxy)
-       └─ Docker Compose
-            └─ Next.js Node container
+  └─ GitHub Actions builds the Docker image → GHCR
+       └─ systemd timer pulls the image and swaps the container
+            └─ Next.js container on 127.0.0.1:3000 (provider Apache proxies 80/443)
 ```
 
 ---
@@ -158,7 +158,7 @@ Production VPS
 | **Job Providers** | **Remotive, Arbeitnow, RemoteOK, Adzuna, JSearch** | Multi-source live jobs with optional premium providers |
 | **Course Providers** | **Coursera + YouTube Data API** | Roadmap-driven live recommendations and provider deep links |
 | **News Sources** | **RSS feeds + optional GNews** | Cached domain-aware technology, career, startup, and hiring news |
-| **Production Hosting** | **Docker Compose + Caddy** | Node.js container behind automatic HTTPS and reverse proxying on the VPS |
+| **Production Hosting** | **GHCR image + pull-based deploy** | CI builds the image; the VPS pulls and swaps the container (~15 s downtime, no on-host builds) |
 | **Alternative Hosting** | **Vercel or OpenNext Cloudflare** | Serverless deployment paths included in the repository |
 
 ---

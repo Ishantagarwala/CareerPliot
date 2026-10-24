@@ -1,5 +1,5 @@
 [Unit]
-Description=CareerPilot pull-based deploy (checks GitHub, rebuilds on change)
+Description=CareerPilot pull-based deploy (pulls the GHCR image, swaps the container)
 Documentation=https://github.com/Ishantagarwala/CareerPliot/blob/main/scripts/vps/README.md
 After=network-online.target docker.service
 Wants=network-online.target
@@ -9,6 +9,7 @@ Type=oneshot
 User=user
 WorkingDirectory=/opt/careerpliot
 ExecStart=/opt/careerpliot-deploy/pull-deploy.sh
-# The low-memory build takes ~7 minutes on this host; the default is 90s.
-TimeoutStartSec=1800
+# The very first pull downloads the full image (~1.5 GB); later ticks are
+# manifest checks or changed layers only. Swaps themselves take seconds.
+TimeoutStartSec=1200
 Nice=10

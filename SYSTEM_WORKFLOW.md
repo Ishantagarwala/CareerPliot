@@ -164,33 +164,44 @@ interval elapses. The dashboard reads the due count through `progress`.
 
 ---
 
-## 7. Deployment workflow (GitHub Actions + Docker)
+## 7. Deployment workflow (image-based: CI builds, VPS pulls)
 
-Pipeline (`.github/workflows/deploy.yml`):
-1. **Trigger**: push to `main` (or manual dispatch), concurrency group
-   `deploy-main` (queues, never kills).
-2. **Rsync** source to VPS `/opt/careerpliot` (server has **no .git**; excludes
-   node_modules/.next/.git/`.env*`/storage — the server's own `.env.production`
-   and volumes persist).
-3. **Rebuild**: `docker compose up -d --build web`, then
-   `docker compose up -d --force-recreate caddy` — **caddy must be
-   force-recreated every deploy** (single-file Caddyfile bind mount; a plain
-   restart serves stale config).
-4. **Smoke**: poll `https://careerpilot.cc/login` until 200 (auth-gated pages
-   redirect, so the login page is the reachability probe).
+The VPS host has 2.5 GB RAM and no swap, so it cannot build and serve at the
+same time — the old build-on-host flow paused the app for ~6 minutes per
+deploy. The build now runs on GitHub Actions and the VPS only swaps containers
+(~15 s downtime).
 
-Compose services:
-- `storage-init` — creates/chowns upload volumes (runs once).
-- `web` — `careerpliot` container, `:3000` internal, `DEMO_MODE=true`,
-  `.env.production`, named volumes for public + private uploads.
-- `caddy` — TLS + proxy, port 80/443, reads `Caddyfile` (raw-IP redirect uses
-  `VPS_IP` from server-side env) + `caddy_data`/`config`.
+Pipeline (`.github/workflows/build-image.yml`):
+1. **Trigger**: push to `main` (paths-ignore: docs, CI, deploy scripts,
+   mockups) or manual dispatch; concurrency `build-image-main` (cancels
+   superseded builds).
+2. **Build & push**: `docker build` (the repo Dockerfile, on a runner with
+   plenty of RAM) → `ghcr.io/ishantagarwala/careerpliot` tagged `main` and
+   `main-<sha>`; layer cache via the Actions cache. Build args:
+   `NEXT_PUBLIC_SITE_URL`, `NEXT_PUBLIC_HCAPTCHA_SITE_KEY`, `GIT_SHA`
+   (stamped as an image label). Runtime secrets stay in the server's
+   `.env.production` — never baked into the image.
+3. **Pull & swap**: the systemd timer on the VPS (1 min) runs
+   `scripts/vps/pull-deploy.sh` — `docker pull` (no-op when unchanged),
+   compare image IDs, stop old → start new → smoke-check
+   `http://127.0.0.1:3000/login`. On smoke failure it restarts the previous
+   image (rollback) and records the bad image in `.last-failed-image` so the
+   timer does not retry it in a loop.
+4. **Housekeeping**: the two newest images are kept on disk; older ones pruned.
 
-Secrets required (GitHub Actions): `SSH_PRIVATE_KEY`, `SSH_HOST`, `SSH_USER`,
-`SSH_KNOWN_HOSTS`. Server env in `.env.production` (gitignored).
+RAM controls (all env-overridable in `pull-deploy.sh`): container hard cap
+`APP_MEM=900m`, soft reservation `APP_MEM_RESERVATION=700m`, V8 heap ceiling
+`NODE_HEAP_MB=700` (set via `NODE_OPTIONS` so Node GCs before the cgroup
+OOM-kills it). Host layout: provider Apache owns 80/443 and proxies to
+`127.0.0.1:3000`; `/opt/careerpliot` holds only `.env.production` and
+`storage/uploads/`.
 
-Manual fallback: `rsync ./ user@host:/opt/careerpliot && docker compose up -d
---build web && docker compose up -d --force-recreate caddy`.
+The GHCR package starts **private** — flip it to public once (or
+`docker login` on the host with a read-only PAT). GHCR runners cannot SSH to
+this host (firewall), which is why the VPS pulls instead of being pushed to.
+
+`docker-compose.yml` (web + caddy) remains for hosts where you self-manage
+TLS; the rapidseedbox VPS does not use it.
 
 ### Split mode (optional): Vercel frontend + VPS API
 

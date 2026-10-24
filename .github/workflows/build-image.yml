@@ -1,0 +1,95 @@
+# Build the production image and publish it to GHCR.
+#
+# WHY THIS EXISTS
+#
+# The VPS has 2.5 GB of RAM and cannot build and serve at the same time, so the
+# old flow paused the app for a ~6-minute on-host build. This workflow builds
+# the exact same image (same Dockerfile) on a runner with plenty of RAM and
+# pushes it to ghcr.io. The VPS never builds again — scripts/vps/pull-deploy.sh
+# pulls the `main` tag and swaps the container in seconds.
+#
+# The repo is public, so the VPS can pull the image anonymously once the
+# package's visibility is set to public (one-time manual step — see
+# scripts/vps/README.md).
+#
+# Commits that cannot change the app image (docs, CI, deploy scripts, mockups)
+# skip the build entirely, so publishing a README tweak costs nothing.
+
+name: Build and publish image
+
+on:
+  push:
+    branches: [main]
+    paths-ignore:
+      - '**.md'
+      - '.github/**'
+      - 'scripts/**'
+      - 'design/**'
+      - '.mockups/**'
+  workflow_dispatch:
+
+# A rapid sequence of pushes only needs the last image; cancel the superseded
+# build instead of paying for it. The newest push always publishes `main`.
+concurrency:
+  group: build-image-main
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  packages: write
+
+env:
+  REGISTRY: ghcr.io
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Warn when the captcha site key is missing
+        if: ${{ secrets.NEXT_PUBLIC_HCAPTCHA_SITE_KEY == '' }}
+        run: |
+          echo "::warning::NEXT_PUBLIC_HCAPTCHA_SITE_KEY is not set — the image will be built without hCaptcha, and the app fails open on captcha in production (see lib/captcha.ts)."
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      # GHCR requires lowercase repository names; GitHub's is mixed case.
+      - name: Resolve image name
+        run: echo "IMAGE=${REGISTRY}/${GITHUB_REPOSITORY,,}" >> "$GITHUB_ENV"
+
+      - name: Build and push
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          # amd64 only: the VPS is x86_64, and the pdf.js native canvas
+          # dependency (@napi-rs/canvas-linux-x64-gnu) has no arm64 build here.
+          platforms: linux/amd64
+          push: true
+          tags: |
+            ${{ env.IMAGE }}:main
+            ${{ env.IMAGE }}:main-${{ github.sha }}
+          build-args: |
+            NEXT_PUBLIC_SITE_URL=${{ vars.NEXT_PUBLIC_SITE_URL || 'https://careerpilot.cc' }}
+            NEXT_PUBLIC_HCAPTCHA_SITE_KEY=${{ secrets.NEXT_PUBLIC_HCAPTCHA_SITE_KEY }}
+            GIT_SHA=${{ github.sha }}
+          # Layer cache in the GitHub Actions cache: a push that does not touch
+          # package-lock.json reuses the (slow) npm ci layer and only re-runs
+          # the source copy + next build layers.
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Report
+        run: |
+          echo "Published ${{ env.IMAGE }}:main (commit ${{ github.sha }})"
+          echo "The VPS picks it up on its next pull-deploy timer tick (<= 1 minute)."
