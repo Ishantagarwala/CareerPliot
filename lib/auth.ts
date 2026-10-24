@@ -1,13 +1,7 @@
 import NextAuth, { CredentialsSignin } from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
-import dbConnect from '@/lib/db';
-import User from '@/models/User';
-import bcrypt from 'bcryptjs';
+import { runCredentialGates } from '@/lib/authGates';
 import { authConfig } from './auth.config';
-import { getClientIp, rateLimit } from './security';
-import { DEMO_ACCOUNT_EMAIL, isDemoLoginEnabled, requireBotVerification } from './captcha';
-import { isAllowedEmailProvider } from './allowedEmail';
-import { assertResidentialIp } from './ipReputation';
 import { bearerSession } from './mobileBearerSession';
 
 class EmailProviderError extends CredentialsSignin {
@@ -30,74 +24,38 @@ const nextAuth = NextAuth({
         loginTicket: { label: 'Login Ticket', type: 'text' },
       },
       async authorize(credentials, request) {
-        // Reject non-string inputs to prevent NoSQL operator injection
-        // (e.g. email: { $ne: null }) being passed into the query.
-        if (
-          typeof credentials?.email !== 'string' ||
-          typeof credentials?.password !== 'string'
-        ) {
-          return null;
-        }
-
-        const email = credentials.email.toLowerCase().trim();
-        const password = credentials.password;
-        const captchaToken =
-          typeof credentials.captchaToken === 'string'
-            ? credentials.captchaToken
-            : undefined;
-        const loginTicket =
-          typeof credentials.loginTicket === 'string'
-            ? credentials.loginTicket
-            : undefined;
-
-        if (!isAllowedEmailProvider(email)) {
-          throw new EmailProviderError();
-        }
-
-        const ip = getClientIp(request);
-        const ipCheck = await assertResidentialIp({ ip, email });
-        if (!ipCheck.ok) {
-          throw new NetworkBlockedError();
-        }
-
-        // Shared demo account skips captcha/IP checks — only allow when the
-        // deployment explicitly opted in (DEMO_MODE=true).
-        const isDemo = email === DEMO_ACCOUNT_EMAIL && isDemoLoginEnabled();
-        if (email === DEMO_ACCOUNT_EMAIL && !isDemo) {
-          return null;
-        }
-        if (!isDemo && !rateLimit(`login:${email}`, 5, 60_000)) {
-          return null;
-        }
-
-        const bot = await requireBotVerification({
-          email,
-          captchaToken,
-          loginTicket,
-          ip,
+        /*
+         * The whole gate chain (input shape, email allowlist, residential IP,
+         * rate limits per email AND per IP, bot verification, bcrypt) lives in
+         * lib/authGates.ts and is shared verbatim with the mobile token
+         * endpoint. A private copy here drifted before — it lacked the per-IP
+         * login limit the shared chain has.
+         *
+         * The only web-specific part is the error mapping: the login form
+         * surfaces friendlier toasts for these two codes.
+         */
+        const gate = await runCredentialGates({
+          email: credentials?.email,
+          password: credentials?.password,
+          request,
+          audience: 'web',
+          bot: {
+            captchaToken: credentials?.captchaToken,
+            loginTicket: credentials?.loginTicket,
+          },
         });
-        if (!bot.ok) {
-          return null;
+
+        if (gate.ok) {
+          return {
+            id: gate.user.id,
+            name: gate.user.name,
+            email: gate.user.email,
+          };
         }
 
-        await dbConnect();
-
-        const user = await User.findOne({ email }).select('+password');
-        if (!user || !user.password) {
-          return null;
-        }
-
-        const isPasswordCorrect = await bcrypt.compare(password, user.password);
-
-        if (!isPasswordCorrect) {
-          return null;
-        }
-
-        return {
-          id: user._id.toString(),
-          name: user.name,
-          email: user.email,
-        };
+        if (gate.reason === 'email_provider') throw new EmailProviderError();
+        if (gate.reason === 'network_blocked') throw new NetworkBlockedError();
+        return null;
       },
     }),
   ],

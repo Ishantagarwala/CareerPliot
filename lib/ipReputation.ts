@@ -25,6 +25,22 @@ const cache = new Map<string, { result: IpReputationResult; expiresAt: number }>
 const CACHE_TTL_MS = 30 * 60 * 1000;
 const LOOKUP_TIMEOUT_MS = 4_000;
 
+/*
+ * FIFO cap: an unauthenticated caller can feed the cache unlimited novel IPs
+ * (one lookup each), so without a bound the Map grows for the process's
+ * lifetime. Map preserves insertion order, making the oldest entry the
+ * eviction candidate.
+ */
+const CACHE_MAX_ENTRIES = 10_000;
+
+function cacheSet(ip: string, result: IpReputationResult, ttlMs: number): void {
+  if (cache.size >= CACHE_MAX_ENTRIES) {
+    const oldest = cache.keys().next().value;
+    if (oldest !== undefined) cache.delete(oldest);
+  }
+  cache.set(ip, { result, expiresAt: Date.now() + ttlMs });
+}
+
 function flagTrue(value: string | undefined): boolean {
   const v = value?.trim().toLowerCase();
   return v === "1" || v === "true" || v === "yes";
@@ -206,11 +222,11 @@ export async function checkIpReputation(ip: string): Promise<IpReputationResult>
       continue;
     }
     if (!result.ok) {
-      cache.set(trimmed, { result, expiresAt: Date.now() + CACHE_TTL_MS });
+      cacheSet(trimmed, result, CACHE_TTL_MS);
       return result;
     }
     // Positive clean result from any provider is enough
-    cache.set(trimmed, { result, expiresAt: Date.now() + CACHE_TTL_MS });
+    cacheSet(trimmed, result, CACHE_TTL_MS);
     return result;
   }
 
@@ -227,7 +243,7 @@ export async function checkIpReputation(ip: string): Promise<IpReputationResult>
         reason: sawFailure ? "lookup-unavailable" : "lookup-unavailable",
       };
 
-  cache.set(trimmed, { result: fallback, expiresAt: Date.now() + 5 * 60 * 1000 });
+  cacheSet(trimmed, fallback, 5 * 60 * 1000);
   return fallback;
 }
 

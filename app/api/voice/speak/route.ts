@@ -160,9 +160,6 @@ export async function POST(req: Request) {
     return NextResponse.json({ audio: base64Audio });
   } catch (error: any) {
     console.error("Voice Speak Route Error:", error);
-    return NextResponse.json(
-      { message: error?.message || "Internal Server Error" },
-      { status: 500 }
-    );
+    return NextResponse.json({ message: "Internal Server Error" }, { status: 500 });
   }
 }

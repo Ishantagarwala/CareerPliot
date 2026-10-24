@@ -48,6 +48,20 @@ test('a well-formed verdict passes', () => {
   assert.equal(assessVerdict(goodVerdict()).ok, true);
 });
 
+test('a stale verdict is refused (replay window is 5 minutes)', () => {
+  const v = goodVerdict();
+  v.tokenPayloadExternal.requestDetails.timestampMillis = String(
+    Date.now() - 6 * 60 * 1000
+  );
+  assert.equal(assessVerdict(v).ok, false);
+});
+
+test('a verdict without a timestamp is refused', () => {
+  const v = goodVerdict();
+  v.tokenPayloadExternal.requestDetails.timestampMillis = undefined as unknown as string;
+  assert.equal(assessVerdict(v).ok, false);
+});
+
 test('a verdict that also meets strong integrity passes', () => {
   const v = goodVerdict();
   v.tokenPayloadExternal.deviceIntegrity.deviceRecognitionVerdict = [

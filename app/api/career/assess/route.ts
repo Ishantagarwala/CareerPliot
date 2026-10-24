@@ -256,16 +256,13 @@ Your previous answer was not usable. Return ONLY the JSON object, with ${WANTED_
     }
 
     /*
-     * Anything else is reported with its message. A bare "Internal Server
-     * Error" left the student — and whoever they asked for help — with nothing
-     * to act on.
+     * Anything else gets a generic message: the raw provider error can name
+     * the router's base URL and request internals, which belongs in the
+     * server log (above), not in the student's browser.
      */
     return NextResponse.json(
       {
-        message:
-          error instanceof Error && error.message
-            ? error.message
-            : "Could not generate career recommendations. Please try again.",
+        message: "Could not generate career recommendations. Please try again.",
         question: GENERIC_CAREER_QUESTION,
       },
       { status: 500 }

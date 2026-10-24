@@ -16,6 +16,19 @@ export function isCaptchaConfigured(): boolean {
   );
 }
 
+/**
+ * Escape hatch for deployments that knowingly run without hCaptcha.
+ *
+ * Production used to fail OPEN when the keys were missing — a misconfigured
+ * deployment silently lost all bot protection on login/register. It now
+ * refuses sign-in instead, matching the mobile path's existing fail-closed
+ * behaviour. Set CAPTCHA_OPTIONAL=true only on deployments where that
+ * trade-off is acceptable.
+ */
+export function isCaptchaOptional(): boolean {
+  return process.env.CAPTCHA_OPTIONAL?.trim().toLowerCase() === "true";
+}
+
 export function isRegistrationDisabled(): boolean {
   const flag = process.env.DISABLE_REGISTRATION?.trim().toLowerCase();
   return flag === "1" || flag === "true" || flag === "yes";
@@ -114,8 +127,19 @@ export async function verifyCaptchaToken(
   }
 
   if (!isCaptchaConfigured()) {
-    console.warn("[captcha] hCaptcha keys missing — captcha not enforced");
-    return { ok: true };
+    if (isCaptchaOptional()) {
+      console.warn(
+        "[captcha] hCaptcha keys missing — captcha not enforced (CAPTCHA_OPTIONAL=true)"
+      );
+      return { ok: true };
+    }
+    console.error(
+      "[captcha] hCaptcha keys missing — refusing. Set the keys, or CAPTCHA_OPTIONAL=true to accept the risk."
+    );
+    return {
+      ok: false,
+      reason: "Captcha is not configured on this server. Try again later.",
+    };
   }
 
   if (typeof token !== "string" || !token.trim()) {
@@ -179,7 +203,11 @@ export async function requireBotVerification(opts: {
   }
 
   if (!isCaptchaConfigured()) {
-    return { ok: true };
+    if (isCaptchaOptional()) return { ok: true };
+    return {
+      ok: false,
+      reason: "Captcha is not configured on this server, so sign-in is unavailable.",
+    };
   }
 
   if (email && verifyLoginTicket(opts.loginTicket, email)) {

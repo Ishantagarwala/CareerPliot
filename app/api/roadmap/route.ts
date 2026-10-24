@@ -628,7 +628,7 @@ Generate exactly ${TOPICS_PER_STAGE} specific, in-domain topic nodes at the ${st
   } catch (error: any) {
     console.error("[Roadmap] GET route error:", error?.message || error);
     return NextResponse.json(
-      { message: error?.message || "Internal Server Error" },
+      { message: "Internal Server Error" },
       { status: 500 }
     );
   }

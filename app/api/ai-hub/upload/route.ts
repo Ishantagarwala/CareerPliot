@@ -12,6 +12,7 @@ import {
   UPLOADS_DIR,
   buildOwnedUploadFilename,
   rateLimit,
+  requestBodyTooLarge,
   sniffFileType,
   toUploadFileUrl,
 } from "@/lib/security";
@@ -29,6 +30,14 @@ export async function POST(req: Request) {
     const userId = session.user.id;
     if (!rateLimit(`ai-upload:${userId}`, 15, 60 * 60 * 1000)) {
       return NextResponse.json({ message: "Too many uploads. Try again later." }, { status: 429 });
+    }
+
+    // Reject oversized bodies BEFORE reading them into memory.
+    if (requestBodyTooLarge(req)) {
+      return NextResponse.json(
+        { message: "File too large. Maximum size is 10 MB." },
+        { status: 413 }
+      );
     }
 
     const formData = await req.formData();

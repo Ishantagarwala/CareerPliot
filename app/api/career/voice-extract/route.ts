@@ -25,9 +25,26 @@ export async function POST(req: Request) {
       return NextResponse.json({ message: "Missing conversation logs." }, { status: 400 });
     }
 
+    /*
+     * Bound what reaches the model: the per-action budget caps CALLS, not the
+     * size of each prompt, so without a cap one request can carry a huge body
+     * straight into the LLM prompt. Each Q/A is clamped too, and non-string
+     * fields become empty strings rather than "undefined".
+     */
+    const MAX_CONVERSATION_CHARS = 40_000;
     const conversationText = conversation
-      .map((item) => `Q: ${item.question}\nA: ${item.answer}`)
+      .map(
+        (item) =>
+          `Q: ${String(item?.question ?? "").slice(0, 2000)}\nA: ${String(item?.answer ?? "").slice(0, 4000)}`
+      )
       .join("\n\n");
+
+    if (conversationText.length > MAX_CONVERSATION_CHARS) {
+      return NextResponse.json(
+        { message: "Conversation is too long to analyze." },
+        { status: 413 }
+      );
+    }
 
     const systemPrompt = `You are an AI data extractor. Analyze the conversation transcripts of a career assessment interview and extract a structured JSON profile of the user.
 Extract:
@@ -53,6 +70,6 @@ Return your response ONLY as a JSON object matching this schema:
     return NextResponse.json(extracted);
   } catch (error: any) {
     console.error("Voice profile extraction error:", error);
-    return NextResponse.json({ message: error.message || "Internal Server Error" }, { status: 500 });
+    return NextResponse.json({ message: "Internal Server Error" }, { status: 500 });
   }
 }

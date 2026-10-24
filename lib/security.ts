@@ -3,6 +3,28 @@ import path from "path";
 /** Maximum accepted upload size in bytes (10 MB). */
 export const MAX_UPLOAD_BYTES = 10 * 1024 * 1024;
 
+/**
+ * Ceiling for a whole request body: the file plus the multipart envelope and
+ * small form fields. Checked against Content-Length BEFORE the body is read —
+ * `req.formData()` / `arrayBuffer()` buffer the entire body in memory first,
+ * so without this a multi-gigabyte POST OOMs the container long before the
+ * 10 MB file check runs.
+ *
+ * Chunked uploads carry no Content-Length; those are capped by the reverse
+ * proxy in front (Caddy `request_body max_size`).
+ */
+export const MAX_REQUEST_BODY_BYTES = MAX_UPLOAD_BYTES + 512 * 1024;
+
+/** True when the request declares (via Content-Length) a body over `maxBytes`. */
+export function requestBodyTooLarge(
+  req: Request,
+  maxBytes: number = MAX_REQUEST_BODY_BYTES
+): boolean {
+  const contentLength = Number(req.headers.get("content-length"));
+  if (!Number.isFinite(contentLength) || contentLength <= 0) return false;
+  return contentLength > maxBytes;
+}
+
 /** Private upload directory (outside public/ so files are not world-readable). */
 export const UPLOADS_DIR = path.resolve(path.join(process.cwd(), "storage", "uploads"));
 

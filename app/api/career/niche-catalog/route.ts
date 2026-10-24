@@ -68,7 +68,7 @@ Keep labels concise (2-5 words). Do not invent software/tech chips unless the ni
   } catch (error: any) {
     console.error("Niche catalog error:", error);
     return NextResponse.json(
-      { message: error?.message || "Failed to generate niche catalog" },
+      { message: "Failed to generate niche catalog. Please try again." },
       { status: 500 }
     );
   }

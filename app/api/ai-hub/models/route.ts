@@ -142,8 +142,11 @@ export async function GET() {
     });
   } catch (error: unknown) {
     console.error("Failed to fetch models from custom router:", error);
-    const message =
-      error instanceof Error ? error.message : "Failed to fetch models";
-    return NextResponse.json({ message }, { status: 500 });
+    // Never echo the provider error to the client — it can contain the
+    // router's base URL and request details.
+    return NextResponse.json(
+      { message: "Failed to fetch models" },
+      { status: 500 }
+    );
   }
 }

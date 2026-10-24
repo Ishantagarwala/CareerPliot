@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
-import { MAX_UPLOAD_BYTES, rateLimit } from "@/lib/security";
+import { MAX_UPLOAD_BYTES, rateLimit, requestBodyTooLarge } from "@/lib/security";
 
 export async function POST(req: Request) {
   try {
@@ -14,6 +14,11 @@ export async function POST(req: Request) {
         { message: "Too many transcription requests. Try again later." },
         { status: 429 }
       );
+    }
+
+    // Reject oversized bodies BEFORE reading them into memory.
+    if (requestBodyTooLarge(req)) {
+      return NextResponse.json({ message: "Audio file too large (max 10 MB)." }, { status: 413 });
     }
 
     const sarvamApiKey = process.env.SARVAM_AI_API_KEY?.trim();
@@ -93,6 +98,6 @@ export async function POST(req: Request) {
     });
   } catch (error: any) {
     console.error("Voice Transcribe Route Error:", error);
-    return NextResponse.json({ message: error.message || "Internal Server Error" }, { status: 500 });
+    return NextResponse.json({ message: "Internal Server Error" }, { status: 500 });
   }
 }

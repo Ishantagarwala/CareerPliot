@@ -154,6 +154,18 @@ export function assessVerdict(payload: PlayIntegrityPayload | null): IntegrityVe
     return { ok: false, reason: 'Integrity verdict does not match the requesting app.' };
   }
 
+  /*
+   * 4. The verdict must be fresh. Play Integrity tokens stay valid for several
+   *    minutes; without a recency check a token captured off the wire (or
+   *    reused from storage) replays for its whole lifetime. 5 minutes is
+   *    comfortably longer than the round trip the client needs.
+   */
+  const verdictTime = Number(request.timestampMillis);
+  const MAX_VERDICT_AGE_MS = 5 * 60 * 1000;
+  if (!Number.isFinite(verdictTime) || Date.now() - verdictTime > MAX_VERDICT_AGE_MS) {
+    return { ok: false, reason: 'Integrity check expired. Try signing in again.' };
+  }
+
   return { ok: true };
 }
 
