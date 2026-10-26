@@ -905,16 +905,16 @@ export default function UnifiedChat({
                       setInput(workflow.prompt);
                       textareaRef.current?.focus();
                     }}
-                    className="group flex cursor-pointer items-start gap-3 rounded-lg border border-hub-line bg-hub-surface/60 p-3.5 text-left transition-colors hover:border-hub-composer-hover hover:bg-hub-surface"
+                    className="group flex cursor-pointer items-start gap-3 rounded-xl border-2 border-black dark:border-[#383d45] bg-card p-4 text-left shadow-[3px_3px_0_0_#000] dark:shadow-[3px_3px_0_0_#000] hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-[1px_1px_0_0_#000] transition-all"
                   >
-                    <div className="flex size-8 shrink-0 items-center justify-center rounded-md bg-hub-soft text-[var(--primary)] transition-colors group-hover:bg-[var(--primary)] group-hover:text-[var(--primary-foreground)]">
-                      <WorkflowIcon size={16} strokeWidth={1.75} aria-hidden />
+                    <div className="flex size-9 shrink-0 items-center justify-center rounded-lg border-2 border-black bg-primary text-black transition-colors">
+                      <WorkflowIcon size={18} strokeWidth={2} aria-hidden />
                     </div>
                     <div className="min-w-0">
-                      <h4 className="text-[13.5px] font-semibold tracking-[-0.01em] text-hub-text">
+                      <h4 className="text-[14px] font-mono font-bold tracking-tight text-foreground">
                         {workflow.title}
                       </h4>
-                      <p className="mt-0.5 text-[12.5px] leading-relaxed text-hub-muted">
+                      <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
                         {workflow.hint}
                       </p>
                     </div>

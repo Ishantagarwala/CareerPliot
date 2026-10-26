@@ -49,7 +49,7 @@ export default function DashboardShell({
       <main
         className={cn(
           "flex-1 pt-16 md:pt-0 overflow-y-auto min-h-screen transition-all duration-300 ease-in-out",
-          isCollapsed ? "md:ml-0" : "md:ml-64"
+          isCollapsed ? "md:ml-0" : "md:ml-72"
         )}
       >
         <div className="w-full max-w-[1800px] mx-auto px-4 sm:px-6 md:px-10 lg:px-12 py-6 md:py-10">

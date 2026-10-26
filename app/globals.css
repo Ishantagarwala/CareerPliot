@@ -32,7 +32,8 @@
   --color-foreground: var(--foreground);
   --font-sans: var(--font-hanken), "Hanken Grotesk", system-ui, sans-serif;
   --font-mono: var(--font-space), "Space Grotesk", system-ui, sans-serif;
-  --font-heading: var(--font-anybody), Anybody, system-ui, sans-serif;
+  --font-heading: var(--font-space), "Space Grotesk", system-ui, sans-serif;
+  --font-display: var(--font-space), "Space Grotesk", system-ui, sans-serif;
   --font-label: var(--font-space), "Space Grotesk", system-ui, sans-serif;
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
@@ -66,6 +67,9 @@
   --color-lime: var(--lime);
   --color-lime-dim: var(--lime-dim);
   --color-cyan: var(--cyan);
+  --color-coral: var(--coral);
+  --color-coral-foreground: var(--coral-foreground);
+  --color-royal: var(--secondary);
   --color-electric: var(--electric);
   --color-on-surface-variant: var(--on-surface-variant);
   /* AI Hub palette (values are scoped to `.aihub` further down) */
@@ -91,87 +95,231 @@
   --radius-4xl: calc(var(--radius) * 3);
 }
 
-/* ===== STITCH: Vibrant Neo-Brutalist Career ===== */
+/* ===== MODERN NEO-BRUTALISM × PREMIUM AI SAAS PALETTE ===== */
 
 :root {
-  --background: #f4f6e8;
-  --background-rgb: 244, 246, 232;
-  --foreground: #151f00;
+  --background: #f8f7f2;
+  --background-rgb: 248, 247, 242;
+  --foreground: #171717;
   --card: #ffffff;
-  --card-foreground: #151f00;
+  --card-foreground: #171717;
   --popover: #ffffff;
-  --popover-foreground: #151f00;
-  --primary: #baf600;
-  --primary-foreground: #151f00;
-  --secondary: #0043eb;
-  --secondary-foreground: #dde1ff;
-  --muted: #e8ecd6;
-  --muted-foreground: #434933;
-  --accent: #00f0ff;
-  --accent-foreground: #000000;
+  --popover-foreground: #171717;
+  --primary: #d5ff45;
+  --primary-foreground: #121212;
+  --secondary: #5267f2;
+  --secondary-foreground: #ffffff;
+  --coral: #ff8066;
+  --coral-foreground: #121212;
+  --muted: #f0eee6;
+  --muted-foreground: #3e4450;
+  --accent: #5267f2;
+  --accent-foreground: #ffffff;
   --destructive: #ba1a1a;
   --border: #000000;
   --input: #000000;
-  --ring: #4c6700;
-  --lime: #baf600;
-  --lime-dim: #a3d800;
-  --cyan: #00f0ff;
-  --electric: #0043eb;
-  --on-surface-variant: #434933;
-  --chart-1: #baf600;
-  --chart-2: #0043eb;
-  --chart-3: #00f0ff;
-  --chart-4: #434933;
-  --chart-5: #c3caac;
-  --radius: 0.5rem;
-  --sidebar: #e8ecd6;
-  --sidebar-foreground: #151f00;
-  --sidebar-primary: #baf600;
-  --sidebar-primary-foreground: #151f00;
-  --sidebar-accent: #dce3c4;
-  --sidebar-accent-foreground: #151f00;
+  --ring: #171717;
+  --lime: #d5ff45;
+  --lime-dim: #c0ee2d;
+  --cyan: #38e1ff;
+  --electric: #5267f2;
+  --on-surface-variant: #3e4450;
+  --chart-1: #d5ff45;
+  --chart-2: #5267f2;
+  --chart-3: #ff8066;
+  --chart-4: #171717;
+  --chart-5: #e4e2d7;
+  --radius: 0.75rem;
+  --sidebar: #f2f0e6;
+  --sidebar-foreground: #171717;
+  --sidebar-primary: #d5ff45;
+  --sidebar-primary-foreground: #121212;
+  --sidebar-accent: #e5e2d4;
+  --sidebar-accent-foreground: #171717;
   --sidebar-border: #000000;
-  --sidebar-ring: #4c6700;
+  --sidebar-ring: #171717;
 }
 
 .dark {
-  --background: #111508;
-  --background-rgb: 17, 21, 8;
-  --foreground: #e1e5cf;
-  --card: #1d2114;
-  --card-foreground: #e1e5cf;
-  --popover: #272c1d;
-  --popover-foreground: #e1e5cf;
-  --primary: #baf600;
-  --primary-foreground: #151f00;
-  --secondary: #0043eb;
-  --secondary-foreground: #c6ceff;
-  --muted: #191d10;
-  --muted-foreground: #d5dcc0;
-  --accent: #00f0ff;
-  --accent-foreground: #000000;
+  --background: #121417;
+  --background-rgb: 18, 20, 23;
+  --foreground: #f4f5f0;
+  --card: #1a1d22;
+  --card-foreground: #f4f5f0;
+  --popover: #21252c;
+  --popover-foreground: #f4f5f0;
+  --primary: #d5ff45;
+  --primary-foreground: #121212;
+  --secondary: #6377f8;
+  --secondary-foreground: #ffffff;
+  --coral: #ff8d75;
+  --coral-foreground: #121212;
+  --muted: #21252c;
+  --muted-foreground: #b2b9c7;
+  --accent: #6377f8;
+  --accent-foreground: #ffffff;
   --destructive: #ffb4ab;
-  --border: #434933;
-  --input: #434933;
-  --ring: #a3d800;
-  --lime: #baf600;
-  --lime-dim: #a3d800;
-  --cyan: #00f0ff;
-  --electric: #0043eb;
-  --on-surface-variant: #c3caac;
-  --chart-1: #baf600;
-  --chart-2: #b8c3ff;
-  --chart-3: #00f0ff;
-  --chart-4: #8d9479;
-  --chart-5: #434933;
-  --sidebar: #0c1005;
-  --sidebar-foreground: #e1e5cf;
-  --sidebar-primary: #baf600;
-  --sidebar-primary-foreground: #151f00;
-  --sidebar-accent: #272c1d;
-  --sidebar-accent-foreground: #e1e5cf;
-  --sidebar-border: #434933;
-  --sidebar-ring: #a3d800;
+  --border: #383d45;
+  --input: #383d45;
+  --ring: #d5ff45;
+  --lime: #d5ff45;
+  --lime-dim: #c0ee2d;
+  --cyan: #38e1ff;
+  --electric: #6377f8;
+  --on-surface-variant: #b2b9c7;
+  --chart-1: #d5ff45;
+  --chart-2: #6377f8;
+  --chart-3: #ff8d75;
+  --chart-4: #8d94a0;
+  --chart-5: #383d45;
+  --sidebar: #101215;
+  --sidebar-foreground: #f4f5f0;
+  --sidebar-primary: #d5ff45;
+  --sidebar-primary-foreground: #121212;
+  --sidebar-accent: #1e2228;
+  --sidebar-accent-foreground: #f4f5f0;
+  --sidebar-border: #383d45;
+  --sidebar-ring: #d5ff45;
+}
+
+/* ===== REFINED NEO-BRUTALIST UTILITY SYSTEM ===== */
+
+.neo-border {
+  border: 2px solid #000000;
+}
+.dark .neo-border {
+  border: 2px solid #383d45;
+}
+
+.neo-shadow {
+  box-shadow: 4px 4px 0px 0px #000000;
+}
+.dark .neo-shadow {
+  box-shadow: 4px 4px 0px 0px rgba(0, 0, 0, 0.7);
+}
+
+.neo-shadow-sm {
+  box-shadow: 2px 2px 0px 0px #000000;
+}
+.dark .neo-shadow-sm {
+  box-shadow: 2px 2px 0px 0px rgba(0, 0, 0, 0.7);
+}
+
+.neo-shadow-md {
+  box-shadow: 5px 5px 0px 0px #000000;
+}
+.dark .neo-shadow-md {
+  box-shadow: 5px 5px 0px 0px rgba(0, 0, 0, 0.7);
+}
+
+.neo-shadow-lg {
+  box-shadow: 7px 7px 0px 0px #000000;
+}
+.dark .neo-shadow-lg {
+  box-shadow: 7px 7px 0px 0px rgba(0, 0, 0, 0.7);
+}
+
+.neo-shadow-lime {
+  box-shadow: 4px 4px 0px 0px #d5ff45;
+}
+
+.neo-shadow-blue {
+  box-shadow: 4px 4px 0px 0px #5267f2;
+}
+
+.neo-shadow-coral {
+  box-shadow: 4px 4px 0px 0px #ff8066;
+}
+
+.neo-box {
+  background: var(--card);
+  color: var(--card-foreground);
+  border: 2px solid #000000;
+  box-shadow: 4px 4px 0px 0px #000000;
+  border-radius: 12px;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.dark .neo-box {
+  border: 2px solid #383d45;
+  box-shadow: 4px 4px 0px 0px rgba(0, 0, 0, 0.7);
+}
+
+.neo-box-interactive {
+  background: var(--card);
+  color: var(--card-foreground);
+  border: 2px solid #000000;
+  box-shadow: 4px 4px 0px 0px #000000;
+  border-radius: 12px;
+  transition: all 0.15s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.dark .neo-box-interactive {
+  border: 2px solid #383d45;
+  box-shadow: 4px 4px 0px 0px rgba(0, 0, 0, 0.7);
+}
+.neo-box-interactive:hover {
+  transform: translate(-2px, -2px);
+  box-shadow: 6px 6px 0px 0px #000000;
+}
+.dark .neo-box-interactive:hover {
+  box-shadow: 6px 6px 0px 0px rgba(0, 0, 0, 0.85);
+}
+.neo-box-interactive:active {
+  transform: translate(2px, 2px);
+  box-shadow: 2px 2px 0px 0px #000000;
+}
+
+.neo-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  border: 2px solid #000000;
+  box-shadow: 4px 4px 0px 0px #000000;
+  border-radius: 10px;
+  transition: all 0.15s cubic-bezier(0.16, 1, 0.3, 1);
+  cursor: pointer;
+}
+.neo-btn:hover {
+  transform: translate(-1.5px, -1.5px);
+  box-shadow: 5.5px 5.5px 0px 0px #000000;
+}
+.neo-btn:active {
+  transform: translate(2px, 2px);
+  box-shadow: 1px 1px 0px 0px #000000;
+}
+
+.neo-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.25rem 0.625rem;
+  border: 1.5px solid #000000;
+  box-shadow: 2px 2px 0px 0px #000000;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.dark .neo-badge {
+  border: 1.5px solid #383d45;
+  box-shadow: 2px 2px 0px 0px rgba(0, 0, 0, 0.7);
+}
+
+.neo-pill {
+  border: 2px solid #000000;
+  border-radius: 9999px;
+  box-shadow: 3px 3px 0px 0px #000000;
+}
+
+.neo-highlight {
+  background: var(--lime);
+  color: #121212;
+  padding: 0.125rem 0.5rem;
+  border: 1.5px solid #000000;
+  display: inline-block;
+  box-shadow: 2px 2px 0px 0px #000000;
+  font-weight: 800;
 }
 
 @layer base {
@@ -987,90 +1135,82 @@ select:focus {
    ===================================================================== */
 
 .aihub {
-  /* --- Group 1: structural aliases --- */
-  --background: #f7f8fa;
+  /* --- Group 1: structural aliases mapped to app tokens --- */
+  --background: #f8f7f2;
   --card: #ffffff;
   --popover: #ffffff;
-  --sidebar: #f7f8fa;
-  --muted: #f0f1f5;
-  --muted-foreground: #858992;
-  --border: #e6e8ee;
-  --input: #e6e8ee;
-  --sidebar-border: #e6e8ee;
-  --sidebar-accent: #eceef2;
-  --sidebar-accent-foreground: #15171b;
-  --background-rgb: 247, 248, 250;
+  --sidebar: #f2f0e6;
+  --muted: #f0eee6;
+  --muted-foreground: #3e4450;
+  --border: #000000;
+  --input: #000000;
+  --sidebar-border: #000000;
+  --sidebar-accent: #e5e2d4;
+  --sidebar-accent-foreground: #171717;
+  --background-rgb: 248, 247, 242;
 
-  /* --- Group 2: the hub's own scale --- */
-  --hub-bg: #f7f8fa;
+  /* --- Group 2: the hub's scale unified with neo-brutalist theme --- */
+  --hub-bg: #f8f7f2;
   --hub-surface: #ffffff;
-  --hub-raised: #fbfbfc;
-  --hub-text: #15171b;
-  /* 4.8:1 on white — the hub uses this for 11-13px labels, so it must
-     clear WCAG AA rather than look airy. */
-  --hub-muted: #6b7280;
-  --hub-line: #e6e8ee;
-  --hub-soft: #eceef2;
-  --hub-soft-hover: #e4e6ec;
-  --hub-strong: #050505;
-  --hub-strong-hover: #1a1a1a;
-  --hub-composer-line: #e6e8ee;
-  --hub-composer-hover: #d8dae2;
-  --hub-danger: #dc2626;
+  --hub-raised: #f0eee6;
+  --hub-text: #171717;
+  --hub-muted: #3e4450;
+  --hub-line: #000000;
+  --hub-soft: #f0eee6;
+  --hub-soft-hover: #e5e2d4;
+  --hub-strong: #000000;
+  --hub-strong-hover: #171717;
+  --hub-composer-line: #000000;
+  --hub-composer-hover: #000000;
+  --hub-danger: #ba1a1a;
 
   /* Elevation + geometry */
-  --shadow-composer: 0 2px 12px #15171b0a, 0 1px 2px #15171b08;
-  --shadow-composer-focus: 0 4px 20px #15171b12, 0 1px 2px #15171b08;
-  --shadow-send: 0 2px 10px #6757e84d;
-  --shadow-send-hover: 0 4px 14px #6757e866;
-  --shadow-pop: 0 16px 48px #15171b26;
-  --radius-composer: 22px;
+  --shadow-composer: 4px 4px 0px 0px #000000;
+  --shadow-composer-focus: 6px 6px 0px 0px #000000;
+  --shadow-send: 2px 2px 0px 0px #000000;
+  --shadow-send-hover: none;
+  --shadow-pop: 6px 6px 0px 0px #000000;
+  --radius-composer: 12px;
 }
 
 .dark .aihub {
-  --background: #0f1115;
-  --card: #16181d;
-  --popover: #16181d;
-  --sidebar: #0f1115;
-  --muted: #1e2128;
-  --muted-foreground: #9198a4;
-  --border: #262a32;
-  --input: #262a32;
-  --sidebar-border: #262a32;
-  --sidebar-accent: #1c2026;
-  --sidebar-accent-foreground: #ecedf1;
-  --background-rgb: 15, 17, 21;
+  --background: #121417;
+  --card: #1a1d22;
+  --popover: #21252c;
+  --sidebar: #101215;
+  --muted: #21252c;
+  --muted-foreground: #b2b9c7;
+  --border: #383d45;
+  --input: #383d45;
+  --sidebar-border: #383d45;
+  --sidebar-accent: #1e2228;
+  --sidebar-accent-foreground: #f4f5f0;
+  --background-rgb: 18, 20, 23;
 
-  --hub-bg: #0f1115;
-  --hub-surface: #16181d;
-  --hub-raised: #1a1d23;
-  --hub-text: #ecedf1;
-  --hub-muted: #9198a4;
-  --hub-line: #262a32;
-  --hub-soft: #1e2128;
-  --hub-soft-hover: #262a32;
-  --hub-strong: #ecedf1;
+  --hub-bg: #121417;
+  --hub-surface: #1a1d22;
+  --hub-raised: #21252c;
+  --hub-text: #f4f5f0;
+  --hub-muted: #b2b9c7;
+  --hub-line: #383d45;
+  --hub-soft: #21252c;
+  --hub-soft-hover: #2b3039;
+  --hub-strong: #f4f5f0;
   --hub-strong-hover: #ffffff;
-  --hub-composer-line: #2a2f38;
-  --hub-composer-hover: #363c47;
-  --hub-danger: #f87171;
+  --hub-composer-line: #383d45;
+  --hub-composer-hover: #4a5160;
+  --hub-danger: #ff8d75;
 
-  --shadow-composer: 0 2px 12px #00000040, 0 1px 2px #00000033;
-  --shadow-composer-focus: 0 4px 22px #00000059, 0 1px 2px #00000033;
-  --shadow-pop: 0 16px 48px #00000073;
+  --shadow-composer: 4px 4px 0px 0px rgba(0, 0, 0, 0.7);
+  --shadow-composer-focus: 6px 6px 0px 0px rgba(0, 0, 0, 0.7);
+  --shadow-send: 2px 2px 0px 0px rgba(0, 0, 0, 0.7);
+  --shadow-send-hover: none;
+  --shadow-pop: 6px 6px 0px 0px rgba(0, 0, 0, 0.7);
 }
 
-/*
- * The hub reads in Inter rather than the app's display faces. The variable
- * is registered by the root layout; the fallback chain keeps the hub
- * legible if the webfont fails to load. `cv11`/`ss01` match the reference's
- * tighter, more geometric lowercase a/g.
- */
 .aihub {
-  --font-sans: var(--font-inter), "Inter", ui-sans-serif, system-ui,
-    -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-sans: var(--font-hanken), "Hanken Grotesk", system-ui, sans-serif;
   font-family: var(--font-sans);
-  font-feature-settings: "cv11", "ss01";
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }

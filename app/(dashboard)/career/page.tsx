@@ -96,16 +96,15 @@ export default function CareerPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border pb-6 animate-fade-in-up">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b-2 border-black dark:border-[#383d45] pb-5 animate-fade-in-up">
         <div>
-          <h1
-            className="text-3xl font-bold text-foreground tracking-tight flex items-center gap-3"
-            style={{ fontFamily: "'Hanken Grotesk', system-ui, sans-serif" }}
-          >
-            <span className="material-symbols-outlined text-[28px]">explore</span>
-            {hasRecommendations ? "Your career matches" : "Career Discovery"}
+          <h1 className="text-2xl sm:text-3xl font-display font-black text-foreground tracking-tight uppercase flex items-center gap-3">
+            <span className="w-9 h-9 rounded-xl border-2 border-black bg-primary text-black flex items-center justify-center text-lg shadow-[2px_2px_0_0_#000]">
+              🧭
+            </span>
+            <span>{hasRecommendations ? "Your Career Matches" : "Career Discovery"}</span>
           </h1>
-          <p className="text-sm text-muted-foreground mt-2 max-w-3xl">
+          <p className="text-xs sm:text-sm text-muted-foreground mt-2 max-w-3xl font-sans">
             {hasRecommendations
               ? "Pick the path that fits best — then we’ll build your learning roadmap and course list."
               : "Answer a short assessment and get career paths matched to your goals and skills."}
@@ -114,33 +113,28 @@ export default function CareerPage() {
         {hasRecommendations && (
           <button
             onClick={handleRetake}
-            className="self-start inline-flex items-center px-4 py-2 border-2 border-border text-foreground hover:border-primary transition-colors text-xs"
-            style={{ fontFamily: "'JetBrains Mono', monospace", letterSpacing: "0.04em" }}
+            className="self-start inline-flex items-center gap-2 px-4 py-2 rounded-xl border-2 border-black dark:border-[#383d45] bg-card text-foreground font-mono text-xs font-bold uppercase shadow-[2px_2px_0_0_#000] hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-none transition-all cursor-pointer"
           >
-            <span className="material-symbols-outlined text-[16px] mr-1.5">refresh</span>
+            <span className="material-symbols-outlined text-[16px]">refresh</span>
             Retake Assessment
           </button>
         )}
       </div>
 
       {hasRecommendations && selected && (
-        <div className="flex flex-wrap items-center gap-3 p-4 border border-border bg-card animate-fade-in-up">
-          <span
-            className="text-[10px] uppercase tracking-[0.12em] text-muted-foreground font-bold"
-            style={{ fontFamily: "'JetBrains Mono', monospace" }}
-          >
+        <div className="flex flex-wrap items-center gap-3 p-4 rounded-xl border-2 border-black dark:border-[#383d45] bg-card neo-shadow animate-fade-in-up">
+          <span className="text-[10px] uppercase font-mono tracking-widest text-muted-foreground font-bold px-2 py-0.5 rounded border border-black bg-muted">
             Next step
           </span>
-          <p className="text-sm text-foreground flex-1 min-w-[12rem]">
-            Path selected: <span className="font-bold">{selected.careerPath}</span>
+          <p className="text-sm font-sans text-foreground flex-1 min-w-[12rem]">
+            Path selected: <span className="font-bold text-secondary dark:text-primary">{selected.careerPath}</span>
           </p>
           <Link
             href="/roadmap"
-            className="inline-flex items-center px-4 py-2 bg-primary text-primary-foreground border-2 border-black text-xs font-bold shadow-[3px_3px_0_0_#000]"
-            style={{ fontFamily: "'JetBrains Mono', monospace", letterSpacing: "0.04em" }}
+            className="inline-flex items-center gap-2 px-4 py-2 bg-primary text-black border-2 border-black rounded-lg text-xs font-mono font-bold uppercase shadow-[2px_2px_0_0_#000] hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-none transition-all"
           >
-            Open Roadmap
-            <span className="material-symbols-outlined text-[16px] ml-1.5">arrow_forward</span>
+            <span>Open Roadmap</span>
+            <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
           </Link>
         </div>
       )}

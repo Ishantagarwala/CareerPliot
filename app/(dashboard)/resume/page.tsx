@@ -75,25 +75,23 @@ export default function ResumePage() {
   };
 
   return (
-    <div className="space-y-8">
-      <div className="border-b border-border pb-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4 animate-fade-in-up">
+    <div className="space-y-6">
+      <div className="border-b-2 border-black dark:border-[#383d45] pb-5 flex flex-col md:flex-row md:items-center md:justify-between gap-4 animate-fade-in-up">
         <div>
-          <h1
-            className="text-3xl font-bold text-foreground tracking-tight flex items-center gap-3"
-            style={{ fontFamily: "'Hanken Grotesk', system-ui, sans-serif" }}
-          >
-            <span className="material-symbols-outlined text-[28px]">description</span>
-            Resume
+          <h1 className="text-2xl sm:text-3xl font-display font-black text-foreground tracking-tight uppercase flex items-center gap-3">
+            <span className="w-9 h-9 rounded-xl border-2 border-black bg-primary text-black flex items-center justify-center text-lg shadow-[2px_2px_0_0_#000]">
+              📄
+            </span>
+            <span>ATS Resume Hub</span>
           </h1>
-          <p className="text-sm text-muted-foreground mt-2">
-            Build a clear resume, check it with AI, and match it to job descriptions.
+          <p className="text-xs sm:text-sm text-muted-foreground mt-2 max-w-2xl font-sans">
+            Build an ATS-optimized resume, evaluate it with AI diagnostics, and match keywords to target job descriptions.
           </p>
         </div>
         <button
           onClick={createResume}
           disabled={creating}
-          className="bg-primary text-primary-foreground border-2 border-black px-5 py-3 text-xs font-bold hover:opacity-90 disabled:opacity-40 shadow-[3px_3px_0_0_#000]"
-          style={{ fontFamily: "'JetBrains Mono', monospace", letterSpacing: "0.04em" }}
+          className="self-start md:self-auto rounded-xl border-2 border-black bg-primary text-black px-5 py-2.5 text-xs font-mono font-bold uppercase tracking-wider shadow-[2px_2px_0_0_#000] hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-none disabled:opacity-40 transition-all cursor-pointer"
         >
           {creating ? "Creating..." : "Create Resume"}
         </button>
@@ -110,18 +108,18 @@ export default function ResumePage() {
           primaryLabel={creating ? "Creating…" : "Create Resume"}
         />
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
           {resumes.map((resume) => (
             <div
               key={resume._id}
-              className="bg-card border border-border p-5 hover:border-foreground/40 transition-colors flex flex-col"
+              className="rounded-xl border-2 border-black dark:border-[#383d45] bg-card p-5 neo-shadow hover:-translate-y-0.5 hover:shadow-[5px_5px_0_0_#000] transition-all flex flex-col justify-between"
             >
               <div className="flex items-start justify-between gap-3">
                 <Link href={`/resume/builder/${resume._id}`} className="min-w-0 flex-1 group">
-                  <h2 className="font-bold text-foreground group-hover:text-primary transition-colors truncate">
+                  <h2 className="font-mono font-bold text-sm text-foreground group-hover:text-primary transition-colors truncate">
                     {resume.title}
                   </h2>
-                  <p className="text-xs text-muted-foreground mt-1">
+                  <p className="text-[11px] font-mono text-muted-foreground mt-1">
                     Updated {new Date(resume.updatedAt).toLocaleDateString()}
                   </p>
                 </Link>
@@ -130,7 +128,7 @@ export default function ResumePage() {
                     type="button"
                     onClick={() => setResumeToDelete({ _id: resume._id, title: resume.title })}
                     disabled={deletingId === resume._id}
-                    className="p-1.5 text-muted-foreground hover:text-rose-400 border border-transparent hover:border-rose-500/40 transition-colors disabled:opacity-40"
+                    className="p-1.5 text-muted-foreground hover:text-destructive rounded-lg border border-transparent hover:border-destructive/40 transition-colors disabled:opacity-40 cursor-pointer"
                     title="Delete resume"
                     aria-label={`Delete ${resume.title}`}
                   >
@@ -138,7 +136,7 @@ export default function ResumePage() {
                   </button>
                   <Link
                     href={`/resume/builder/${resume._id}`}
-                    className="p-1.5 text-muted-foreground hover:text-foreground"
+                    className="p-1.5 text-muted-foreground hover:text-foreground rounded-lg border border-transparent hover:border-black/20"
                     title="Open resume"
                   >
                     <span className="material-symbols-outlined text-[18px]">arrow_forward</span>
@@ -147,12 +145,12 @@ export default function ResumePage() {
               </div>
               <Link
                 href={`/resume/builder/${resume._id}`}
-                className="mt-5 border border-border p-3 block hover:border-foreground/40"
+                className="mt-4 rounded-lg border-2 border-black dark:border-[#383d45] bg-muted/50 p-3 block hover:bg-muted transition-colors"
               >
-                <p className="text-[11px] text-muted-foreground uppercase tracking-[0.12em]">Score</p>
-                <p className="text-2xl font-bold text-foreground mt-1">
+                <p className="text-[10px] font-mono font-bold text-muted-foreground uppercase tracking-widest">Score</p>
+                <p className="text-2xl font-display font-black text-foreground mt-0.5">
                   {resume.atsAnalysis?.score ?? "--"}
-                  <span className="text-sm text-muted-foreground">/120</span>
+                  <span className="text-xs font-mono font-bold text-muted-foreground">/120</span>
                 </p>
               </Link>
             </div>

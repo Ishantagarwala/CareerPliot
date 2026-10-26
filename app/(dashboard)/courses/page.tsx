@@ -185,21 +185,20 @@ export default function CoursesPage() {
   }
 
   return (
-    <div className="space-y-8">
-      <div className="border-b border-border pb-6 animate-fade-in-up flex flex-col md:flex-row md:items-end md:justify-between gap-4">
+    <div className="space-y-6">
+      <div className="border-b-2 border-black dark:border-[#383d45] pb-5 animate-fade-in-up flex flex-col md:flex-row md:items-end md:justify-between gap-4">
         <div>
-          <h1
-            className="text-3xl font-bold text-foreground tracking-tight flex items-center gap-3"
-            style={{ fontFamily: "'Hanken Grotesk', system-ui, sans-serif" }}
-          >
-            <span className="material-symbols-outlined text-[28px]">school</span>
-            Course Recommendations
+          <h1 className="text-2xl sm:text-3xl font-display font-black text-foreground tracking-tight uppercase flex items-center gap-3">
+            <span className="w-9 h-9 rounded-xl border-2 border-black bg-coral text-black flex items-center justify-center text-lg shadow-[2px_2px_0_0_#000]">
+              🎓
+            </span>
+            <span>Course Recommendations</span>
           </h1>
-          <p className="text-sm text-muted-foreground mt-2 max-w-2xl">
+          <p className="text-xs sm:text-sm text-muted-foreground mt-2 max-w-2xl font-sans">
             Free-first picks for your next roadmap milestones
             {meta?.youtubeEnabled ? " — YouTube full courses + Coursera" : " via Coursera"}.
             {meta?.careerPath ? (
-              <> Path: <span className="text-muted-foreground">{meta.careerPath}</span>.</>
+              <> Path: <span className="font-bold text-foreground">{meta.careerPath}</span>.</>
             ) : null}
           </p>
         </div>
@@ -208,13 +207,12 @@ export default function CoursesPage() {
             type="button"
             onClick={() => fetchCourses({ refresh: true })}
             disabled={refreshing || loading}
-            className="inline-flex items-center gap-2 bg-primary text-primary-foreground border-2 border-black px-4 py-2 text-xs font-bold disabled:opacity-40 shadow-[3px_3px_0_0_#000]"
-            style={{ fontFamily: "'JetBrains Mono', monospace", letterSpacing: "0.04em" }}
+            className="inline-flex items-center gap-2 rounded-xl border-2 border-black bg-primary px-4 py-2 text-xs font-mono font-bold uppercase tracking-wider text-black shadow-[2px_2px_0_0_#000] hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-none transition-all disabled:opacity-40 cursor-pointer"
           >
             <span className={`material-symbols-outlined text-[16px] ${refreshing ? "animate-spin" : ""}`}>
               sync
             </span>
-            {refreshing ? "Refreshing…" : "Refresh live"}
+            <span>{refreshing ? "Refreshing…" : "Refresh live"}</span>
           </button>
         )}
       </div>

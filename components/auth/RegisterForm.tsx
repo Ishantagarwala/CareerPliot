@@ -121,27 +121,22 @@ export default function RegisterForm() {
   ] as const;
 
   return (
-    <div className="w-full max-w-md bg-card border border-border overflow-hidden">
-      <div className="p-6 border-b border-border text-center space-y-2">
-        <h1
-          className="text-2xl font-bold text-foreground tracking-tight"
-          style={{ fontFamily: "'Hanken Grotesk', system-ui, sans-serif" }}
-        >
-          Create an Account
+    <div className="w-full max-w-md bg-card border-3 border-black dark:border-[#383d45] rounded-2xl neo-shadow overflow-hidden">
+      <div className="p-6 sm:p-8 border-b-2 border-black dark:border-[#383d45] text-center space-y-2">
+        <h1 className="text-2xl sm:text-3xl font-display font-black text-foreground uppercase tracking-tight">
+          Create Account
         </h1>
-        <p className="text-sm text-muted-foreground">
-          Use a Gmail, iCloud, Yahoo, or Outlook email — VPNs and datacenter IPs are blocked.
+        <p className="text-sm font-sans text-muted-foreground">
+          Sign up to initialize your custom AI career roadmaps
         </p>
-
       </div>
       <form onSubmit={handleSubmit(onSubmit)} className="relative">
-        <div className="p-6 space-y-4">
+        <div className="p-6 sm:p-8 space-y-4">
           {fields.map((field) => (
-            <div key={field.id} className="space-y-2">
+            <div key={field.id} className="space-y-1.5">
               <label
                 htmlFor={field.id}
-                className="text-[11px] text-muted-foreground uppercase tracking-[0.1em] font-medium block"
-                style={{ fontFamily: "'JetBrains Mono', monospace" }}
+                className="text-xs font-mono font-bold text-muted-foreground uppercase tracking-wider block"
               >
                 {field.label}
               </label>
@@ -150,12 +145,12 @@ export default function RegisterForm() {
                 type={field.type}
                 placeholder={field.placeholder}
                 {...register(field.id)}
-                className={`w-full border bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:border-foreground focus:ring-0 focus:outline-none transition-colors ${
-                  field.error ? "border-[#ffb4ab]" : "border-border"
+                className={`w-full border-2 bg-background px-4 py-3 rounded-xl text-sm font-sans text-foreground placeholder:text-muted-foreground focus:border-black focus:ring-2 focus:ring-primary focus:outline-none transition-all ${
+                  field.error ? "border-destructive" : "border-black dark:border-[#383d45]"
                 }`}
               />
               {field.error && (
-                <p className="text-xs text-[#ffb4ab] mt-1">{field.error.message}</p>
+                <p className="text-xs font-mono text-destructive font-bold mt-1">{field.error.message}</p>
               )}
             </div>
           ))}
@@ -172,15 +167,14 @@ export default function RegisterForm() {
             />
           </div>
         </div>
-        <div className="p-6 pt-0 space-y-4">
+        <div className="p-6 sm:p-8 pt-0 space-y-4">
           {captchaRequired && (
             <CaptchaWidget onToken={setCaptchaToken} className="flex justify-center" />
           )}
           <button
             type="submit"
             disabled={loading || (captchaRequired && !captchaToken)}
-            className="w-full py-2.5 bg-primary text-primary-foreground border-2 border-black font-bold text-xs hover:opacity-90 transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
-            style={{ fontFamily: "'JetBrains Mono', monospace", letterSpacing: "0.04em" }}
+            className="w-full py-3.5 bg-primary text-black border-2 border-black font-mono font-black text-sm uppercase rounded-xl shadow-[4px_4px_0_0_#000] hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-[2px_2px_0_0_#000] active:translate-x-1 active:translate-y-1 active:shadow-none transition-all flex items-center justify-center gap-2 disabled:opacity-50 cursor-pointer"
           >
             {loading ? (
               <>
@@ -188,18 +182,18 @@ export default function RegisterForm() {
                 Registering...
               </>
             ) : captchaRequired && !captchaToken ? (
-              <>Complete captcha to continue</>
+              <>Complete challenge to continue</>
             ) : (
               <>
-                Create Account
-                <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
+                <span>Create Free Account</span>
+                <span className="material-symbols-outlined text-[18px]">arrow_forward</span>
               </>
             )}
           </button>
-          <div className="text-sm text-center text-muted-foreground">
+          <div className="text-xs font-mono font-bold text-center text-muted-foreground pt-3">
             Already have an account?{" "}
-            <Link href="/login" className="text-foreground font-medium hover:underline">
-              Log In
+            <Link href="/login" className="text-secondary dark:text-primary underline font-black">
+              Sign In
             </Link>
           </div>
         </div>

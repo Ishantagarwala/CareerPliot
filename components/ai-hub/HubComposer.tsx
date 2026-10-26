@@ -74,19 +74,19 @@ export default function HubComposer({
       {isHero && <div className="composer-ambient" aria-hidden />}
 
       <div
-        className={`composer-shell relative z-10 border bg-hub-surface transition-[border-color,box-shadow] duration-200 ${
+        className={`composer-shell relative z-10 border-2 border-black dark:border-[#383d45] bg-card rounded-2xl transition-all duration-200 ${
           isHero
-            ? "border-hub-line shadow-[var(--shadow-composer)] focus-within:border-hub-composer-hover focus-within:shadow-[var(--shadow-composer-focus)]"
-            : "border-hub-composer-line shadow-[var(--shadow-composer)] focus-within:border-hub-composer-hover focus-within:shadow-[var(--shadow-composer-focus)]"
+            ? "shadow-[4px_4px_0_0_#000] dark:shadow-[4px_4px_0_0_#000] focus-within:shadow-[6px_6px_0_0_#000] focus-within:border-black"
+            : "shadow-[4px_4px_0_0_#000] dark:shadow-[4px_4px_0_0_#000] focus-within:shadow-[6px_6px_0_0_#000]"
         }`}
       >
         {/* Attachment chips */}
         {(attachments.length > 0 || uploadingAttachment) && (
-          <div className="flex flex-wrap gap-1.5 px-4 pt-3 sm:px-5">
+          <div className="flex flex-wrap gap-2 px-4 pt-3.5 sm:px-5">
             {attachments.map((att, idx) => (
               <div
                 key={att.fileUrl}
-                className="flex items-center gap-1.5 rounded-md border border-hub-line bg-hub-raised py-1 pr-1.5 pl-1.5 text-[11.5px] text-hub-text"
+                className="flex items-center gap-1.5 rounded-lg border-2 border-black dark:border-[#383d45] bg-card py-1 pr-2 pl-1.5 text-xs font-mono font-bold text-foreground shadow-[2px_2px_0_0_#000]"
               >
                 {att.type === "image" ? (
                   // Auth-gated upload URLs must be fetched with the session
@@ -96,27 +96,27 @@ export default function HubComposer({
                     src={att.fileUrl}
                     alt={att.filename}
                     loading="lazy"
-                    className="size-5 rounded-sm object-cover"
+                    className="size-5 rounded object-cover border border-black"
                   />
                 ) : (
-                  <span className="grid size-5 place-items-center rounded-sm bg-hub-soft text-[9px] font-semibold text-hub-muted uppercase">
+                  <span className="grid size-5 place-items-center rounded bg-muted border border-black text-[9px] font-mono font-bold text-foreground uppercase">
                     pdf
                   </span>
                 )}
-                <span className="max-w-[130px] truncate">{att.filename}</span>
+                <span className="max-w-[140px] truncate">{att.filename}</span>
                 <button
                   type="button"
                   onClick={() => onRemoveAttachment(idx)}
-                  className="cursor-pointer rounded-sm p-0.5 text-hub-muted transition-colors hover:bg-hub-soft hover:text-hub-text"
+                  className="cursor-pointer rounded p-0.5 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
                   aria-label={`Remove ${att.filename}`}
                 >
-                  <X size={11} aria-hidden />
+                  <X size={12} aria-hidden />
                 </button>
               </div>
             ))}
             {uploadingAttachment && (
-              <div className="flex items-center gap-1.5 rounded-md border border-dashed border-hub-line bg-hub-raised px-2 py-1 text-[11.5px] text-hub-muted">
-                <span className="size-3 animate-spin rounded-full border-[1.5px] border-hub-line border-t-[var(--primary)]" />
+              <div className="flex items-center gap-1.5 rounded-lg border-2 border-dashed border-black/40 dark:border-[#383d45] bg-muted px-2.5 py-1 text-xs font-mono text-muted-foreground">
+                <span className="size-3 animate-spin rounded-full border-[1.5px] border-black border-t-primary" />
                 Uploading…
               </div>
             )}
@@ -124,8 +124,8 @@ export default function HubComposer({
         )}
 
         {/* Input row — the spark leads the text, inside the field */}
-        <div className="flex gap-3 px-4 pt-4 pb-1.5 sm:px-5 sm:pt-5">
-          <span className="mt-[3px] shrink-0 text-[var(--primary)]" aria-hidden>
+        <div className="flex gap-3 px-4 pt-4 pb-2 sm:px-5 sm:pt-5">
+          <span className="mt-[3px] shrink-0 text-primary" aria-hidden>
             <Sparkle />
           </span>
           <textarea
@@ -142,13 +142,13 @@ export default function HubComposer({
             aria-label="Message Career Pilot AI"
             maxLength={MAX_MESSAGE_CHARS}
             rows={1}
-            className="composer-textarea min-h-[64px] w-full flex-1 border-0 bg-transparent p-0 text-[14.5px] leading-[1.55] tracking-[-0.015em] text-hub-text placeholder:text-hub-muted focus:ring-0 focus:outline-none"
+            className="composer-textarea min-h-[64px] w-full flex-1 border-0 bg-transparent p-0 text-[14.5px] leading-[1.55] tracking-[-0.015em] text-foreground placeholder:text-muted-foreground focus:ring-0 focus:outline-none"
           />
         </div>
 
         {/* Action row — attach on the left, voice + send on the right */}
-        <div className="flex items-center justify-between gap-2 px-2.5 pt-1 pb-2.5 sm:px-3 sm:pb-3">
-          <div className="flex min-w-0 items-center gap-0.5">
+        <div className="flex items-center justify-between gap-2 px-3 pt-1 pb-3 sm:px-4 sm:pb-3.5">
+          <div className="flex min-w-0 items-center gap-1">
             <input
               type="file"
               ref={fileInputRef}
@@ -163,31 +163,31 @@ export default function HubComposer({
               disabled={
                 loading || uploadingAttachment || attachments.length >= MAX_ATTACHMENTS
               }
-              className="flex size-8 cursor-pointer items-center justify-center rounded-full text-hub-muted transition-colors hover:bg-hub-soft hover:text-hub-text disabled:cursor-not-allowed disabled:opacity-40"
+              className="flex size-8 cursor-pointer items-center justify-center rounded-lg border border-black/20 dark:border-white/20 hover:border-black dark:hover:border-white text-muted-foreground transition-all hover:bg-muted hover:text-foreground disabled:cursor-not-allowed disabled:opacity-40"
               aria-label="Attach a PDF or image"
               title="Attach a PDF or image"
             >
-              <Paperclip size={15} strokeWidth={1.75} aria-hidden />
+              <Paperclip size={15} strokeWidth={2} aria-hidden />
             </button>
           </div>
 
-          <div className="flex items-center gap-0.5">
+          <div className="flex items-center gap-1.5">
             <button
               type="button"
               onClick={onStartVoice}
               disabled={loading || uploadingAttachment}
-              className="flex size-8 cursor-pointer items-center justify-center rounded-full text-hub-muted transition-colors hover:bg-hub-soft hover:text-hub-text disabled:opacity-30"
+              className="flex size-8 cursor-pointer items-center justify-center rounded-lg border border-black/20 dark:border-white/20 hover:border-black dark:hover:border-white text-muted-foreground transition-all hover:bg-muted hover:text-foreground disabled:opacity-30"
               title="Speak instead"
               aria-label="Start voice input"
             >
-              <Mic size={15} strokeWidth={1.75} aria-hidden />
+              <Mic size={15} strokeWidth={2} aria-hidden />
             </button>
 
             {loading ? (
               <button
                 type="button"
                 onClick={onStop}
-                className="ml-1 flex size-9 shrink-0 cursor-pointer items-center justify-center rounded-full bg-hub-strong text-hub-surface transition-transform hover:scale-105 active:scale-95"
+                className="ml-1 flex size-9 shrink-0 cursor-pointer items-center justify-center rounded-lg border-2 border-black bg-black text-white dark:bg-white dark:text-black shadow-[2px_2px_0_0_#000] hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-none transition-all active:scale-95"
                 aria-label="Stop generating"
                 title="Stop generating"
               >
@@ -198,10 +198,10 @@ export default function HubComposer({
                 type="button"
                 onClick={onSubmit}
                 disabled={!canSend || uploadingAttachment}
-                className="ml-1 flex size-9 shrink-0 cursor-pointer items-center justify-center rounded-full bg-[var(--primary)] text-[var(--primary-foreground)] shadow-[var(--shadow-send)] transition-all hover:brightness-110 hover:shadow-[var(--shadow-send-hover)] active:scale-95 disabled:cursor-not-allowed disabled:opacity-40 disabled:shadow-none"
+                className="ml-1 flex size-9 shrink-0 cursor-pointer items-center justify-center rounded-lg border-2 border-black bg-primary text-black font-bold shadow-[2px_2px_0_0_#000] hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-none active:translate-x-1 active:translate-y-1 transition-all disabled:cursor-not-allowed disabled:opacity-40 disabled:shadow-none"
                 aria-label="Send message"
               >
-                <ArrowUp size={16} strokeWidth={2.25} aria-hidden />
+                <ArrowUp size={16} strokeWidth={2.5} aria-hidden />
               </button>
             )}
           </div>

@@ -92,16 +92,15 @@ export default function RoadmapPage() {
 
   return (
     <div className="space-y-8">
-      <div className="border-b border-border pb-6 animate-fade-in-up">
-        <h1
-          className="text-3xl font-bold text-foreground tracking-tight flex items-center gap-3"
-          style={{ fontFamily: "'Hanken Grotesk', system-ui, sans-serif" }}
-        >
-          <span className="material-symbols-outlined text-[28px]">map</span>
-          Learning Roadmap
+      <div className="border-b-2 border-black dark:border-[#383d45] pb-5 animate-fade-in-up">
+        <h1 className="text-2xl sm:text-3xl font-display font-black text-foreground tracking-tight uppercase flex items-center gap-3">
+          <span className="w-9 h-9 rounded-xl border-2 border-black bg-secondary text-white flex items-center justify-center text-lg shadow-[2px_2px_0_0_#000]">
+            🗺️
+          </span>
+          <span>Learning Roadmap</span>
         </h1>
-        <p className="text-sm text-muted-foreground mt-2">
-          A beginner → advanced plan for your path. Tap a topic for videos, checklist, and resources.
+        <p className="text-xs sm:text-sm text-muted-foreground mt-2 max-w-3xl font-sans">
+          A structured beginner → advanced plan for your path. Tap any topic to view curated videos, checklists, and resources.
         </p>
       </div>
 

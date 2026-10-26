@@ -36,11 +36,14 @@ export function isRegistrationDisabled(): boolean {
 
 /**
  * Demo account (demo@careerpilot.com / demo1234) skips captcha and IP-reputation
- * checks, so it must be opt-in. Enabled explicitly via DEMO_MODE=1/true/yes.
+ * checks. Enabled by default unless explicitly disabled via DEMO_MODE=false/0/no.
  */
 export function isDemoLoginEnabled(): boolean {
   const flag = process.env.DEMO_MODE?.trim().toLowerCase();
-  return flag === "1" || flag === "true" || flag === "yes";
+  if (flag === "false" || flag === "0" || flag === "no") {
+    return false;
+  }
+  return true;
 }
 
 const DISPOSABLE_DOMAINS = new Set([

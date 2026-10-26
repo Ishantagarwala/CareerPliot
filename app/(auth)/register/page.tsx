@@ -10,11 +10,18 @@ export const metadata: Metadata = pageMetadata({
   index: false,
 });
 
+import Link from "next/link";
+import BrandLogo from "@/components/layout/BrandLogo";
+
 export default function RegisterPage() {
   return (
-    <div className="relative flex min-h-screen flex-col items-center justify-center overflow-x-hidden bg-background py-12 px-4">
-      {/* Subtle radial glow */}
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_rgba(255,255,255,0.03)_0%,_transparent_70%)] pointer-events-none" />
+    <div className="relative flex min-h-screen flex-col items-center justify-center overflow-x-hidden bg-background py-12 px-4 transition-colors">
+      <Link href="/" className="mb-8 flex items-center gap-2.5 group">
+        <BrandLogo size="md" className="rounded-xl shadow-[3px_3px_0_0_#000] group-hover:translate-x-0.5 group-hover:translate-y-0.5 transition-all" />
+        <span className="font-display text-2xl font-black text-foreground uppercase tracking-tight">
+          Career<span className="text-secondary dark:text-primary">Pilot</span>
+        </span>
+      </Link>
 
       <div className="relative z-10 w-full max-w-md animate-fade-in-up overflow-visible">
         <RegisterForm />

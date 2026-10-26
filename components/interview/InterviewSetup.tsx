@@ -77,21 +77,18 @@ export default function InterviewSetup({
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_340px] gap-6 items-start">
-      <section className="bg-card border border-border p-6 sm:p-8 space-y-7">
+      <section className="bg-card border-2 border-black dark:border-[#383d45] rounded-2xl p-6 sm:p-8 space-y-6 neo-shadow">
         <div>
-          <h2
-            className="text-xl font-bold text-foreground"
-            style={{ fontFamily: "'Hanken Grotesk', system-ui, sans-serif" }}
-          >
+          <h2 className="text-xl font-display font-black text-foreground uppercase tracking-tight">
             Set up your interview
           </h2>
-          <p className="text-sm text-muted-foreground mt-1">
-            The interviewer adapts to your answers — follow-ups included. Nothing leaves your account.
+          <p className="text-xs sm:text-sm text-muted-foreground mt-1 font-sans">
+            The interviewer adapts to your answers with contextual follow-ups. Everything stays secure inside your profile.
           </p>
         </div>
 
         <div className="space-y-2">
-          <label htmlFor="interview-role" className="block text-[11px] uppercase font-bold text-muted-foreground" style={labelStyle}>
+          <label htmlFor="interview-role" className="block text-[11px] uppercase font-mono font-bold text-muted-foreground">
             Role you are targeting
           </label>
           <input
@@ -100,26 +97,26 @@ export default function InterviewSetup({
             onChange={(event) => setRole(event.target.value)}
             placeholder="Full Stack Developer"
             maxLength={80}
-            className="w-full bg-background border border-border px-3 py-2.5 text-sm text-foreground focus:outline-none focus:border-foreground"
+            className="w-full rounded-xl border-2 border-black dark:border-[#383d45] bg-background px-3.5 py-2.5 text-sm font-sans text-foreground focus:outline-none focus:ring-2 focus:ring-primary shadow-[2px_2px_0_0_#000]"
           />
         </div>
 
         <div className="space-y-2">
-          <label htmlFor="interview-company" className="block text-[11px] uppercase font-bold text-muted-foreground" style={labelStyle}>
-            Company <span className="text-muted-foreground/70 normal-case font-normal">(optional)</span>
+          <label htmlFor="interview-company" className="block text-[11px] uppercase font-mono font-bold text-muted-foreground">
+            Company <span className="text-muted-foreground/70 normal-case font-normal font-sans">(optional)</span>
           </label>
           <input
             id="interview-company"
             value={company}
             onChange={(event) => setCompany(event.target.value)}
-            placeholder="e.g. Zoho"
+            placeholder="e.g. Google, Microsoft, Zoho"
             maxLength={120}
-            className="w-full bg-background border border-border px-3 py-2.5 text-sm text-foreground focus:outline-none focus:border-foreground"
+            className="w-full rounded-xl border-2 border-black dark:border-[#383d45] bg-background px-3.5 py-2.5 text-sm font-sans text-foreground focus:outline-none focus:ring-2 focus:ring-primary shadow-[2px_2px_0_0_#000]"
           />
         </div>
 
         <div className="space-y-2">
-          <span className="block text-[11px] uppercase font-bold text-muted-foreground" style={labelStyle}>
+          <span className="block text-[11px] uppercase font-mono font-bold text-muted-foreground">
             Interview type
           </span>
           <div className="flex flex-wrap gap-2" role="group" aria-label="Interview type">
@@ -131,24 +128,23 @@ export default function InterviewSetup({
                   type="button"
                   aria-pressed={active}
                   onClick={() => setInterviewType(type)}
-                  className={`px-3 py-2 text-xs font-bold uppercase transition-colors ${
+                  className={`rounded-xl px-3.5 py-2 text-xs font-mono font-bold uppercase transition-all shadow-[2px_2px_0_0_#000] cursor-pointer ${
                     active
-                      ? "bg-primary text-primary-foreground border-2 border-black"
-                      : "border border-border text-muted-foreground hover:text-foreground hover:border-foreground"
+                      ? "bg-primary text-black border-2 border-black"
+                      : "border-2 border-black/30 dark:border-[#383d45] bg-card text-muted-foreground hover:text-foreground hover:border-black"
                   }`}
-                  style={labelStyle}
                 >
                   {TYPE_LABELS[type]}
                 </button>
               );
             })}
           </div>
-          <p className="text-xs text-muted-foreground pt-1">{TYPE_HINTS[interviewType]}</p>
+          <p className="text-xs text-muted-foreground pt-1 font-sans">{TYPE_HINTS[interviewType]}</p>
         </div>
 
         <div className="grid sm:grid-cols-2 gap-6">
           <div className="space-y-2">
-            <span className="block text-[11px] uppercase font-bold text-muted-foreground" style={labelStyle}>
+            <span className="block text-[11px] uppercase font-mono font-bold text-muted-foreground">
               Level
             </span>
             <div className="flex gap-2" role="group" aria-label="Difficulty">
@@ -160,12 +156,11 @@ export default function InterviewSetup({
                     type="button"
                     aria-pressed={active}
                     onClick={() => setDifficulty(level)}
-                    className={`flex-1 px-3 py-2 text-xs font-bold uppercase transition-colors ${
+                    className={`flex-1 rounded-xl px-3 py-2 text-xs font-mono font-bold uppercase transition-all shadow-[2px_2px_0_0_#000] cursor-pointer ${
                       active
-                        ? "bg-secondary text-secondary-foreground border-2 border-black"
-                        : "border border-border text-muted-foreground hover:text-foreground hover:border-foreground"
+                        ? "bg-secondary text-white border-2 border-black"
+                        : "border-2 border-black/30 dark:border-[#383d45] bg-card text-muted-foreground hover:text-foreground hover:border-black"
                     }`}
-                    style={labelStyle}
                   >
                     {DIFFICULTY_LABELS[level]}
                   </button>
@@ -175,7 +170,7 @@ export default function InterviewSetup({
           </div>
 
           <div className="space-y-2">
-            <span className="block text-[11px] uppercase font-bold text-muted-foreground" style={labelStyle}>
+            <span className="block text-[11px] uppercase font-mono font-bold text-muted-foreground">
               Questions
             </span>
             <div className="flex gap-2" role="group" aria-label="Number of questions">
@@ -187,12 +182,11 @@ export default function InterviewSetup({
                     type="button"
                     aria-pressed={active}
                     onClick={() => setMaxQuestions(count)}
-                    className={`flex-1 px-3 py-2 text-xs font-bold transition-colors ${
+                    className={`flex-1 rounded-xl px-3 py-2 text-xs font-mono font-bold transition-all shadow-[2px_2px_0_0_#000] cursor-pointer ${
                       active
-                        ? "bg-secondary text-secondary-foreground border-2 border-black"
-                        : "border border-border text-muted-foreground hover:text-foreground hover:border-foreground"
+                        ? "bg-secondary text-white border-2 border-black"
+                        : "border-2 border-black/30 dark:border-[#383d45] bg-card text-muted-foreground hover:text-foreground hover:border-black"
                     }`}
-                    style={labelStyle}
                   >
                     {count}
                   </button>
@@ -206,20 +200,19 @@ export default function InterviewSetup({
           type="button"
           onClick={start}
           disabled={starting || !effectiveRole}
-          className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-primary text-primary-foreground border-2 border-black font-bold text-xs uppercase tracking-wider shadow-[3px_3px_0_0_#000] hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-none transition-all disabled:opacity-50 disabled:hover:translate-x-0 disabled:hover:translate-y-0 disabled:hover:shadow-[3px_3px_0_0_#000]"
-          style={labelStyle}
+          className="inline-flex items-center justify-center gap-2 rounded-xl px-6 py-3 bg-primary text-black border-2 border-black font-mono font-bold text-xs uppercase tracking-wider shadow-[3px_3px_0_0_#000] hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-none transition-all disabled:opacity-50 cursor-pointer"
         >
           {starting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Play className="h-4 w-4" />}
           {starting ? "Starting…" : "Start interview"}
         </button>
       </section>
 
-      <aside className="bg-card/40 border border-border p-5 space-y-4">
-        <div className="flex items-center justify-between">
-          <h3 className="text-[11px] font-bold uppercase text-muted-foreground" style={labelStyle}>
+      <aside className="bg-card border-2 border-black dark:border-[#383d45] rounded-2xl p-5 sm:p-6 space-y-4 neo-shadow">
+        <div className="flex items-center justify-between border-b-2 border-black dark:border-[#383d45] pb-3">
+          <h3 className="text-xs font-mono font-bold uppercase tracking-wider text-foreground">
             Past interviews
           </h3>
-          <Clock className="h-3.5 w-3.5 text-muted-foreground" />
+          <Clock className="h-4 w-4 text-muted-foreground" />
         </div>
 
         {historyLoading ? (
@@ -227,13 +220,13 @@ export default function InterviewSetup({
             <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
           </div>
         ) : history.length === 0 ? (
-          <p className="text-xs text-muted-foreground leading-relaxed py-4">
-            No interviews yet. Your first one takes about five minutes.
+          <p className="text-xs text-muted-foreground leading-relaxed py-4 font-sans">
+            No interviews yet. Your first session takes approximately 5 minutes.
           </p>
         ) : (
-          <ul className="space-y-2">
+          <ul className="space-y-2.5">
             {history.slice(0, 8).map((item) => (
-              <li key={item._id} className="border border-border bg-background p-3 space-y-2">
+              <li key={item._id} className="rounded-xl border-2 border-black dark:border-[#383d45] bg-background p-3.5 space-y-2 shadow-[2px_2px_0_0_#000]">
                 <div className="flex items-start justify-between gap-2">
                   <button
                     type="button"

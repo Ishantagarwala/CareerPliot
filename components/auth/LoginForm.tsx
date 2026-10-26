@@ -32,7 +32,7 @@ const loginSchema = z.object({
 
 type LoginFormValues = z.infer<typeof loginSchema>;
 
-export default function LoginForm({ demoEnabled = false }: { demoEnabled?: boolean }) {
+export default function LoginForm({ demoEnabled = true }: { demoEnabled?: boolean }) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [loading, setLoading] = useState(false);
@@ -164,72 +164,67 @@ export default function LoginForm({ demoEnabled = false }: { demoEnabled?: boole
 
   if (demoLoading) {
     return (
-      <div className="w-full max-w-md bg-card border border-border p-8 text-center space-y-6 animate-fade-in-up">
-        <div className="flex flex-col items-center justify-center space-y-4 py-8">
+      <div className="w-full max-w-md bg-card border-3 border-black dark:border-[#383d45] rounded-2xl neo-shadow p-8 text-center space-y-6 animate-fade-in-up">
+        <div className="flex flex-col items-center justify-center space-y-5 py-6">
           <div className="relative flex items-center justify-center">
-            {/* Pulsing animated outer ring */}
-            <span className="absolute inline-flex h-16 w-16 rounded-full bg-indigo-500/10 animate-ping" />
-            <div className="h-16 w-16 border-t-2 border-indigo-500 rounded-full animate-spin flex items-center justify-center">
-              <span className="material-symbols-outlined text-indigo-400 text-2xl animate-pulse">bolt</span>
+            <span className="absolute inline-flex h-20 w-20 rounded-2xl bg-secondary/20 animate-ping" />
+            <div className="h-16 w-16 bg-secondary text-white border-2 border-black rounded-xl shadow-[3px_3px_0_0_#000] flex items-center justify-center animate-bounce">
+              <span className="material-symbols-outlined text-3xl text-primary">bolt</span>
             </div>
           </div>
           <div className="space-y-2">
-            <h3 className="text-lg font-bold text-foreground tracking-tight" style={{ fontFamily: "'Hanken Grotesk', system-ui, sans-serif" }}>
+            <h3 className="text-xl font-display font-black text-foreground uppercase tracking-tight">
               Initializing Demo Session
             </h3>
-            <p className="text-sm text-muted-foreground" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
-              {demoStep}
-            </p>
+            <div className="inline-flex items-center gap-2 px-3 py-1 bg-background border border-black/20 dark:border-white/20 rounded-md font-mono text-xs font-bold text-secondary dark:text-primary">
+              <Loader2 className="h-3.5 w-3.5 animate-spin" />
+              <span>{demoStep}</span>
+            </div>
           </div>
         </div>
-        <div className="text-xs text-muted-foreground border-t border-border pt-4">
-          This will take a moment to configure your custom AI roadmaps.
+        <div className="text-xs font-mono font-bold text-muted-foreground border-t-2 border-black/10 dark:border-white/10 pt-4">
+          Configuring student profile, roadmap progress, and mock tests...
         </div>
       </div>
     );
   }
 
   return (
-    <div className="w-full max-w-md bg-card border border-border overflow-hidden">
-      <div className="p-6 border-b border-border text-center space-y-2">
-        <h1
-          className="text-2xl font-bold text-foreground tracking-tight"
-          style={{ fontFamily: "'Hanken Grotesk', system-ui, sans-serif" }}
-        >
-          Sign In
+    <div className="w-full max-w-md bg-card border-3 border-black dark:border-[#383d45] rounded-2xl neo-shadow overflow-hidden">
+      <div className="p-6 sm:p-8 border-b-2 border-black dark:border-[#383d45] text-center space-y-2">
+        <h1 className="text-2xl sm:text-3xl font-display font-black text-foreground uppercase tracking-tight">
+          Welcome Back
         </h1>
-        <p className="text-sm text-muted-foreground">
-          Enter your email and password to log into your account
+        <p className="text-sm font-sans text-muted-foreground">
+          Enter your credentials to access your student workspace
         </p>
       </div>
       <form onSubmit={handleSubmit(onSubmit)}>
-        <div className="p-6 space-y-4">
+        <div className="p-6 sm:p-8 space-y-5">
           <div className="space-y-2">
             <label
               htmlFor="email"
-              className="text-[11px] text-muted-foreground uppercase tracking-[0.1em] font-medium block"
-              style={{ fontFamily: "'JetBrains Mono', monospace" }}
+              className="text-xs font-mono font-bold text-muted-foreground uppercase tracking-wider block"
             >
-              Email
+              Email Address
             </label>
             <input
               id="email"
               type="email"
-              placeholder="name@example.com"
+              placeholder="student@example.com"
               {...register("email")}
-              className={`w-full border bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:border-foreground focus:ring-0 focus:outline-none transition-colors ${
-                errors.email ? "border-[#ffb4ab]" : "border-border"
+              className={`w-full border-2 bg-background px-4 py-3 rounded-xl text-sm font-sans text-foreground placeholder:text-muted-foreground focus:border-black focus:ring-2 focus:ring-primary focus:outline-none transition-all ${
+                errors.email ? "border-destructive" : "border-black dark:border-[#383d45]"
               }`}
             />
             {errors.email && (
-              <p className="text-xs text-[#ffb4ab] mt-1">{errors.email.message}</p>
+              <p className="text-xs font-mono text-destructive font-bold mt-1">{errors.email.message}</p>
             )}
           </div>
           <div className="space-y-2">
             <label
               htmlFor="password"
-              className="text-[11px] text-muted-foreground uppercase tracking-[0.1em] font-medium block"
-              style={{ fontFamily: "'JetBrains Mono', monospace" }}
+              className="text-xs font-mono font-bold text-muted-foreground uppercase tracking-wider block"
             >
               Password
             </label>
@@ -238,64 +233,63 @@ export default function LoginForm({ demoEnabled = false }: { demoEnabled?: boole
               type="password"
               placeholder="••••••••"
               {...register("password")}
-              className={`w-full border bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:border-foreground focus:ring-0 focus:outline-none transition-colors ${
-                errors.password ? "border-[#ffb4ab]" : "border-border"
+              className={`w-full border-2 bg-background px-4 py-3 rounded-xl text-sm font-sans text-foreground placeholder:text-muted-foreground focus:border-black focus:ring-2 focus:ring-primary focus:outline-none transition-all ${
+                errors.password ? "border-destructive" : "border-black dark:border-[#383d45]"
               }`}
             />
             {errors.password && (
-              <p className="text-xs text-[#ffb4ab] mt-1">{errors.password.message}</p>
+              <p className="text-xs font-mono text-destructive font-bold mt-1">{errors.password.message}</p>
             )}
           </div>
         </div>
-        <div className="p-6 pt-0 space-y-4">
+        <div className="p-6 sm:p-8 pt-0 space-y-4">
           {captchaRequired && (
             <CaptchaWidget onToken={setCaptchaToken} className="flex justify-center" />
           )}
           <button
             type="submit"
             disabled={loading || (captchaRequired && !captchaToken)}
-            className="w-full py-2.5 bg-primary text-primary-foreground border-2 border-black font-bold text-xs hover:opacity-90 transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
-            style={{ fontFamily: "'JetBrains Mono', monospace", letterSpacing: "0.04em" }}
+            className="w-full py-3.5 bg-primary text-black border-2 border-black font-mono font-black text-sm uppercase rounded-xl shadow-[4px_4px_0_0_#000] hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-[2px_2px_0_0_#000] active:translate-x-1 active:translate-y-1 active:shadow-none transition-all flex items-center justify-center gap-2 disabled:opacity-50 cursor-pointer"
           >
             {loading ? (
               <>
                 <Loader2 className="h-4 w-4 animate-spin" />
-                Logging in...
+                Signing in...
               </>
             ) : captchaRequired && !captchaToken ? (
-              <>Complete captcha to continue</>
+              <>Complete challenge to continue</>
             ) : (
               <>
-                Log In
-                <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
+                <span>Sign In to Dashboard</span>
+                <span className="material-symbols-outlined text-[18px]">arrow_forward</span>
               </>
             )}
           </button>
 
           {demoEnabled && (
             <>
-              <div className="relative flex py-1 items-center">
-                <div className="flex-grow border-t border-border"></div>
-                <span className="flex-shrink mx-4 text-[10px] text-muted-foreground uppercase tracking-wider" style={{ fontFamily: "'JetBrains Mono', monospace" }}>or</span>
-                <div className="flex-grow border-t border-border"></div>
+              <div className="relative flex py-2 items-center">
+                <div className="flex-grow border-t-2 border-black/10 dark:border-white/10"></div>
+                <span className="flex-shrink mx-4 text-xs font-mono font-black text-muted-foreground uppercase tracking-wider">or explore first</span>
+                <div className="flex-grow border-t-2 border-black/10 dark:border-white/10"></div>
               </div>
 
               <button
                 type="button"
                 onClick={handleDemoLogin}
-                className="w-full py-2.5 border border-indigo-500/30 text-indigo-400 font-bold text-xs hover:bg-indigo-500/10 hover:border-indigo-500 hover:text-foreground transition-all flex items-center justify-center gap-2"
-                style={{ fontFamily: "'JetBrains Mono', monospace", letterSpacing: "0.04em" }}
+                id="instant-demo-login-btn"
+                className="w-full py-3.5 border-2 border-black bg-secondary hover:bg-secondary/90 text-white font-mono font-black text-xs uppercase tracking-wider rounded-xl shadow-[4px_4px_0_0_#000] hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-[2px_2px_0_0_#000] active:translate-x-1 active:translate-y-1 active:shadow-none transition-all flex items-center justify-center gap-2.5 cursor-pointer"
               >
-                Try Demo Login
-                <span className="material-symbols-outlined text-[16px]">bolt</span>
+                <span className="material-symbols-outlined text-lg text-primary">bolt</span>
+                <span>Instant Demo Login (1-Click Access)</span>
               </button>
             </>
           )}
 
-          <div className="text-sm text-center text-muted-foreground pt-2">
+          <div className="text-xs font-mono font-bold text-center text-muted-foreground pt-3">
             Don&apos;t have an account?{" "}
-            <Link href="/register" className="text-foreground font-medium hover:underline">
-              Sign Up
+            <Link href="/register" className="text-secondary dark:text-primary underline font-black">
+              Register Free
             </Link>
           </div>
         </div>

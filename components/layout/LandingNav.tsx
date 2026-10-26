@@ -2,15 +2,21 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { useSession } from "next-auth/react";
+import { useTheme } from "next-themes";
+import { Sun, Moon, ArrowRight, Sparkles, LayoutDashboard } from "lucide-react";
+import BrandLogo from "@/components/layout/BrandLogo";
+import { cn } from "@/lib/utils";
 
-const links = [
-  { label: "Discovery", href: "#discovery" },
-  { label: "Modules", href: "#modules" },
-  { label: "FAQs", href: "#faq" },
-  { label: "Get Started", href: "#cta" },
+const navLinks = [
+  { label: "Features", href: "#features" },
+  { label: "Interactive Demo", href: "#showcase" },
+  { label: "How It Works", href: "#how-it-works" },
+  { label: "Roadmaps", href: "#roadmap-showcase" },
+  { label: "FAQ", href: "#faq" },
 ];
 
-const shell = "w-full max-w-[1600px] mx-auto px-5 sm:px-8 lg:px-12 xl:px-16";
+const shell = "w-full max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-12 xl:px-16";
 
 export default function LandingNav({
   showDemoLogin = false,
@@ -19,6 +25,13 @@ export default function LandingNav({
   showDemoLogin?: boolean;
 }) {
   const [open, setOpen] = useState(false);
+  const { data: session, status } = useSession();
+  const { theme, setTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     document.body.style.overflow = open ? "hidden" : "";
@@ -27,102 +40,192 @@ export default function LandingNav({
     };
   }, [open]);
 
+  const isAuthenticated = status === "authenticated";
+  const isDark = theme === "dark";
+
   return (
     <>
-      <nav className="bg-background border-b-4 border-black sticky top-0 z-50">
-        <div className={`flex justify-between items-center h-16 md:h-[4.5rem] ${shell}`}>
-          <Link
-            href="/"
-            className="font-display text-xl sm:text-2xl md:text-[1.75rem] font-extrabold uppercase tracking-tighter text-primary"
-          >
-            CAREER PILOT
+      <header className="bg-background/95 backdrop-blur-md border-b-2 md:border-b-[3px] border-black dark:border-[#383d45] sticky top-0 z-50 transition-colors">
+        <div className={`flex justify-between items-center h-16 md:h-20 ${shell}`}>
+          {/* Logo & Brand */}
+          <Link href="/" className="flex items-center gap-3 group">
+            <BrandLogo size="md" className="rounded-lg shadow-[3px_3px_0_0_#000] group-hover:translate-x-0.5 group-hover:translate-y-0.5 group-hover:shadow-[1px_1px_0_0_#000] transition-all" />
+            <div className="flex flex-col">
+              <span className="font-display text-xl sm:text-2xl font-black tracking-tight text-foreground uppercase leading-none">
+                Career<span className="text-secondary dark:text-primary">Pilot</span>
+              </span>
+              <span className="text-[10px] font-mono font-bold tracking-wider uppercase text-muted-foreground mt-0.5 flex items-center gap-1">
+                <span className="w-1.5 h-1.5 rounded-full bg-primary inline-block" />
+                AI Career Platform
+              </span>
+            </div>
           </Link>
 
-          <div className="flex items-center gap-3">
-            <Link
-              href="/register"
-              className="hidden sm:inline-flex items-center justify-center bg-[#88aaee] text-black px-4 md:px-5 py-2 border-2 border-black shadow-[4px_4px_0_0_#000] rounded-[5px] font-label text-sm font-bold transition-all hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-none"
-            >
-              Sign Up
-            </Link>
+          {/* Desktop Navigation Links */}
+          <nav className="hidden lg:flex items-center gap-1 xl:gap-2 bg-muted/60 dark:bg-card px-3 py-1.5 rounded-full border-2 border-black dark:border-[#383d45] shadow-[3px_3px_0_0_#000] dark:shadow-[3px_3px_0_0_#000]">
+            {navLinks.map((link) => (
+              <a
+                key={link.href}
+                href={link.href}
+                className="px-3.5 py-1.5 rounded-full text-xs font-mono font-bold uppercase tracking-wide text-foreground/85 hover:text-black hover:bg-primary transition-all duration-150"
+              >
+                {link.label}
+              </a>
+            ))}
+          </nav>
+
+          {/* Right Actions */}
+          <div className="flex items-center gap-2 sm:gap-3">
+            {/* Theme Toggle */}
+            {mounted && (
+              <button
+                type="button"
+                onClick={() => setTheme(isDark ? "light" : "dark")}
+                className="w-10 h-10 rounded-lg border-2 border-black dark:border-[#383d45] bg-card text-foreground shadow-[3px_3px_0_0_#000] dark:shadow-[3px_3px_0_0_#000] hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-[1px_1px_0_0_#000] flex items-center justify-center transition-all cursor-pointer"
+                aria-label="Toggle theme"
+              >
+                {isDark ? (
+                  <Sun className="w-4 h-4 text-primary animate-pulse" />
+                ) : (
+                  <Moon className="w-4 h-4 text-foreground" />
+                )}
+              </button>
+            )}
+
+            {isAuthenticated ? (
+              <Link
+                href="/dashboard"
+                className="inline-flex items-center gap-2 bg-primary text-black px-4 sm:px-5 py-2 sm:py-2.5 border-2 border-black shadow-[3px_3px_0_0_#000] rounded-lg font-mono text-xs sm:text-sm font-bold tracking-wide hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-[1px_1px_0_0_#000] active:translate-x-1 active:translate-y-1 active:shadow-none transition-all"
+              >
+                <LayoutDashboard className="w-4 h-4" />
+                <span>Dashboard</span>
+              </Link>
+            ) : (
+              <div className="flex items-center gap-2">
+                {showDemoLogin && (
+                  <Link
+                    href="/login?demo=true"
+                    className="hidden md:inline-flex items-center gap-1.5 px-3 py-2 border-2 border-black bg-secondary text-white rounded-lg font-mono text-xs font-bold uppercase tracking-wider shadow-[3px_3px_0_0_#000] hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-[1px_1px_0_0_#000] transition-all"
+                  >
+                    <Sparkles className="w-3.5 h-3.5 text-primary" />
+                    <span>Demo</span>
+                  </Link>
+                )}
+                <Link
+                  href="/login"
+                  className="hidden sm:inline-flex items-center justify-center px-4 py-2 border-2 border-black dark:border-[#383d45] bg-card text-foreground rounded-lg font-mono text-xs sm:text-sm font-bold shadow-[3px_3px_0_0_#000] hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-[1px_1px_0_0_#000] transition-all"
+                >
+                  Log In
+                </Link>
+                <Link
+                  href="/register"
+                  className="inline-flex items-center gap-1.5 bg-primary text-black px-4 sm:px-5 py-2 sm:py-2.5 border-2 border-black shadow-[4px_4px_0_0_#000] rounded-lg font-mono text-xs sm:text-sm font-bold uppercase tracking-wide hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-[2px_2px_0_0_#000] active:translate-x-1 active:translate-y-1 active:shadow-none transition-all group"
+                >
+                  <span>Build My Path</span>
+                  <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
+                </Link>
+              </div>
+            )}
+
+            {/* Mobile Hamburger Button */}
             <button
               type="button"
               onClick={() => setOpen(true)}
-              className="flex items-center justify-center h-10 w-10 border-2 border-black bg-card hover:bg-primary transition-colors"
+              className="lg:hidden flex items-center justify-center h-10 w-10 border-2 border-black dark:border-[#383d45] bg-card text-foreground shadow-[3px_3px_0_0_#000] hover:bg-primary hover:text-black transition-all rounded-lg"
               aria-label="Open menu"
             >
               <span className="material-symbols-outlined text-[22px]">menu</span>
             </button>
           </div>
         </div>
-      </nav>
+      </header>
 
-      {/* Backdrop */}
+      {/* Mobile Drawer Backdrop */}
       <div
-        className={`fixed inset-0 z-[60] bg-black/50 transition-opacity duration-200 ${
+        className={cn(
+          "fixed inset-0 z-[60] bg-black/60 backdrop-blur-xs transition-opacity duration-200",
           open ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
-        }`}
+        )}
         onClick={() => setOpen(false)}
         aria-hidden={!open}
       />
 
-      {/* Drawer */}
+      {/* Mobile Drawer */}
       <aside
-        className={`fixed top-0 right-0 z-[70] flex h-full w-[min(20rem,88vw)] flex-col bg-background border-l-4 border-black p-6 transition-transform duration-300 ease-out ${
+        className={cn(
+          "fixed top-0 right-0 z-[70] flex h-full w-[min(22rem,88vw)] flex-col bg-background border-l-3 border-black dark:border-[#383d45] p-6 transition-transform duration-300 ease-out shadow-2xl",
           open ? "translate-x-0" : "translate-x-full"
-        }`}
+        )}
         aria-hidden={!open}
       >
-        <div className="flex items-center justify-between mb-8 pb-4 border-b-2 border-black">
-          <span className="font-display text-lg font-extrabold uppercase text-primary">
-            Menu
-          </span>
+        <div className="flex items-center justify-between pb-4 border-b-2 border-black dark:border-[#383d45]">
+          <div className="flex items-center gap-2">
+            <BrandLogo size="sm" className="rounded-md shadow-[2px_2px_0_0_#000]" />
+            <span className="font-display text-lg font-black uppercase text-foreground">
+              Menu
+            </span>
+          </div>
           <button
             type="button"
             onClick={() => setOpen(false)}
-            className="flex items-center justify-center h-9 w-9 border-2 border-black bg-card hover:bg-primary transition-colors"
+            className="flex items-center justify-center h-9 w-9 border-2 border-black dark:border-[#383d45] bg-card text-foreground hover:bg-destructive hover:text-white transition-colors rounded-lg shadow-[2px_2px_0_0_#000]"
             aria-label="Close menu"
           >
             <span className="material-symbols-outlined text-[20px]">close</span>
           </button>
         </div>
 
-        <nav className="flex flex-col gap-2 flex-1">
-          {links.map((link) => (
+        <nav className="flex flex-col gap-2.5 my-6 flex-1 overflow-y-auto">
+          {navLinks.map((link) => (
             <a
               key={link.href}
               href={link.href}
               onClick={() => setOpen(false)}
-              className="font-label text-base font-bold px-4 py-3 border-2 border-black hover:bg-primary transition-colors"
+              className="font-mono text-sm font-bold uppercase px-4 py-3 border-2 border-black dark:border-[#383d45] bg-card hover:bg-primary hover:text-black transition-colors rounded-lg shadow-[3px_3px_0_0_#000]"
             >
               {link.label}
             </a>
           ))}
+          {isAuthenticated && (
+            <Link
+              href="/dashboard"
+              onClick={() => setOpen(false)}
+              className="font-mono text-sm font-bold uppercase px-4 py-3 border-2 border-black bg-primary text-black rounded-lg shadow-[3px_3px_0_0_#000] flex items-center justify-between"
+            >
+              <span>Go to Dashboard</span>
+              <ArrowRight className="w-4 h-4" />
+            </Link>
+          )}
         </nav>
 
-        <div className="flex flex-col gap-3 mt-auto pt-6 border-t-2 border-black">
-          <Link
-            href="/login"
-            onClick={() => setOpen(false)}
-            className="font-label text-sm font-bold text-center px-4 py-3 border-2 border-black hover:bg-muted transition-colors"
-          >
-            Log In
-          </Link>
-          <Link
-            href="/register"
-            onClick={() => setOpen(false)}
-            className="font-label text-sm font-bold text-center px-4 py-3 border-2 border-black bg-[#88aaee] shadow-[4px_4px_0_0_#000] hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-none transition-all"
-          >
-            Sign Up
-          </Link>
-          {showDemoLogin && (
-            <Link
-              href="/login?demo=true"
-              onClick={() => setOpen(false)}
-              className="font-label text-sm font-bold text-center px-4 py-3 border-2 border-black bg-primary shadow-[4px_4px_0_0_#000] hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-none transition-all"
-            >
-              Demo Login
-            </Link>
+        <div className="flex flex-col gap-3 pt-6 border-t-2 border-black dark:border-[#383d45]">
+          {!isAuthenticated && (
+            <>
+              <Link
+                href="/login"
+                onClick={() => setOpen(false)}
+                className="font-mono text-sm font-bold text-center px-4 py-3 border-2 border-black dark:border-[#383d45] bg-card hover:bg-muted transition-colors rounded-lg shadow-[3px_3px_0_0_#000]"
+              >
+                Log In
+              </Link>
+              <Link
+                href="/register"
+                onClick={() => setOpen(false)}
+                className="font-mono text-sm font-bold text-center px-4 py-3 border-2 border-black bg-primary text-black shadow-[4px_4px_0_0_#000] rounded-lg hover:translate-x-0.5 hover:translate-y-0.5 transition-all"
+              >
+                Create Free Account
+              </Link>
+              {showDemoLogin && (
+                <Link
+                  href="/login?demo=true"
+                  onClick={() => setOpen(false)}
+                  className="font-mono text-sm font-bold text-center px-4 py-3 border-2 border-black bg-secondary text-white shadow-[4px_4px_0_0_#000] rounded-lg hover:translate-x-0.5 hover:translate-y-0.5 transition-all flex items-center justify-center gap-2"
+                >
+                  <Sparkles className="w-4 h-4" />
+                  <span>Demo Login (Instant)</span>
+                </Link>
+              )}
+            </>
           )}
         </div>
       </aside>

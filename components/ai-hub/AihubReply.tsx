@@ -31,7 +31,7 @@ export default function AihubReply({ message }: AihubReplyProps) {
           {message.attachments && message.attachments.length > 0 && (
             <AttachmentRow attachments={message.attachments} />
           )}
-          <div className="rounded-2xl rounded-br-md bg-hub-soft px-3.5 py-2.5 text-[14.5px] leading-relaxed tracking-[-0.01em] whitespace-pre-wrap text-hub-text select-text">
+          <div className="rounded-xl border-2 border-black dark:border-[#383d45] bg-card px-4 py-3 text-[14.5px] leading-relaxed tracking-[-0.01em] whitespace-pre-wrap text-foreground select-text shadow-[3px_3px_0_0_#000] dark:shadow-[3px_3px_0_0_#000]">
             {message.content}
           </div>
         </div>
@@ -40,10 +40,10 @@ export default function AihubReply({ message }: AihubReplyProps) {
   }
 
   return (
-    <div className="flex w-full items-start gap-3">
-      <span className="mt-[5px] flex size-4 shrink-0 items-center justify-center" aria-hidden>
+    <div className="flex w-full items-start gap-3.5">
+      <div className="mt-0.5 flex size-7 shrink-0 items-center justify-center rounded-lg border-2 border-black bg-primary text-black shadow-[2px_2px_0_0_#000]" aria-hidden>
         <AssistantMark />
-      </span>
+      </div>
 
       <div className="min-w-0 flex-1 space-y-2">
         {message.attachments && message.attachments.length > 0 && (
@@ -77,7 +77,7 @@ export default function AihubReply({ message }: AihubReplyProps) {
           />
         )}
 
-        <div className="text-[15px] leading-[1.7] tracking-[-0.011em] break-words text-hub-text select-text">
+        <div className="text-[15px] leading-[1.7] tracking-[-0.011em] break-words text-foreground select-text">
           <MarkdownContent content={message.content} />
           {message.streaming && <span className="ai-reply-caret" aria-hidden />}
         </div>
@@ -90,7 +90,7 @@ export default function AihubReply({ message }: AihubReplyProps) {
         {message.error && (
           <div
             role="alert"
-            className="rounded-lg border border-[var(--hub-danger)]/35 bg-[var(--hub-danger)]/10 px-3 py-2 text-[12.5px] text-[var(--hub-danger)]"
+            className="rounded-xl border-2 border-destructive bg-destructive/10 px-4 py-3 text-xs font-mono font-bold text-destructive shadow-[2px_2px_0_0_#000]"
           >
             {message.error} You can try sending the message again.
           </div>
