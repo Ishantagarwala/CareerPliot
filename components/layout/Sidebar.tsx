@@ -8,7 +8,6 @@ import { useTheme } from "next-themes";
 import { useState, useEffect } from "react";
 import { Sun, Moon } from "lucide-react";
 import BrandLogo from "@/components/layout/BrandLogo";
-import { AccentColorPicker } from "@/components/layout/AccentColor";
 import {
   navSections,
   bottomNavItems,
@@ -143,15 +142,6 @@ export default function Sidebar({ className, onToggle }: SidebarProps) {
                 {session.user.email || "Active Member"}
               </p>
             </div>
-          </div>
-        )}
-
-        {mounted && (
-          <div className="flex items-center justify-between px-3 py-1 mb-1">
-            <span className="text-[10px] text-muted-foreground uppercase tracking-wider font-mono font-bold">
-              Accent Color
-            </span>
-            <AccentColorPicker className="h-8 w-8" />
           </div>
         )}
 

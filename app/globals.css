@@ -105,7 +105,7 @@
   --card-foreground: #171717;
   --popover: #ffffff;
   --popover-foreground: #171717;
-  --primary: #d5ff45;
+  --primary: #baf700;
   --primary-foreground: #121212;
   --secondary: #5267f2;
   --secondary-foreground: #ffffff;
@@ -119,12 +119,12 @@
   --border: #000000;
   --input: #000000;
   --ring: #171717;
-  --lime: #d5ff45;
-  --lime-dim: #c0ee2d;
+  --lime: #baf700;
+  --lime-dim: #a6de00;
   --cyan: #38e1ff;
   --electric: #5267f2;
   --on-surface-variant: #3e4450;
-  --chart-1: #d5ff45;
+  --chart-1: #baf700;
   --chart-2: #5267f2;
   --chart-3: #ff8066;
   --chart-4: #171717;
@@ -132,7 +132,7 @@
   --radius: 0.75rem;
   --sidebar: #f2f0e6;
   --sidebar-foreground: #171717;
-  --sidebar-primary: #d5ff45;
+  --sidebar-primary: #baf700;
   --sidebar-primary-foreground: #121212;
   --sidebar-accent: #e5e2d4;
   --sidebar-accent-foreground: #171717;
@@ -148,7 +148,7 @@
   --card-foreground: #f4f5f0;
   --popover: #21252c;
   --popover-foreground: #f4f5f0;
-  --primary: #d5ff45;
+  --primary: #baf700;
   --primary-foreground: #121212;
   --secondary: #6377f8;
   --secondary-foreground: #ffffff;
@@ -161,25 +161,25 @@
   --destructive: #ffb4ab;
   --border: #383d45;
   --input: #383d45;
-  --ring: #d5ff45;
-  --lime: #d5ff45;
-  --lime-dim: #c0ee2d;
+  --ring: #baf700;
+  --lime: #baf700;
+  --lime-dim: #a6de00;
   --cyan: #38e1ff;
   --electric: #6377f8;
   --on-surface-variant: #b2b9c7;
-  --chart-1: #d5ff45;
+  --chart-1: #baf700;
   --chart-2: #6377f8;
   --chart-3: #ff8d75;
   --chart-4: #8d94a0;
   --chart-5: #383d45;
   --sidebar: #101215;
   --sidebar-foreground: #f4f5f0;
-  --sidebar-primary: #d5ff45;
+  --sidebar-primary: #baf700;
   --sidebar-primary-foreground: #121212;
   --sidebar-accent: #1e2228;
   --sidebar-accent-foreground: #f4f5f0;
   --sidebar-border: #383d45;
-  --sidebar-ring: #d5ff45;
+  --sidebar-ring: #baf700;
 }
 
 /* ===== REFINED NEO-BRUTALIST UTILITY SYSTEM ===== */
@@ -220,7 +220,7 @@
 }
 
 .neo-shadow-lime {
-  box-shadow: 4px 4px 0px 0px #d5ff45;
+  box-shadow: 4px 4px 0px 0px #baf700;
 }
 
 .neo-shadow-blue {

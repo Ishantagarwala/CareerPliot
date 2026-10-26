@@ -7,7 +7,6 @@ import { cn } from "@/lib/utils";
 import { useTheme } from "next-themes";
 import { useEffect, useState } from "react";
 import { Sun, Moon } from "lucide-react";
-import { AccentColorPicker } from "@/components/layout/AccentColor";
 import BrandLogo from "@/components/layout/BrandLogo";
 
 const menuItems = [
@@ -99,7 +98,6 @@ export default function AppShell({ children }: AppShellProps) {
         </div>
 
         <div className="flex items-center gap-2">
-          {mounted && <AccentColorPicker />}
           {mounted && (
             <button
               type="button"

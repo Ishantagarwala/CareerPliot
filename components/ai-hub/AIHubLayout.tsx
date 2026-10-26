@@ -35,11 +35,6 @@ import {
   UserRound,
   X,
 } from "lucide-react";
-import {
-  ACCENT_STORAGE_KEY,
-  DEFAULT_ACCENT,
-  applyAccent,
-} from "@/components/layout/AccentColor";
 import BrandLogo from "@/components/layout/BrandLogo";
 import DocumentLibrary from "./DocumentLibrary";
 import UnifiedChat from "./UnifiedChat";
@@ -403,30 +398,6 @@ export default function AIHubLayout() {
     fetchDocuments();
     void fetchThreads();
   }, [fetchDocuments, fetchThreads]);
-
-  /**
-   * The hub ships violet by default. The wider app defaults to lime, so we
-   * adopt whatever accent the user has saved and hand the app accent back
-   * when the hub unmounts.
-   */
-  useEffect(() => {
-    let savedHex: string | null = null;
-    try {
-      savedHex = localStorage.getItem(ACCENT_STORAGE_KEY);
-    } catch {
-      /* ignore */
-    }
-
-    applyAccent(savedHex || HUB_DEFAULT_ACCENT);
-
-    return () => {
-      try {
-        applyAccent(localStorage.getItem(ACCENT_STORAGE_KEY) || DEFAULT_ACCENT);
-      } catch {
-        applyAccent(DEFAULT_ACCENT);
-      }
-    };
-  }, []);
 
   useEffect(() => {
     let cancelled = false;
