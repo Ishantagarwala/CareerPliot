@@ -186,31 +186,17 @@ export default function DashboardHome() {
       {/* Selected Career Path Banner */}
       {selectedPath ? (
         <div className="bg-card border-3 border-black dark:border-[#383d45] rounded-2xl p-6 sm:p-8 neo-shadow relative overflow-hidden">
-          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 pb-6 border-b-2 border-black/10 dark:border-white/10">
-            <div className="space-y-2">
-              <div className="inline-flex items-center gap-2 px-3 py-1 border border-black bg-primary text-black text-xs font-mono font-black rounded uppercase">
-                <Target className="w-3.5 h-3.5" />
-                <span>ACTIVE TARGET ROLE</span>
-              </div>
-              <h2 className="text-2xl sm:text-3xl font-display font-black text-foreground uppercase tracking-tight">
-                {selectedPath.careerPath}
-              </h2>
-              <p className="text-sm text-muted-foreground leading-relaxed max-w-2xl font-sans">
-                {selectedPath.reasoning}
-              </p>
+          <div className="space-y-3 pb-6 border-b-2 border-black/10 dark:border-white/10">
+            <div className="inline-flex items-center gap-2 px-3 py-1 border border-black bg-primary text-black text-xs font-mono font-black rounded uppercase">
+              <Target className="w-3.5 h-3.5" />
+              <span>ACTIVE TARGET ROLE</span>
             </div>
-
-            <div className="flex items-center gap-4 bg-background p-4 rounded-xl border-2 border-black dark:border-[#383d45] shadow-[3px_3px_0_0_#000] shrink-0">
-              <div className="text-right">
-                <span className="font-mono text-[10px] font-bold text-muted-foreground uppercase block">Compatibility</span>
-                <span className="text-3xl font-display font-black text-secondary dark:text-primary">
-                  {selectedPath.matchScore}%
-                </span>
-              </div>
-              <div className="w-12 h-12 rounded-xl border-2 border-black bg-primary text-black flex items-center justify-center font-display font-black text-lg">
-                ★
-              </div>
-            </div>
+            <h2 className="text-2xl sm:text-3xl font-display font-black text-foreground uppercase tracking-tight">
+              {selectedPath.careerPath}
+            </h2>
+            <p className="text-sm text-muted-foreground leading-relaxed max-w-3xl font-sans">
+              {selectedPath.reasoning}
+            </p>
           </div>
 
           <div className="pt-6 flex flex-wrap items-center gap-3">
