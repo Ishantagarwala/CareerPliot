@@ -13,6 +13,7 @@ import {
   Check,
 } from "lucide-react";
 import SafeImage from "@/components/ui/SafeImage";
+import LiquidWaveSpinner from "@/components/ui/spinner-10";
 import { formatJobSalary } from "@/lib/formatJobSalary";
 
 interface JobListing {
@@ -314,11 +315,15 @@ export default function JobsPage() {
           )}
 
           {loading ? (
-            <div className="flex flex-col items-center justify-center py-20 space-y-4">
-              <Loader2 className="h-8 w-8 animate-spin text-foreground" />
-              <span className="text-xs text-muted-foreground font-label">
-                Scanning Remotive, Arbeitnow, RemoteOK…
-              </span>
+            <div className="flex flex-col items-center justify-center py-16">
+              <LiquidWaveSpinner
+                size="md"
+                words={[
+                  "Scanning Remotive ...",
+                  "Searching Arbeitnow ...",
+                  "Filtering RemoteOK ...",
+                ]}
+              />
             </div>
           ) : listings.length === 0 ? (
             <div className="text-center py-16 border-2 border-dashed border-black bg-card space-y-4">
@@ -466,8 +471,11 @@ export default function JobsPage() {
           </div>
 
           {trackerLoading ? (
-            <div className="flex flex-col items-center justify-center py-20">
-              <Loader2 className="h-8 w-8 animate-spin text-foreground" />
+            <div className="flex flex-col items-center justify-center py-16">
+              <LiquidWaveSpinner
+                size="sm"
+                words={["Loading applications ...", "Updating pipeline ..."]}
+              />
             </div>
           ) : (
             <div className="flex gap-4 overflow-x-auto pb-4 items-start select-none">

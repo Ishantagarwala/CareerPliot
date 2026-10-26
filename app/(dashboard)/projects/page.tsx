@@ -14,6 +14,7 @@ import {
   Sparkles
 } from "lucide-react";
 import { formatHackathonPrize } from "@/lib/formatHackathonPrize";
+import LiquidWaveSpinner from "@/components/ui/spinner-10";
 
 interface ProjectIdea {
   _id: string;
@@ -263,8 +264,11 @@ export default function ProjectsPage() {
           </div>
 
           {ideasLoading ? (
-            <div className="flex justify-center py-20">
-              <Loader2 className="h-8 w-8 animate-spin text-foreground" />
+            <div className="flex justify-center py-16">
+              <LiquidWaveSpinner
+                size="md"
+                words={["Loading ideas ...", "Matching skill nodes ...", "Drafting project specs ..."]}
+              />
             </div>
           ) : ideas.length === 0 ? (
             <div className="text-center py-16 border-2 border-dashed border-border bg-card/40 space-y-4 px-6">
@@ -349,8 +353,11 @@ export default function ProjectsPage() {
           </div>
 
           {hackathonsLoading ? (
-            <div className="flex justify-center py-20">
-              <Loader2 className="h-8 w-8 animate-spin text-foreground" />
+            <div className="flex justify-center py-16">
+              <LiquidWaveSpinner
+                size="md"
+                words={["Loading hackathons ...", "Scanning upcoming events ..."]}
+              />
             </div>
           ) : hackathons.length === 0 ? (
             <div className="text-center py-16 border-2 border-dashed border-border bg-card/40 space-y-3 px-6">
@@ -439,8 +446,11 @@ export default function ProjectsPage() {
           </div>
 
           {teamsLoading ? (
-            <div className="flex justify-center py-20">
-              <Loader2 className="h-8 w-8 animate-spin text-foreground" />
+            <div className="flex justify-center py-16">
+              <LiquidWaveSpinner
+                size="md"
+                words={["Loading teams ...", "Finding peer collaborators ..."]}
+              />
             </div>
           ) : teams.length === 0 ? (
             <div className="text-center py-16 border-2 border-dashed border-border bg-card/40 space-y-4 px-6">

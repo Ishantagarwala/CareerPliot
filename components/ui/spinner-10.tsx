@@ -66,6 +66,7 @@ export function TextMorph({
 export interface LiquidWaveSpinnerProps extends HTMLMotionProps<"div"> {
   size?: "sm" | "md" | "lg";
   hideText?: boolean;
+  words?: string[];
 }
 
 const sizeConfig = {
@@ -76,15 +77,15 @@ const sizeConfig = {
     fontSize: "text-xs",
   },
   md: {
-    container: "w-full gap-6",
+    container: "w-full gap-5",
     svgWidth: 120,
     svgHeight: 120,
     fontSize: "text-sm",
   },
   lg: {
-    container: "w-full gap-8",
-    svgWidth: 180,
-    svgHeight: 180,
+    container: "w-full gap-7",
+    svgWidth: 170,
+    svgHeight: 170,
     fontSize: "text-base",
   },
 } as const;
@@ -97,9 +98,16 @@ const WAVE_PATH =
   "C 948.56 36.5, 997.30 7, 1057.63 7 C 1117.96 7, 1139.66 36.5, 1200 36.5 " +
   "L 1200 800 L 0 800 Z";
 
+const DEFAULT_WORDS = [
+  "Loading assets ...",
+  "Preparing workspace ...",
+  "Loading up preview ...",
+];
+
 const LiquidWaveSpinner = memo(({
   size = "md",
   hideText,
+  words = DEFAULT_WORDS,
   className,
   ...props
 }: LiquidWaveSpinnerProps) => {
@@ -115,17 +123,18 @@ const LiquidWaveSpinner = memo(({
     <motion.div
       ref={containerRef}
       className={cn(
-        "w-full rounded-b-lg overflow-hidden flex flex-col items-center justify-center bg-background",
+        "w-full overflow-hidden flex flex-col items-center justify-center bg-transparent",
         config.container,
         className
       )}
       {...props}
     >
       <svg
-        viewBox="0 0 500 240"
+        viewBox="0 0 500 500"
         width={config.svgWidth}
         height={config.svgHeight}
         aria-hidden="true"
+        className="overflow-visible"
       >
         <defs>
           <clipPath id={clipId}>
@@ -133,7 +142,12 @@ const LiquidWaveSpinner = memo(({
           </clipPath>
         </defs>
 
-        <circle cx="249.5" cy="249.5" r="107.5" className="fill-muted" />
+        <circle
+          cx="249.5"
+          cy="249.5"
+          r="107.5"
+          className="fill-muted stroke-2 stroke-black/20 dark:stroke-white/20"
+        />
 
         <g clipPath={`url(#${clipId})`}>
           <motion.g
@@ -185,11 +199,7 @@ const LiquidWaveSpinner = memo(({
       <div className="flex items-center gap-1 text-muted-foreground select-none">
         {!hideText && (
           <TextMorph
-            words={[
-              "Loading assets ...",
-              "Preparing animation ...",
-              "Loading up preview ...",
-            ]}
+            words={words}
             interval={2000}
             className={cn("font-medium", config.fontSize)}
           />
