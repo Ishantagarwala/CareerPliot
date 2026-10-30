@@ -189,17 +189,17 @@ function buildComponents(variant: MarkdownVariant): Components {
       </h4>
     ),
     p: ({ children }) => (
-      <p className={`mb-2.5 text-sm leading-relaxed ${styles.body}`}>{children}</p>
+      <p className={`mb-3 text-[15.5px] sm:text-[16px] leading-[1.75] font-sans ${styles.body}`}>{children}</p>
     ),
     strong: ({ children }) => <strong className={styles.strong}>{children}</strong>,
     em: ({ children }) => <em className={`italic ${styles.muted}`}>{children}</em>,
     ul: ({ children }) => (
-      <ul className={`mb-3 ml-5 list-disc space-y-1.5 text-sm ${styles.body}`}>{children}</ul>
+      <ul className={`mb-3.5 ml-5 list-disc space-y-2 text-[15.5px] sm:text-[16px] font-sans ${styles.body}`}>{children}</ul>
     ),
     ol: ({ children }) => (
-      <ol className={`mb-3 ml-5 list-decimal space-y-1.5 text-sm ${styles.body}`}>{children}</ol>
+      <ol className={`mb-3.5 ml-5 list-decimal space-y-2 text-[15.5px] sm:text-[16px] font-sans ${styles.body}`}>{children}</ol>
     ),
-    li: ({ children }) => <li className="leading-relaxed">{children}</li>,
+    li: ({ children }) => <li className="leading-[1.75]">{children}</li>,
     blockquote: ({ children }) => (
       <blockquote className={styles.blockquote}>{children}</blockquote>
     ),

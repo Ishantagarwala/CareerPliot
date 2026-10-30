@@ -40,11 +40,7 @@ export default function AihubReply({ message }: AihubReplyProps) {
   }
 
   return (
-    <div className="flex w-full items-start gap-3.5">
-      <div className="mt-0.5 flex size-7 shrink-0 items-center justify-center rounded-lg border-2 border-black bg-primary text-black shadow-[2px_2px_0_0_#000]" aria-hidden>
-        <AssistantMark />
-      </div>
-
+    <div className="flex w-full items-start">
       <div className="min-w-0 flex-1 space-y-2">
         {message.attachments && message.attachments.length > 0 && (
           <AttachmentRow attachments={message.attachments} />
@@ -77,7 +73,7 @@ export default function AihubReply({ message }: AihubReplyProps) {
           />
         )}
 
-        <div className="text-[15px] leading-[1.7] tracking-[-0.011em] break-words text-foreground select-text">
+        <div className="text-[15.5px] sm:text-[16px] leading-[1.75] font-sans break-words text-foreground dark:text-[#f0f0f0] select-text">
           <MarkdownContent content={message.content} />
           {message.streaming && <span className="ai-reply-caret" aria-hidden />}
         </div>
