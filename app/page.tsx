@@ -274,10 +274,10 @@ export default function Home() {
               </p>
 
               {/* Action Buttons */}
-              <div className="flex flex-wrap items-center gap-3 sm:gap-4 pt-2">
+              <div className="flex flex-col sm:flex-row sm:flex-wrap items-stretch sm:items-center gap-3 sm:gap-4 pt-2">
                 <Link
                   href="/register"
-                  className="inline-flex items-center justify-center gap-2.5 px-6 sm:px-8 py-3.5 sm:py-4 bg-primary text-black font-display text-base sm:text-lg font-black uppercase tracking-wide rounded-xl border-3 border-black shadow-[5px_5px_0_0_#000] hover:translate-x-1 hover:translate-y-1 hover:shadow-[2px_2px_0_0_#000] active:translate-x-1.5 active:translate-y-1.5 active:shadow-none transition-all group"
+                  className="w-full sm:w-auto inline-flex items-center justify-center gap-2.5 px-6 sm:px-8 py-3.5 sm:py-4 bg-primary text-black font-display text-base sm:text-lg font-black uppercase tracking-wide rounded-xl border-3 border-black shadow-[4px_4px_0_0_#000] sm:shadow-[5px_5px_0_0_#000] hover:translate-x-1 hover:translate-y-1 hover:shadow-[2px_2px_0_0_#000] active:translate-x-1.5 active:translate-y-1.5 active:shadow-none transition-all group text-center"
                 >
                   <span>Build My Career Path</span>
                   <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
@@ -285,7 +285,7 @@ export default function Home() {
 
                 <a
                   href="#features"
-                  className="inline-flex items-center justify-center gap-2 px-6 sm:px-8 py-3.5 sm:py-4 bg-card text-foreground font-display text-base sm:text-lg font-bold uppercase tracking-wide rounded-xl border-3 border-black dark:border-[#383d45] shadow-[5px_5px_0_0_#000] dark:shadow-[5px_5px_0_0_#000] hover:translate-x-1 hover:translate-y-1 hover:shadow-[2px_2px_0_0_#000] transition-all"
+                  className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 sm:px-8 py-3.5 sm:py-4 bg-card text-foreground font-display text-base sm:text-lg font-bold uppercase tracking-wide rounded-xl border-3 border-black dark:border-[#383d45] shadow-[4px_4px_0_0_#000] sm:shadow-[5px_5px_0_0_#000] dark:shadow-[4px_4px_0_0_#000] sm:dark:shadow-[5px_5px_0_0_#000] hover:translate-x-1 hover:translate-y-1 hover:shadow-[2px_2px_0_0_#000] transition-all text-center"
                 >
                   <span>Explore Modules</span>
                 </a>
@@ -293,7 +293,7 @@ export default function Home() {
                 {demoLoginEnabled && (
                   <Link
                     href="/login?demo=true"
-                    className="inline-flex items-center justify-center gap-2 px-5 py-3.5 bg-secondary text-white font-mono text-sm font-bold uppercase tracking-wide rounded-xl border-2 border-black shadow-[4px_4px_0_0_#000] hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-[2px_2px_0_0_#000] transition-all"
+                    className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-3.5 bg-secondary text-white font-mono text-sm font-bold uppercase tracking-wide rounded-xl border-2 border-black shadow-[3px_3px_0_0_#000] sm:shadow-[4px_4px_0_0_#000] hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-[2px_2px_0_0_#000] transition-all text-center"
                   >
                     <Zap className="w-4 h-4 fill-primary text-primary" />
                     <span>Demo Mode</span>

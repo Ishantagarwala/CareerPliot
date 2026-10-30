@@ -87,7 +87,7 @@ export default function ModelPicker({
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
-        className="flex min-w-0 cursor-pointer items-center gap-1.5 rounded-md px-2 py-1.5 text-[13px] font-medium tracking-[-0.01em] text-hub-text transition-colors hover:bg-hub-soft"
+        className="flex min-w-0 cursor-pointer items-center gap-1 sm:gap-1.5 rounded-md px-1.5 sm:px-2 py-1 sm:py-1.5 text-xs sm:text-[13px] font-medium tracking-[-0.01em] text-hub-text transition-colors hover:bg-hub-soft"
         title="Choose a model"
         aria-haspopup="listbox"
         aria-expanded={open}
@@ -98,7 +98,7 @@ export default function ModelPicker({
           className="shrink-0 text-hub-muted"
           aria-hidden
         />
-        <span className="max-w-[110px] truncate sm:max-w-[190px]">
+        <span className="max-w-[55px] xs:max-w-[90px] truncate sm:max-w-[190px]">
           {label}
         </span>
         <ChevronDown

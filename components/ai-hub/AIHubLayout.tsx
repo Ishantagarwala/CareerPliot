@@ -707,32 +707,43 @@ export default function AIHubLayout() {
     <div className="aihub fixed inset-0 z-50 flex h-dvh w-full overflow-hidden bg-hub-bg font-sans text-hub-text">
       {/* ===================== LEFT RAIL ===================== */}
       <aside
-        className={`fixed inset-y-0 left-0 z-50 flex h-full w-[268px] shrink-0 flex-col border-r-2 border-black dark:border-[#383d45] bg-sidebar transition-all duration-200 ease-out lg:static lg:z-auto ${
+        className={`fixed inset-y-0 left-0 max-lg:z-[70] z-30 flex h-full w-[min(290px,85vw)] lg:w-[268px] shrink-0 flex-col border-r-2 border-black dark:border-[#383d45] bg-sidebar transition-all duration-200 ease-out lg:static lg:z-auto ${
           isLeftOpen
-            ? "visible translate-x-0"
+            ? "visible translate-x-0 shadow-2xl lg:shadow-none"
             : "max-lg:invisible max-lg:-translate-x-full lg:w-0 lg:overflow-hidden lg:border-r-0"
         }`}
         id="hub-rail"
         aria-label="Chat rail"
       >
-        <div className="flex h-full flex-col px-4 pt-5 pb-4">
-          {/* Brand row */}
-          <div className="mb-4 flex items-center gap-2">
-            <a
-              href="/dashboard"
-              className="flex min-w-0 items-center gap-2.5 no-underline"
-            >
-              <BrandLogo size="sm" className="size-7 shrink-0 rounded-lg neo-shadow" />
-              <span className="truncate text-base font-display font-black uppercase tracking-tight text-foreground">
-                Career Pilot
+        <div className="flex h-full flex-col px-4 pt-4 sm:pt-5 pb-4">
+          {/* Brand row with mobile close button */}
+          <div className="mb-4 flex items-center justify-between gap-2">
+            <div className="flex min-w-0 items-center gap-2">
+              <a
+                href="/dashboard"
+                className="flex min-w-0 items-center gap-2.5 no-underline"
+              >
+                <BrandLogo size="sm" className="size-7 shrink-0 rounded-lg neo-shadow" />
+                <span className="truncate text-base font-display font-black uppercase tracking-tight text-foreground">
+                  Career Pilot
+                </span>
+              </a>
+              <span className="text-xs text-muted-foreground select-none" aria-hidden>
+                /
               </span>
-            </a>
-            <span className="text-xs text-muted-foreground select-none" aria-hidden>
-              /
-            </span>
-            <span className="inline-flex shrink-0 items-center rounded-md border border-black bg-primary px-1.5 py-0.5 text-[10px] font-mono font-bold tracking-wider text-black uppercase">
-              AI Hub
-            </span>
+              <span className="inline-flex shrink-0 items-center rounded-md border border-black bg-primary px-1.5 py-0.5 text-[10px] font-mono font-bold tracking-wider text-black uppercase">
+                AI Hub
+              </span>
+            </div>
+            {/* Mobile close button */}
+            <button
+              type="button"
+              onClick={() => setIsLeftOpen(false)}
+              className="lg:hidden flex size-8 shrink-0 cursor-pointer items-center justify-center rounded-lg border-2 border-black dark:border-[#383d45] bg-card text-foreground hover:bg-destructive hover:text-white transition-colors shadow-[2px_2px_0_0_#000]"
+              aria-label="Close chat rail"
+            >
+              <X size={15} aria-hidden />
+            </button>
           </div>
 
           {/* Search */}
@@ -902,12 +913,12 @@ export default function AIHubLayout() {
                                 {thread.threadTitle || "New Chat"}
                               </button>
                               {stamp && (
-                                <span className="shrink-0 font-mono text-[10px] text-hub-muted group-hover:opacity-0 sm:group-hover:opacity-0">
+                                <span className="hidden sm:inline shrink-0 font-mono text-[10px] text-hub-muted group-hover:opacity-0 sm:group-hover:opacity-0">
                                   {stamp}
                                 </span>
                               )}
                               {/* Always visible on touch (no hover there), revealed on hover at sm+. */}
-                              <span className="absolute inset-y-0 right-1.5 flex items-center gap-0.5 sm:opacity-0 sm:transition-opacity sm:group-hover:opacity-100 sm:group-focus-within:opacity-100">
+                              <span className="absolute inset-y-0 right-1.5 flex items-center gap-0.5 sm:opacity-0 sm:transition-opacity sm:group-hover:opacity-100 sm:group-focus-within:opacity-100 bg-sidebar/95 dark:bg-sidebar/95 pl-1 rounded-r">
                                 <button
                                   type="button"
                                   onClick={(e) => {
@@ -1017,7 +1028,7 @@ export default function AIHubLayout() {
       */}
       {isLeftOpen && (
         <div
-          className="fixed inset-0 z-40 bg-black/30 backdrop-blur-[2px] lg:hidden"
+          className="fixed inset-0 z-[65] bg-black/60 backdrop-blur-xs lg:hidden"
           onClick={() => setIsLeftOpen(false)}
           aria-hidden
         />
@@ -1033,12 +1044,12 @@ export default function AIHubLayout() {
           the hamburger and traps the user on mobile. On desktop the rail is
           `lg:static` with no z-index, so this only matters below lg.
         */}
-        <header className="relative z-[60] flex shrink-0 items-center justify-between px-5 py-3 border-b-2 border-black dark:border-[#383d45] bg-card/90 backdrop-blur-md sm:px-7 lg:px-8">
-          <div className="flex min-w-0 items-center gap-2">
+        <header className="relative z-30 flex shrink-0 items-center justify-between px-2.5 sm:px-7 py-2 sm:py-3 border-b-2 border-black dark:border-[#383d45] bg-card/90 backdrop-blur-md lg:px-8">
+          <div className="flex min-w-0 items-center gap-1 sm:gap-2">
             <button
               type="button"
               onClick={() => setIsLeftOpen((v) => !v)}
-              className="flex size-9 shrink-0 cursor-pointer items-center justify-center rounded-xl border-2 border-black dark:border-[#383d45] bg-card text-foreground shadow-[2px_2px_0_0_#000] hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-none transition-all"
+              className="flex size-8.5 sm:size-9 shrink-0 cursor-pointer items-center justify-center rounded-xl border-2 border-black dark:border-[#383d45] bg-card text-foreground shadow-[2px_2px_0_0_#000] hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-none transition-all"
               aria-expanded={isLeftOpen}
               aria-controls="hub-rail"
               aria-label={isLeftOpen ? "Collapse chat rail" : "Expand chat rail"}
@@ -1075,11 +1086,11 @@ export default function AIHubLayout() {
             />
           </div>
 
-          <div className="flex shrink-0 items-center gap-2 sm:gap-2.5">
+          <div className="flex shrink-0 items-center gap-1 sm:gap-2.5">
             <button
               type="button"
               onClick={() => setTheme(resolvedTheme === "dark" ? "light" : "dark")}
-              className="flex size-9 shrink-0 cursor-pointer items-center justify-center rounded-xl border-2 border-black dark:border-[#383d45] bg-card text-foreground shadow-[2px_2px_0_0_#000] hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-none transition-all"
+              className="flex size-8.5 sm:size-9 shrink-0 cursor-pointer items-center justify-center rounded-xl border-2 border-black dark:border-[#383d45] bg-card text-foreground shadow-[2px_2px_0_0_#000] hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-none transition-all"
               aria-label={
                 mounted
                   ? `Switch to ${resolvedTheme === "dark" ? "light" : "dark"} mode`
@@ -1097,7 +1108,8 @@ export default function AIHubLayout() {
             <button
               type="button"
               onClick={startNewThread}
-              className="flex cursor-pointer items-center gap-1.5 rounded-xl border-2 border-black bg-primary px-3.5 py-2 text-xs font-mono font-bold uppercase tracking-wider text-black shadow-[2px_2px_0_0_#000] hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-none transition-all active:opacity-90"
+              className="flex cursor-pointer items-center justify-center size-8.5 sm:size-auto sm:px-3.5 sm:py-2 gap-1.5 rounded-xl border-2 border-black bg-primary text-xs font-mono font-bold uppercase tracking-wider text-black shadow-[2px_2px_0_0_#000] hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-none transition-all active:opacity-90 shrink-0"
+              title="New chat"
             >
               <Plus size={14} strokeWidth={2.5} aria-hidden />
               <span className="hidden sm:inline">New chat</span>
@@ -1107,7 +1119,7 @@ export default function AIHubLayout() {
               type="button"
               onClick={() => setIsRightOpen((v) => !v)}
               aria-pressed={isRightOpen}
-              className={`relative flex size-9 shrink-0 cursor-pointer items-center justify-center rounded-xl border-2 border-black dark:border-[#383d45] bg-card text-foreground shadow-[2px_2px_0_0_#000] hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-none transition-all ${
+              className={`relative flex size-8.5 sm:size-9 shrink-0 cursor-pointer items-center justify-center rounded-xl border-2 border-black dark:border-[#383d45] bg-card text-foreground shadow-[2px_2px_0_0_#000] hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-none transition-all ${
                 isRightOpen
                   ? "bg-primary text-black"
                   : ""
@@ -1145,7 +1157,7 @@ export default function AIHubLayout() {
       {/* Same reasoning as the rail scrim above: CSS decides, not `isMobile`. */}
       {isRightOpen && (
         <div
-          className="fixed inset-0 z-40 bg-black/30 backdrop-blur-[2px] lg:hidden"
+          className="fixed inset-0 z-[65] bg-black/60 backdrop-blur-xs lg:hidden"
           onClick={() => setIsRightOpen(false)}
           aria-hidden
         />
@@ -1153,10 +1165,10 @@ export default function AIHubLayout() {
 
       {/* ===================== RIGHT DRAWER (Study Materials) ===================== */}
       <aside
-        className={`fixed inset-y-0 right-0 z-50 flex h-full shrink-0 flex-col border-l-2 border-black dark:border-[#383d45] bg-card transition-transform duration-200 ease-out lg:static lg:z-auto ${
+        className={`fixed inset-y-0 right-0 max-lg:z-[70] z-30 flex h-full shrink-0 flex-col border-l-2 border-black dark:border-[#383d45] bg-card transition-transform duration-200 ease-out lg:static lg:z-auto ${
           isRightOpen
-            ? "visible w-[320px] translate-x-0"
-            : "invisible w-[320px] translate-x-full lg:hidden"
+            ? "visible w-[min(320px,90vw)] translate-x-0 shadow-2xl lg:shadow-none"
+            : "invisible w-[min(320px,90vw)] translate-x-full lg:hidden"
         }`}
         aria-label="Study materials"
       >

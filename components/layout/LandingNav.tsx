@@ -16,7 +16,7 @@ const navLinks = [
   { label: "FAQ", href: "#faq" },
 ];
 
-const shell = "w-full max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-12 xl:px-16";
+const shell = "w-full max-w-[1600px] mx-auto px-3 sm:px-6 lg:px-12 xl:px-16";
 
 export default function LandingNav({
   showDemoLogin = false,
@@ -48,14 +48,15 @@ export default function LandingNav({
       <header className="bg-background/95 backdrop-blur-md border-b-2 md:border-b-[3px] border-black dark:border-[#383d45] sticky top-0 z-50 transition-colors">
         <div className={`flex justify-between items-center h-16 md:h-20 ${shell}`}>
           {/* Logo & Brand */}
-          <Link href="/" className="flex items-center gap-3 group">
-            <BrandLogo size="md" className="rounded-lg shadow-[3px_3px_0_0_#000] group-hover:translate-x-0.5 group-hover:translate-y-0.5 group-hover:shadow-[1px_1px_0_0_#000] transition-all" />
-            <div className="flex flex-col">
-              <span className="font-display text-xl sm:text-2xl font-black tracking-tight text-foreground uppercase leading-none">
+          <Link href="/" className="flex items-center gap-2 sm:gap-3 group shrink min-w-0">
+            <BrandLogo size="sm" className="sm:hidden rounded-lg shadow-[2px_2px_0_0_#000] shrink-0" />
+            <BrandLogo size="md" className="hidden sm:inline-block rounded-lg shadow-[3px_3px_0_0_#000] shrink-0 group-hover:translate-x-0.5 group-hover:translate-y-0.5 group-hover:shadow-[1px_1px_0_0_#000] transition-all" />
+            <div className="flex flex-col min-w-0">
+              <span className="font-display text-lg sm:text-2xl font-black tracking-tight text-foreground uppercase leading-none truncate">
                 Career<span className="text-secondary dark:text-primary">Pilot</span>
               </span>
-              <span className="text-[10px] font-mono font-bold tracking-wider uppercase text-muted-foreground mt-0.5 flex items-center gap-1">
-                <span className="w-1.5 h-1.5 rounded-full bg-primary inline-block" />
+              <span className="hidden xs:flex text-[9px] sm:text-[10px] font-mono font-bold tracking-wider uppercase text-muted-foreground mt-0.5 items-center gap-1">
+                <span className="w-1.5 h-1.5 rounded-full bg-primary inline-block shrink-0" />
                 AI Career Platform
               </span>
             </div>
@@ -75,13 +76,13 @@ export default function LandingNav({
           </nav>
 
           {/* Right Actions */}
-          <div className="flex items-center gap-2 sm:gap-3">
+          <div className="flex items-center gap-1.5 sm:gap-3 shrink-0">
             {/* Theme Toggle */}
             {mounted && (
               <button
                 type="button"
                 onClick={() => setTheme(isDark ? "light" : "dark")}
-                className="w-10 h-10 rounded-lg border-2 border-black dark:border-[#383d45] bg-card text-foreground shadow-[3px_3px_0_0_#000] dark:shadow-[3px_3px_0_0_#000] hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-[1px_1px_0_0_#000] flex items-center justify-center transition-all cursor-pointer"
+                className="w-9 h-9 sm:w-10 sm:h-10 shrink-0 rounded-lg border-2 border-black dark:border-[#383d45] bg-card text-foreground shadow-[2px_2px_0_0_#000] sm:shadow-[3px_3px_0_0_#000] hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-none flex items-center justify-center transition-all cursor-pointer"
                 aria-label="Toggle theme"
               >
                 {isDark ? (
@@ -95,17 +96,17 @@ export default function LandingNav({
             {isAuthenticated ? (
               <Link
                 href="/dashboard"
-                className="inline-flex items-center gap-2 bg-primary text-black px-4 sm:px-5 py-2 sm:py-2.5 border-2 border-black shadow-[3px_3px_0_0_#000] rounded-lg font-mono text-xs sm:text-sm font-bold tracking-wide hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-[1px_1px_0_0_#000] active:translate-x-1 active:translate-y-1 active:shadow-none transition-all"
+                className="inline-flex items-center gap-1.5 bg-primary text-black px-2.5 sm:px-5 py-2 sm:py-2.5 border-2 border-black shadow-[2px_2px_0_0_#000] sm:shadow-[3px_3px_0_0_#000] rounded-lg font-mono text-xs sm:text-sm font-bold tracking-wide hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-none transition-all shrink-0"
               >
-                <LayoutDashboard className="w-4 h-4" />
-                <span>Dashboard</span>
+                <LayoutDashboard className="w-4 h-4 shrink-0" />
+                <span className="hidden xs:inline">Dashboard</span>
               </Link>
             ) : (
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
                 {showDemoLogin && (
                   <Link
                     href="/login?demo=true"
-                    className="hidden md:inline-flex items-center gap-1.5 px-3 py-2 border-2 border-black bg-secondary text-white rounded-lg font-mono text-xs font-bold uppercase tracking-wider shadow-[3px_3px_0_0_#000] hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-[1px_1px_0_0_#000] transition-all"
+                    className="hidden md:inline-flex items-center gap-1.5 px-3 py-2 border-2 border-black bg-secondary text-white rounded-lg font-mono text-xs font-bold uppercase tracking-wider shadow-[3px_3px_0_0_#000] hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-none transition-all"
                   >
                     <Sparkles className="w-3.5 h-3.5 text-primary" />
                     <span>Demo</span>
@@ -113,15 +114,16 @@ export default function LandingNav({
                 )}
                 <Link
                   href="/login"
-                  className="hidden sm:inline-flex items-center justify-center px-4 py-2 border-2 border-black dark:border-[#383d45] bg-card text-foreground rounded-lg font-mono text-xs sm:text-sm font-bold shadow-[3px_3px_0_0_#000] hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-[1px_1px_0_0_#000] transition-all"
+                  className="hidden sm:inline-flex items-center justify-center px-4 py-2 border-2 border-black dark:border-[#383d45] bg-card text-foreground rounded-lg font-mono text-xs sm:text-sm font-bold shadow-[3px_3px_0_0_#000] hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-none transition-all"
                 >
                   Log In
                 </Link>
                 <Link
                   href="/register"
-                  className="inline-flex items-center gap-1.5 bg-primary text-black px-4 sm:px-5 py-2 sm:py-2.5 border-2 border-black shadow-[4px_4px_0_0_#000] rounded-lg font-mono text-xs sm:text-sm font-bold uppercase tracking-wide hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-[2px_2px_0_0_#000] active:translate-x-1 active:translate-y-1 active:shadow-none transition-all group"
+                  className="inline-flex items-center gap-1 bg-primary text-black px-2.5 sm:px-5 py-2 sm:py-2.5 border-2 border-black shadow-[2px_2px_0_0_#000] sm:shadow-[4px_4px_0_0_#000] rounded-lg font-mono text-xs sm:text-sm font-bold uppercase tracking-wide hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-none transition-all group shrink-0"
                 >
-                  <span>Build My Path</span>
+                  <span className="hidden sm:inline">Build My Path</span>
+                  <span className="sm:hidden">Join</span>
                   <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
                 </Link>
               </div>
@@ -131,10 +133,10 @@ export default function LandingNav({
             <button
               type="button"
               onClick={() => setOpen(true)}
-              className="lg:hidden flex items-center justify-center h-10 w-10 border-2 border-black dark:border-[#383d45] bg-card text-foreground shadow-[3px_3px_0_0_#000] hover:bg-primary hover:text-black transition-all rounded-lg"
+              className="lg:hidden flex items-center justify-center h-9 w-9 sm:h-10 sm:w-10 shrink-0 border-2 border-black dark:border-[#383d45] bg-card text-foreground shadow-[2px_2px_0_0_#000] sm:shadow-[3px_3px_0_0_#000] hover:bg-primary hover:text-black transition-all rounded-lg cursor-pointer"
               aria-label="Open menu"
             >
-              <span className="material-symbols-outlined text-[22px]">menu</span>
+              <span className="material-symbols-outlined text-[20px] sm:text-[22px]">menu</span>
             </button>
           </div>
         </div>

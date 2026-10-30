@@ -58,13 +58,13 @@ export default function ReasoningEffortPicker({
         type="button"
         onClick={() => setOpen((v) => !v)}
         disabled={disabled}
-        className="flex min-w-0 cursor-pointer items-center gap-1.5 rounded-md px-2 py-1.5 text-[13px] font-medium tracking-[-0.01em] text-hub-text transition-colors hover:bg-hub-soft disabled:cursor-default disabled:opacity-50"
+        className="flex min-w-0 cursor-pointer items-center gap-1 sm:gap-1.5 rounded-md px-1.5 sm:px-2 py-1 sm:py-1.5 text-xs sm:text-[13px] font-medium tracking-[-0.01em] text-hub-text transition-colors hover:bg-hub-soft disabled:cursor-default disabled:opacity-50"
         title={disabled ? "Thinking effort applies to reasoning models" : "How hard the model should think"}
         aria-haspopup="listbox"
         aria-expanded={open}
       >
         <Brain size={14} strokeWidth={1.9} className="shrink-0 text-hub-muted" aria-hidden />
-        <span className="max-w-[92px] truncate">{effortLabel(effort)}</span>
+        <span className="max-w-[45px] xs:max-w-[80px] truncate">{effortLabel(effort)}</span>
         <ChevronDown
           size={13}
           strokeWidth={2}
