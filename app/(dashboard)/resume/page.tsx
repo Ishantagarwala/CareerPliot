@@ -79,8 +79,8 @@ export default function ResumePage() {
       <div className="border-b-2 border-black dark:border-[#383d45] pb-5 flex flex-col md:flex-row md:items-center md:justify-between gap-4 animate-fade-in-up">
         <div>
           <h1 className="text-2xl sm:text-3xl font-display font-black text-foreground tracking-tight uppercase flex items-center gap-3">
-            <span className="w-9 h-9 rounded-xl border-2 border-black bg-primary text-black flex items-center justify-center text-lg shadow-[2px_2px_0_0_#000]">
-              📄
+            <span className="w-9 h-9 rounded-xl border-2 border-black bg-primary text-black flex items-center justify-center shadow-[2px_2px_0_0_#000]">
+              <span className="material-symbols-outlined text-[20px]">description</span>
             </span>
             <span>ATS Resume Hub</span>
           </h1>

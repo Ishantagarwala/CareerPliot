@@ -48,8 +48,8 @@ export default function StreakTracker({ streakDays, lastActive }: StreakTrackerP
       <div className="mb-4">
         <div className="flex items-center justify-between">
           <h3 className="text-sm sm:text-base font-display font-black text-foreground uppercase tracking-tight flex items-center gap-2">
-            <span className="w-8 h-8 rounded-lg border-2 border-black bg-coral text-black flex items-center justify-center text-sm shadow-[2px_2px_0_0_#000]">
-              🔥
+            <span className="w-8 h-8 rounded-lg border-2 border-black bg-coral text-black flex items-center justify-center shadow-[2px_2px_0_0_#000]">
+              <span className="material-symbols-outlined text-[18px]">local_fire_department</span>
             </span>
             <span>Active Habit Tracker</span>
           </h3>

@@ -14,6 +14,7 @@ import {
   Play,
   Flame,
   Award,
+  Zap,
 } from "lucide-react";
 
 export default function InteractiveShowcase() {
@@ -142,8 +143,8 @@ export default function InteractiveShowcase() {
                           {item.status === "completed" ? (
                             <CheckCircle2 className="w-5 h-5 text-emerald-500 shrink-0 mt-0.5" />
                           ) : item.status === "in-progress" ? (
-                            <span className="w-5 h-5 rounded-full border-2 border-black bg-primary flex items-center justify-center text-[10px] font-mono font-black shrink-0 mt-0.5">
-                              ⚡
+                            <span className="w-5 h-5 rounded-full border-2 border-black bg-primary flex items-center justify-center shrink-0 mt-0.5">
+                              <Zap className="w-3 h-3 text-black fill-black" />
                             </span>
                           ) : (
                             <div className="w-5 h-5 rounded-full border border-black bg-muted shrink-0 mt-0.5" />
