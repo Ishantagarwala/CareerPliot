@@ -643,8 +643,10 @@ export default function AIHubLayout() {
   const startNewThread = useCallback(() => {
     setActiveThreadId(null);
     setNewChatNonce((prev) => prev + 1);
-    if (isMobile) setIsLeftOpen(false);
-  }, [isMobile]);
+    if (typeof window !== "undefined" && window.innerWidth < 1024) {
+      setIsLeftOpen(false);
+    }
+  }, []);
 
   const chooseUseCase = (value: "career" | "everyday") => {
     setUseCase(value);
@@ -707,15 +709,20 @@ export default function AIHubLayout() {
     <div className="aihub fixed inset-0 z-50 flex h-dvh w-full overflow-hidden bg-hub-bg font-sans text-hub-text">
       {/* ===================== LEFT RAIL ===================== */}
       <aside
-        className={`fixed inset-y-0 left-0 max-lg:z-[70] z-30 flex h-full w-[min(290px,85vw)] lg:w-[268px] shrink-0 flex-col border-r-2 border-black dark:border-[#383d45] bg-sidebar transition-all duration-200 ease-out lg:static lg:z-auto ${
+        className={`fixed inset-y-0 left-0 max-lg:z-[70] z-30 flex h-full shrink-0 flex-col border-black dark:border-[#383d45] transition-all duration-300 ease-in-out lg:static lg:z-auto bg-sidebar ${
           isLeftOpen
-            ? "visible translate-x-0 shadow-2xl lg:shadow-none"
-            : "max-lg:invisible max-lg:-translate-x-full lg:w-0 lg:overflow-hidden lg:border-r-0"
+            ? "visible translate-x-0 w-[min(290px,85vw)] lg:w-[268px] border-r-2 shadow-2xl lg:shadow-none"
+            : "max-lg:invisible max-lg:-translate-x-full w-0 lg:w-0 border-r-0 overflow-hidden pointer-events-none"
         }`}
         id="hub-rail"
         aria-label="Chat rail"
+        style={!isLeftOpen ? { width: 0, minWidth: 0, maxWidth: 0, borderRightWidth: 0, overflow: "hidden" } : undefined}
       >
-        <div className="flex h-full flex-col px-4 pt-4 sm:pt-5 pb-4">
+        <div
+          className={`flex h-full w-[268px] max-lg:w-[min(290px,85vw)] shrink-0 flex-col px-4 pt-4 sm:pt-5 pb-4 transition-opacity duration-200 ${
+            isLeftOpen ? "opacity-100" : "opacity-0 pointer-events-none"
+          }`}
+        >
           {/* Brand row with mobile close button */}
           <div className="mb-4 flex items-center justify-between gap-2">
             <div className="flex min-w-0 items-center gap-2">
@@ -905,7 +912,9 @@ export default function AIHubLayout() {
                                 type="button"
                                 onClick={() => {
                                   setActiveThreadId(thread._id);
-                                  if (isMobile) setIsLeftOpen(false);
+                                  if (typeof window !== "undefined" && window.innerWidth < 1024) {
+                                    setIsLeftOpen(false);
+                                  }
                                 }}
                                 className="min-w-0 flex-1 cursor-pointer truncate pr-14 text-left tracking-[-0.01em] sm:pr-0"
                                 title={thread.threadTitle || "New Chat"}

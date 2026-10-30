@@ -71,12 +71,10 @@ export default function HubComposer({
 
   return (
     <div className="relative w-full">
-      {isHero && <div className="composer-ambient" aria-hidden />}
-
       <div
-        className={`composer-shell relative z-10 border-2 border-black dark:border-[#383d45] bg-card rounded-2xl transition-all duration-200 ${
+        className={`composer-shell relative z-10 border-3 border-black dark:border-[#383d45] bg-card rounded-2xl transition-all duration-200 ${
           isHero
-            ? "shadow-[4px_4px_0_0_#000] dark:shadow-[4px_4px_0_0_#000] focus-within:shadow-[6px_6px_0_0_#000] focus-within:border-black"
+            ? "shadow-[5px_5px_0_0_#000] dark:shadow-[5px_5px_0_0_#000] focus-within:shadow-[7px_7px_0_0_#000] focus-within:translate-x-[-1px] focus-within:translate-y-[-1px]"
             : "shadow-[4px_4px_0_0_#000] dark:shadow-[4px_4px_0_0_#000] focus-within:shadow-[6px_6px_0_0_#000]"
         }`}
       >
@@ -209,9 +207,10 @@ export default function HubComposer({
       </div>
 
       {isHero && (
-        <p className="mt-3 flex items-center justify-center gap-1.5 text-[11.5px] text-hub-muted">
-          <AudioLines size={12} aria-hidden />
-          Enter to send · Shift + Enter for a new line
+        <p className="mt-3 flex items-center justify-center gap-2 font-mono text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
+          <span>↵ Enter to send</span>
+          <span>·</span>
+          <span>Shift + Enter for new line</span>
         </p>
       )}
     </div>

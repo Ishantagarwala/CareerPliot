@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useCallback, useEffect, useRef, useState } from "react";
-import type { LucideIcon } from "lucide-react";
+import { Bot, Sparkles, BrainCircuit, type LucideIcon } from "lucide-react";
 import { toast } from "sonner";
 import AihubReply from "./AihubReply";
 import HubComposer from "./HubComposer";
@@ -856,17 +856,31 @@ export default function UnifiedChat({
             Loading conversation…
           </div>
         ) : visibleMessages.length === 0 ? (
-          <div className="mx-auto flex min-h-full w-full max-w-[740px] flex-col items-center justify-center px-4 py-10 sm:px-6">
-            <div className="mb-9 flex flex-col items-center text-center sm:mb-11">
-              <div className="mb-7 flex justify-center">
-                <div className="ai-orb" aria-hidden />
+          <div className="mx-auto flex min-h-full w-full max-w-[760px] flex-col items-center justify-center px-4 py-8 sm:px-6 animate-fade-in-up">
+            {/* Neo-Brutalist Hero Header */}
+            <div className="mb-8 flex flex-col items-center text-center sm:mb-10">
+              <div className="relative mb-4 flex items-center justify-center">
+                <div className="size-16 rounded-2xl border-3 border-black bg-primary text-black flex items-center justify-center shadow-[4px_4px_0_0_#000] rotate-[-2deg] hover:rotate-0 transition-transform">
+                  <Bot className="size-8 text-black" strokeWidth={2.5} />
+                </div>
               </div>
-              <p className="mb-2 text-[28px] leading-tight font-semibold tracking-[-0.03em] text-hub-text sm:text-[30px]">
-                {greeting} {firstName}
-              </p>
-              <h1 className="text-[26px] leading-tight font-semibold tracking-[-0.03em] text-hub-text sm:text-[30px] md:text-[32px]">
-                How can we help you today?
+
+              <div className="inline-flex items-center gap-2 px-3 py-1 bg-black text-white font-mono text-[11px] font-black uppercase rounded-md border-2 border-black shadow-[2px_2px_0_0_#000] mb-4">
+                <span className="size-2 rounded-full bg-primary animate-pulse" />
+                <span>AI STUDY COPILOT · 24/7 CONTEXT</span>
+              </div>
+
+              <h1 className="text-2xl sm:text-3xl md:text-4xl font-display font-black uppercase tracking-tight text-foreground leading-[1.1]">
+                {greeting}{" "}
+                <span className="bg-primary text-black px-2.5 py-0.5 border-2 border-black inline-block shadow-[3px_3px_0_0_#000] rotate-[1deg]">
+                  {firstName}
+                </span>
+                <br />
+                <span className="mt-2 inline-block">What are we mastering today?</span>
               </h1>
+              <p className="text-xs sm:text-sm font-sans font-medium text-muted-foreground mt-3 max-w-md mx-auto">
+                Diagnose skill gaps, summarize uploaded study materials, or practice structured technical interview questions.
+              </p>
             </div>
 
             <div className="w-full max-w-[720px]">
@@ -894,31 +908,38 @@ export default function UnifiedChat({
             </div>
 
             {workflows && workflows.length > 0 && (
-              <div className="mt-10 grid w-full grid-cols-1 gap-2 sm:grid-cols-2">
-                {workflows.map((workflow) => {
+              <div className="mt-8 grid w-full grid-cols-1 gap-3 sm:grid-cols-2">
+                {workflows.map((workflow, idx) => {
                   const WorkflowIcon = workflow.icon;
+                  const accents = [
+                    "bg-primary text-black",
+                    "bg-secondary text-white",
+                    "bg-coral text-black",
+                    "bg-primary text-black",
+                  ];
+                  const accentClass = accents[idx % accents.length];
                   return (
-                  <button
-                    key={workflow.title}
-                    type="button"
-                    onClick={() => {
-                      setInput(workflow.prompt);
-                      textareaRef.current?.focus();
-                    }}
-                    className="group flex cursor-pointer items-start gap-3 rounded-xl border-2 border-black dark:border-[#383d45] bg-card p-4 text-left shadow-[3px_3px_0_0_#000] dark:shadow-[3px_3px_0_0_#000] hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-[1px_1px_0_0_#000] transition-all"
-                  >
-                    <div className="flex size-9 shrink-0 items-center justify-center rounded-lg border-2 border-black bg-primary text-black transition-colors">
-                      <WorkflowIcon size={18} strokeWidth={2} aria-hidden />
-                    </div>
-                    <div className="min-w-0">
-                      <h4 className="text-[14px] font-mono font-bold tracking-tight text-foreground">
-                        {workflow.title}
-                      </h4>
-                      <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
-                        {workflow.hint}
-                      </p>
-                    </div>
-                  </button>
+                    <button
+                      key={workflow.title}
+                      type="button"
+                      onClick={() => {
+                        setInput(workflow.prompt);
+                        textareaRef.current?.focus();
+                      }}
+                      className="group flex cursor-pointer items-start gap-3.5 rounded-2xl border-3 border-black dark:border-[#383d45] bg-card p-4 text-left shadow-[4px_4px_0_0_#000] hover:-translate-y-0.5 hover:shadow-[6px_6px_0_0_#000] active:translate-x-0.5 active:translate-y-0.5 active:shadow-[2px_2px_0_0_#000] transition-all"
+                    >
+                      <div className={`flex size-10 shrink-0 items-center justify-center rounded-xl border-2 border-black ${accentClass} shadow-[2px_2px_0_0_#000] group-hover:scale-105 transition-transform`}>
+                        <WorkflowIcon size={18} strokeWidth={2.5} aria-hidden />
+                      </div>
+                      <div className="min-w-0">
+                        <h4 className="font-display font-black text-sm uppercase tracking-tight text-foreground group-hover:text-secondary dark:group-hover:text-primary transition-colors">
+                          {workflow.title}
+                        </h4>
+                        <p className="mt-1 font-sans text-xs text-muted-foreground leading-relaxed">
+                          {workflow.hint}
+                        </p>
+                      </div>
+                    </button>
                   );
                 })}
               </div>
