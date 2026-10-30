@@ -31,7 +31,7 @@ export default function AihubReply({ message }: AihubReplyProps) {
           {message.attachments && message.attachments.length > 0 && (
             <AttachmentRow attachments={message.attachments} />
           )}
-          <div className="rounded-xl border-2 border-black dark:border-[#383d45] bg-card px-4 py-3 text-[14.5px] leading-relaxed tracking-[-0.01em] whitespace-pre-wrap text-foreground select-text shadow-[3px_3px_0_0_#000] dark:shadow-[3px_3px_0_0_#000]">
+          <div className="rounded-xl border-2 border-black dark:border-[#383d45] bg-card px-4 py-3 text-[16px] sm:text-[17px] leading-relaxed tracking-[-0.01em] whitespace-pre-wrap text-foreground select-text shadow-[3px_3px_0_0_#000] dark:shadow-[3px_3px_0_0_#000]">
             {message.content}
           </div>
         </div>
@@ -73,7 +73,7 @@ export default function AihubReply({ message }: AihubReplyProps) {
           />
         )}
 
-        <div className="text-[15.5px] sm:text-[16px] leading-[1.75] font-sans break-words text-foreground dark:text-[#f0f0f0] select-text">
+        <div className="text-[16.5px] sm:text-[17.5px] leading-[1.8] font-sans break-words text-foreground dark:text-[#f4f4f5] select-text">
           <MarkdownContent content={message.content} />
           {message.streaming && <span className="ai-reply-caret" aria-hidden />}
         </div>
@@ -113,7 +113,7 @@ function ReasoningDisclosure({
   const open = manuallyOpen || !answerStarted;
 
   return (
-    <div className="text-[13px]">
+    <div className="text-[14px]">
       <button
         type="button"
         onClick={() => setManuallyOpen((v) => !v)}
@@ -134,7 +134,7 @@ function ReasoningDisclosure({
       </button>
 
       {open && (
-        <div className="mt-1.5 ml-[5px] border-l border-hub-line pl-3 text-[13.5px] leading-[1.65] whitespace-pre-wrap text-hub-muted select-text">
+        <div className="mt-1.5 ml-[5px] border-l border-hub-line pl-3 text-[14.5px] sm:text-[15px] leading-[1.7] whitespace-pre-wrap text-hub-muted select-text">
           {reasoning}
           {!answerStarted && <span className="ai-reply-caret" aria-hidden />}
         </div>

@@ -856,7 +856,7 @@ export default function UnifiedChat({
             Loading conversation…
           </div>
         ) : visibleMessages.length === 0 ? (
-          <div className="mx-auto flex min-h-full w-full max-w-[760px] flex-col items-center justify-center px-4 py-8 sm:px-6 animate-fade-in-up">
+          <div className="mx-auto flex min-h-full w-full max-w-4xl lg:max-w-5xl flex-col items-center justify-center px-4 py-8 sm:px-6 animate-fade-in-up">
             {/* Clean Neo-Brutalist Hero Header */}
             <div className="mb-8 flex flex-col items-center text-center sm:mb-10">
               <h1 className="text-3xl sm:text-4xl md:text-5xl font-display font-black uppercase tracking-tight text-foreground dark:text-white leading-[1.1]">
@@ -872,7 +872,7 @@ export default function UnifiedChat({
               </p>
             </div>
 
-            <div className="w-full max-w-[720px]">
+            <div className="w-full max-w-3xl lg:max-w-4xl">
               <HubComposer
                 input={input}
                 onInputChange={setInput}
@@ -935,8 +935,8 @@ export default function UnifiedChat({
             )}
           </div>
         ) : (
-          <div className="flex w-full flex-col items-center px-4 py-6 sm:px-6">
-            <div className="w-full max-w-[740px] space-y-7">
+          <div className="flex w-full flex-col items-center px-4 py-6 sm:px-8 lg:px-12">
+            <div className="w-full max-w-4xl lg:max-w-5xl xl:max-w-[1080px] space-y-8">
               {visibleMessages.map((message, index) => (
                   <AihubReply
                     key={message.id || `msg_${index}`}
@@ -974,8 +974,8 @@ export default function UnifiedChat({
       {/* Attachments now render inside the composer card — see HubComposer. */}
 
       {visibleMessages.length > 0 && (
-        <div className="shrink-0 px-4 pt-2 pb-4 sm:px-8 lg:px-10 xl:px-12">
-          <div className="mx-auto w-full max-w-[740px]">
+        <div className="shrink-0 px-4 pt-2 pb-5 sm:px-8 lg:px-12">
+          <div className="mx-auto w-full max-w-4xl lg:max-w-5xl xl:max-w-[1080px]">
             <HubComposer
               input={input}
               onInputChange={setInput}

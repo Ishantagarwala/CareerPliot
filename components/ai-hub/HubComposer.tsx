@@ -140,7 +140,7 @@ export default function HubComposer({
             aria-label="Message Career Pilot AI"
             maxLength={MAX_MESSAGE_CHARS}
             rows={1}
-            className="composer-textarea min-h-[64px] w-full flex-1 border-0 bg-transparent p-0 text-[14.5px] leading-[1.55] tracking-[-0.015em] text-foreground placeholder:text-muted-foreground focus:ring-0 focus:outline-none"
+            className="composer-textarea min-h-[64px] w-full flex-1 border-0 bg-transparent p-0 text-[15.5px] sm:text-[16.5px] leading-[1.6] tracking-[-0.015em] text-foreground placeholder:text-muted-foreground focus:ring-0 focus:outline-none"
           />
         </div>
 

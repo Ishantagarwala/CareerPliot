@@ -99,7 +99,7 @@ function CodeBlock({
         </button>
       </div>
       <pre
-        className="overflow-x-auto bg-[#0A0A0A] p-4 text-xs leading-relaxed text-[#c4c7c8]"
+        className="overflow-x-auto bg-[#0A0A0A] p-4 text-[13.5px] sm:text-sm leading-relaxed text-[#c4c7c8]"
         style={{ fontFamily: "'JetBrains Mono', monospace" }}
       >
         {isSummary ? (
@@ -123,10 +123,10 @@ function variantStyles(variant: MarkdownVariant) {
     strong: isUser ? "font-bold text-inherit" : isSummary ? "font-bold text-white" : "font-bold text-foreground",
     muted: isUser ? "text-inherit opacity-80" : isSummary ? "text-[#8e9192]" : "text-muted-foreground",
     inlineCode: isUser
-      ? "mx-0.5 border border-black bg-black/10 px-1.5 py-0.5 text-[12px] text-inherit"
+      ? "mx-0.5 border border-black bg-black/10 px-1.5 py-0.5 text-[13.5px] sm:text-[14px] text-inherit"
       : isSummary
-        ? "mx-0.5 border border-[#262626] bg-[#0A0A0A] px-1.5 py-0.5 text-[12px] text-white"
-        : "mx-0.5 border border-black bg-background px-1.5 py-0.5 text-[12px] text-foreground",
+        ? "mx-0.5 border border-[#262626] bg-[#0A0A0A] px-1.5 py-0.5 text-[13.5px] sm:text-[14px] text-white"
+        : "mx-0.5 border border-black bg-background px-1.5 py-0.5 text-[13.5px] sm:text-[14px] text-foreground",
     link: isUser
       ? "underline underline-offset-2 text-inherit"
       : isSummary
@@ -158,7 +158,7 @@ function buildComponents(variant: MarkdownVariant): Components {
   return {
     h1: ({ children }) => (
       <h1
-        className={`mb-4 mt-6 text-xl font-bold ${styles.body}`}
+        className={`mb-4 mt-6 text-2xl sm:text-3xl font-extrabold tracking-tight ${styles.body}`}
         style={{ fontFamily: "'Hanken Grotesk', system-ui, sans-serif" }}
       >
         {children}
@@ -166,7 +166,7 @@ function buildComponents(variant: MarkdownVariant): Components {
     ),
     h2: ({ children }) => (
       <h2
-        className={`mb-3.5 mt-5 text-lg font-bold ${styles.body}`}
+        className={`mb-3.5 mt-5 text-xl sm:text-2xl font-bold tracking-tight ${styles.body}`}
         style={{ fontFamily: "'Hanken Grotesk', system-ui, sans-serif" }}
       >
         {children}
@@ -174,7 +174,7 @@ function buildComponents(variant: MarkdownVariant): Components {
     ),
     h3: ({ children }) => (
       <h3
-        className={`mb-2 mt-4 text-base font-bold ${styles.body}`}
+        className={`mb-2 mt-4 text-lg sm:text-xl font-bold ${styles.body}`}
         style={{ fontFamily: "'Hanken Grotesk', system-ui, sans-serif" }}
       >
         {children}
@@ -189,17 +189,17 @@ function buildComponents(variant: MarkdownVariant): Components {
       </h4>
     ),
     p: ({ children }) => (
-      <p className={`mb-3 text-[15.5px] sm:text-[16px] leading-[1.75] font-sans ${styles.body}`}>{children}</p>
+      <p className={`mb-3.5 text-[16.5px] sm:text-[17.5px] leading-[1.8] font-sans ${styles.body}`}>{children}</p>
     ),
     strong: ({ children }) => <strong className={styles.strong}>{children}</strong>,
     em: ({ children }) => <em className={`italic ${styles.muted}`}>{children}</em>,
     ul: ({ children }) => (
-      <ul className={`mb-3.5 ml-5 list-disc space-y-2 text-[15.5px] sm:text-[16px] font-sans ${styles.body}`}>{children}</ul>
+      <ul className={`mb-4 ml-6 list-disc space-y-2.5 text-[16.5px] sm:text-[17.5px] font-sans ${styles.body}`}>{children}</ul>
     ),
     ol: ({ children }) => (
-      <ol className={`mb-3.5 ml-5 list-decimal space-y-2 text-[15.5px] sm:text-[16px] font-sans ${styles.body}`}>{children}</ol>
+      <ol className={`mb-4 ml-6 list-decimal space-y-2.5 text-[16.5px] sm:text-[17.5px] font-sans ${styles.body}`}>{children}</ol>
     ),
-    li: ({ children }) => <li className="leading-[1.75]">{children}</li>,
+    li: ({ children }) => <li className="leading-[1.8]">{children}</li>,
     blockquote: ({ children }) => (
       <blockquote className={styles.blockquote}>{children}</blockquote>
     ),
