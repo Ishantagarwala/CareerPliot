@@ -100,10 +100,17 @@ export async function GET() {
       roadmap.stages.forEach((stage: any) => {
         const name = stage.name as "beginner" | "intermediate" | "advanced";
         if (stageProgress[name]) {
-          stage.milestones.forEach((milestone: any) => {
+          const items =
+            Array.isArray(stage.topics) && stage.topics.length > 0
+              ? stage.topics
+              : Array.isArray(stage.milestones)
+              ? stage.milestones
+              : [];
+
+          items.forEach((item: any) => {
             stageProgress[name].total += 1;
             totalMilestones += 1;
-            if (milestone.completed) {
+            if (item.completed) {
               stageProgress[name].completed += 1;
               completedMilestones += 1;
             }

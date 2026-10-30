@@ -13,15 +13,28 @@ export default function StreakTracker({ streakDays, lastActive }: StreakTrackerP
     const days = [];
     const dayNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
     const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const lastActiveDate = new Date(lastActive);
+    lastActiveDate.setHours(0, 0, 0, 0);
 
     for (let i = 6; i >= 0; i--) {
-      const d = new Date();
+      const d = new Date(today);
       d.setDate(today.getDate() - i);
+      d.setHours(0, 0, 0, 0);
 
-      const lastActiveDate = new Date(lastActive);
-      const isToday = d.toDateString() === today.toDateString();
+      const isToday = d.getTime() === today.getTime();
+
+      // Calculate how many days before lastActiveDate this day is
+      const diffFromLastActive = Math.round(
+        (lastActiveDate.getTime() - d.getTime()) / (1000 * 60 * 60 * 24)
+      );
+
+      // A day is active if it falls within the current streak window ending on lastActiveDate
       const isActive =
-        streakDays > 0 && d.toDateString() === lastActiveDate.toDateString();
+        streakDays > 0 &&
+        diffFromLastActive >= 0 &&
+        diffFromLastActive < streakDays;
 
       days.push({
         name: dayNames[d.getDay()],
