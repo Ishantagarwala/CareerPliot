@@ -169,15 +169,15 @@ export default function LoginForm({ demoEnabled = true }: { demoEnabled?: boolea
           <div className="relative flex items-center justify-center">
             <span className="absolute inline-flex h-20 w-20 rounded-2xl bg-secondary/20 animate-ping" />
             <div className="h-16 w-16 bg-secondary text-white border-2 border-black rounded-xl shadow-[3px_3px_0_0_#000] flex items-center justify-center animate-bounce">
-              <span className="material-symbols-outlined text-3xl text-primary">bolt</span>
+              <span className="material-symbols-outlined text-3xl text-white">bolt</span>
             </div>
           </div>
           <div className="space-y-2">
             <h3 className="text-xl font-display font-black text-foreground uppercase tracking-tight">
               Initializing Demo Session
             </h3>
-            <div className="inline-flex items-center gap-2 px-3 py-1 bg-background border border-black/20 dark:border-white/20 rounded-md font-mono text-xs font-bold text-secondary dark:text-primary">
-              <Loader2 className="h-3.5 w-3.5 animate-spin" />
+            <div className="inline-flex items-center gap-2 px-3 py-1 bg-background border border-black/20 dark:border-white/20 rounded-md font-mono text-xs font-bold text-foreground">
+              <Loader2 className="h-3.5 w-3.5 animate-spin text-secondary dark:text-primary" />
               <span>{demoStep}</span>
             </div>
           </div>
@@ -280,7 +280,7 @@ export default function LoginForm({ demoEnabled = true }: { demoEnabled?: boolea
                 id="instant-demo-login-btn"
                 className="w-full py-3.5 border-2 border-black bg-secondary hover:bg-secondary/90 text-white font-mono font-black text-xs uppercase tracking-wider rounded-xl shadow-[4px_4px_0_0_#000] hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-[2px_2px_0_0_#000] active:translate-x-1 active:translate-y-1 active:shadow-none transition-all flex items-center justify-center gap-2.5 cursor-pointer"
               >
-                <span className="material-symbols-outlined text-lg text-primary">bolt</span>
+                <span className="material-symbols-outlined text-lg text-white">bolt</span>
                 <span>Instant Demo Login (1-Click Access)</span>
               </button>
             </>

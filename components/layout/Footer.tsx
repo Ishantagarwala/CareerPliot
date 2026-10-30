@@ -147,12 +147,6 @@ export default function Footer() {
         <div className="flex items-center gap-2">
           <span>© {new Date().getFullYear()} CareerPilot AI. Built for the next generation of engineers.</span>
         </div>
-        <div className="flex items-center gap-4">
-          <span className="flex items-center gap-1.5 text-foreground">
-            <Sparkles className="w-3.5 h-3.5 text-secondary dark:text-primary" />
-            Designed with Modern Neo-Brutalism
-          </span>
-        </div>
       </div>
     </footer>
   );
