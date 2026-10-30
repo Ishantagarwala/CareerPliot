@@ -915,16 +915,16 @@ export default function UnifiedChat({
                         setInput(workflow.prompt);
                         textareaRef.current?.focus();
                       }}
-                      className="group flex cursor-pointer items-start gap-3.5 rounded-2xl border-2 sm:border-3 border-black dark:border-white/40 bg-card dark:bg-[#15171b] p-4.5 sm:p-5 text-left shadow-[4px_4px_0_0_#000] dark:shadow-[4px_4px_0_0_#ffffff20] hover:-translate-y-0.5 hover:shadow-[6px_6px_0_0_#000] dark:hover:border-white/70 active:translate-x-0.5 active:translate-y-0.5 active:shadow-[2px_2px_0_0_#000] transition-all"
+                      className="group flex cursor-pointer items-start gap-3.5 rounded-2xl border-2 sm:border-3 border-black dark:border-white bg-card dark:bg-[#15171b] p-4.5 sm:p-5 text-left shadow-[4px_4px_0_0_#000] dark:shadow-[4px_4px_0_0_#ffffff] hover:-translate-y-0.5 hover:shadow-[6px_6px_0_0_#000] dark:hover:shadow-[6px_6px_0_0_#ffffff] dark:hover:border-white active:translate-x-0.5 active:translate-y-0.5 active:shadow-[2px_2px_0_0_#000] dark:active:shadow-[2px_2px_0_0_#ffffff] transition-all"
                     >
-                      <div className={`flex size-10 shrink-0 items-center justify-center rounded-xl border-2 border-black dark:border-white/40 ${accentClass} shadow-[2px_2px_0_0_#000] dark:shadow-[2px_2px_0_0_#ffffff20] group-hover:scale-105 transition-transform`}>
+                      <div className={`flex size-10 shrink-0 items-center justify-center rounded-xl border-2 border-black dark:border-white ${accentClass} shadow-[2px_2px_0_0_#000] dark:shadow-[2px_2px_0_0_#ffffff] group-hover:scale-105 transition-transform`}>
                         <WorkflowIcon size={18} strokeWidth={2.5} aria-hidden />
                       </div>
                       <div className="min-w-0">
                         <h4 className="font-display font-black text-sm sm:text-base uppercase tracking-tight text-foreground dark:text-white group-hover:text-secondary dark:group-hover:text-primary transition-colors">
                           {workflow.title}
                         </h4>
-                        <p className="mt-1 font-sans text-xs sm:text-[13px] text-muted-foreground dark:text-zinc-300 leading-relaxed font-medium">
+                        <p className="mt-1 font-sans text-xs sm:text-[13px] text-muted-foreground dark:text-zinc-200 leading-relaxed font-semibold">
                           {workflow.hint}
                         </p>
                       </div>

@@ -31,7 +31,7 @@ export default function AihubReply({ message }: AihubReplyProps) {
           {message.attachments && message.attachments.length > 0 && (
             <AttachmentRow attachments={message.attachments} />
           )}
-          <div className="rounded-xl border-2 border-black dark:border-[#383d45] bg-card px-4 py-3 text-[16px] sm:text-[17px] leading-relaxed tracking-[-0.01em] whitespace-pre-wrap text-foreground select-text shadow-[3px_3px_0_0_#000] dark:shadow-[3px_3px_0_0_#000]">
+          <div className="rounded-xl border-2 border-black dark:border-white bg-card px-4 py-3 text-[16px] sm:text-[17px] leading-relaxed tracking-[-0.01em] whitespace-pre-wrap text-foreground select-text shadow-[3px_3px_0_0_#000] dark:shadow-[3px_3px_0_0_#ffffff]">
             {message.content}
           </div>
         </div>

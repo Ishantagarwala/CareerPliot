@@ -72,10 +72,10 @@ export default function HubComposer({
   return (
     <div className="relative w-full">
       <div
-        className={`composer-shell relative z-10 border-3 border-black dark:border-[#383d45] bg-card rounded-2xl transition-all duration-200 ${
+        className={`composer-shell relative z-10 border-3 border-black dark:border-white bg-card rounded-2xl transition-all duration-200 ${
           isHero
-            ? "shadow-[5px_5px_0_0_#000] dark:shadow-[5px_5px_0_0_#000] focus-within:shadow-[7px_7px_0_0_#000] focus-within:translate-x-[-1px] focus-within:translate-y-[-1px]"
-            : "shadow-[4px_4px_0_0_#000] dark:shadow-[4px_4px_0_0_#000] focus-within:shadow-[6px_6px_0_0_#000]"
+            ? "shadow-[5px_5px_0_0_#000] dark:shadow-[5px_5px_0_0_#ffffff] focus-within:shadow-[7px_7px_0_0_#000] dark:focus-within:shadow-[7px_7px_0_0_#ffffff] focus-within:translate-x-[-1px] focus-within:translate-y-[-1px]"
+            : "shadow-[4px_4px_0_0_#000] dark:shadow-[4px_4px_0_0_#ffffff] focus-within:shadow-[6px_6px_0_0_#000] dark:focus-within:shadow-[6px_6px_0_0_#ffffff]"
         }`}
       >
         {/* Attachment chips */}
