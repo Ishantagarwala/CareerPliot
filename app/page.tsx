@@ -295,7 +295,7 @@ export default function Home() {
                     href="/login?demo=true"
                     className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-3.5 bg-secondary text-white font-mono text-sm font-bold uppercase tracking-wide rounded-xl border-2 border-black shadow-[3px_3px_0_0_#000] sm:shadow-[4px_4px_0_0_#000] hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-[2px_2px_0_0_#000] transition-all text-center"
                   >
-                    <Zap className="w-4 h-4 fill-primary text-primary" />
+                    <Zap className="w-4 h-4 fill-white text-white" />
                     <span>Demo Mode</span>
                   </Link>
                 )}
@@ -696,16 +696,16 @@ export default function Home() {
         </div>
 
         <div className={`${shell} text-center max-w-4xl relative z-10`}>
-          <div className="inline-block px-3 py-1 bg-black text-primary font-mono text-xs font-black uppercase rounded border border-primary mb-6">
+          <div className="inline-block px-3.5 py-1 bg-black text-white font-mono text-xs font-black uppercase rounded-md border-2 border-black shadow-[3px_3px_0_0_#000] mb-6">
             START YOUR JOURNEY
           </div>
-          <h2 className="font-display text-4xl sm:text-5xl md:text-6xl font-black uppercase tracking-tight leading-[1.02] text-white">
+          <h2 className="font-display text-4xl sm:text-5xl md:text-6xl font-black uppercase tracking-tight leading-[1.1] text-white">
             Your Future Won&apos;t <br />
-            <span className="text-primary underline decoration-black decoration-4">
+            <span className="bg-primary text-black px-3.5 py-0.5 border-2 border-black inline-block shadow-[4px_4px_0_0_#000] mt-3">
               Build Itself.
             </span>
           </h2>
-          <p className="text-white/85 text-base sm:text-xl max-w-2xl mx-auto mt-6 leading-relaxed font-sans font-medium">
+          <p className="text-white text-base sm:text-xl max-w-2xl mx-auto mt-6 leading-relaxed font-sans font-medium opacity-90">
             Stop wandering through disjointed tutorials. Get your custom AI career roadmap, identify your skill gaps, and start building your future today.
           </p>
 

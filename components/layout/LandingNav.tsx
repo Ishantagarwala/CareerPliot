@@ -108,7 +108,7 @@ export default function LandingNav({
                     href="/login?demo=true"
                     className="hidden md:inline-flex items-center gap-1.5 px-3 py-2 border-2 border-black bg-secondary text-white rounded-lg font-mono text-xs font-bold uppercase tracking-wider shadow-[3px_3px_0_0_#000] hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-none transition-all"
                   >
-                    <Sparkles className="w-3.5 h-3.5 text-primary" />
+                    <Sparkles className="w-3.5 h-3.5 text-white" />
                     <span>Demo</span>
                   </Link>
                 )}

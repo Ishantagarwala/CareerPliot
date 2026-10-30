@@ -177,7 +177,7 @@ export default function DashboardHome() {
             href="/interview"
             className="inline-flex items-center gap-2 px-4 py-2.5 bg-secondary text-white font-mono text-xs font-bold uppercase rounded-xl border-2 border-black shadow-[3px_3px_0_0_#000] hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-[1px_1px_0_0_#000] active:translate-x-1 active:translate-y-1 active:shadow-none transition-all"
           >
-            <Zap className="w-4 h-4 fill-current text-primary" />
+            <Zap className="w-4 h-4 fill-white text-white" />
             <span>Mock Interview</span>
           </Link>
         </div>
