@@ -10,7 +10,13 @@ import { cn } from "@/lib/utils";
 import BrandLogo from "@/components/layout/BrandLogo";
 import { navSections, bottomNavItems, isNavActive } from "@/components/layout/navConfig";
 
-export default function Navbar({ showLinks = true }: { showLinks?: boolean }) {
+export default function Navbar({
+  showLinks = true,
+  onMenuClick,
+}: {
+  showLinks?: boolean;
+  onMenuClick?: () => void;
+}) {
   const { data: session, status } = useSession();
   const pathname = usePathname();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -25,36 +31,48 @@ export default function Navbar({ showLinks = true }: { showLinks?: boolean }) {
   const isDark = theme === "dark";
   void showLinks;
 
+  const handleMenuClick = () => {
+    if (onMenuClick) {
+      onMenuClick();
+    } else {
+      setMobileMenuOpen(!mobileMenuOpen);
+    }
+  };
+
   return (
     <>
-      <header className="md:hidden flex justify-between items-center w-full px-4 h-16 bg-background border-b border-border sticky top-0 z-50 transition-colors duration-300">
+      <header className="lg:hidden flex justify-between items-center w-full px-4 h-16 bg-background/95 backdrop-blur-md border-b-2 border-black dark:border-[#383d45] sticky top-0 z-50 transition-colors duration-300">
         <Link href="/dashboard" className="flex items-center gap-2.5">
-          <BrandLogo size="sm" />
-          <h1
-            className="text-base font-bold text-foreground tracking-tight"
-            style={{ fontFamily: "'Hanken Grotesk', system-ui, sans-serif" }}
-          >
-            Career Pilot
-          </h1>
+          <BrandLogo size="sm" className="neo-shadow rounded-lg" />
+          <div>
+            <h1
+              className="text-base font-display font-black text-foreground tracking-tight uppercase leading-none"
+            >
+              Career Pilot
+            </h1>
+            <p className="text-[9px] font-mono font-bold text-muted-foreground uppercase tracking-widest mt-0.5">
+              Workspace
+            </p>
+          </div>
         </Link>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2.5">
           {mounted && (
             <button
               onClick={() => setTheme(isDark ? "light" : "dark")}
-              className="text-muted-foreground hover:text-foreground transition-colors p-2 cursor-pointer"
+              className="text-muted-foreground hover:text-foreground border border-black/20 dark:border-[#383d45] rounded-lg p-2 cursor-pointer transition-colors"
               aria-label="Toggle Theme"
             >
-              <div className="relative w-5 h-5 flex items-center justify-center overflow-hidden">
+              <div className="relative w-4 h-4 flex items-center justify-center overflow-hidden">
                 <Sun
                   className={cn(
-                    "absolute w-5 h-5 transition-all duration-500 transform",
+                    "absolute w-4 h-4 transition-all duration-500 transform text-amber-500",
                     isDark ? "rotate-90 scale-0 opacity-0" : "rotate-0 scale-100 opacity-100"
                   )}
                 />
                 <Moon
                   className={cn(
-                    "absolute w-5 h-5 transition-all duration-500 transform",
+                    "absolute w-4 h-4 transition-all duration-500 transform text-cyan-400",
                     isDark ? "rotate-0 scale-100 opacity-100" : "-rotate-90 scale-0 opacity-0"
                   )}
                 />
@@ -64,11 +82,13 @@ export default function Navbar({ showLinks = true }: { showLinks?: boolean }) {
 
           {isAuthenticated && (
             <button
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="text-muted-foreground hover:text-foreground transition-colors p-1"
+              type="button"
+              onClick={handleMenuClick}
+              className="border-2 border-black dark:border-[#383d45] bg-card text-foreground rounded-lg p-1.5 shadow-[2px_2px_0_0_#000] hover:bg-primary hover:text-black transition-all cursor-pointer flex items-center justify-center"
+              aria-label="Toggle Navigation"
             >
-              <span className="material-symbols-outlined text-[24px]">
-                {mobileMenuOpen ? "close" : "menu"}
+              <span className="material-symbols-outlined text-[22px]">
+                {mobileMenuOpen && !onMenuClick ? "close" : "menu"}
               </span>
             </button>
           )}
@@ -94,7 +114,7 @@ export default function Navbar({ showLinks = true }: { showLinks?: boolean }) {
       </header>
 
       {mobileMenuOpen && isAuthenticated && (
-        <div className="md:hidden fixed inset-x-0 top-16 z-40 bg-sidebar border-b border-sidebar-border animate-fade-in-down max-h-[calc(100vh-4rem)] overflow-y-auto">
+        <div className="lg:hidden fixed inset-x-0 top-16 z-40 bg-sidebar border-b border-sidebar-border animate-fade-in-down max-h-[calc(100vh-4rem)] overflow-y-auto">
           <nav className="px-4 py-4 space-y-4">
             {navSections.map((section) => (
               <div key={section.id} className="space-y-1">

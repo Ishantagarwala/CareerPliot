@@ -19,63 +19,63 @@ export default function HeroProductPreview() {
   return (
     <div className="relative w-full max-w-[580px] mx-auto lg:max-w-none">
       {/* Decorative Neo-Brutalist Geometric Badges behind */}
-      <div className="absolute -top-6 -right-6 hidden sm:flex items-center gap-1.5 bg-coral text-black font-mono font-black text-xs px-3 py-1.5 border-2 border-black rounded-lg shadow-[3px_3px_0_0_#000] rotate-3 z-30 select-none">
+      <div className="absolute -top-4 right-1 sm:-top-6 sm:-right-4 hidden md:flex items-center gap-1.5 bg-coral text-black font-mono font-black text-xs px-3 py-1.5 border-2 border-black rounded-lg shadow-[3px_3px_0_0_#000] rotate-3 z-30 select-none">
         <Sparkles className="w-3.5 h-3.5 fill-black" />
         <span>AUTONOMOUS AGENT</span>
       </div>
 
-      <div className="absolute -bottom-5 -left-5 hidden sm:flex items-center gap-1.5 bg-secondary text-white font-mono font-black text-xs px-3 py-1.5 border-2 border-black rounded-lg shadow-[3px_3px_0_0_#000] -rotate-3 z-30 select-none">
+      <div className="absolute -bottom-4 left-1 sm:-bottom-5 sm:-left-4 hidden md:flex items-center gap-1.5 bg-secondary text-white font-mono font-black text-xs px-3 py-1.5 border-2 border-black rounded-lg shadow-[3px_3px_0_0_#000] -rotate-3 z-30 select-none">
         <Flame className="w-3.5 h-3.5 fill-current text-primary" />
         <span>7-DAY STREAK</span>
       </div>
 
       {/* Main Container Card */}
-      <div className="relative z-10 bg-card border-3 border-black dark:border-[#383d45] rounded-2xl shadow-[8px_8px_0_0_#000] dark:shadow-[8px_8px_0_0_#000] overflow-hidden">
+      <div className="relative z-10 bg-card border-3 border-black dark:border-[#383d45] rounded-2xl shadow-[6px_6px_0_0_#000] sm:shadow-[8px_8px_0_0_#000] dark:shadow-[6px_6px_0_0_#000] sm:dark:shadow-[8px_8px_0_0_#000] overflow-hidden">
         {/* Card Header Chrome */}
-        <div className="bg-background border-b-3 border-black dark:border-[#383d45] px-4 py-3 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <span className="w-3.5 h-3.5 rounded-full border border-black bg-[#ff5f56]" />
-            <span className="w-3.5 h-3.5 rounded-full border border-black bg-[#ffbd2e]" />
-            <span className="w-3.5 h-3.5 rounded-full border border-black bg-[#27c93f]" />
-            <span className="ml-2 font-mono text-[11px] font-bold text-muted-foreground uppercase tracking-wider">
+        <div className="bg-background border-b-3 border-black dark:border-[#383d45] px-3 sm:px-4 py-2.5 sm:py-3 flex items-center justify-between">
+          <div className="flex items-center gap-1.5 sm:gap-2">
+            <span className="w-2.5 h-2.5 sm:w-3.5 sm:h-3.5 rounded-full border border-black bg-[#ff5f56]" />
+            <span className="w-2.5 h-2.5 sm:w-3.5 sm:h-3.5 rounded-full border border-black bg-[#ffbd2e]" />
+            <span className="w-2.5 h-2.5 sm:w-3.5 sm:h-3.5 rounded-full border border-black bg-[#27c93f]" />
+            <span className="ml-1 sm:ml-2 font-mono text-[9px] sm:text-[11px] font-bold text-muted-foreground uppercase tracking-wider truncate">
               STUDENT_HUD_LIVE.SYS
             </span>
           </div>
 
-          <div className="flex items-center gap-1 bg-primary text-black px-2 py-0.5 border border-black rounded font-mono text-[10px] font-extrabold uppercase">
+          <div className="flex items-center gap-1 bg-primary text-black px-1.5 sm:px-2 py-0.5 border border-black rounded font-mono text-[9px] sm:text-[10px] font-extrabold uppercase shrink-0">
             <span className="w-1.5 h-1.5 rounded-full bg-black animate-ping" />
             <span>AI MATCH ACTIVE</span>
           </div>
         </div>
 
         {/* Card Body */}
-        <div className="p-5 sm:p-6 space-y-5 bg-card">
+        <div className="p-4 sm:p-6 space-y-4 sm:space-y-5 bg-card">
           {/* Target Role & Compatibility Header */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 bg-background border-2 border-black dark:border-[#383d45] rounded-xl shadow-[3px_3px_0_0_#000]">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3.5 sm:p-4 bg-background border-2 border-black dark:border-[#383d45] rounded-xl shadow-[3px_3px_0_0_#000]">
             <div>
               <div className="flex items-center gap-2">
-                <span className="font-mono text-[10px] font-extrabold uppercase text-secondary dark:text-cyan tracking-wider">
+                <span className="font-mono text-[9px] sm:text-[10px] font-extrabold uppercase text-secondary dark:text-cyan tracking-wider">
                   TARGET CAREER GOAL
                 </span>
-                <span className="px-1.5 py-0.2 bg-primary text-black font-mono font-bold text-[9px] rounded border border-black">
+                <span className="px-1.5 py-0.2 bg-primary text-black font-mono font-bold text-[8px] sm:text-[9px] rounded border border-black">
                   TOP 1% FIT
                 </span>
               </div>
-              <h4 className="font-display text-lg sm:text-xl font-black text-foreground uppercase tracking-tight mt-0.5">
+              <h4 className="font-display text-base sm:text-xl font-black text-foreground uppercase tracking-tight mt-0.5">
                 Full-Stack AI Engineer
               </h4>
             </div>
 
-            <div className="flex items-baseline gap-1 sm:text-right bg-card px-3 py-1.5 rounded-lg border-2 border-black dark:border-[#383d45]">
-              <span className="font-display text-2xl font-black text-secondary dark:text-primary">94</span>
-              <span className="font-mono text-xs font-bold text-muted-foreground">% Match</span>
+            <div className="flex items-baseline gap-1 sm:text-right bg-card px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-lg border-2 border-black dark:border-[#383d45] self-start sm:self-auto">
+              <span className="font-display text-xl sm:text-2xl font-black text-secondary dark:text-primary">94</span>
+              <span className="font-mono text-[10px] sm:text-xs font-bold text-muted-foreground">% Match</span>
             </div>
           </div>
 
           {/* Interactive Metric Switcher */}
-          <div className="grid grid-cols-3 gap-2">
+          <div className="grid grid-cols-3 gap-1.5 sm:gap-2">
             {[
-              { id: "readiness", label: "Job Readiness", val: "88%" },
+              { id: "readiness", label: "Readiness", val: "88%" },
               { id: "skills", label: "Skill Gap", val: "2 Missing" },
               { id: "roadmap", label: "Roadmap", val: "Stage 02" },
             ].map((tab) => (
@@ -83,14 +83,14 @@ export default function HeroProductPreview() {
                 key={tab.id}
                 type="button"
                 onClick={() => setActiveMetric(tab.id as typeof activeMetric)}
-                className={`p-2.5 rounded-lg border-2 border-black dark:border-[#383d45] font-mono text-left transition-all cursor-pointer ${
+                className={`p-2 sm:p-2.5 rounded-lg border-2 border-black dark:border-[#383d45] font-mono text-left transition-all cursor-pointer ${
                   activeMetric === tab.id
-                    ? "bg-primary text-black shadow-[3px_3px_0_0_#000] translate-x-0.5 translate-y-0.5 font-bold"
+                    ? "bg-primary text-black shadow-[2px_2px_0_0_#000] sm:shadow-[3px_3px_0_0_#000] translate-x-0.5 translate-y-0.5 font-bold"
                     : "bg-background text-foreground hover:bg-muted font-medium"
                 }`}
               >
-                <div className="text-[10px] uppercase opacity-75">{tab.label}</div>
-                <div className="font-display text-sm sm:text-base font-black mt-0.5">{tab.val}</div>
+                <div className="text-[9px] sm:text-[10px] uppercase opacity-75 truncate">{tab.label}</div>
+                <div className="font-display text-xs sm:text-base font-black mt-0.5 truncate">{tab.val}</div>
               </button>
             ))}
           </div>

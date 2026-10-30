@@ -225,14 +225,14 @@ export default function ResumeBuilder({ resumeId }: ResumeBuilderProps) {
                 className="block mt-2 bg-[#131313] border border-[#262626] p-3 text-white text-sm w-full md:w-80"
               />
             </div>
-            <div className="flex gap-2">
-              <button onClick={saveResume} disabled={saving} className="bg-white text-[#0A0A0A] px-4 py-2 text-xs font-bold">
+            <div className="flex flex-wrap items-center gap-2">
+              <button onClick={saveResume} disabled={saving} className="bg-white text-[#0A0A0A] px-4 py-2.5 text-xs font-bold rounded hover:bg-neutral-200 transition-colors disabled:opacity-50">
                 {saving ? "Saving..." : "Save"}
               </button>
-              <button onClick={() => window.print()} className="border border-[#404040] text-white px-4 py-2 text-xs font-bold">
+              <button onClick={() => window.print()} className="border border-[#404040] text-white px-4 py-2.5 text-xs font-bold rounded hover:bg-white/10 transition-colors">
                 Print / Export
               </button>
-              <a href={`/api/resume/${resumeId}/latex`} className="border border-[#404040] text-white px-4 py-2 text-xs font-bold">
+              <a href={`/api/resume/${resumeId}/latex`} className="border border-[#404040] text-white px-4 py-2.5 text-xs font-bold rounded hover:bg-white/10 transition-colors">
                 Download .tex
               </a>
             </div>

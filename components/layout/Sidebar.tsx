@@ -19,19 +19,24 @@ interface SidebarProps {
   className?: string;
   isCollapsed?: boolean;
   onToggle?: () => void;
+  onClose?: () => void;
+  onItemClick?: () => void;
 }
 
 function NavLink({
   item,
   pathname,
+  onClick,
 }: {
   item: NavItem;
   pathname: string;
+  onClick?: () => void;
 }) {
   const isActive = isNavActive(pathname, item.href);
   return (
     <Link
       href={item.href}
+      onClick={onClick}
       className={cn(
         "flex items-center gap-3 px-4 py-2.5 rounded-xl text-xs font-mono font-bold uppercase tracking-wider transition-all duration-150 border-2",
         isActive
@@ -59,7 +64,7 @@ function NavLink({
   );
 }
 
-export default function Sidebar({ className, onToggle }: SidebarProps) {
+export default function Sidebar({ className, onToggle, onClose, onItemClick }: SidebarProps) {
   const pathname = usePathname();
   const { data: session } = useSession();
   const { theme, setTheme } = useTheme();
@@ -87,7 +92,7 @@ export default function Sidebar({ className, onToggle }: SidebarProps) {
       )}
     >
       <div className="px-5 mb-5 pb-5 border-b-2 border-black dark:border-[#383d45] flex items-center justify-between gap-2">
-        <Link href="/dashboard" className="flex items-center gap-3 min-w-0">
+        <Link href="/dashboard" onClick={onItemClick} className="flex items-center gap-3 min-w-0">
           <BrandLogo size="md" className="neo-shadow rounded-lg shrink-0" />
           <div className="truncate">
             <h1 className="text-base font-display font-extrabold text-foreground tracking-tight leading-none uppercase truncate">
@@ -99,7 +104,17 @@ export default function Sidebar({ className, onToggle }: SidebarProps) {
           </div>
         </Link>
 
-        {onToggle && (
+        {onClose ? (
+          <button
+            type="button"
+            onClick={onClose}
+            className="p-1.5 hover:bg-card border-2 border-transparent hover:border-black dark:hover:border-[#383d45] rounded-lg transition-colors text-muted-foreground hover:text-foreground cursor-pointer flex items-center justify-center shrink-0"
+            title="Close Menu"
+            aria-label="Close menu"
+          >
+            <span className="material-symbols-outlined text-[20px]">close</span>
+          </button>
+        ) : onToggle ? (
           <button
             type="button"
             onClick={onToggle}
@@ -109,7 +124,7 @@ export default function Sidebar({ className, onToggle }: SidebarProps) {
           >
             <span className="material-symbols-outlined text-[20px]">menu_open</span>
           </button>
-        )}
+        ) : null}
       </div>
 
       <nav className="flex-1 flex flex-col gap-3 px-3 overflow-y-auto pb-2">
@@ -121,7 +136,7 @@ export default function Sidebar({ className, onToggle }: SidebarProps) {
               </p>
             ) : null}
             {section.items.map((item) => (
-              <NavLink key={item.href} item={item} pathname={pathname} />
+              <NavLink key={item.href} item={item} pathname={pathname} onClick={onItemClick} />
             ))}
           </div>
         ))}
@@ -171,7 +186,7 @@ export default function Sidebar({ className, onToggle }: SidebarProps) {
         )}
 
         {bottomNavItems.map((item) => (
-          <NavLink key={item.href} item={item} pathname={pathname} />
+          <NavLink key={item.href} item={item} pathname={pathname} onClick={onItemClick} />
         ))}
 
         <button

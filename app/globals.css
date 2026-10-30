@@ -328,29 +328,51 @@
   }
   body {
     @apply bg-background text-foreground;
+    overflow-x: clip;
+    -webkit-tap-highlight-color: transparent;
   }
   html {
     @apply font-sans;
     scroll-behavior: smooth;
+    overflow-x: clip;
   }
 }
 
-/* ===== CUSTOM SCROLLBAR (Neo-Brutalist) ===== */
+/* ===== RESPONSIVE SCROLLBAR (Neo-Brutalist on Desktop, Compact on Mobile/Tablet) ===== */
 
 ::-webkit-scrollbar {
-  width: 12px;
-  height: 12px;
+  width: 10px;
+  height: 10px;
 }
 ::-webkit-scrollbar-track {
   background: var(--background);
 }
 ::-webkit-scrollbar-thumb {
   background: #000000;
-  border: 3px solid var(--lime);
-  border-radius: 10px;
+  border: 2px solid var(--lime);
+  border-radius: 8px;
 }
 ::-webkit-scrollbar-thumb:hover {
   background: #1a1a1a;
+}
+
+@media (max-width: 768px) {
+  ::-webkit-scrollbar {
+    width: 5px;
+    height: 5px;
+  }
+  ::-webkit-scrollbar-thumb {
+    border-width: 1px;
+    border-radius: 4px;
+  }
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }
 
 /* Firefox */

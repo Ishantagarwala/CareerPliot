@@ -86,25 +86,25 @@ export default function StreakTracker({ streakDays, lastActive }: StreakTrackerP
           <Calendar className="w-4 h-4 text-secondary dark:text-primary" />
           7-Day Activity Grid
         </span>
-        <div className="grid grid-cols-7 gap-1.5 sm:gap-2">
+        <div className="grid grid-cols-7 gap-1 sm:gap-2">
           {weeklyDays.map((day, idx) => (
             <div
               key={idx}
-              className={`flex flex-col items-center p-2 rounded-lg border-2 text-center transition-all animate-fade-in-up ${
+              className={`flex flex-col items-center p-1 sm:p-2 rounded-lg border-2 text-center transition-all animate-fade-in-up ${
                 day.isActive
-                  ? "bg-primary text-black border-black shadow-[2px_2px_0_0_#000] font-black"
+                  ? "bg-primary text-black border-black shadow-[1px_1px_0_0_#000] sm:shadow-[2px_2px_0_0_#000] font-black"
                   : day.isToday
-                  ? "border-black dark:border-white bg-card text-foreground shadow-[2px_2px_0_0_#000] font-bold"
+                  ? "border-black dark:border-white bg-card text-foreground shadow-[1px_1px_0_0_#000] sm:shadow-[2px_2px_0_0_#000] font-bold"
                   : "border-black/20 dark:border-white/10 bg-background text-muted-foreground font-medium"
               }`}
               style={{ animationDelay: `${idx * 60}ms` }}
             >
-              <span className="text-[10px] font-mono uppercase tracking-wider block">
+              <span className="text-[8px] sm:text-[10px] font-mono uppercase tracking-wider block">
                 {day.name}
               </span>
-              <span className="text-sm font-display font-black block mt-1">{day.date}</span>
+              <span className="text-xs sm:text-sm font-display font-black block mt-0.5 sm:mt-1">{day.date}</span>
               {day.isActive && (
-                <span className="w-1.5 h-1.5 rounded-full bg-black mt-1" />
+                <span className="w-1.5 h-1.5 rounded-full bg-black mt-0.5 sm:mt-1" />
               )}
             </div>
           ))}

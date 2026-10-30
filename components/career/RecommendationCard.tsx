@@ -22,47 +22,47 @@ export default function RecommendationCard({ rec, onSelect, selectingId }: Recom
 
   return (
     <div
-      className={`relative overflow-hidden rounded-2xl transition-all p-6 flex flex-col justify-between border-2 md:border-3 border-black dark:border-[#383d45] ${
+      className={`relative overflow-hidden rounded-2xl transition-all p-4 sm:p-6 flex flex-col justify-between border-2 md:border-3 border-black dark:border-[#383d45] ${
         isSelected
           ? "bg-card shadow-[6px_6px_0_0_#000] ring-2 ring-primary"
           : "bg-card shadow-[4px_4px_0_0_#000] hover:-translate-y-1 hover:shadow-[6px_6px_0_0_#000]"
       }`}
     >
       {isSelected && (
-        <div className="absolute top-0 right-0 bg-primary text-black px-3.5 py-1 text-xs font-mono font-black flex items-center gap-1.5 border-l-2 border-b-2 border-black rounded-bl-xl shadow-xs">
-          <span className="material-symbols-outlined text-[15px]">check_circle</span>
+        <div className="absolute top-0 right-0 bg-primary text-black px-2.5 sm:px-3.5 py-0.5 sm:py-1 text-[10px] sm:text-xs font-mono font-black flex items-center gap-1 border-l-2 border-b-2 border-black rounded-bl-xl shadow-xs">
+          <span className="material-symbols-outlined text-[14px]">check_circle</span>
           SELECTED PATH
         </div>
       )}
 
       <div>
-        <div className="flex justify-between items-start gap-4 pr-16 mb-4">
-          <div className="flex items-start gap-3">
-            <div className="w-12 h-12 rounded-xl border-2 border-black bg-primary text-black flex items-center justify-center shrink-0 shadow-[2px_2px_0_0_#000]">
-              <span className="material-symbols-outlined text-[24px]">model_training</span>
+        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-3 sm:gap-4 pt-3 sm:pt-0 sm:pr-24 mb-4">
+          <div className="flex items-center sm:items-start gap-3 min-w-0">
+            <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl border-2 border-black bg-primary text-black flex items-center justify-center shrink-0 shadow-[2px_2px_0_0_#000]">
+              <span className="material-symbols-outlined text-[20px] sm:text-[24px]">model_training</span>
             </div>
-            <div>
-              <h3 className="font-display font-black text-xl text-foreground uppercase tracking-tight">
+            <div className="min-w-0">
+              <h3 className="font-display font-black text-lg sm:text-xl text-foreground uppercase tracking-tight truncate">
                 {rec.careerPath}
               </h3>
-              <p className="text-[11px] font-mono font-bold text-muted-foreground uppercase tracking-wider mt-0.5">
+              <p className="text-[10px] sm:text-[11px] font-mono font-bold text-muted-foreground uppercase tracking-wider mt-0.5">
                 Target Role
               </p>
             </div>
           </div>
 
-          <div className="flex flex-col items-end shrink-0">
-            <span className="text-3xl font-display font-black text-secondary dark:text-primary leading-none">
+          <div className="flex sm:flex-col items-center sm:items-end justify-between sm:justify-start gap-1 shrink-0 bg-background/50 sm:bg-transparent px-3 py-1.5 sm:p-0 rounded-lg sm:rounded-none border border-black/10 dark:border-white/10 sm:border-0">
+            <span className="text-2xl sm:text-3xl font-display font-black text-secondary dark:text-primary leading-none">
               {rec.matchScore}%
             </span>
-            <span className="text-[10px] font-mono font-bold text-muted-foreground uppercase tracking-wider mt-1">
+            <span className="text-[10px] font-mono font-bold text-muted-foreground uppercase tracking-wider">
               Match Fit
             </span>
           </div>
         </div>
 
-        <div className="p-4 bg-background border-2 border-black dark:border-[#383d45] rounded-xl mb-5">
-          <p className="text-sm font-sans text-muted-foreground leading-relaxed">{rec.reasoning}</p>
+        <div className="p-3.5 sm:p-4 bg-background border-2 border-black dark:border-[#383d45] rounded-xl mb-4 sm:mb-5">
+          <p className="text-xs sm:text-sm font-sans text-muted-foreground leading-relaxed">{rec.reasoning}</p>
         </div>
 
         <div className="h-3 w-full bg-muted border-2 border-black dark:border-[#383d45] rounded-full overflow-hidden p-0.5 mb-5">

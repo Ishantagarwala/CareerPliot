@@ -77,7 +77,7 @@ export default function InterviewSetup({
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_340px] gap-6 items-start">
-      <section className="bg-card border-2 border-black dark:border-[#383d45] rounded-2xl p-6 sm:p-8 space-y-6 neo-shadow">
+      <section className="bg-card border-2 border-black dark:border-[#383d45] rounded-2xl p-4 sm:p-6 md:p-8 space-y-6 neo-shadow">
         <div>
           <h2 className="text-xl font-display font-black text-foreground uppercase tracking-tight">
             Set up your interview

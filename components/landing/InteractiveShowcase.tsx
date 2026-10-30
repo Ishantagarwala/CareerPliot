@@ -37,7 +37,7 @@ export default function InteractiveShowcase() {
         </div>
 
         {/* Tab Controls Bar */}
-        <div className="flex flex-wrap gap-2.5 sm:gap-3 mb-8">
+        <div className="flex overflow-x-auto no-scrollbar sm:flex-wrap gap-2 sm:gap-3 mb-6 sm:mb-8 pb-2 sm:pb-0 -mx-4 px-4 sm:mx-0 sm:px-0">
           {[
             { id: "roadmap", label: "01 · Dynamic Roadmap", icon: Map, color: "hover:bg-primary" },
             { id: "skills", label: "02 · Skill-Gap HUD", icon: Target, color: "hover:bg-secondary hover:text-white" },
@@ -51,7 +51,7 @@ export default function InteractiveShowcase() {
                 key={tab.id}
                 type="button"
                 onClick={() => setActiveTab(tab.id as typeof activeTab)}
-                className={`flex items-center gap-2 px-4 sm:px-5 py-3 rounded-xl border-2 border-black dark:border-[#383d45] font-mono text-xs sm:text-sm font-bold uppercase tracking-wider transition-all cursor-pointer ${
+                className={`flex items-center gap-2 px-3.5 sm:px-5 py-2.5 sm:py-3 rounded-xl border-2 border-black dark:border-[#383d45] font-mono text-xs sm:text-sm font-bold uppercase tracking-wider transition-all cursor-pointer shrink-0 whitespace-nowrap ${
                   isActive
                     ? "bg-black text-white dark:bg-primary dark:text-black shadow-[4px_4px_0_0_#000] dark:shadow-[4px_4px_0_0_#000] translate-x-0.5 translate-y-0.5"
                     : `bg-card text-foreground shadow-[3px_3px_0_0_#000] hover:translate-x-0.5 hover:translate-y-0.5 ${tab.color}`
